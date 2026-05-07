@@ -1,0 +1,7 @@
+{
+  "name": "@aafe/dashboard",
+  "version": "0.1.0",
+  "description": "Dashboard scenario pack for AAFE.",
+  "private": true,
+  "type": "module"
+}

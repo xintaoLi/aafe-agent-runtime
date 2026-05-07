@@ -1,0 +1,7 @@
+{
+  "name": "@aafe/graph",
+  "version": "0.1.0",
+  "description": "Graph scenario pack for AAFE.",
+  "private": true,
+  "type": "module"
+}

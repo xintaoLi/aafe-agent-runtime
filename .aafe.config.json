@@ -1,5 +1,6 @@
 {
   "runtime": ".ai-agent",
+  "template": "default",
   "memory": {
     "enabled": true,
     "path": ".ai-agent/memory",
@@ -10,13 +11,34 @@
       "convention",
       "decision",
       "learning"
-    ]
+    ],
+    "dedupe": true,
+    "summary": true
   },
   "framework": "generic",
+  "frameworks": [
+    "generic"
+  ],
   "scenarios": [],
   "editors": [
     "cursor"
   ],
+  "packs": {
+    "frameworks": [],
+    "scenarios": []
+  },
+  "recommendedPackages": [
+    "@aafe/core",
+    "@aafe/adapter-cursor"
+  ],
+  "rerun": {
+    "enabled": true,
+    "maxReruns": 1,
+    "triggers": [
+      "refactor-critic:fail",
+      "merge_gate:fail"
+    ]
+  },
   "gates": [
     "architecture_gate",
     "implementation_gate",

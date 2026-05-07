@@ -1,0 +1,7 @@
+{
+  "name": "@aafe/next",
+  "version": "0.1.0",
+  "description": "Next.js framework pack for AAFE.",
+  "private": true,
+  "type": "module"
+}

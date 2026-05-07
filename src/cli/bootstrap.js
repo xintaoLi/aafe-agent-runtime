@@ -1,37 +1,51 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { createTemplatePlan, packageRecommendations } from '../templates/TemplateSystem.js';
 
 export async function bootstrapProject(root, detection, options = {}) {
-  await writeRuntime(root, detection, options);
-  await writeConfig(root, detection, options);
-  await writeEditorAdapters(root, detection, options);
+  const plan = createTemplatePlan(detection, options);
+  await writeRuntime(root, detection, options, plan);
+  await writeConfig(root, detection, options, plan);
+  await writeEditorAdapters(root, detection, options, plan);
+  await writePackageManifest(root, options, plan);
 }
 
-async function writeRuntime(root, detection, options) {
-  const files = runtimeFiles(detection);
+async function writeRuntime(root, detection, options, plan) {
+  const files = runtimeFiles(detection, plan);
   for (const [rel, content] of Object.entries(files)) {
     await writeIfAllowed(path.join(root, rel), content, options);
   }
 }
 
-async function writeConfig(root, detection, options) {
+async function writeConfig(root, _detection, options, plan) {
   const config = {
     runtime: '.ai-agent',
+    template: options.template ?? 'default',
     memory: {
-      enabled: true,
+      enabled: plan.memory,
       path: '.ai-agent/memory',
-      categories: ['design', 'component', 'habit', 'convention', 'decision', 'learning']
+      categories: ['design', 'component', 'habit', 'convention', 'decision', 'learning'],
+      dedupe: true,
+      summary: true
     },
-    framework: detection.framework,
-    scenarios: detection.scenarios,
-    editors: detection.editors,
+    framework: plan.framework,
+    frameworks: plan.frameworks,
+    scenarios: plan.scenarios,
+    editors: plan.editors,
+    packs: plan.packs,
+    recommendedPackages: packageRecommendations(plan),
+    rerun: {
+      enabled: true,
+      maxReruns: 1,
+      triggers: ['refactor-critic:fail', 'merge_gate:fail']
+    },
     gates: ['architecture_gate', 'implementation_gate', 'merge_gate']
   };
   await writeIfAllowed(path.join(root, '.aafe.config.json'), `${JSON.stringify(config, null, 2)}\n`, options);
 }
 
-async function writeEditorAdapters(root, detection, options) {
-  const editors = new Set(detection.editors);
+async function writeEditorAdapters(root, detection, options, plan) {
+  const editors = new Set(plan.editors);
   if (editors.has('cursor')) {
     await writeIfAllowed(path.join(root, '.cursor/rules/aafe-architecture-runtime.mdc'), cursorRules(), options);
   }
@@ -47,9 +61,20 @@ async function writeEditorAdapters(root, detection, options) {
   if (editors.has('trace')) {
     await writeIfAllowed(path.join(root, '.trace/aafe.md'), genericEditorRules('Trace'), options);
   }
+  if (editors.has('windsurf')) {
+    await writeIfAllowed(path.join(root, '.windsurfrules'), genericEditorRules('Windsurf'), options);
+  }
+  if (editors.has('vscode')) {
+    await writeIfAllowed(path.join(root, '.vscode/aafe.instructions.md'), genericEditorRules('VS Code'), options);
+  }
 }
 
-function runtimeFiles(detection) {
+async function writePackageManifest(root, options, plan) {
+  const content = `# AAFE Publishable Packs\n\nRecommended packages for this project:\n\n${packageRecommendations(plan).map((name) => `- ${name}`).join('\n')}\n\nThis file is generated from .aafe.config.json and documents the independent framework/scenario/editor packs that can be published later.\n`;
+  await writeIfAllowed(path.join(root, '.ai-agent/packs.md'), content, options);
+}
+
+function runtimeFiles(_detection, plan) {
   const files = {
     '.ai-agent/runtime/engine.md': engine(),
     '.ai-agent/runtime/router.yaml': router(),
@@ -85,7 +110,7 @@ function runtimeFiles(detection) {
     '.ai-agent/scenarios/graph.md': graphPack()
   };
 
-  if (!detection.scenarios.includes('graph')) {
+  if (!plan.scenarios.includes('graph')) {
     files['.ai-agent/pipelines/graph-feature.yaml'] = graphFeaturePipeline();
   }
   return files;
@@ -456,6 +481,7 @@ function performancePipeline() {
   - skill: evolution-predictor
   - gate: architecture_gate
   - skill: refactor-critic
+  - skill: memory-writer
   - gate: merge_gate
 `;
 }

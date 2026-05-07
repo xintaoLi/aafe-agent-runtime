@@ -1,0 +1,7 @@
+{
+  "name": "@aafe/vue",
+  "version": "0.1.0",
+  "description": "Vue framework pack for AAFE.",
+  "private": true,
+  "type": "module"
+}

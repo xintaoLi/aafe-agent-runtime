@@ -1,0 +1,7 @@
+{
+  "name": "@aafe/adapter-claude",
+  "version": "0.1.0",
+  "description": "Claude Code adapter pack for AAFE.",
+  "private": true,
+  "type": "module"
+}

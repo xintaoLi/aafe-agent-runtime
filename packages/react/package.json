@@ -1,0 +1,7 @@
+{
+  "name": "@aafe/react",
+  "version": "0.1.0",
+  "description": "React framework pack for AAFE.",
+  "private": true,
+  "type": "module"
+}

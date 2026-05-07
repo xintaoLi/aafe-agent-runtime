@@ -1,0 +1,7 @@
+{
+  "name": "@aafe/core",
+  "version": "0.1.0",
+  "description": "Core runtime package plan for AAFE.",
+  "private": true,
+  "type": "module"
+}

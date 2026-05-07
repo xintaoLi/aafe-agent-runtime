@@ -1,0 +1,7 @@
+{
+  "name": "@aafe/admin",
+  "version": "0.1.0",
+  "description": "Admin scenario pack for AAFE.",
+  "private": true,
+  "type": "module"
+}

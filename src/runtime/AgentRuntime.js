@@ -4,13 +4,13 @@ import { GateValidator } from './GateValidator.js';
 import { MemoryRuntime } from '../memory/MemoryRuntime.js';
 
 export class AgentRuntime {
-  constructor({ router, pipelines, gates, skills, memory, root = process.cwd() }) {
+  constructor({ router, pipelines, gates, skills, memory, root = process.cwd(), maxReruns = 1 }) {
     this.router = router;
     this.pipelines = pipelines;
     this.registry = new SkillRegistry(skills);
     this.gateValidator = new GateValidator(gates);
     this.memory = memory === false ? null : memory ?? new MemoryRuntime(root);
-    this.executor = new PipelineExecutor({ registry: this.registry, gateValidator: this.gateValidator });
+    this.executor = new PipelineExecutor({ registry: this.registry, gateValidator: this.gateValidator, maxReruns });
   }
 
   classify(request) {

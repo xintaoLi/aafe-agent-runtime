@@ -1,0 +1,7 @@
+{
+  "name": "@aafe/adapter-cursor",
+  "version": "0.1.0",
+  "description": "Cursor adapter pack for AAFE.",
+  "private": true,
+  "type": "module"
+}

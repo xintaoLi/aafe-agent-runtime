@@ -49,7 +49,8 @@ export function createDefaultRuntime(overrides = {}) {
     gates: overrides.gates ?? defaultGates,
     skills: { ...defaultSkills, ...(overrides.skills ?? {}) },
     memory: overrides.memory,
-    root: overrides.root
+    root: overrides.root,
+    maxReruns: overrides.maxReruns
   });
 }
 

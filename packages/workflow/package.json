@@ -1,0 +1,7 @@
+{
+  "name": "@aafe/workflow",
+  "version": "0.1.0",
+  "description": "Workflow scenario pack for AAFE.",
+  "private": true,
+  "type": "module"
+}

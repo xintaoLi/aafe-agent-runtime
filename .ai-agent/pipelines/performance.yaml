@@ -5,4 +5,5 @@ pipeline:
   - skill: evolution-predictor
   - gate: architecture_gate
   - skill: refactor-critic
+  - skill: memory-writer
   - gate: merge_gate

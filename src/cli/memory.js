@@ -1,4 +1,5 @@
 import { MemoryStore } from '../memory/MemoryStore.js';
+import { scanProjectMemory } from '../memory/CodeScanner.js';
 
 export async function runMemoryCommand(root, args) {
   const action = args[0] ?? 'help';
@@ -44,6 +45,24 @@ export async function runMemoryCommand(root, args) {
     return;
   }
 
+  if (action === 'summary') {
+    console.log(await store.summarize());
+    return;
+  }
+
+  if (action === 'compact') {
+    console.log(JSON.stringify(await store.compact(), null, 2));
+    return;
+  }
+
+  if (action === 'scan') {
+    const memories = await scanProjectMemory(root, { target: options.target, limit: Number(options.limit ?? 300) });
+    const written = [];
+    for (const memory of memories) written.push(await store.add(memory));
+    console.log(JSON.stringify({ scanned: memories.length, written: written.filter((item) => !item.duplicate).length, duplicates: written.filter((item) => item.duplicate).length }, null, 2));
+    return;
+  }
+
   printMemoryHelp();
 }
 
@@ -57,6 +76,7 @@ function parseMemoryOptions(args) {
     else if (arg.startsWith('--query=')) options.query = arg.slice('--query='.length);
     else if (arg.startsWith('--content=')) options.content = arg.slice('--content='.length);
     else if (arg.startsWith('--limit=')) options.limit = arg.slice('--limit='.length);
+    else if (arg.startsWith('--target=')) options.target = arg.slice('--target='.length);
     else options.rest.push(arg);
   }
   return options;
@@ -71,6 +91,9 @@ Commands:
   list [--type=design]         List memory entries
   search <query>               Search memory entries
   context <query>              Print compact memory context
+  summary                      Regenerate and print memory summary
+  compact                      Remove duplicate memories and rebuild topics
+  scan [--target=src]          Learn components and conventions from code
 
 Types:
   design | component | habit | convention | decision | learning

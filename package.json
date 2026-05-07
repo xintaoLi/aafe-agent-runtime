@@ -12,20 +12,24 @@
   "files": [
     "bin",
     "src",
-    "templates",
+    "packages",
     "README.md"
   ],
   "scripts": {
     "doctor": "node ./bin/aafe.js doctor",
     "init": "node ./bin/aafe.js init --yes",
     "sync": "node ./bin/aafe.js sync --yes",
+    "memory:summary": "node ./bin/aafe.js memory summary",
+    "memory:compact": "node ./bin/aafe.js memory compact",
+    "memory:scan": "node ./bin/aafe.js memory scan",
     "test": "node ./bin/aafe.js doctor"
   },
   "keywords": [
     "ai-agent",
     "frontend-architecture",
     "coding-agent",
-    "architecture-runtime"
+    "architecture-runtime",
+    "project-memory"
   ],
   "license": "MIT",
   "engines": {
