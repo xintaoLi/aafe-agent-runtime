@@ -1,0 +1,25 @@
+{
+  "runtime": ".ai-agent",
+  "memory": {
+    "enabled": true,
+    "path": ".ai-agent/memory",
+    "categories": [
+      "design",
+      "component",
+      "habit",
+      "convention",
+      "decision",
+      "learning"
+    ]
+  },
+  "framework": "generic",
+  "scenarios": [],
+  "editors": [
+    "cursor"
+  ],
+  "gates": [
+    "architecture_gate",
+    "implementation_gate",
+    "merge_gate"
+  ]
+}

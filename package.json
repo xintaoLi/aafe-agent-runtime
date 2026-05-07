@@ -1,0 +1,34 @@
+{
+  "name": "@aafe/agent-runtime",
+  "version": "0.1.0",
+  "description": "Universal Frontend Architecture Runtime for architecture-aware AI coding agents.",
+  "type": "module",
+  "bin": {
+    "aafe": "./bin/aafe.js"
+  },
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "README.md"
+  ],
+  "scripts": {
+    "doctor": "node ./bin/aafe.js doctor",
+    "init": "node ./bin/aafe.js init --yes",
+    "sync": "node ./bin/aafe.js sync --yes",
+    "test": "node ./bin/aafe.js doctor"
+  },
+  "keywords": [
+    "ai-agent",
+    "frontend-architecture",
+    "coding-agent",
+    "architecture-runtime"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
