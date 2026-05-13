@@ -15,6 +15,9 @@
     "packages",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "doctor": "node ./bin/aafe.js doctor",
     "init": "node ./bin/aafe.js init --yes",
@@ -22,6 +25,10 @@
     "memory:summary": "node ./bin/aafe.js memory summary",
     "memory:compact": "node ./bin/aafe.js memory compact",
     "memory:scan": "node ./bin/aafe.js memory scan",
+    "pattern:ask": "node ./bin/aafe.js pattern ask",
+    "pattern:select": "node ./bin/aafe.js pattern select",
+    "ddd:ask": "node ./bin/aafe.js ddd ask",
+    "ddd:analyze": "node ./bin/aafe.js ddd analyze",
     "test": "node ./bin/aafe.js doctor"
   },
   "keywords": [

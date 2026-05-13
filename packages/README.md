@@ -14,6 +14,8 @@ This directory contains publishable package placeholders for splitting `@aafe/ag
 
 ## Scenario Packs
 
+- `@aafe/ddd`
+- `@aafe/patterns`
 - `@aafe/graph`
 - `@aafe/admin`
 - `@aafe/dashboard`

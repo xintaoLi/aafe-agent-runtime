@@ -1,0 +1,7 @@
+{
+  "name": "@aafe/ddd",
+  "version": "0.1.0",
+  "description": "Domain-Driven Design scenario pack for AAFE.",
+  "private": true,
+  "type": "module"
+}

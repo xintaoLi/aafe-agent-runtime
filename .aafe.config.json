@@ -19,16 +19,24 @@
   "frameworks": [
     "generic"
   ],
-  "scenarios": [],
+  "scenarios": [
+    "patterns",
+    "ddd"
+  ],
   "editors": [
     "cursor"
   ],
   "packs": {
     "frameworks": [],
-    "scenarios": []
+    "scenarios": [
+      "patterns",
+      "ddd"
+    ]
   },
   "recommendedPackages": [
     "@aafe/core",
+    "@aafe/patterns",
+    "@aafe/ddd",
     "@aafe/adapter-cursor"
   ],
   "rerun": {
@@ -39,8 +47,15 @@
       "merge_gate:fail"
     ]
   },
+  "hooks": {
+    "enabled": true,
+    "sessionStart": ".cursor/hooks/aafe-session-start",
+    "failClosed": false
+  },
   "gates": [
+    "ddd_gate",
     "architecture_gate",
+    "pattern_gate",
     "implementation_gate",
     "merge_gate"
   ]

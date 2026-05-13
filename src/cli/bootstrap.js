@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createTemplatePlan, packageRecommendations } from '../templates/TemplateSystem.js';
 
@@ -39,7 +39,12 @@ async function writeConfig(root, _detection, options, plan) {
       maxReruns: 1,
       triggers: ['refactor-critic:fail', 'merge_gate:fail']
     },
-    gates: ['architecture_gate', 'implementation_gate', 'merge_gate']
+    hooks: {
+      enabled: true,
+      sessionStart: '.cursor/hooks/aafe-session-start',
+      failClosed: false
+    },
+    gates: ['ddd_gate', 'architecture_gate', 'pattern_gate', 'implementation_gate', 'merge_gate']
   };
   await writeIfAllowed(path.join(root, '.aafe.config.json'), `${JSON.stringify(config, null, 2)}\n`, options);
 }
@@ -48,6 +53,11 @@ async function writeEditorAdapters(root, detection, options, plan) {
   const editors = new Set(plan.editors);
   if (editors.has('cursor')) {
     await writeIfAllowed(path.join(root, '.cursor/rules/aafe-architecture-runtime.mdc'), cursorRules(), options);
+    await writeIfAllowed(path.join(root, '.cursor/hooks.json'), cursorHooks(), options);
+    await writeIfAllowed(path.join(root, '.cursor/hooks/run-hook.cmd'), cursorHookRunner(), options);
+    await writeIfAllowed(path.join(root, '.cursor/hooks/aafe-session-start'), cursorSessionStartHook(), options);
+    await makeExecutable(path.join(root, '.cursor/hooks/aafe-session-start'));
+    await makeExecutable(path.join(root, '.cursor/hooks/run-hook.cmd'));
   }
   if (editors.has('claude')) {
     await writeIfAllowed(path.join(root, 'CLAUDE.md'), claudeRules(), { ...options, append: true });
@@ -90,13 +100,24 @@ function runtimeFiles(_detection, plan) {
     '.ai-agent/memory/conventions.md': memoryConventions(),
     '.ai-agent/memory/decisions.md': memoryDecisions(),
     '.ai-agent/memory/learnings.jsonl': '',
+    '.ai-agent/skills/ddd-discovery.md': dddDiscoverySkill(),
+    '.ai-agent/skills/bounded-context-mapper.md': boundedContextMapperSkill(),
+    '.ai-agent/skills/aggregate-designer.md': aggregateDesignerSkill(),
+    '.ai-agent/skills/domain-event-designer.md': domainEventDesignerSkill(),
+    '.ai-agent/skills/ddd-implementation-planner.md': dddImplementationPlannerSkill(),
+    '.ai-agent/scenarios/ddd.md': dddPack(),
     '.ai-agent/skills/architect.md': architectSkill(),
     '.ai-agent/skills/module-decomposer.md': decomposerSkill(),
+    '.ai-agent/skills/pattern-interviewer.md': patternInterviewerSkill(),
     '.ai-agent/skills/pattern-selector.md': selectorSkill(),
+    '.ai-agent/skills/pattern-implementation-planner.md': patternImplementationPlannerSkill(),
+    '.ai-agent/scenarios/patterns.md': patternsPack(),
     '.ai-agent/skills/evolution-predictor.md': predictorSkill(),
     '.ai-agent/skills/refactor-critic.md': criticSkill(),
     '.ai-agent/skills/adr-generator.md': adrSkill(),
     '.ai-agent/pipelines/feature.yaml': featurePipeline(),
+    '.ai-agent/pipelines/domain-feature.yaml': domainFeaturePipeline(),
+    '.ai-agent/pipelines/pattern-feature.yaml': patternFeaturePipeline(),
     '.ai-agent/pipelines/refactor.yaml': refactorPipeline(),
     '.ai-agent/pipelines/bugfix.yaml': bugfixPipeline(),
     '.ai-agent/pipelines/performance.yaml': performancePipeline(),
@@ -145,6 +166,14 @@ async function safeRead(filePath) {
   }
 }
 
+async function makeExecutable(filePath) {
+  try {
+    await chmod(filePath, 0o755);
+  } catch {
+    // Hook files are best-effort on platforms that support executable bits.
+  }
+}
+
 function engine() {
   return `# AAFE Architecture Runtime Engine
 
@@ -170,6 +199,8 @@ function router() {
   return `routes:
   feature:
     pipeline: feature
+  domainFeature:
+    pipeline: domain-feature
   refactor:
     pipeline: refactor
   bugfix:
@@ -178,15 +209,26 @@ function router() {
     pipeline: performance
   graphFeature:
     pipeline: graph-feature
+  patternFeature:
+    pipeline: pattern-feature
 `;
 }
 
 function gates() {
   return `gates:
+  ddd_gate:
+    requires:
+      - ubiquitous_language
+      - bounded_contexts
+      - aggregates
   architecture_gate:
     requires:
       - boundaries
       - decomposition
+      - pattern_selection
+  pattern_gate:
+    requires:
+      - pattern_interview
       - pattern_selection
   implementation_gate:
     requires:
@@ -329,6 +371,97 @@ Record durable decisions, alternatives, tradeoffs and consequences here.
 `;
 }
 
+function dddDiscoverySkill() {
+  return `# Skill: DDD Discovery
+
+Discover domain knowledge before implementation.
+
+Output:
+- ubiquitous language
+- business subdomains
+- bounded contexts
+- core domain rules and invariants
+- candidate aggregates
+
+Required artifacts:
+- ubiquitous_language
+- bounded_contexts
+- aggregates
+`;
+}
+
+function boundedContextMapperSkill() {
+  return `# Skill: Bounded Context Mapper
+
+Map business capabilities into bounded contexts.
+
+Output:
+- context names
+- responsibilities
+- upstream/downstream relationships
+- anti-corruption boundaries
+
+Required artifacts:
+- bounded_contexts
+- context_map
+`;
+}
+
+function aggregateDesignerSkill() {
+  return `# Skill: Aggregate Designer
+
+Design aggregates around business invariants.
+
+Output:
+- aggregate roots
+- entities
+- value objects
+- invariants
+- repository boundaries
+
+Required artifacts:
+- aggregates
+- entities
+- value_objects
+- repositories
+`;
+}
+
+function domainEventDesignerSkill() {
+  return `# Skill: Domain Event Designer
+
+Identify domain events that represent meaningful business changes.
+
+Output:
+- event names
+- event payload ownership
+- event consumers
+- consistency model
+
+Required artifacts:
+- domain_events
+`;
+}
+
+function dddImplementationPlannerSkill() {
+  return `# Skill: DDD Implementation Planner
+
+Turn DDD model into frontend/application architecture.
+
+Output:
+- domain model files
+- application services/use cases
+- repositories/ports
+- infrastructure adapters
+- presentation boundaries
+- testing strategy
+
+Required artifacts:
+- ddd_implementation_plan
+- extension_points
+`;
+}
+
 function architectSkill() {
   return `# Skill: Architect
 
@@ -364,25 +497,65 @@ Required artifacts:
 `;
 }
 
+function patternInterviewerSkill() {
+  return `# Skill: Pattern Interviewer
+
+Before selecting a design pattern, analyze the feature and ask targeted questions when constraints are unclear.
+
+Question dimensions:
+- Will this feature need multiple interchangeable implementations?
+- Is there complex state transition or lifecycle control?
+- Does the operation need undo/redo/replay/audit?
+- Is the process a multi-step pipeline with reusable stages?
+- Does it need plugin/registry-based extension?
+
+Required artifacts:
+- pattern_interview
+`;
+}
+
 function selectorSkill() {
   return `# Skill: Pattern Selector
 
-Select architecture patterns only when constraints justify them.
+Select architecture patterns only when feature constraints justify them.
 
 Candidate patterns:
 - Strategy
 - Factory
 - Registry
 - State Machine
-- Event Bus
-- CQRS
+- Command
 - Pipeline
 - Observer
+- Adapter
+- Composition
 
-Always explain why simpler alternatives are insufficient.
+Selection rules:
+1. Prefer simple composition when no pattern is justified.
+2. Ask pattern interview questions before implementation when confidence is low.
+3. Output selected pattern, rejected alternatives, tradeoffs and landing plan.
+4. Do not use patterns only because they are familiar.
 
 Required artifacts:
 - pattern_selection
+`;
+}
+
+function patternImplementationPlannerSkill() {
+  return `# Skill: Pattern Implementation Planner
+
+Turn the selected design pattern into an implementation plan.
+
+Output:
+- interfaces/contracts to introduce
+- modules/files to create or change
+- extension points
+- migration impact
+- testing strategy
+
+Required artifacts:
+- pattern_implementation_plan
+- extension_points
 `;
 }
 
@@ -437,10 +610,53 @@ function featurePipeline() {
   return `pipeline:
   - skill: memory-recaller
   - skill: architect
+  - skill: ddd-discovery
+  - gate: ddd_gate
   - skill: module-decomposer
+  - skill: pattern-interviewer
   - skill: pattern-selector
+  - gate: pattern_gate
   - skill: evolution-predictor
   - gate: architecture_gate
+  - skill: adr-generator
+  - gate: implementation_gate
+  - skill: refactor-critic
+  - skill: memory-writer
+  - gate: merge_gate
+`;
+}
+
+function domainFeaturePipeline() {
+  return `pipeline:
+  - skill: memory-recaller
+  - skill: ddd-discovery
+  - skill: bounded-context-mapper
+  - skill: aggregate-designer
+  - skill: domain-event-designer
+  - gate: ddd_gate
+  - skill: architect
+  - skill: module-decomposer
+  - skill: pattern-interviewer
+  - skill: pattern-selector
+  - gate: pattern_gate
+  - skill: ddd-implementation-planner
+  - gate: implementation_gate
+  - skill: adr-generator
+  - skill: refactor-critic
+  - skill: memory-writer
+  - gate: merge_gate
+`;
+}
+
+function patternFeaturePipeline() {
+  return `pipeline:
+  - skill: memory-recaller
+  - skill: architect
+  - skill: module-decomposer
+  - skill: pattern-interviewer
+  - skill: pattern-selector
+  - gate: pattern_gate
+  - skill: pattern-implementation-planner
   - skill: adr-generator
   - gate: implementation_gate
   - skill: refactor-critic
@@ -494,7 +710,9 @@ function graphFeaturePipeline() {
   - skill: layout-strategy-selector
   - skill: runtime-evolution-predictor
   - skill: module-decomposer
+  - skill: pattern-interviewer
   - skill: pattern-selector
+  - gate: pattern_gate
   - gate: architecture_gate
   - skill: adr-generator
   - skill: refactor-critic
@@ -595,6 +813,59 @@ Focus:
 `;
 }
 
+function dddPack() {
+  return `# Scenario Pack: Domain-Driven Design
+
+Use this pack for business-heavy features where domain language and business invariants matter.
+
+Workflow:
+1. Discover ubiquitous language.
+2. Identify bounded contexts and context map.
+3. Design aggregates around invariants.
+4. Identify entities, value objects, repositories and domain services.
+5. Identify domain events and consistency boundaries.
+6. Map domain model to frontend/application architecture.
+
+DDD building blocks:
+- Ubiquitous Language
+- Subdomain
+- Bounded Context
+- Context Map
+- Aggregate Root
+- Entity
+- Value Object
+- Repository
+- Domain Service
+- Domain Event
+- Anti-Corruption Layer
+`;
+}
+
+function patternsPack() {
+  return `# Scenario Pack: Design Patterns
+
+Use this pack when implementing new features that may need a design pattern.
+
+Workflow:
+1. Analyze feature variability, lifecycle, state, extensibility and operation history.
+2. Ask pattern interview questions if constraints are unclear.
+3. Select the simplest sufficient pattern.
+4. Produce a concrete landing plan before coding.
+5. Record the decision and tradeoffs in Memory/ADR.
+
+Pattern map:
+- Strategy: interchangeable algorithms/providers
+- Factory: complex object creation
+- Registry: plugin or extension point
+- State Machine: complex lifecycle and illegal states
+- Command: undo/redo/replay/audit
+- Pipeline: multi-stage processing
+- Observer: decoupled event notification
+- Adapter: third-party or compatibility boundary
+- Composition: UI behavior composition
+`;
+}
+
 function cursorRules() {
   return `---
 description: AAFE Architecture Runtime
@@ -608,21 +879,105 @@ For every non-trivial frontend task:
 2. Classify the task using .ai-agent/runtime/router.yaml.
 3. Follow the selected .ai-agent/pipelines/*.yaml.
 4. Enforce .ai-agent/runtime/gates.yaml before implementation.
-5. Use framework and scenario packs when relevant.
-6. Output Architecture, Module Boundaries, Pattern Selection, Tradeoffs, Implementation and Critique.
+5. Use framework, DDD, design-pattern and scenario packs when relevant.
+6. For business-heavy features, run DDD Discovery before module decomposition.
+7. For new features, run Pattern Interview before Pattern Selection.
+8. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Tradeoffs, Implementation and Critique.
+`;
+}
+
+function cursorHooks() {
+  return `${JSON.stringify({
+    version: 1,
+    hooks: {
+      sessionStart: [
+        {
+          command: '.cursor/hooks/run-hook.cmd aafe-session-start',
+          timeout: 5,
+          failClosed: false
+        }
+      ]
+    }
+  }, null, 2)}\n`;
+}
+
+function cursorHookRunner() {
+  return `: << 'CMDBLOCK'
+@echo off
+if "%~1"=="" (
+    echo run-hook.cmd: missing script name >&2
+    exit /b 1
+)
+set "HOOK_DIR=%~dp0"
+if exist "C:\\Program Files\\Git\\bin\\bash.exe" (
+    "C:\\Program Files\\Git\\bin\\bash.exe" "%HOOK_DIR%%~1" %2 %3 %4 %5 %6 %7 %8 %9
+    exit /b %ERRORLEVEL%
+)
+if exist "C:\\Program Files (x86)\\Git\\bin\\bash.exe" (
+    "C:\\Program Files (x86)\\Git\\bin\\bash.exe" "%HOOK_DIR%%~1" %2 %3 %4 %5 %6 %7 %8 %9
+    exit /b %ERRORLEVEL%
+)
+where bash >nul 2>nul
+if %ERRORLEVEL% equ 0 (
+    bash "%HOOK_DIR%%~1" %2 %3 %4 %5 %6 %7 %8 %9
+    exit /b %ERRORLEVEL%
+)
+exit /b 0
+CMDBLOCK
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_NAME="$1"
+shift
+exec bash "\${SCRIPT_DIR}/\${SCRIPT_NAME}" "$@"
+`;
+}
+
+function cursorSessionStartHook() {
+  return `#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "\${SCRIPT_DIR}/../.." && pwd)"
+
+read_text() {
+  if [ -f "$1" ]; then
+    while IFS= read -r line || [ -n "$line" ]; do
+      printf '%s\\n' "$line"
+    done < "$1"
+  fi
+}
+
+escape_for_json() {
+  local s="$1"
+  s="\${s//\\\\/\\\\\\\\}"
+  s="\${s//\\"/\\\\\\"}"
+  s="\${s//$'\\n'/\\\\n}"
+  s="\${s//$'\\r'/\\\\r}"
+  s="\${s//$'\\t'/\\\\t}"
+  printf '%s' "$s"
+}
+
+engine="$(read_text "\${PROJECT_ROOT}/.ai-agent/runtime/engine.md")"
+router="$(read_text "\${PROJECT_ROOT}/.ai-agent/runtime/router.yaml")"
+gates="$(read_text "\${PROJECT_ROOT}/.ai-agent/runtime/gates.yaml")"
+
+context="<AAFE_RUNTIME>\\nAAFE Architecture Runtime is active for this repository.\\n\\nEngine:\\n\${engine}\\n\\nRouter:\\n\${router}\\n\\nGates:\\n\${gates}\\n</AAFE_RUNTIME>"
+escaped_context="$(escape_for_json "$context")"
+printf '{\\n  "additional_context": "%s"\\n}\\n' "$escaped_context"
+exit 0
 `;
 }
 
 function claudeRules() {
   return `# AAFE Architecture Runtime
 
-Load .ai-agent/runtime/engine.md for frontend engineering tasks. Classify requests, follow the matching pipeline, enforce gates, and only implement after architecture analysis passes.
+Load .ai-agent/runtime/engine.md for frontend engineering tasks. Classify requests, follow the matching pipeline, run DDD discovery for business-heavy features, run pattern interview for new features, enforce gates, and only implement after DDD, architecture and pattern gates pass.
 `;
 }
 
 function genericEditorRules(name) {
   return `# AAFE Architecture Runtime for ${name}
 
-Use .ai-agent as the project architecture runtime. Route requests through runtime/router.yaml, execute pipeline steps, enforce gates, and run refactor critique before finalizing code.
+Use .ai-agent as the project architecture runtime. Route requests through runtime/router.yaml, run DDD discovery for business-heavy features, run pattern interview for new features, execute pipeline steps, enforce gates, and run refactor critique before finalizing code.
 `;
 }

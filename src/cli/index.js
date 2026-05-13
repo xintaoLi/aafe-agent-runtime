@@ -1,8 +1,11 @@
 import { bootstrapProject } from './bootstrap.js';
+import { runDDDCommand } from './ddd.js';
 import { detectProject } from './detect.js';
 import { doctorProject } from './doctor.js';
 import { runMemoryCommand } from './memory.js';
+import { runPatternCommand } from './patterns.js';
 import { collectInitOptions } from './prompts.js';
+import { createRuntimeFromProject } from '../runtime/configLoader.js';
 
 export async function runCli(argv) {
   const command = argv[2] ?? 'help';
@@ -40,7 +43,35 @@ export async function runCli(argv) {
     return;
   }
 
+  if (command === 'pattern') {
+    await runPatternCommand(argv.slice(3));
+    return;
+  }
+
+  if (command === 'ddd') {
+    await runDDDCommand(argv.slice(3));
+    return;
+  }
+
+  if (command === 'run' || command === 'execute') {
+    const prompt = parsePrompt(argv.slice(3));
+    if (!prompt) {
+      throw new Error('Missing prompt. Usage: aafe run "<frontend task>"');
+    }
+    const runtime = await createRuntimeFromProject(process.cwd(), { memory: options.memory });
+    const result = await runtime.execute({ prompt });
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
   printHelp();
+}
+
+function parsePrompt(args) {
+  return args
+    .filter((arg) => !arg.startsWith('--') && arg !== '-y')
+    .join(' ')
+    .trim();
 }
 
 function parseOptions(args) {
@@ -69,11 +100,14 @@ Commands:
   doctor    Validate installed runtime files
   sync      Refresh generated runtime files
   memory    Manage project self-growing memory
+  pattern   Interview and select design patterns for features
+  ddd       Analyze domain-driven design model for business features
+  run       Execute the architecture runtime pipeline for a task
 
 Init options:
   --yes
   --framework=react|next|vue|monorepo|generic
-  --scenarios=graph,admin,dashboard,workflow
+  --scenarios=graph,admin,dashboard,workflow,patterns,ddd
   --editors=cursor,claude,codebuddy,codex,trace,windsurf,vscode
   --no-memory
   --force

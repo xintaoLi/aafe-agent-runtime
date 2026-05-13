@@ -1,6 +1,6 @@
 export function createTemplatePlan(detection, options = {}) {
   const frameworks = normalizeList(options.frameworks ?? detection.framework);
-  const scenarios = normalizeList(options.scenarios ?? detection.scenarios);
+  const scenarios = ensureCoreScenarios(normalizeList(options.scenarios ?? detection.scenarios));
   const editors = normalizeList(options.editors ?? detection.editors);
   return {
     framework: frameworks[0] ?? 'generic',
@@ -19,6 +19,14 @@ export function normalizeList(value) {
   if (!value) return [];
   if (Array.isArray(value)) return value.filter(Boolean);
   return String(value).split(',').map((item) => item.trim()).filter(Boolean);
+}
+
+function ensureCoreScenarios(scenarios) {
+  const result = [...scenarios];
+  for (const scenario of ['patterns', 'ddd']) {
+    if (!result.includes(scenario)) result.push(scenario);
+  }
+  return result;
 }
 
 export function packageRecommendations(plan) {

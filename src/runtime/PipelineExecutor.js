@@ -1,14 +1,17 @@
 export class PipelineExecutor {
-  constructor({ registry, gateValidator, maxReruns = 1 }) {
+  constructor({ registry, gateValidator, hookBus, maxReruns = 1 }) {
     this.registry = registry;
     this.gateValidator = gateValidator;
+    this.hookBus = hookBus;
     this.maxReruns = maxReruns;
   }
 
   async execute(pipeline, input) {
     let lastContext;
     for (let attempt = 0; attempt <= this.maxReruns; attempt += 1) {
+      await this.hookBus?.emit('beforePipelineAttempt', { pipeline, input, attempt });
       const context = await this.runOnce(pipeline, input, attempt);
+      appendHookTrace(context, 'afterPipelineAttempt', await this.hookBus?.emit('afterPipelineAttempt', { pipeline, input, attempt, context }));
       lastContext = context;
       if (!shouldRerun(context)) return context;
       context.trace.push({ type: 'rerun', name: 'critique-loop', status: 'warn', attempt });
@@ -27,16 +30,20 @@ export class PipelineExecutor {
 
     for (const step of pipeline.steps) {
       if (step.skill) {
+        appendHookTrace(context, 'beforeStep', await this.hookBus?.emit('beforeStep', { pipeline, step, context, attempt }));
         const result = await this.registry.execute(step.skill, context);
         context.results[step.skill] = result;
         context.trace.push({ type: 'skill', name: step.skill, status: result.status, attempt });
+        appendHookTrace(context, 'afterStep', await this.hookBus?.emit('afterStep', { pipeline, step, result, context, attempt }));
         if (result.status === 'fail' && step.blocking !== false) break;
       }
 
       if (step.gate) {
+        appendHookTrace(context, 'beforeStep', await this.hookBus?.emit('beforeStep', { pipeline, step, context, attempt }));
         const result = this.gateValidator.validate(step.gate, context);
         context.results[step.gate] = result;
         context.trace.push({ type: 'gate', name: step.gate, status: result.status, attempt });
+        appendHookTrace(context, 'afterStep', await this.hookBus?.emit('afterStep', { pipeline, step, result, context, attempt }));
         if (result.status === 'fail') break;
       }
     }
@@ -56,4 +63,10 @@ function summarizeFailure(context) {
     .filter(([, result]) => result.status === 'fail')
     .map(([name, result]) => ({ name, summary: result.summary, risks: result.risks }))
     .slice(0, 5);
+}
+
+function appendHookTrace(context, event, outputs = []) {
+  for (const output of outputs ?? []) {
+    context.trace.push({ type: 'hook', name: event, status: output.status, summary: output.summary, artifacts: output.artifacts });
+  }
 }

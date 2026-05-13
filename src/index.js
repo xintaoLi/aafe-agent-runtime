@@ -1,4 +1,5 @@
 export { AgentRuntime } from './runtime/AgentRuntime.js';
+export { HookBus } from './runtime/HookBus.js';
 export { SkillRegistry } from './runtime/SkillRegistry.js';
 export { PipelineExecutor } from './runtime/PipelineExecutor.js';
 export { GateValidator } from './runtime/GateValidator.js';
@@ -7,5 +8,7 @@ export { createRuntimeFromProject, loadRuntimeConfig } from './runtime/configLoa
 export { MemoryRuntime } from './memory/MemoryRuntime.js';
 export { MemoryStore } from './memory/MemoryStore.js';
 export { scanProjectMemory } from './memory/CodeScanner.js';
+export { analyzeDDD, buildDDDInterview } from './ddd/DDDAdvisor.js';
+export { analyzePatternFit, buildPatternInterview, patternCatalog } from './patterns/PatternAdvisor.js';
 export { detectProject } from './cli/detect.js';
 export { bootstrapProject } from './cli/bootstrap.js';

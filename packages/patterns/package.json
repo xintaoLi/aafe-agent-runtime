@@ -1,0 +1,7 @@
+{
+  "name": "@aafe/patterns",
+  "version": "0.1.0",
+  "description": "Design patterns scenario pack for AAFE.",
+  "private": true,
+  "type": "module"
+}

@@ -1,83 +1,165 @@
 # @aafe/agent-runtime
 
-`@aafe/agent-runtime` 是面向前端工程的项目级架构运行时，用来把 AI Coding 从“直接写代码”升级为“读取项目记忆、做架构分析、执行门禁、实现代码、批判审查、学习沉淀”的闭环。
+`@aafe/agent-runtime` 是面向前端工程的项目级架构运行时，用来把 AI Coding 从“直接写代码”升级为“读取项目记忆、DDD 领域建模、架构分析、交互澄清、设计模式选择、门禁校验、实现代码、批判审查、学习沉淀”的闭环。
 
-核心定位：**Universal Frontend Architecture Runtime + Project Memory**。
+核心定位：**Universal Frontend Architecture Runtime + Project Memory + DDD + Design Pattern Advisor**。
 
 ## 已实现能力
 
-- 交互式 `aafe init`，支持 `--framework`、`--scenarios`、`--editors`、`--no-memory`、`--force`
-- 多编辑器 adapter：Cursor、Claude Code、CodeBuddy、CodeX、Trace、Windsurf、VS Code
-- 可发布模板系统：根据 framework / scenario / editor 生成初始化计划和推荐包
-- 独立 package 草案：`@aafe/core`、`@aafe/react`、`@aafe/next`、`@aafe/vue`、`@aafe/graph` 等
+- 交互式 `aafe init`
+- 多编辑器 adapter
+- 可发布模板系统
+- 独立 framework/scenario npm packs 草案
 - Critique fail / merge gate fail 后自动 rerun
-- 从 `.ai-agent/runtime/*.yaml` 和 `.ai-agent/pipelines/*.yaml` 动态加载 Runtime 配置
+- 从 `.ai-agent/*.yaml` 动态加载 Runtime 配置
 - Memory 自动摘要、去重、压缩
 - 基于代码扫描的组件/规范自动学习
+- 新功能设计模式问答与选择
+- DDD 领域驱动设计支持
 
-## 执行链路
+## 新功能执行链路
 
 ```txt
 User Request
   -> Memory Recall
-  -> Task Classification
-  -> Pipeline Routing
-  -> Architecture Skills
-  -> Gate Validation
-  -> Implementation
+  -> DDD Discovery
+  -> Bounded Context Mapping
+  -> Aggregate Design
+  -> Domain Event Design
+  -> DDD Gate
+  -> Architecture Analysis
+  -> Module Decomposition
+  -> Pattern Interview
+  -> Pattern Selection
+  -> Pattern Gate
+  -> Implementation Planning
+  -> Implementation Gate
+  -> ADR
   -> Refactor Critique
-  -> Auto Rerun if failed
   -> Memory Write
 ```
 
-## 安装与初始化
+## DDD 能力
 
-本地开发：
+新增 DDD 场景包：
 
-```bash
-node ./bin/aafe.js init --yes
-node ./bin/aafe.js doctor
-node ./bin/aafe.js detect
+```txt
+.ai-agent/scenarios/ddd.md
+.ai-agent/skills/ddd-discovery.md
+.ai-agent/skills/bounded-context-mapper.md
+.ai-agent/skills/aggregate-designer.md
+.ai-agent/skills/domain-event-designer.md
+.ai-agent/skills/ddd-implementation-planner.md
+.ai-agent/pipelines/domain-feature.yaml
 ```
 
-交互式初始化：
+支持 DDD 构件：
+
+- `Ubiquitous Language`
+- `Subdomain`
+- `Bounded Context`
+- `Context Map`
+- `Aggregate Root`
+- `Entity`
+- `Value Object`
+- `Repository`
+- `Domain Service`
+- `Domain Event`
+- `Anti-Corruption Layer`
+
+### DDD CLI
+
+生成 DDD 发现问题：
 
 ```bash
-node ./bin/aafe.js init
+node ./bin/aafe.js ddd ask "实现多租户权限模块"
 ```
 
-非交互式指定模板：
+分析领域模型：
 
 ```bash
-node ./bin/aafe.js init --yes --framework=react --scenarios=graph,admin --editors=cursor,windsurf,vscode
+node ./bin/aafe.js ddd analyze "使用 DDD 实现多租户权限模块，支持角色、组织、权限策略和审计事件"
 ```
 
-发布后使用：
+输出包含：
+
+```txt
+ubiquitousLanguage
+boundedContexts
+aggregates
+entities
+valueObjects
+domainEvents
+repositories
+domainServices
+questions
+```
+
+### DDD Runtime
+
+```js
+import { analyzeDDD, buildDDDInterview, createRuntimeFromProject } from '@aafe/agent-runtime';
+
+const ddd = analyzeDDD({
+  prompt: '使用 DDD 实现多租户权限模块，支持角色、组织、权限策略'
+});
+
+const runtime = await createRuntimeFromProject(process.cwd());
+const result = await runtime.execute('使用 DDD 实现多租户权限模块，支持角色、组织、权限策略');
+```
+
+## 设计模式能力
+
+新增设计模式场景包：
+
+```txt
+.ai-agent/scenarios/patterns.md
+.ai-agent/skills/pattern-interviewer.md
+.ai-agent/skills/pattern-selector.md
+.ai-agent/skills/pattern-implementation-planner.md
+.ai-agent/pipelines/pattern-feature.yaml
+```
+
+支持模式：
+
+- `Strategy`
+- `Factory`
+- `Registry`
+- `State Machine`
+- `Command`
+- `Pipeline`
+- `Observer`
+- `Adapter`
+- `Composition`
+
+设计模式问答：
 
 ```bash
-npm install -D @aafe/agent-runtime
-npx aafe init
+node ./bin/aafe.js pattern ask "实现一个支持多种布局算法的画布自动布局能力"
+```
+
+设计模式选择：
+
+```bash
+node ./bin/aafe.js pattern select "实现一个支持多种布局算法的画布自动布局能力" --extensible
 ```
 
 ## CLI
 
 ```bash
-aafe init      # 初始化 .ai-agent、memory、editor adapters
-aafe detect    # 检测 framework/editor/scenario
-aafe doctor    # 检查运行时完整性
-aafe sync      # 刷新生成文件
-aafe memory    # 管理项目记忆
+aafe init
+aafe detect
+aafe doctor
+aafe sync
+aafe memory
+aafe pattern
+aafe ddd
 ```
 
-`init` 参数：
+初始化示例：
 
 ```bash
---yes
---framework=react|next|vue|monorepo|generic
---scenarios=graph,admin,dashboard,workflow
---editors=cursor,claude,codebuddy,codex,trace,windsurf,vscode
---no-memory
---force
+node ./bin/aafe.js init --yes --framework=react --scenarios=ddd,patterns,graph --editors=cursor
 ```
 
 ## 生成结构
@@ -90,204 +172,72 @@ aafe memory    # 管理项目记忆
 │   ├── gates.yaml
 │   ├── protocol.md
 │   └── memory.md
-├── memory/
-│   ├── index.md
-│   ├── summary.md
-│   ├── project-design.md
-│   ├── components.md
-│   ├── development-habits.md
-│   ├── conventions.md
-│   ├── decisions.md
-│   └── learnings.jsonl
 ├── skills/
+│   ├── memory-recaller.md
+│   ├── ddd-discovery.md
+│   ├── bounded-context-mapper.md
+│   ├── aggregate-designer.md
+│   ├── domain-event-designer.md
+│   ├── ddd-implementation-planner.md
+│   ├── architect.md
+│   ├── module-decomposer.md
+│   ├── pattern-interviewer.md
+│   ├── pattern-selector.md
+│   ├── pattern-implementation-planner.md
+│   ├── refactor-critic.md
+│   └── memory-writer.md
 ├── pipelines/
-├── frameworks/
+│   ├── feature.yaml
+│   ├── domain-feature.yaml
+│   ├── pattern-feature.yaml
+│   ├── graph-feature.yaml
+│   ├── refactor.yaml
+│   ├── bugfix.yaml
+│   └── performance.yaml
 ├── scenarios/
-└── packs.md
-```
-
-编辑器适配会按选择生成：
-
-```txt
-.cursor/rules/aafe-architecture-runtime.mdc
-CLAUDE.md
-.codebuddy/aafe.md
-.codex/aafe.md
-.trace/aafe.md
-.windsurfrules
-.vscode/aafe.instructions.md
-```
-
-## Memory 使用
-
-新增记忆：
-
-```bash
-aafe memory add "组件统一使用受控 props，并通过 onChange 暴露状态变化" --type=component --tags=component,controlled
-```
-
-搜索与上下文：
-
-```bash
-aafe memory search controlled
-aafe memory context Tree
-```
-
-摘要与去重：
-
-```bash
-aafe memory summary
-aafe memory compact
-```
-
-扫描代码自动学习组件和规范：
-
-```bash
-aafe memory scan --target=src
-```
-
-支持类型：
-
-```txt
-design | component | habit | convention | decision | learning
-```
-
-## Runtime API
-
-```js
-import {
-  createDefaultRuntime,
-  createRuntimeFromProject,
-  loadRuntimeConfig,
-  MemoryStore,
-  scanProjectMemory
-} from '@aafe/agent-runtime';
-```
-
-使用默认 Runtime：
-
-```js
-const runtime = createDefaultRuntime({ root: process.cwd(), maxReruns: 1 });
-
-await runtime.learn({
-  type: 'convention',
-  title: '组件命名规范',
-  content: '组件文件使用 PascalCase，hooks 使用 use 前缀',
-  tags: ['naming']
-});
-
-const result = await runtime.execute('实现用户权限模块');
-console.log(result.memoryContext);
-console.log(result.trace);
-```
-
-从项目 `.ai-agent/*.yaml` 动态加载：
-
-```js
-const runtime = await createRuntimeFromProject(process.cwd(), {
-  maxReruns: 1
-});
-
-const result = await runtime.execute('实现一个受控 Tree 组件');
-```
-
-扫描代码并写入 Memory：
-
-```js
-const store = new MemoryStore(process.cwd());
-const memories = await scanProjectMemory(process.cwd(), { target: 'src' });
-for (const memory of memories) await store.add(memory);
-```
-
-## Pipeline
-
-Feature Pipeline：
-
-```txt
-memory-recaller
--> architect
--> module-decomposer
--> pattern-selector
--> evolution-predictor
--> architecture_gate
--> adr-generator
--> implementation_gate
--> refactor-critic
--> memory-writer
--> merge_gate
-```
-
-Graph Feature Pipeline：
-
-```txt
-memory-recaller
--> architect
--> graph-architect
--> layout-strategy-selector
--> runtime-evolution-predictor
--> module-decomposer
--> pattern-selector
--> architecture_gate
--> adr-generator
--> refactor-critic
--> memory-writer
--> merge_gate
+│   ├── ddd.md
+│   ├── patterns.md
+│   ├── graph.md
+│   ├── admin.md
+│   ├── dashboard.md
+│   └── workflow.md
+└── memory/
 ```
 
 ## Gate
 
+新增 `ddd_gate`：
+
 ```yaml
 gates:
-  architecture_gate:
+  ddd_gate:
     requires:
-      - boundaries
-      - decomposition
+      - ubiquitous_language
+      - bounded_contexts
+      - aggregates
+```
+
+现有 `pattern_gate`：
+
+```yaml
+gates:
+  pattern_gate:
+    requires:
+      - pattern_interview
       - pattern_selection
-  implementation_gate:
-    requires:
-      - risk_review
-      - extension_points
-  merge_gate:
-    requires:
-      - critic_pass
 ```
 
-## 可发布包规划
+业务复杂的新功能应先通过 `ddd_gate`，再进入架构拆分和设计模式选择。
 
-`packages/` 下已提供独立包草案：
-
-```txt
-packages/
-├── core
-├── react
-├── next
-├── vue
-├── graph
-├── admin
-├── dashboard
-├── workflow
-├── adapter-cursor
-└── adapter-claude
-```
-
-推荐拆分：
-
-- `@aafe/core`：runtime、pipeline、gate、memory、config loader
-- `@aafe/react` / `@aafe/next` / `@aafe/vue`：framework packs
-- `@aafe/graph` / `@aafe/admin` / `@aafe/dashboard` / `@aafe/workflow`：scenario packs
-- `@aafe/adapter-*`：编辑器适配
-
-## 当前状态
-
-版本：`0.1.0`
-
-已验证：
+## 验证
 
 ```bash
+node ./bin/aafe.js sync --force
 node ./bin/aafe.js doctor
+node ./bin/aafe.js ddd analyze "使用 DDD 实现多租户权限模块，支持角色、组织、权限策略和审计事件"
 ```
 
-输出：
+期望 `doctor`：
 
 ```json
 {
