@@ -1,6 +1,6 @@
 {
   "name": "@aafe/agent-runtime",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Universal Frontend Architecture Runtime for architecture-aware AI coding agents.",
   "type": "module",
   "bin": {
