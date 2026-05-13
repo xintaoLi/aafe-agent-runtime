@@ -3,6 +3,7 @@
 Recommended packages for this project:
 
 - @aafe/core
+- @aafe/complex
 - @aafe/patterns
 - @aafe/ddd
 - @aafe/adapter-cursor

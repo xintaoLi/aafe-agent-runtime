@@ -23,7 +23,7 @@ export function normalizeList(value) {
 
 function ensureCoreScenarios(scenarios) {
   const result = [...scenarios];
-  for (const scenario of ['patterns', 'ddd']) {
+  for (const scenario of ['complex', 'patterns', 'ddd']) {
     if (!result.includes(scenario)) result.push(scenario);
   }
   return result;

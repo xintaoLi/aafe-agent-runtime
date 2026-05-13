@@ -1,6 +1,6 @@
 {
   "name": "@aafe/agent-runtime",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Universal Frontend Architecture Runtime for architecture-aware AI coding agents.",
   "type": "module",
   "bin": {
@@ -29,6 +29,7 @@
     "pattern:select": "node ./bin/aafe.js pattern select",
     "ddd:ask": "node ./bin/aafe.js ddd ask",
     "ddd:analyze": "node ./bin/aafe.js ddd analyze",
+    "update": "node ./bin/aafe.js update",
     "test": "node ./bin/aafe.js doctor"
   },
   "keywords": [

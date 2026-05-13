@@ -38,7 +38,7 @@ async function detectEditors(root) {
 
 function detectScenarios(deps, packageJson) {
   const text = JSON.stringify({ deps, scripts: packageJson.scripts ?? {}, keywords: packageJson.keywords ?? [] }).toLowerCase();
-  const scenarios = [];
+  const scenarios = ['complex'];
   if (/elkjs|reactflow|xyflow|dagre|graph|canvas/.test(text)) scenarios.push('graph');
   if (/admin|antd|element-plus/.test(text)) scenarios.push('admin');
   if (/dashboard|echarts|chart|recharts/.test(text)) scenarios.push('dashboard');

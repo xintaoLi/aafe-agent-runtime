@@ -5,6 +5,7 @@ import { doctorProject } from './doctor.js';
 import { runMemoryCommand } from './memory.js';
 import { runPatternCommand } from './patterns.js';
 import { collectInitOptions } from './prompts.js';
+import { runUpdateCommand } from './update.js';
 import { createRuntimeFromProject } from '../runtime/configLoader.js';
 
 export async function runCli(argv) {
@@ -50,6 +51,11 @@ export async function runCli(argv) {
 
   if (command === 'ddd') {
     await runDDDCommand(argv.slice(3));
+    return;
+  }
+
+  if (command === 'update' || command === 'updaet') {
+    await runUpdateCommand(argv.slice(3));
     return;
   }
 
@@ -103,13 +109,21 @@ Commands:
   pattern   Interview and select design patterns for features
   ddd       Analyze domain-driven design model for business features
   run       Execute the architecture runtime pipeline for a task
+  update    Upgrade the global aafe CLI package to the latest version
 
 Init options:
   --yes
   --framework=react|next|vue|monorepo|generic
-  --scenarios=graph,admin,dashboard,workflow,patterns,ddd
+  --scenarios=complex,graph,admin,dashboard,workflow,patterns,ddd
   --editors=cursor,claude,codebuddy,codex,trace,windsurf,vscode
   --no-memory
   --force
+
+Update options:
+  --dry-run
+  --package-manager=npm|pnpm|yarn|bun
+  --registry=<registry-url>
+  --no-sync
+  --sync-force
 `);
 }

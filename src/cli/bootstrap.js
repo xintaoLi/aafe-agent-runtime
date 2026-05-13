@@ -20,7 +20,7 @@ async function writeRuntime(root, detection, options, plan) {
 async function writeConfig(root, _detection, options, plan) {
   const config = {
     runtime: '.ai-agent',
-    template: options.template ?? 'default',
+    template: options.template ?? 'complex',
     memory: {
       enabled: plan.memory,
       path: '.ai-agent/memory',
@@ -110,8 +110,10 @@ function runtimeFiles(_detection, plan) {
     '.ai-agent/skills/module-decomposer.md': decomposerSkill(),
     '.ai-agent/skills/pattern-interviewer.md': patternInterviewerSkill(),
     '.ai-agent/skills/pattern-selector.md': selectorSkill(),
+    '.ai-agent/skills/module-pattern-selector.md': modulePatternSelectorSkill(),
     '.ai-agent/skills/pattern-implementation-planner.md': patternImplementationPlannerSkill(),
     '.ai-agent/scenarios/patterns.md': patternsPack(),
+    '.ai-agent/scenarios/complex.md': complexPack(),
     '.ai-agent/skills/evolution-predictor.md': predictorSkill(),
     '.ai-agent/skills/refactor-critic.md': criticSkill(),
     '.ai-agent/skills/adr-generator.md': adrSkill(),
@@ -230,6 +232,7 @@ function gates() {
     requires:
       - pattern_interview
       - pattern_selection
+      - module_pattern_selection
   implementation_gate:
     requires:
       - risk_review
@@ -541,6 +544,28 @@ Required artifacts:
 `;
 }
 
+function modulePatternSelectorSkill() {
+  return `# Skill: Module Pattern Selector
+
+For complex frontend features, select design patterns per module instead of forcing one global pattern.
+
+Module dimensions:
+- domain: invariants, entities, value objects and repository ports
+- application: use cases, orchestration and command flow
+- infrastructure: API adapters, providers and extension registries
+- presentation: UI composition, interaction state and view contracts
+
+Selection rules:
+1. Each module must choose the simplest sufficient pattern for its responsibility.
+2. Different modules may use different patterns when business behavior differs.
+3. Pattern landing must include contract, implementation boundary and verification.
+4. Do not leak infrastructure or presentation pattern choices into domain logic.
+
+Required artifacts:
+- module_pattern_selection
+`;
+}
+
 function patternImplementationPlannerSkill() {
   return `# Skill: Pattern Implementation Planner
 
@@ -615,6 +640,7 @@ function featurePipeline() {
   - skill: module-decomposer
   - skill: pattern-interviewer
   - skill: pattern-selector
+  - skill: module-pattern-selector
   - gate: pattern_gate
   - skill: evolution-predictor
   - gate: architecture_gate
@@ -638,6 +664,7 @@ function domainFeaturePipeline() {
   - skill: module-decomposer
   - skill: pattern-interviewer
   - skill: pattern-selector
+  - skill: module-pattern-selector
   - gate: pattern_gate
   - skill: ddd-implementation-planner
   - gate: implementation_gate
@@ -655,6 +682,7 @@ function patternFeaturePipeline() {
   - skill: module-decomposer
   - skill: pattern-interviewer
   - skill: pattern-selector
+  - skill: module-pattern-selector
   - gate: pattern_gate
   - skill: pattern-implementation-planner
   - skill: adr-generator
@@ -712,6 +740,7 @@ function graphFeaturePipeline() {
   - skill: module-decomposer
   - skill: pattern-interviewer
   - skill: pattern-selector
+  - skill: module-pattern-selector
   - gate: pattern_gate
   - gate: architecture_gate
   - skill: adr-generator
@@ -866,6 +895,27 @@ Pattern map:
 `;
 }
 
+function complexPack() {
+  return `# Scenario Pack: Complex Frontend
+
+Use this pack as the default scenario for non-trivial frontend systems.
+
+Workflow:
+1. Split the feature by real business modules before selecting patterns.
+2. Select patterns independently for domain, application, infrastructure and presentation modules.
+3. Keep each selected pattern inside its module boundary.
+4. Land each pattern with contract, implementation and verification.
+5. Reject one global pattern when module responsibilities differ.
+
+Module pattern map:
+- domain: State Machine, Repository Port, Domain Service, Specification
+- application: Command, Pipeline, Use Case Orchestrator
+- infrastructure: Adapter, Registry, Strategy
+- presentation: Composition, Observer, State Machine
+- graph-runtime: Command, Strategy, Registry, Observer
+`;
+}
+
 function cursorRules() {
   return `---
 description: AAFE Architecture Runtime
@@ -882,7 +932,8 @@ For every non-trivial frontend task:
 5. Use framework, DDD, design-pattern and scenario packs when relevant.
 6. For business-heavy features, run DDD Discovery before module decomposition.
 7. For new features, run Pattern Interview before Pattern Selection.
-8. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Tradeoffs, Implementation and Critique.
+8. For complex frontend work, select and land patterns per module based on real business responsibility.
+9. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.
 `;
 }
 
@@ -971,13 +1022,13 @@ exit 0
 function claudeRules() {
   return `# AAFE Architecture Runtime
 
-Load .ai-agent/runtime/engine.md for frontend engineering tasks. Classify requests, follow the matching pipeline, run DDD discovery for business-heavy features, run pattern interview for new features, enforce gates, and only implement after DDD, architecture and pattern gates pass.
+Load .ai-agent/runtime/engine.md for frontend engineering tasks. Classify requests, follow the matching pipeline, run DDD discovery for business-heavy features, run pattern interview for new features, select patterns per module for complex frontend work, enforce gates, and only implement after DDD, architecture and pattern gates pass.
 `;
 }
 
 function genericEditorRules(name) {
   return `# AAFE Architecture Runtime for ${name}
 
-Use .ai-agent as the project architecture runtime. Route requests through runtime/router.yaml, run DDD discovery for business-heavy features, run pattern interview for new features, execute pipeline steps, enforce gates, and run refactor critique before finalizing code.
+Use .ai-agent as the project architecture runtime. Route requests through runtime/router.yaml, run DDD discovery for business-heavy features, run pattern interview for new features, select patterns per module for complex frontend work, execute pipeline steps, enforce gates, and run refactor critique before finalizing code.
 `;
 }

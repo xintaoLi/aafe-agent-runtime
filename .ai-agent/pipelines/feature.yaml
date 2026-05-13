@@ -6,6 +6,7 @@ pipeline:
   - skill: module-decomposer
   - skill: pattern-interviewer
   - skill: pattern-selector
+  - skill: module-pattern-selector
   - gate: pattern_gate
   - skill: evolution-predictor
   - gate: architecture_gate

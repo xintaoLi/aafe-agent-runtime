@@ -1,0 +1,7 @@
+{
+  "name": "@aafe/complex",
+  "version": "0.1.0",
+  "description": "Complex frontend scenario pack for AAFE.",
+  "private": true,
+  "type": "module"
+}

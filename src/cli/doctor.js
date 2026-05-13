@@ -17,7 +17,9 @@ const requiredFiles = [
   '.ai-agent/skills/ddd-implementation-planner.md',
   '.ai-agent/skills/pattern-interviewer.md',
   '.ai-agent/skills/pattern-selector.md',
+  '.ai-agent/skills/module-pattern-selector.md',
   '.ai-agent/skills/pattern-implementation-planner.md',
+  '.ai-agent/scenarios/complex.md',
   '.ai-agent/scenarios/ddd.md',
   '.ai-agent/scenarios/patterns.md',
   '.ai-agent/skills/memory-recaller.md',
@@ -55,6 +57,7 @@ export async function doctorProject(root) {
   if (featurePipeline && !featurePipeline.includes('memory-recaller')) warnings.push('feature pipeline does not recall project memory');
   if (featurePipeline && !featurePipeline.includes('pattern-interviewer')) warnings.push('feature pipeline does not interview design pattern constraints');
   if (featurePipeline && !featurePipeline.includes('pattern-selector')) warnings.push('feature pipeline does not select design patterns');
+  if (featurePipeline && !featurePipeline.includes('module-pattern-selector')) warnings.push('feature pipeline does not select patterns per module');
   if (featurePipeline && !featurePipeline.includes('memory-writer')) warnings.push('feature pipeline does not write project memory');
   if (domainPipeline && !domainPipeline.includes('bounded-context-mapper')) warnings.push('domain pipeline does not map bounded contexts');
   if (domainPipeline && !domainPipeline.includes('aggregate-designer')) warnings.push('domain pipeline does not design aggregates');

@@ -13,4 +13,5 @@ For every non-trivial frontend task:
 5. Use framework, DDD, design-pattern and scenario packs when relevant.
 6. For business-heavy features, run DDD Discovery before module decomposition.
 7. For new features, run Pattern Interview before Pattern Selection.
-8. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Tradeoffs, Implementation and Critique.
+8. For complex frontend work, select and land patterns per module based on real business responsibility.
+9. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.

@@ -25,7 +25,7 @@ const patternCatalog = [
   },
   {
     name: 'Command',
-    signals: ['undo', 'redo', 'history', '撤销', '重做', '操作记录'],
+    signals: ['command', 'undo', 'redo', 'history', '撤销', '重做', '操作记录'],
     fit: '用户操作需要记录、回放、撤销、重做或审计。',
     tradeoff: '需要定义命令边界和副作用补偿。'
   },
@@ -43,7 +43,7 @@ const patternCatalog = [
   },
   {
     name: 'Adapter',
-    signals: ['third-party', '第三方', '兼容', 'bridge', 'wrapper'],
+    signals: ['adapter', 'third-party', '第三方', '兼容', 'bridge', 'wrapper'],
     fit: '需要隔离外部 API 或兼容不同实现。',
     tradeoff: '多一层包装，但能降低外部变化影响。'
   },
@@ -56,7 +56,7 @@ const patternCatalog = [
 ];
 
 export function analyzePatternFit(input = {}) {
-  const text = String(input.prompt ?? input.request ?? input).toLowerCase();
+  const text = promptText(input).toLowerCase();
   const constraints = input.constraints ?? {};
   const scored = patternCatalog.map((pattern) => {
     let score = 0;
@@ -83,8 +83,35 @@ export function analyzePatternFit(input = {}) {
   };
 }
 
+export function analyzeModulePatternFit(input = {}) {
+  const prompt = promptText(input);
+  const modules = detectModules(prompt);
+  return {
+    status: 'pass',
+    modules: modules.map((module) => {
+      const fit = analyzePatternFit({ prompt: `${module.name} ${module.signals}` });
+      return {
+        module: module.name,
+        responsibility: module.responsibility,
+        pattern: fit.recommendation,
+        candidates: fit.candidates.slice(0, 2),
+        landing: landingFor(module.name, fit.recommendation)
+      };
+    })
+  };
+}
+
 export function buildPatternInterview(prompt = '') {
-  return buildQuestions(String(prompt).toLowerCase(), {});
+  return buildQuestions(promptText(prompt).toLowerCase(), {});
+}
+
+function promptText(input) {
+  if (typeof input === 'string') return input;
+  if (input?.prompt?.prompt) return String(input.prompt.prompt);
+  if (input?.request?.prompt) return String(input.request.prompt);
+  if (input?.prompt) return String(input.prompt);
+  if (input?.request) return String(input.request);
+  return String(input ?? '');
 }
 
 function buildQuestions(text, constraints) {
@@ -102,6 +129,34 @@ function buildQuestions(text, constraints) {
     questions.push('处理过程是否由多个固定阶段组成，且每个阶段可能插拔或复用？');
   }
   return questions.slice(0, 4);
+}
+
+function detectModules(prompt) {
+  const text = prompt.toLowerCase();
+  const modules = [
+    { name: 'domain', responsibility: 'business rules and invariants', signals: 'state lifecycle repository value object aggregate' },
+    { name: 'application', responsibility: 'use cases, orchestration and command flow', signals: 'pipeline command command steps validation' },
+    { name: 'infrastructure', responsibility: 'external APIs, adapters and persistence ports', signals: 'adapter third-party provider registry extension' },
+    { name: 'presentation', responsibility: 'UI composition, interaction state and view contracts', signals: 'component composition state machine observer' }
+  ];
+  if (/graph|canvas|node|edge|layout|画布|图编辑器|节点|边|布局/.test(text)) {
+    modules.push({ name: 'graph-runtime', responsibility: 'node, edge, layout and command runtime', signals: 'strategy registry command observer layout plugin' });
+  }
+  if (/dashboard|chart|metric|analytics/.test(text)) {
+    modules.push({ name: 'analytics-view', responsibility: 'metric composition, query state and chart adapters', signals: 'adapter strategy composition provider' });
+  }
+  if (/admin|permission|rbac|abac|audit|权限|审计|后台/.test(text)) {
+    modules.push({ name: 'access-control', responsibility: 'permission policy, audit and guarded actions', signals: 'strategy command observer policy audit' });
+  }
+  return modules;
+}
+
+function landingFor(moduleName, pattern) {
+  return {
+    contract: `${moduleName} owns its ${pattern} interface`,
+    implementation: `${moduleName} keeps concrete implementations behind module boundaries`,
+    verification: `${moduleName} tests cover selected pattern behavior and invalid states`
+  };
 }
 
 export { patternCatalog };

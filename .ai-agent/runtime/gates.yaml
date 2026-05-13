@@ -13,6 +13,7 @@ gates:
     requires:
       - pattern_interview
       - pattern_selection
+      - module_pattern_selection
   implementation_gate:
     requires:
       - risk_review
