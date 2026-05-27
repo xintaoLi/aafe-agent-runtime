@@ -24,7 +24,7 @@ async function writeConfig(root, _detection, options, plan) {
     memory: {
       enabled: plan.memory,
       path: '.ai-agent/memory',
-      categories: ['design', 'component', 'habit', 'convention', 'decision', 'experience', 'learning'],
+      categories: ['design', 'component', 'habit', 'convention', 'decision', 'experience', 'project-architecture', 'learning'],
       dedupe: true,
       summary: true,
       experience: {
@@ -100,6 +100,7 @@ function runtimeFiles(_detection, plan) {
     '.ai-agent/skills/memory-recaller.md': memoryRecallerSkill(),
     '.ai-agent/skills/memory-writer.md': memoryWriterSkill(),
     '.ai-agent/skills/experience-recorder.md': experienceRecorderSkill(),
+    '.ai-agent/skills/project-architecture-analyzer.md': projectArchitectureAnalyzerSkill(),
     '.ai-agent/memory/index.md': memoryIndex(),
     '.ai-agent/memory/project-design.md': memoryProjectDesign(),
     '.ai-agent/memory/components.md': memoryComponents(),
@@ -107,6 +108,7 @@ function runtimeFiles(_detection, plan) {
     '.ai-agent/memory/conventions.md': memoryConventions(),
     '.ai-agent/memory/decisions.md': memoryDecisions(),
     '.ai-agent/memory/experience.md': memoryExperience(),
+    '.ai-agent/memory/project-architecture.md': memoryProjectArchitecture(),
     '.ai-agent/memory/learnings.jsonl': '',
     '.ai-agent/skills/ddd-discovery.md': dddDiscoverySkill(),
     '.ai-agent/skills/bounded-context-mapper.md': boundedContextMapperSkill(),
@@ -149,14 +151,20 @@ function runtimeFiles(_detection, plan) {
 
 async function writeIfAllowed(filePath, content, options) {
   await mkdir(path.dirname(filePath), { recursive: true });
-  if (options.preserveMemory && isMemoryFile(filePath) && await exists(filePath)) return;
+  const previous = await safeRead(filePath);
+
+  if (options.preserveMemory && isMemoryFile(filePath) && previous) return;
+
   if (options.append) {
-    const previous = await safeRead(filePath);
     if (previous.includes('AAFE Architecture Runtime')) return;
-    await writeFile(filePath, `${previous.trimEnd()}\n\n${content}`.trimStart());
+    const next = `${previous.trimEnd()}\n\n${content}`.trimStart();
+    if (previous === next) return;
+    await writeFile(filePath, next);
     return;
   }
-  if (!options.force && await exists(filePath)) return;
+
+  if (!options.force && previous) return;
+  if (previous === content) return;
   await writeFile(filePath, content);
 }
 
@@ -298,6 +306,7 @@ Memory categories:
 - convention: naming, layout, testing and review standards
 - decision: ADR-like durable decisions and tradeoffs
 - experience: successful solution ideas for repeated problems after three failed/insufficient attempts
+- project-architecture: generated index of routes, components, modules and design docs for quick AI locating
 - learning: general project-specific lessons
 
 Experience sedimentation rule:
@@ -323,8 +332,9 @@ Use memory to understand:
 Recall priority:
 1. summary.md for compact context.
 2. Topic files relevant to the request.
-3. experience.md when the request resembles a recurring failure or regression.
-4. learnings.jsonl for structured recent memory.
+3. project-architecture.md and project-architecture-locator.md when the request requires locating routes, components, modules or design docs.
+4. experience.md when the request resembles a recurring failure or regression.
+5. learnings.jsonl for structured recent memory.
 
 Required artifacts:
 - memory_context
@@ -385,6 +395,37 @@ Required artifacts:
 `;
 }
 
+function projectArchitectureAnalyzerSkill() {
+  return `# Skill: Project Architecture Analyzer
+
+Generate and use a compact project architecture locator before broad source reading.
+
+When to use:
+- The user asks where a route, page, component, module or design document is implemented.
+- The agent needs to understand a project quickly before editing.
+- The project structure has changed and the architecture index may be stale.
+
+Command:
+
+\`\`\`bash
+aafe analyze
+\`\`\`
+
+Generated artifacts:
+- .ai-agent/skills/project-architecture-locator.md
+- .ai-agent/memory/project-architecture.md
+
+Usage rules:
+1. Read project-architecture-locator.md first for route/component/module locating.
+2. Read only the files listed as relevant before doing wider search.
+3. For architecture or requirement questions, read listed design documents before implementation files.
+4. Re-run aafe analyze after large routing, component or module changes.
+
+Required artifacts:
+- project_architecture_index
+`;
+}
+
 function memoryIndex() {
   return `# Project Memory
 
@@ -397,6 +438,7 @@ Memory categories:
 - conventions: naming, file layout, coding rules and review standards
 - decisions: architecture decisions and tradeoffs
 - experience: verified solution ideas for repeated problems
+- project-architecture: generated index of routes, components, modules and design documents
 - summary.md: compact project memory summary
 - learnings.jsonl: append-only structured memory log
 `;
@@ -455,6 +497,17 @@ Entry format:
 - Success path: concise solution idea and decision path
 - Reuse when: applicable context and boundaries
 - Avoid: approaches that looked plausible but should not be repeated
+`;
+}
+
+function memoryProjectArchitecture() {
+  return `# Project Architecture Index
+
+Generated by \`aafe analyze\`.
+
+This file stores a compact index of main routes, components, modules and design documents so AI agents can quickly locate relevant context without reading excessive source files.
+
+Run \`aafe analyze\` after major routing, module, component or design-document changes.
 `;
 }
 
@@ -1020,11 +1073,12 @@ For every non-trivial frontend task:
 2. Classify the task using .ai-agent/runtime/router.yaml.
 3. Follow the selected .ai-agent/pipelines/*.yaml.
 4. Enforce .ai-agent/runtime/gates.yaml before implementation.
-5. Use framework, DDD, design-pattern and scenario packs when relevant.
-6. For business-heavy features, run DDD Discovery before module decomposition.
-7. For new features, run Pattern Interview before Pattern Selection.
-8. For complex frontend work, select and land patterns per module based on real business responsibility.
-9. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.
+5. Read .ai-agent/skills/project-architecture-locator.md first when locating routes, components, modules or design docs.
+6. Use framework, DDD, design-pattern and scenario packs when relevant.
+7. For business-heavy features, run DDD Discovery before module decomposition.
+8. For new features, run Pattern Interview before Pattern Selection.
+9. For complex frontend work, select and land patterns per module based on real business responsibility.
+10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.
 `;
 }
 

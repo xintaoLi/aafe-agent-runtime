@@ -96,6 +96,6 @@ Commands:
   scan [--target=src]          Learn components and conventions from code
 
 Types:
-  design | component | habit | convention | decision | experience | learning
+  design | component | habit | convention | decision | experience | project-architecture | learning
 `);
 }

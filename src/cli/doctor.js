@@ -25,8 +25,10 @@ const requiredFiles = [
   '.ai-agent/skills/memory-recaller.md',
   '.ai-agent/skills/memory-writer.md',
   '.ai-agent/skills/experience-recorder.md',
+  '.ai-agent/skills/project-architecture-analyzer.md',
   '.ai-agent/memory/index.md',
   '.ai-agent/memory/experience.md',
+  '.ai-agent/memory/project-architecture.md',
   '.ai-agent/memory/learnings.jsonl',
   '.aafe.config.json'
 ];
@@ -57,6 +59,7 @@ export async function doctorProject(root) {
   if (router && !router.includes('domainFeature')) warnings.push('domainFeature route is not configured');
   if (featurePipeline && !featurePipeline.includes('ddd-discovery')) warnings.push('feature pipeline does not run DDD discovery');
   if (featurePipeline && !featurePipeline.includes('memory-recaller')) warnings.push('feature pipeline does not recall project memory');
+  if (config && !config.includes('project-architecture')) warnings.push('project architecture index is not documented in generated memory config');
   if (featurePipeline && !featurePipeline.includes('pattern-interviewer')) warnings.push('feature pipeline does not interview design pattern constraints');
   if (featurePipeline && !featurePipeline.includes('pattern-selector')) warnings.push('feature pipeline does not select design patterns');
   if (featurePipeline && !featurePipeline.includes('module-pattern-selector')) warnings.push('feature pipeline does not select patterns per module');

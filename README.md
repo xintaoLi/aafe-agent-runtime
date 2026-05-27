@@ -238,7 +238,7 @@ gates:
 aafe update
 ```
 
-`aafe update` 默认只刷新当前项目的 `.ai-agent` Runtime、Skills、Pipelines、Framework/Scenario packs 等生成能力，并保留已有 `.ai-agent/memory/*` 项目记忆。
+`aafe update` 默认只刷新当前项目的 `.ai-agent` Runtime、Skills、Pipelines、Framework/Scenario packs 等生成能力，并保留已有 `.ai-agent/memory/*` 项目记忆。更新过程是幂等的：已存在且内容一致的生成文件不会重复写入，也不会追加重复声明，避免浪费后续 AI 上下文。
 
 如需检查将执行的动作：
 
@@ -268,4 +268,38 @@ node ./bin/aafe.js ddd analyze "使用 DDD 实现多租户权限模块，支持�
   "missing": [],
   "warnings": []
 }
+```
+
+## 项目架构快速分析
+
+在已接入 AAFE 的项目根目录执行：
+
+```bash
+aafe analyze
+```
+
+该命令会扫描当前项目并生成紧凑的项目架构定位文件：
+
+```txt
+.ai-agent/skills/project-architecture-locator.md
+.ai-agent/memory/project-architecture.md
+```
+
+用途：
+
+- 快速定位主要路由、页面、组件、模块和设计文档；
+- 让 AI Agent 在处理需求前先读取架构索引，避免盲目读取大量源码浪费上下文；
+- 在项目路由、组件、模块或设计文档发生较大变化后重新运行；
+- 生成过程只维护单份 locator skill 和 architecture memory，架构内容未变化时不会仅因时间戳变化重复写入。
+
+预览但不写入：
+
+```bash
+aafe analyze --dry-run
+```
+
+只输出分析结果、不生成文件：
+
+```bash
+aafe analyze --no-write
 ```

@@ -1,4 +1,5 @@
 import { bootstrapProject } from './bootstrap.js';
+import { runAnalyzeCommand } from './analyze.js';
 import { runDDDCommand } from './ddd.js';
 import { detectProject } from './detect.js';
 import { doctorProject } from './doctor.js';
@@ -36,6 +37,11 @@ export async function runCli(argv) {
     const detection = await detectProject(process.cwd());
     await bootstrapProject(process.cwd(), detection, { ...options, sync: true, yes: true });
     console.log('AAFE runtime synced.');
+    return;
+  }
+
+  if (command === 'analyze' || command === 'analyse') {
+    await runAnalyzeCommand(process.cwd(), argv.slice(3));
     return;
   }
 
@@ -105,6 +111,7 @@ Commands:
   detect    Detect framework, editor and scenario
   doctor    Validate installed runtime files
   sync      Refresh generated runtime files
+  analyze   Generate compact project architecture locator skill and memory
   memory    Manage project self-growing memory
   pattern   Interview and select design patterns for features
   ddd       Analyze domain-driven design model for business features
@@ -118,6 +125,12 @@ Init options:
   --editors=cursor,claude,codebuddy,codex,trace,windsurf,vscode
   --no-memory
   --force
+
+Analyze options:
+  --dry-run
+  --no-write
+  --max-files=<number>
+  --max-entries=<number>
 
 Update options:
   --dry-run

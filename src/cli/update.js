@@ -42,9 +42,10 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
       planned: {
         refreshGeneratedRuntime: true,
         forceGeneratedFiles: true,
-        preserveMemory: true
+        preserveMemory: true,
+        idempotentWrites: true
       },
-      summary: 'Would refresh .ai-agent capabilities from the currently installed aafe package without reinstalling the package'
+      summary: 'Would refresh .ai-agent capabilities from the currently installed aafe package without reinstalling the package. Existing generated files with identical content would not be rewritten.'
     }, null, 2));
     return;
   }
@@ -61,7 +62,7 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
     currentVersion: options.currentVersion,
     preserved: ['.ai-agent/memory/*'],
     doctor,
-    summary: 'Refreshed .ai-agent capabilities from the currently installed aafe package'
+    summary: 'Refreshed .ai-agent capabilities from the currently installed aafe package. Identical generated files were left unchanged.'
   }, null, 2));
 
   if (doctor.status === 'fail') process.exitCode = 1;
