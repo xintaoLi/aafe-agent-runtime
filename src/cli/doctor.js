@@ -24,7 +24,9 @@ const requiredFiles = [
   '.ai-agent/scenarios/patterns.md',
   '.ai-agent/skills/memory-recaller.md',
   '.ai-agent/skills/memory-writer.md',
+  '.ai-agent/skills/experience-recorder.md',
   '.ai-agent/memory/index.md',
+  '.ai-agent/memory/experience.md',
   '.ai-agent/memory/learnings.jsonl',
   '.aafe.config.json'
 ];

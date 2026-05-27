@@ -109,7 +109,7 @@ Commands:
   pattern   Interview and select design patterns for features
   ddd       Analyze domain-driven design model for business features
   run       Execute the architecture runtime pipeline for a task
-  update    Upgrade the global aafe CLI package to the latest version
+  update    Refresh installed project .ai-agent capabilities from the current aafe package
 
 Init options:
   --yes
@@ -121,6 +121,7 @@ Init options:
 
 Update options:
   --dry-run
+  --upgrade-package      Also upgrade the globally installed aafe package before refreshing project runtime
   --package-manager=npm|pnpm|yarn|bun
   --registry=<registry-url>
   --no-sync

@@ -8,4 +8,6 @@ Memory categories:
 - development-habits: team preferences and recurring implementation habits
 - conventions: naming, file layout, coding rules and review standards
 - decisions: architecture decisions and tradeoffs
+- experience: verified solution ideas for repeated problems
+- summary.md: compact project memory summary
 - learnings.jsonl: append-only structured memory log

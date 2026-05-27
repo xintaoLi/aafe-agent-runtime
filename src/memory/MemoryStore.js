@@ -17,6 +17,7 @@ export class MemoryStore {
     await writeIfMissing(path.join(this.memoryDir, 'development-habits.md'), developmentHabits());
     await writeIfMissing(path.join(this.memoryDir, 'conventions.md'), conventions());
     await writeIfMissing(path.join(this.memoryDir, 'decisions.md'), decisions());
+    await writeIfMissing(path.join(this.memoryDir, 'experience.md'), experience());
     await writeIfMissing(this.summaryFile, '# Memory Summary\n');
     await writeIfMissing(this.recordsFile, '');
   }
@@ -111,7 +112,7 @@ export class MemoryStore {
       const file = topicFile(record.type);
       grouped.set(file, [...(grouped.get(file) ?? []), record]);
     }
-    for (const type of ['design', 'component', 'habit', 'convention', 'decision', 'learning']) {
+    for (const type of ['design', 'component', 'habit', 'convention', 'decision', 'experience', 'learning']) {
       const file = topicFile(type);
       const items = grouped.get(file) ?? [];
       const body = [`# ${topicTitle(type)}`]
@@ -125,7 +126,7 @@ export class MemoryStore {
     const source = records ?? await this.readRecords();
     const byType = groupBy(source, (record) => record.type);
     const lines = ['# Memory Summary', ''];
-    for (const type of ['design', 'component', 'habit', 'convention', 'decision', 'learning']) {
+    for (const type of ['design', 'component', 'habit', 'convention', 'decision', 'experience', 'learning']) {
       const items = byType.get(type) ?? [];
       lines.push(`## ${topicTitle(type)}`);
       if (!items.length) {
@@ -194,7 +195,8 @@ function topicFile(type) {
     component: 'components',
     habit: 'development-habits',
     convention: 'conventions',
-    decision: 'decisions'
+    decision: 'decisions',
+    experience: 'experience'
   };
   return map[type] ?? 'index';
 }
@@ -205,7 +207,8 @@ function topicTitle(type) {
     component: 'Component Memory',
     habit: 'Development Habits Memory',
     convention: 'Conventions Memory',
-    decision: 'Architecture Decisions Memory'
+    decision: 'Architecture Decisions Memory',
+    experience: 'Experience Memory'
   };
   return map[type] ?? 'Project Learning Memory';
 }
@@ -244,6 +247,7 @@ Memory categories:
 - development-habits: team preferences and recurring implementation habits
 - conventions: naming, file layout, coding rules and review standards
 - decisions: architecture decisions and tradeoffs
+- experience: verified solution ideas for repeated problems
 - summary.md: compact project memory summary
 - learnings.jsonl: append-only structured memory log
 `;
@@ -281,5 +285,14 @@ function decisions() {
   return `# Architecture Decisions Memory
 
 Record durable decisions, alternatives, tradeoffs and consequences here.
+`;
+}
+
+function experience() {
+  return `# Experience Memory
+
+Record verified solution ideas for repeated problems here.
+
+Write an entry only when the same problem has been handled three times and still exists or regresses, and a later solution has been verified as successful. Record the reusable solution idea and path, not the full debugging process.
 `;
 }

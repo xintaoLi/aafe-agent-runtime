@@ -151,6 +151,7 @@ aafe init
 aafe detect
 aafe doctor
 aafe sync
+aafe update
 aafe memory
 aafe pattern
 aafe ddd
@@ -229,10 +230,32 @@ gates:
 
 业务复杂的新功能应先通过 `ddd_gate`，再进入架构拆分和设计模式选择。
 
+## 更新已安装项目能力
+
+当项目已经安装过 `@aafe/agent-runtime`，并且已经通过 `npm install` 拉取了新版本后，在项目根目录执行：
+
+```bash
+aafe update
+```
+
+`aafe update` 默认只刷新当前项目的 `.ai-agent` Runtime、Skills、Pipelines、Framework/Scenario packs 等生成能力，并保留已有 `.ai-agent/memory/*` 项目记忆。
+
+如需检查将执行的动作：
+
+```bash
+aafe update --dry-run
+```
+
+只有需要同时升级全局 CLI 包时，才使用：
+
+```bash
+aafe update --upgrade-package
+```
+
 ## 验证
 
 ```bash
-node ./bin/aafe.js sync --force
+node ./bin/aafe.js update
 node ./bin/aafe.js doctor
 node ./bin/aafe.js ddd analyze "使用 DDD 实现多租户权限模块，支持角色、组织、权限策略和审计事件"
 ```

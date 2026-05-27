@@ -10,10 +10,23 @@
       "habit",
       "convention",
       "decision",
+      "experience",
       "learning"
     ],
     "dedupe": true,
-    "summary": true
+    "summary": true,
+    "experience": {
+      "enabled": true,
+      "triggerAfterAttempts": 3,
+      "writeOnlyAfterSuccess": true,
+      "record": [
+        "problem_signature",
+        "success_path",
+        "decision_path",
+        "reuse_boundary",
+        "avoid"
+      ]
+    }
   },
   "framework": "generic",
   "frameworks": [

@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { promisify } from 'node:util';
 import { bootstrapProject } from './bootstrap.js';
 import { detectProject } from './detect.js';
+import { doctorProject } from './doctor.js';
 
 const execFileAsync = promisify(execFile);
 const packageJsonUrl = new URL('../../package.json', import.meta.url);
@@ -12,9 +13,64 @@ export async function runUpdateCommand(args = []) {
   const manifest = JSON.parse(await readFile(packageJsonUrl, 'utf8'));
   const packageName = options.packageName ?? manifest.name;
   const currentVersion = manifest.version;
-  const latestVersion = options.latestVersion ?? await fetchLatestVersion(packageName, options);
-  const installTarget = `${packageName}@${latestVersion}`;
-  const needsUpdate = compareVersions(latestVersion, currentVersion) > 0;
+
+  if (options.upgradePackage) {
+    await runPackageUpgradeUpdate({ ...options, packageName, currentVersion });
+    return;
+  }
+
+  await updateCurrentProjectFromInstalledRuntime({ ...options, packageName, currentVersion });
+}
+
+async function updateCurrentProjectFromInstalledRuntime(options) {
+  const updateOptions = {
+    yes: true,
+    sync: true,
+    force: true,
+    preserveMemory: true
+  };
+
+  if (options.dryRun) {
+    console.log(JSON.stringify({
+      status: 'pass',
+      updated: false,
+      dryRun: true,
+      mode: 'project-runtime',
+      package: options.packageName,
+      currentVersion: options.currentVersion,
+      command: 'aafe update',
+      planned: {
+        refreshGeneratedRuntime: true,
+        forceGeneratedFiles: true,
+        preserveMemory: true
+      },
+      summary: 'Would refresh .ai-agent capabilities from the currently installed aafe package without reinstalling the package'
+    }, null, 2));
+    return;
+  }
+
+  const detection = await detectProject(process.cwd());
+  await bootstrapProject(process.cwd(), detection, updateOptions);
+  const doctor = await doctorProject(process.cwd());
+
+  console.log(JSON.stringify({
+    status: doctor.status === 'fail' ? 'fail' : 'pass',
+    updated: true,
+    mode: 'project-runtime',
+    package: options.packageName,
+    currentVersion: options.currentVersion,
+    preserved: ['.ai-agent/memory/*'],
+    doctor,
+    summary: 'Refreshed .ai-agent capabilities from the currently installed aafe package'
+  }, null, 2));
+
+  if (doctor.status === 'fail') process.exitCode = 1;
+}
+
+async function runPackageUpgradeUpdate(options) {
+  const latestVersion = options.latestVersion ?? await fetchLatestVersion(options.packageName, options);
+  const installTarget = `${options.packageName}@${latestVersion}`;
+  const needsUpdate = compareVersions(latestVersion, options.currentVersion) > 0;
   const syncCommand = buildSyncCommand(options);
 
   if (!needsUpdate && !options.force) {
@@ -24,8 +80,8 @@ export async function runUpdateCommand(args = []) {
       updated: false,
       dryRun: options.dryRun,
       synced,
-      package: packageName,
-      currentVersion,
+      package: options.packageName,
+      currentVersion: options.currentVersion,
       latestVersion,
       syncCommand,
       summary: 'Already on the latest version'
@@ -39,8 +95,9 @@ export async function runUpdateCommand(args = []) {
       status: 'pass',
       updated: false,
       dryRun: true,
-      package: packageName,
-      currentVersion,
+      mode: 'package-upgrade',
+      package: options.packageName,
+      currentVersion: options.currentVersion,
       latestVersion,
       command: [installCommand.bin, ...installCommand.args].join(' '),
       syncCommand
@@ -54,8 +111,9 @@ export async function runUpdateCommand(args = []) {
     status: 'pass',
     updated: true,
     synced,
-    package: packageName,
-    previousVersion: currentVersion,
+    mode: 'package-upgrade',
+    package: options.packageName,
+    previousVersion: options.currentVersion,
     latestVersion,
     summary: `Installed ${installTarget}`
   }, null, 2));
@@ -67,7 +125,8 @@ function parseUpdateOptions(args) {
     force: args.includes('--force'),
     dryRun: args.includes('--dry-run'),
     sync: !args.includes('--no-sync'),
-    syncForce: args.includes('--sync-force')
+    syncForce: args.includes('--sync-force'),
+    upgradePackage: args.includes('--upgrade-package') || args.includes('--global')
   };
 
   for (const arg of args) {
@@ -83,8 +142,7 @@ function parseUpdateOptions(args) {
 async function syncCurrentProject(options, syncOptions = {}) {
   if (!options.sync) return false;
   if (syncOptions.useInstalledCli) {
-    const args = ['sync', '--yes'];
-    if (options.syncForce) args.push('--force');
+    const args = ['update'];
     await runCommand('aafe', args);
     return true;
   }
@@ -92,14 +150,15 @@ async function syncCurrentProject(options, syncOptions = {}) {
   await bootstrapProject(process.cwd(), detection, {
     yes: true,
     sync: true,
-    force: options.syncForce
+    force: true,
+    preserveMemory: true
   });
   return true;
 }
 
 function buildSyncCommand(options) {
   if (!options.sync) return '';
-  return `aafe sync --yes${options.syncForce ? ' --force' : ''}`;
+  return options.syncForce ? 'aafe update --force' : 'aafe update';
 }
 
 async function fetchLatestVersion(packageName, options) {
@@ -111,7 +170,7 @@ async function fetchLatestVersion(packageName, options) {
   try {
     return JSON.parse(value);
   } catch {
-    return value.replace(/^['"]|['"]$/g, '');
+    return value.replace(/^[']|[']$/g, '').replace(/^["]|["]$/g, '');
   }
 }
 

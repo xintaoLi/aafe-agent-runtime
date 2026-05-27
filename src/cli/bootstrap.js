@@ -24,9 +24,15 @@ async function writeConfig(root, _detection, options, plan) {
     memory: {
       enabled: plan.memory,
       path: '.ai-agent/memory',
-      categories: ['design', 'component', 'habit', 'convention', 'decision', 'learning'],
+      categories: ['design', 'component', 'habit', 'convention', 'decision', 'experience', 'learning'],
       dedupe: true,
-      summary: true
+      summary: true,
+      experience: {
+        enabled: true,
+        triggerAfterAttempts: 3,
+        writeOnlyAfterSuccess: true,
+        record: ['problem_signature', 'success_path', 'decision_path', 'reuse_boundary', 'avoid']
+      }
     },
     framework: plan.framework,
     frameworks: plan.frameworks,
@@ -93,12 +99,14 @@ function runtimeFiles(_detection, plan) {
     '.ai-agent/runtime/memory.md': memoryRuntime(),
     '.ai-agent/skills/memory-recaller.md': memoryRecallerSkill(),
     '.ai-agent/skills/memory-writer.md': memoryWriterSkill(),
+    '.ai-agent/skills/experience-recorder.md': experienceRecorderSkill(),
     '.ai-agent/memory/index.md': memoryIndex(),
     '.ai-agent/memory/project-design.md': memoryProjectDesign(),
     '.ai-agent/memory/components.md': memoryComponents(),
     '.ai-agent/memory/development-habits.md': memoryDevelopmentHabits(),
     '.ai-agent/memory/conventions.md': memoryConventions(),
     '.ai-agent/memory/decisions.md': memoryDecisions(),
+    '.ai-agent/memory/experience.md': memoryExperience(),
     '.ai-agent/memory/learnings.jsonl': '',
     '.ai-agent/skills/ddd-discovery.md': dddDiscoverySkill(),
     '.ai-agent/skills/bounded-context-mapper.md': boundedContextMapperSkill(),
@@ -141,6 +149,7 @@ function runtimeFiles(_detection, plan) {
 
 async function writeIfAllowed(filePath, content, options) {
   await mkdir(path.dirname(filePath), { recursive: true });
+  if (options.preserveMemory && isMemoryFile(filePath) && await exists(filePath)) return;
   if (options.append) {
     const previous = await safeRead(filePath);
     if (previous.includes('AAFE Architecture Runtime')) return;
@@ -149,6 +158,10 @@ async function writeIfAllowed(filePath, content, options) {
   }
   if (!options.force && await exists(filePath)) return;
   await writeFile(filePath, content);
+}
+
+function isMemoryFile(filePath) {
+  return filePath.split(path.sep).includes('memory');
 }
 
 async function exists(filePath) {
@@ -276,6 +289,7 @@ After work:
 - capture durable project design learnings
 - record component contracts and reusable patterns
 - record coding habits, conventions and architecture decisions
+- record verified solution ideas for repeated problems when the experience sedimentation rule is met
 
 Memory categories:
 - design: project architecture and module boundaries
@@ -283,7 +297,13 @@ Memory categories:
 - habit: development habits and preferences
 - convention: naming, layout, testing and review standards
 - decision: ADR-like durable decisions and tradeoffs
+- experience: successful solution ideas for repeated problems after three failed/insufficient attempts
 - learning: general project-specific lessons
+
+Experience sedimentation rule:
+- When the same problem has been handled three times and still exists, record the final successful solution after it is verified.
+- Record only the stable solution idea, decision path and applicable boundary; do not write the full trial-and-error process.
+- Prefer concise entries with problem signature, success path, why it worked and when to reuse it.
 `;
 }
 
@@ -298,6 +318,13 @@ Use memory to understand:
 - team development habits
 - coding conventions
 - previous architecture decisions
+- repeated-problem experience and successful solution paths
+
+Recall priority:
+1. summary.md for compact context.
+2. Topic files relevant to the request.
+3. experience.md when the request resembles a recurring failure or regression.
+4. learnings.jsonl for structured recent memory.
 
 Required artifacts:
 - memory_context
@@ -316,11 +343,45 @@ Capture only stable project knowledge:
 - development habits
 - conventions
 - architecture decisions and tradeoffs
+- repeated-problem experience when the experience sedimentation rule is met
 
-Avoid writing temporary task details or noisy logs.
+Memory entry requirements:
+- choose exactly one type: design | component | habit | convention | decision | experience | learning
+- include a short title, concise content, tags and source
+- write durable knowledge only; avoid temporary task details or noisy logs
+
+Use experience only for verified solution ideas after a problem has repeated three times.
 
 Required artifacts:
 - memory_write
+`;
+}
+
+function experienceRecorderSkill() {
+  return `# Skill: Experience Recorder
+
+Record verified solution ideas for repeated problems.
+
+Trigger condition:
+- The same problem has been handled three times and still exists or regresses.
+- A final solution has been verified as successful.
+
+Write to .ai-agent/memory/experience.md and learnings.jsonl with type=experience.
+
+Capture only:
+- problem signature
+- successful solution idea
+- decision path
+- applicable boundary
+- avoid/retry warning
+
+Do not capture:
+- full trial-and-error logs
+- temporary debugging details
+- blame, emotions or noisy conversation history
+
+Required artifacts:
+- experience_memory
 `;
 }
 
@@ -335,6 +396,8 @@ Memory categories:
 - development-habits: team preferences and recurring implementation habits
 - conventions: naming, file layout, coding rules and review standards
 - decisions: architecture decisions and tradeoffs
+- experience: verified solution ideas for repeated problems
+- summary.md: compact project memory summary
 - learnings.jsonl: append-only structured memory log
 `;
 }
@@ -371,6 +434,27 @@ function memoryDecisions() {
   return `# Architecture Decisions Memory
 
 Record durable decisions, alternatives, tradeoffs and consequences here.
+`;
+}
+
+function memoryExperience() {
+  return `# Experience Memory
+
+Record verified solution ideas for repeated problems here.
+
+Write an entry only when:
+- the same problem has been handled three times and still persists or regresses;
+- a later solution has been verified as successful;
+- the knowledge is reusable beyond the current temporary task.
+
+Entry format:
+
+## [Problem Signature]
+
+- Attempts: 3+
+- Success path: concise solution idea and decision path
+- Reuse when: applicable context and boundaries
+- Avoid: approaches that looked plausible but should not be repeated
 `;
 }
 
@@ -647,6 +731,7 @@ function featurePipeline() {
   - skill: adr-generator
   - gate: implementation_gate
   - skill: refactor-critic
+  - skill: experience-recorder
   - skill: memory-writer
   - gate: merge_gate
 `;
@@ -670,6 +755,7 @@ function domainFeaturePipeline() {
   - gate: implementation_gate
   - skill: adr-generator
   - skill: refactor-critic
+  - skill: experience-recorder
   - skill: memory-writer
   - gate: merge_gate
 `;
@@ -688,6 +774,7 @@ function patternFeaturePipeline() {
   - skill: adr-generator
   - gate: implementation_gate
   - skill: refactor-critic
+  - skill: experience-recorder
   - skill: memory-writer
   - gate: merge_gate
 `;
@@ -701,6 +788,7 @@ function refactorPipeline() {
   - skill: refactor-critic
   - gate: architecture_gate
   - skill: adr-generator
+  - skill: experience-recorder
   - skill: memory-writer
   - gate: merge_gate
 `;
@@ -712,6 +800,7 @@ function bugfixPipeline() {
   - skill: architect
   - skill: module-decomposer
   - skill: refactor-critic
+  - skill: experience-recorder
   - skill: memory-writer
   - gate: merge_gate
 `;
@@ -725,6 +814,7 @@ function performancePipeline() {
   - skill: evolution-predictor
   - gate: architecture_gate
   - skill: refactor-critic
+  - skill: experience-recorder
   - skill: memory-writer
   - gate: merge_gate
 `;
@@ -745,6 +835,7 @@ function graphFeaturePipeline() {
   - gate: architecture_gate
   - skill: adr-generator
   - skill: refactor-critic
+  - skill: experience-recorder
   - skill: memory-writer
   - gate: merge_gate
 `;
