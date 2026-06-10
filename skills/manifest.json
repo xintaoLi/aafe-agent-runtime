@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-09T15:41:26+08:00",
+  "repository": "https://github.com/xintaoLi/aafe-agent-runtime",
+  "rawBaseUrl": "https://raw.githubusercontent.com/xintaoLi/aafe-agent-runtime/main",
+  "skills": [
+    {
+      "name": "aafe-vue-complex-runtime",
+      "description": "Vue + Complex AAFE Agent Runtime skill for initializing, updating, diagnosing and using project-level architecture runtime capabilities.",
+      "source": "skills/aafe-vue-complex-runtime/SKILL.md",
+      "rawUrl": "https://raw.githubusercontent.com/xintaoLi/aafe-agent-runtime/main/skills/aafe-vue-complex-runtime/SKILL.md",
+      "targetDirName": "aafe-vue-complex-runtime",
+      "targetFile": "SKILL.md",
+      "recommendedTarget": "$SIBOOT_WORKSPACE_PATH/skills/aafe-vue-complex-runtime/SKILL.md",
+      "environment": {
+        "framework": "vue",
+        "scenario": "complex"
+      },
+      "installMode": "agent-skills-download",
+      "boundary": "Install this SKILL.md into an Agent Skills directory only; do not use it as project .ai-agent runtime files."
+    }
+  ],
+  "distribution": {
+    "mode": "github-agent-skills",
+    "purpose": "Download Agent SKILLS into a compatible Agent Skills directory.",
+    "notFor": "Project .ai-agent runtime initialization or update; use npm CLI init/update/analyze/doctor for that."
+  }
+}

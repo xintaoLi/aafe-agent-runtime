@@ -13,7 +13,9 @@
     "bin",
     "src",
     "packages",
-    "README.md"
+    "skills",
+    "README.md",
+    "SKILLS.md"
   ],
   "publishConfig": {
     "access": "public"
@@ -25,6 +27,8 @@
     "memory:summary": "node ./bin/aafe.js memory summary",
     "memory:compact": "node ./bin/aafe.js memory compact",
     "memory:scan": "node ./bin/aafe.js memory scan",
+    "skills:list": "node ./bin/aafe.js skills list --github",
+    "skills:install:aafe-vue-complex": "node ./bin/aafe.js skills install aafe-vue-complex-runtime --github",
     "pattern:ask": "node ./bin/aafe.js pattern ask",
     "pattern:select": "node ./bin/aafe.js pattern select",
     "ddd:ask": "node ./bin/aafe.js ddd ask",

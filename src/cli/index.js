@@ -5,6 +5,7 @@ import { detectProject } from './detect.js';
 import { doctorProject } from './doctor.js';
 import { runMemoryCommand } from './memory.js';
 import { runPatternCommand } from './patterns.js';
+import { runSkillsCommand } from './skills.js';
 import { collectInitOptions } from './prompts.js';
 import { runUpdateCommand } from './update.js';
 import { createRuntimeFromProject } from '../runtime/configLoader.js';
@@ -52,6 +53,11 @@ export async function runCli(argv) {
 
   if (command === 'pattern') {
     await runPatternCommand(argv.slice(3));
+    return;
+  }
+
+  if (command === 'skills' || command === 'skill') {
+    await runSkillsCommand(argv.slice(3));
     return;
   }
 
@@ -113,6 +119,7 @@ Commands:
   sync      Refresh generated runtime files
   analyze   Generate compact project architecture locator skill and memory
   memory    Manage project self-growing memory
+  skills    List or install downloadable AAFE Agent Skills from GitHub
   pattern   Interview and select design patterns for features
   ddd       Analyze domain-driven design model for business features
   run       Execute the architecture runtime pipeline for a task
@@ -131,6 +138,16 @@ Analyze options:
   --no-write
   --max-files=<number>
   --max-entries=<number>
+
+Skills options:
+  aafe skills list --github
+  aafe skills install aafe-vue-complex-runtime --github
+  --target=<skills-dir>
+  --manifest-url=<url>
+  --repo=<owner/repo>
+  --branch=<branch>
+  --dry-run
+  --force
 
 Update options:
   --dry-run

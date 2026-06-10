@@ -155,6 +155,7 @@ aafe update
 aafe memory
 aafe pattern
 aafe ddd
+aafe skills   # 仅用于 GitHub Agent SKILLS 下载，不用于项目 .ai-agent 初始化
 ```
 
 初始化示例：
@@ -303,3 +304,93 @@ aafe analyze --dry-run
 ```bash
 aafe analyze --no-write
 ```
+
+## 可下载 Agent SKILLS（GitHub 分发）
+
+AAFE Runtime 作为发布到 GitHub / npm 的包，同时提供 **Agent SKILLS 配置分发** 和 **项目内 CLI Runtime 初始化** 两条互不替代的使用链路。
+
+### 使用边界
+
+| 场景 | 使用方式 | 写入目标 |
+| --- | --- | --- |
+| 只想让某个 Agent / AI 工具获得 AAFE 协作能力 | 从 GitHub 下载 Agent SKILLS | 目标 Agent 的 Skills 目录，如 `$SIBOOT_WORKSPACE_PATH/skills/{skill-name}/SKILL.md` |
+| 业务项目要接入 AAFE Runtime | `npm install` / `npx @aafe/agent-runtime` 后执行 CLI | 当前业务项目的 `.ai-agent/`、`.aafe.config.json`、编辑器配置 |
+
+> ⚠️ **不要混用**：`aafe skills ...` 只用于下载/安装 Agent SKILLS；项目内接入、更新、分析和诊断必须使用 `init / update / analyze / doctor`。
+
+### GitHub 发布入口
+
+```txt
+SKILLS.md
+skills/manifest.json
+skills/aafe-vue-complex-runtime/SKILL.md
+```
+
+GitHub Raw Manifest：
+
+```txt
+https://raw.githubusercontent.com/xintaoLi/aafe-agent-runtime/main/skills/manifest.json
+```
+
+### 查看可下载 Skill
+
+```bash
+npx --yes @aafe/agent-runtime@latest skills list --github
+```
+
+### 安装到目标 Agent Skills 目录
+
+当运行环境存在 `$SIBOOT_WORKSPACE_PATH` 时，默认目标为：
+
+```txt
+$SIBOOT_WORKSPACE_PATH/skills
+```
+
+安装命令：
+
+```bash
+npx --yes @aafe/agent-runtime@latest skills install aafe-vue-complex-runtime --github
+```
+
+预览安装目标但不写入：
+
+```bash
+npx --yes @aafe/agent-runtime@latest skills install aafe-vue-complex-runtime --github --dry-run
+```
+
+指定目标目录：
+
+```bash
+npx --yes @aafe/agent-runtime@latest skills install aafe-vue-complex-runtime --github --target="/path/to/agent/skills"
+```
+
+安装逻辑是幂等的：如果目标 `SKILL.md` 内容一致，则不会重复写入，避免 Agent SKILLS 上下文重复膨胀。
+
+### 直接下载 fallback
+
+```bash
+mkdir -p "/path/to/agent/skills/aafe-vue-complex-runtime"
+curl -L "https://raw.githubusercontent.com/xintaoLi/aafe-agent-runtime/main/skills/aafe-vue-complex-runtime/SKILL.md" \
+  -o "/path/to/agent/skills/aafe-vue-complex-runtime/SKILL.md"
+```
+
+## npm / CLI 项目内使用
+
+如果目标是让业务项目接入 AAFE Runtime，不需要下载 GitHub SKILLS。请在业务项目根目录使用 npm 包提供的 CLI：
+
+```bash
+npm install --save-dev @aafe/agent-runtime
+npx aafe init --yes --framework=vue --scenarios=complex --template=complex --editors=cursor
+npx aafe doctor
+```
+
+已接入项目更新到新版本能力：
+
+```bash
+npm install
+npx aafe update
+npx aafe analyze
+npx aafe doctor
+```
+
+该模式只写入当前项目 Runtime，不安装 Agent SKILLS。
