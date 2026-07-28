@@ -239,7 +239,7 @@ gates:
 aafe update
 ```
 
-`aafe update` 默认只刷新当前项目的 `.ai-agent` Runtime、Skills、Pipelines、Framework/Scenario packs 等生成能力，并保留已有 `.ai-agent/memory/*` 项目记忆。更新过程是幂等的：已存在且内容一致的生成文件不会重复写入，也不会追加重复声明，避免浪费后续 AI 上下文。
+`aafe update` 默认刷新当前项目的 `.ai-agent` Runtime、Skills、Pipelines、Framework/Scenario packs、Skill Index On-Demand 路由、编辑器适配层和 `.aafe.config.json` 生成配置，并保留已有 `.ai-agent/project.md`、`.ai-agent/project-skills/**`、`.ai-agent/rules/**` 与 `.ai-agent/memory/**` 项目知识/记忆。更新过程是幂等的：已存在且内容一致的生成文件不会重复写入，也不会追加重复声明，避免浪费后续 AI 上下文。存量项目可直接执行 `npx aafe update`（或已安装 CLI 时执行 `aafe update`）获得新的索引按需加载配置。
 
 如需检查将执行的动作：
 

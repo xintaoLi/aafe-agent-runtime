@@ -41,11 +41,16 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
       command: 'aafe update',
       planned: {
         refreshGeneratedRuntime: true,
+        refreshSkillIndex: true,
+        refreshEditorAdapters: true,
+        refreshProjectKnowledgeConfig: true,
         forceGeneratedFiles: true,
+        preserveProjectKnowledge: true,
         preserveMemory: true,
         idempotentWrites: true
       },
-      summary: 'Would refresh .ai-agent capabilities from the currently installed aafe package without reinstalling the package. Existing generated files with identical content would not be rewritten.'
+      preserved: ['.ai-agent/project.md', '.ai-agent/project-skills/**', '.ai-agent/rules/**', '.ai-agent/memory/**'],
+      summary: 'Would refresh generated .ai-agent runtime, Skill Index On-Demand router, editor adapters and projectKnowledge config from the currently installed aafe package without reinstalling the package. Project-owned knowledge would be preserved.'
     }, null, 2));
     return;
   }
@@ -60,9 +65,9 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
     mode: 'project-runtime',
     package: options.packageName,
     currentVersion: options.currentVersion,
-    preserved: ['.ai-agent/memory/*'],
+    preserved: ['.ai-agent/project.md', '.ai-agent/project-skills/**', '.ai-agent/rules/**', '.ai-agent/memory/**'],
     doctor,
-    summary: 'Refreshed .ai-agent capabilities from the currently installed aafe package. Identical generated files were left unchanged.'
+    summary: 'Refreshed generated .ai-agent runtime, Skill Index On-Demand router, editor adapters and projectKnowledge config from the currently installed aafe package. Project-owned knowledge was preserved.'
   }, null, 2));
 
   if (doctor.status === 'fail') process.exitCode = 1;
