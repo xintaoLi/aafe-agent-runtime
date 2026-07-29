@@ -4,6 +4,7 @@ import path from 'node:path';
 const SOURCE_EXTENSIONS = new Set(['.vue', '.tsx', '.ts', '.jsx', '.js', '.md', '.mdx']);
 const CODE_EXTENSIONS = new Set(['.vue', '.tsx', '.ts', '.jsx', '.js']);
 const DOC_EXTENSIONS = new Set(['.md', '.mdx']);
+const KNOWLEDGE_DOC_EXTENSIONS = new Set(['.md', '.mdx', '.mmd']);
 const IGNORE_DIRS = new Set([
   '.git',
   '.ai-agent',
@@ -55,6 +56,7 @@ export async function analyzeProjectArchitecture(root, options = {}) {
   const routes = await findRoutes(root, files);
   const components = await findComponents(root, files);
   const designDocs = await findDesignDocs(root, files);
+  const architectureSources = await findArchitectureSources(root, options);
   const modules = inferModules(files);
   const generatedAt = new Date().toISOString();
   const projectName = packageInfo.name ?? path.basename(root);
@@ -68,16 +70,20 @@ export async function analyzeProjectArchitecture(root, options = {}) {
     routes,
     components,
     designDocs,
+    architectureSources,
     counts: {
       files: files.length,
       modules: modules.length,
       routes: routes.length,
       components: components.length,
-      designDocs: designDocs.length
+      designDocs: designDocs.length,
+      architectureSources: architectureSources.length
     },
     outputs: {
       skill: '.ai-agent/skills/project-architecture-locator.md',
-      memory: '.ai-agent/memory/project-architecture.md'
+      memory: '.ai-agent/memory/project-architecture.md',
+      knowledge: '.ai-agent/memory/knowledge-center-architecture.md',
+      knowledgeSkill: '.ai-agent/skills/knowledge-center-architecture.md'
     }
   };
   report.summary = `Project architecture index generated for ${projectName}: ${routes.length} route entries, ${components.length} component entries, ${designDocs.length} design docs.`;
@@ -87,14 +93,20 @@ export async function analyzeProjectArchitecture(root, options = {}) {
 async function writeArchitectureArtifacts(root, report, options) {
   const skillPath = path.join(root, report.outputs.skill);
   const memoryPath = path.join(root, report.outputs.memory);
+  const knowledgePath = path.join(root, report.outputs.knowledge);
+  const knowledgeSkillPath = path.join(root, report.outputs.knowledgeSkill);
   await mkdir(path.dirname(skillPath), { recursive: true });
   await mkdir(path.dirname(memoryPath), { recursive: true });
 
   const skillResult = await writeGeneratedArchitectureFile(skillPath, renderLocatorSkill(report));
   const memoryResult = await writeGeneratedArchitectureFile(memoryPath, renderArchitectureMemory(report));
+  const knowledgeResult = await writeGeneratedArchitectureFile(knowledgePath, renderKnowledgeArchitectureMemory(report));
+  const knowledgeSkillResult = await writeGeneratedArchitectureFile(knowledgeSkillPath, renderKnowledgeArchitectureSkill(report));
   report.outputs.writes = {
     skill: skillResult,
-    memory: memoryResult
+    memory: memoryResult,
+    knowledge: knowledgeResult,
+    knowledgeSkill: knowledgeSkillResult
   };
 }
 
@@ -130,6 +142,7 @@ function parseAnalyzeOptions(args) {
   for (const arg of args) {
     if (arg.startsWith('--max-files=')) options.maxFiles = Number.parseInt(arg.slice('--max-files='.length), 10) || options.maxFiles;
     if (arg.startsWith('--max-entries=')) options.maxEntries = Number.parseInt(arg.slice('--max-entries='.length), 10) || options.maxEntries;
+    if (arg.startsWith('--architecture-docs=')) options.architectureDocs = arg.slice('--architecture-docs='.length);
   }
   return options;
 }
@@ -215,6 +228,35 @@ async function findComponents(root, files) {
     });
   }
   return uniqueBy(components, (item) => item.file).slice(0, 180);
+}
+
+async function findArchitectureSources(root, options = {}) {
+  const configured = options.architectureDocs ?? '.docs';
+  const directory = path.isAbsolute(configured) ? configured : path.join(root, configured);
+  const sources = [];
+
+  async function walk(current) {
+    for (const entry of await safeReaddir(current)) {
+      const fullPath = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        await walk(fullPath);
+        continue;
+      }
+      if (!entry.isFile() || !KNOWLEDGE_DOC_EXTENSIONS.has(path.extname(entry.name).toLowerCase())) continue;
+      const relative = path.relative(root, fullPath);
+      const content = await safeRead(fullPath);
+      sources.push({
+        file: normalizePath(relative),
+        kind: path.extname(entry.name).toLowerCase() === '.mmd' ? 'diagram' : 'architecture-doc',
+        title: extractTitle(content, relative),
+        headings: extractHeadings(content).slice(0, 12),
+        size: content.length
+      });
+    }
+  }
+
+  await walk(directory);
+  return sources.sort((left, right) => left.file.localeCompare(right.file));
 }
 
 async function findDesignDocs(root, files) {
@@ -324,6 +366,56 @@ ${renderDesignDocs(report.designDocs)}
 - Read route config first for page-level tasks.
 - Read component files only after identifying the owning route/module.
 - For design questions, read the listed design docs before implementation files.
+`;
+}
+
+function renderKnowledgeArchitectureSkill(report) {
+  return `# Skill: Knowledge Center Architecture Context
+
+Generated: ${report.generatedAt}
+Project: ${report.projectName}
+
+## Purpose
+
+Use the existing architecture documents and Mermaid diagrams as the first context for AI project management. Do not build a separate deep documentation site or invent domain entities not present in the project.
+
+## Sources
+
+${report.architectureSources.length ? report.architectureSources.map((source) => `- \`${source.file}\` [${source.kind}] ${source.title}`).join('\n') : '- No architecture sources found; run `aafe analyze --architecture-docs=<path>`.'}
+
+## Execution Rules
+
+1. Read the relevant source document and diagram before planning a task.
+2. Map requested changes to modules, routes, stores, APIs, workers, storage and tests.
+3. Use architecture diagrams as relationship and flow evidence.
+4. Prefer current code when documentation conflicts and record the conflict.
+5. Before publishing knowledge, include source paths, commit/version, confidence and review status.
+6. For changes to streaming, parsing, pagination, cancellation, cache or IndexedDB, calculate downstream impact and minimum verification paths.
+`;
+}
+
+function renderKnowledgeArchitectureMemory(report) {
+  const sources = report.architectureSources.length
+    ? report.architectureSources.map((source) => `- \`${source.file}\` [${source.kind}] ${source.title}${source.headings.length ? ` — ${source.headings.join(' > ')}` : ''}`).join('\n')
+    : '- No configured architecture sources found.';
+  return `# Knowledge Center Architecture Sources
+
+Generated: ${report.generatedAt}
+Project: ${report.projectName}
+
+This generated memory is the primary architecture context for Knowledge Center and AI project management. Prefer these sources before broad code search. The source documents and Mermaid diagrams are authoritative project context; do not invent a CRM domain model when the project describes another domain.
+
+## Architecture Sources
+
+${sources}
+
+## Operating Rules
+
+- Read the relevant architecture document and diagram before planning changes.
+- Treat Mermaid diagrams as relationship and flow evidence, not as executable code.
+- Prefer current source code when documentation conflicts, and record the conflict for review.
+- Use \`aafe analyze --architecture-docs=<path>\` after architecture documents change.
+- Use the architecture sources to guide AI task planning, impact analysis, test selection and knowledge updates.
 `;
 }
 

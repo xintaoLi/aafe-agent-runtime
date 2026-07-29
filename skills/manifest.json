@@ -18,6 +18,20 @@
       },
       "installMode": "agent-skills-download",
       "boundary": "Install this SKILL.md into an Agent Skills directory only; do not use it as project .ai-agent runtime files."
+    },
+    {
+      "name": "knowledge-center",
+      "description": "Knowledge Center skill for installing and maintaining a project knowledge CMS with code scanning, graph relations, AI search, impact analysis, memory integration and automatic synchronization.",
+      "source": "skills/knowledge-center/SKILL.md",
+      "rawUrl": "https://raw.githubusercontent.com/xintaoLi/aafe-agent-runtime/main/skills/knowledge-center/SKILL.md",
+      "targetDirName": "knowledge-center",
+      "targetFile": "SKILL.md",
+      "recommendedTarget": "$SIBOOT_WORKSPACE_PATH/skills/knowledge-center/SKILL.md",
+      "environment": {
+        "scenario": "project-knowledge-management"
+      },
+      "installMode": "agent-skills-download",
+      "boundary": "Install this SKILL.md into an Agent Skills directory; project-specific CMS implementation runs only in the explicitly selected target project."
     }
   ],
   "distribution": {

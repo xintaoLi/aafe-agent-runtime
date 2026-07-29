@@ -1,6 +1,6 @@
 {
   "name": "@aafe/agent-runtime",
-  "version": "0.1.7",
+  "version": "0.1.10",
   "description": "Universal Frontend Architecture Runtime for architecture-aware AI coding agents.",
   "type": "module",
   "bin": {
@@ -27,6 +27,11 @@
     "memory:summary": "node ./bin/aafe.js memory summary",
     "memory:compact": "node ./bin/aafe.js memory compact",
     "memory:scan": "node ./bin/aafe.js memory scan",
+    "knowledge:init": "node ./bin/aafe.js knowledge init",
+    "knowledge:update": "node ./bin/aafe.js knowledge update",
+    "knowledge:sync": "node ./bin/aafe.js knowledge sync",
+    "knowledge:web": "node ./bin/aafe.js knowledge-web",
+    "knowledge:web:serve": "node ./bin/aafe.js knowledge-web --serve",
     "skills:list": "node ./bin/aafe.js skills list --github",
     "skills:install:aafe-vue-complex": "node ./bin/aafe.js skills install aafe-vue-complex-runtime --github",
     "pattern:ask": "node ./bin/aafe.js pattern ask",
@@ -34,6 +39,7 @@
     "ddd:ask": "node ./bin/aafe.js ddd ask",
     "ddd:analyze": "node ./bin/aafe.js ddd analyze",
     "update": "node ./bin/aafe.js update",
+    "refresh": "node ./bin/aafe.js refresh",
     "test": "node ./bin/aafe.js doctor"
   },
   "keywords": [

@@ -48,7 +48,15 @@ async function writeConfig(root, _detection, options, plan) {
     hooks: {
       enabled: true,
       sessionStart: '.cursor/hooks/aafe-session-start',
+      taskCompletion: '.cursor/hooks/aafe-task-completion',
       failClosed: false
+    },
+    taskCompletion: {
+      enabled: true,
+      command: 'aafe task-completion',
+      steps: ['aafe knowledge update', 'aafe knowledge-web', 'aafe update', 'aafe doctor'],
+      failClosed: false,
+      log: '.ai-agent/memory/knowledge-sync.jsonl'
     },
     projectKnowledge: {
       enabled: true,
@@ -76,18 +84,22 @@ async function writeEditorAdapters(root, detection, options, plan) {
   if (editors.has('cursor')) {
     await writeIfAllowed(path.join(root, '.cursor/rules/aafe-skill-router.mdc'), cursorSkillRouterRules(), options);
     await writeIfAllowed(path.join(root, '.cursor/rules/aafe-architecture-runtime.mdc'), cursorRules(), options);
+    await writeIfAllowed(path.join(root, '.cursor/skills/aafe-runtime/SKILL.md'), nativeEditorSkill('Cursor'), options);
     await writeIfAllowed(path.join(root, '.cursor/skills/ENTRY.md'), editorSkillEntry('Cursor'), options);
     await writeIfAllowed(path.join(root, '.cursor/hooks.json'), cursorHooks(), options);
     await writeIfAllowed(path.join(root, '.cursor/hooks/run-hook.cmd'), cursorHookRunner(), options);
     await writeIfAllowed(path.join(root, '.cursor/hooks/aafe-session-start'), cursorSessionStartHook(), options);
+    await writeIfAllowed(path.join(root, '.cursor/hooks/aafe-task-completion'), cursorTaskCompletionHook(), options);
     await makeExecutable(path.join(root, '.cursor/hooks/aafe-session-start'));
+    await makeExecutable(path.join(root, '.cursor/hooks/aafe-task-completion'));
     await makeExecutable(path.join(root, '.cursor/hooks/run-hook.cmd'));
   }
   if (editors.has('claude')) {
     await writeIfAllowed(path.join(root, 'CLAUDE.md'), claudeRules(), { ...options, append: true });
   }
   if (editors.has('codebuddy')) {
-    await writeIfAllowed(path.join(root, '.codebuddy/aafe.md'), genericEditorRules('CodeBuddy'), options);
+    await writeIfAllowed(path.join(root, '.codebuddy/aafe.md'), codeBuddyRules(), options);
+    await writeIfAllowed(path.join(root, '.codebuddy/skills/aafe-runtime/SKILL.md'), nativeEditorSkill('CodeBuddy'), options);
     await writeIfAllowed(path.join(root, '.codebuddy/skills/ENTRY.md'), editorSkillEntry('CodeBuddy'), options);
   }
   if (editors.has('codex')) {
@@ -147,6 +159,8 @@ function runtimeFiles(_detection, plan) {
     '.ai-agent/scenarios/complex.md': complexPack(),
     '.ai-agent/skills/evolution-predictor.md': predictorSkill(),
     '.ai-agent/skills/refactor-critic.md': criticSkill(),
+    '.ai-agent/skills/architecture-impact-test-forecast.md': architectureImpactTestForecastSkill(),
+    '.ai-agent/skills/knowledge-center-updater.md': knowledgeCenterUpdaterSkill(),
     '.ai-agent/skills/adr-generator.md': adrSkill(),
     '.ai-agent/pipelines/feature.yaml': featurePipeline(),
     '.ai-agent/pipelines/domain-feature.yaml': domainFeaturePipeline(),
@@ -820,6 +834,67 @@ Required artifacts:
 `;
 }
 
+function architectureImpactTestForecastSkill() {
+  return `# Skill: Architecture Impact and Test Forecast
+
+This skill is a mandatory final step after every completed task, fix, refactor, configuration change or documentation update.
+
+## Required context
+
+1. Read the target project's \\.ai-agent/skills/knowledge-center-architecture.md when present.
+2. Read \\.ai-agent/memory/knowledge-center-architecture.md when present.
+3. Read the relevant \\.docs architecture documents and Mermaid diagrams.
+4. Map changed files to modules, routes, components, stores, APIs, workers, storage, flows and tests.
+
+## Required final output
+
+Before reporting completion, produce:
+
+- 修复/变更影响范围：直接影响、间接影响和可能影响；
+- 架构关系依据：引用相关 .docs 文件、图表和源码路径；
+- 需要测试的范围：单元、组件、集成、端到端、回归和异常路径；
+- 测试优先级：P0/P1/P2，并说明预测原因；
+- 未验证项、风险和需要人工确认的架构冲突。
+
+## Project-specific rules
+
+- Do not claim a test passed unless it was actually run.
+- Distinguish tested, predicted and not covered.
+- For changes involving route guards, request cancellation, streaming, parsing, pagination, cache, Worker or IndexedDB, include stale response, cancellation, reload/degradation and concurrent request cases.
+- For changes involving Store or API contracts, include dependent pages, actions, services and UI rendering paths.
+- If no test is needed, explain why using the architecture relationships and still provide the predicted scope.
+
+Required artifacts:
+- impact_scope
+- architecture_evidence
+- test_forecast
+- unverified_risks
+`;
+}
+
+function knowledgeCenterUpdaterSkill() {
+  return `# Skill: Knowledge Center Updater
+
+After every feature, fix, refactor or architecture change:
+
+1. Run aafe knowledge update in the target project.
+2. Run aafe knowledge-web to refresh the modular visual Knowledge Web.
+3. Read the current .docs architecture sources and Mermaid diagrams.
+4. Update generated relationship views under .docs/aafe-generated/.
+4. Preserve original .docs documents and only update generated views automatically.
+5. Use the generated views as Knowledge Center input.
+6. Update the modular impact.html page with the current impact scope and recommended tests.
+7. Run the mandatory architecture impact and test forecast before reporting completion.
+
+Generated views:
+- .docs/aafe-generated/组件关系.md
+- .docs/aafe-generated/业务关系与数据流.md
+- .docs/aafe-generated/影响范围与测试预测.md
+
+Do not claim that generated documentation is a complete business truth. Include source paths, scan version and unresolved conflicts.
+`;
+}
+
 function adrSkill() {
   return `# Skill: ADR Generator
 
@@ -1135,8 +1210,28 @@ function editorSkillEntry(name) {
   return '# AAFE Project Skill Entry ({name})\n\nThis file is a thin pointer generated by @aafe/agent-runtime.\n\nRead `.ai-agent/skill-index.md` first, then `.ai-agent/project.md` if present, and only then load the matching `.ai-agent/project-skills/<domain>/SKILL.md` on demand.\n\nDo not copy project knowledge into this editor directory. The single source of truth is `.ai-agent`.\n'.replace('{name}', name);
 }
 
+function nativeEditorSkill(name) {
+  return [
+    '---',
+    'name: aafe-runtime',
+    'description: Use the AAFE project runtime for architecture-aware frontend work. Read the generated skill index first, then load only matching project skills on demand.',
+    '---',
+    '',
+    `# AAFE Runtime (${name})`,
+    '',
+    '1. Read `.ai-agent/skill-index.md` first.',
+    '2. Read `.ai-agent/project.md` when present.',
+    '3. Load only the matching `.ai-agent/project-skills/<domain>/SKILL.md`.',
+    '4. For non-trivial work, follow `.ai-agent/runtime/engine.md`, `.ai-agent/runtime/router.yaml` and the selected pipeline.',
+    '5. Preserve successful decisions and reusable solutions in `.ai-agent/memory/`.',
+    '',
+    'The project `.ai-agent/` directory is the single source of truth; this file is only the editor discovery entry.',
+    ''
+  ].join('\n');
+}
+
 function cursorRules() {
-  return '---\ndescription: AAFE Architecture Runtime\nalwaysApply: true\n---\n\n# AAFE Architecture Runtime\n\nFor every non-trivial frontend task after the Skill Router step:\n1. Read `.ai-agent/runtime/engine.md`.\n2. Classify the task using `.ai-agent/runtime/router.yaml`.\n3. Follow the selected `.ai-agent/pipelines/*.yaml`.\n4. Enforce `.ai-agent/runtime/gates.yaml` before implementation.\n5. Read `.ai-agent/skills/project-architecture-locator.md` first when locating routes, components, modules or design docs.\n6. Use framework, DDD, design-pattern and scenario packs when relevant.\n7. For business-heavy features, run DDD Discovery before module decomposition.\n8. For new features, run Pattern Interview before Pattern Selection.\n9. For complex frontend work, select and land patterns per module based on real business responsibility.\n10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.\n';
+  return '---\ndescription: AAFE Architecture Runtime\nalwaysApply: true\n---\n\n# AAFE Architecture Runtime\n\nFor every non-trivial frontend task after the Skill Router step:\n1. Read `.ai-agent/runtime/engine.md`.\n2. Classify the task using `.ai-agent/runtime/router.yaml`.\n3. Follow the selected `.ai-agent/pipelines/*.yaml`.\n4. Enforce `.ai-agent/runtime/gates.yaml` before implementation.\n5. Read `.ai-agent/skills/project-architecture-locator.md` first when locating routes, components, modules or design docs.\n6. Use framework, DDD, design-pattern and scenario packs when relevant.\n7. For business-heavy features, run DDD Discovery before module decomposition.\n8. For new features, run Pattern Interview before Pattern Selection.\n9. For complex frontend work, select and land patterns per module based on real business responsibility.\n10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.\n11. Before final response, load `architecture-impact-test-forecast.md` and summarize `.docs`-based impact scope and predicted test scope.\n';
 }
 
 function cursorHooks() {
@@ -1147,6 +1242,11 @@ function cursorHooks() {
         {
           command: '.cursor/hooks/run-hook.cmd aafe-session-start',
           timeout: 5,
+          failClosed: false
+        },
+        {
+          command: '.cursor/hooks/run-hook.cmd aafe-task-completion',
+          timeout: 120,
           failClosed: false
         }
       ]
@@ -1185,12 +1285,20 @@ exec bash "\${SCRIPT_DIR}/\${SCRIPT_NAME}" "$@"
 `;
 }
 
+function cursorTaskCompletionHook() {
+  return '#!/usr/bin/env bash\nset -u\n\nif [ "${AAFE_TASK_STATUS:-success}" != "success" ]; then\n  exit 0\nfi\n\nif command -v aafe >/dev/null 2>&1; then\n  aafe task-completion || true\nfi\n';
+}
+
 function cursorSessionStartHook() {
   return '#!/usr/bin/env bash\nset -euo pipefail\n\ncat <<\'JSON\'\n{\n  "additional_context": "<AAFE_SKILL_ROUTER>\\n1. Read .ai-agent/skill-index.md.\\n2. Read .ai-agent/project.md if present.\\n3. Load matching .ai-agent/project-skills/*/SKILL.md on demand only.\\n4. For non-trivial tasks, follow .ai-agent/runtime/* and .ai-agent/pipelines/*.\\n5. Do not copy project knowledge into editor directories.\\n</AAFE_SKILL_ROUTER>"\n}\nJSON\nexit 0\n';
 }
 
+function codeBuddyRules() {
+  return '# AAFE Architecture Runtime\\n\\n## AAFE Skill Router\\n\\nFor every task, read `.ai-agent/skill-index.md` first, then `.ai-agent/project.md` if present, and only the matching `.ai-agent/project-skills/<domain>/SKILL.md` on demand. The native `.codebuddy/skills/aafe-runtime/SKILL.md` is the discovery entry; the `.ai-agent/` directory remains the single source of truth.\\n\\n## Mandatory completion review\\n\\nAfter every completed task, read `.ai-agent/skills/architecture-impact-test-forecast.md` and report `.docs`-based impact scope, architecture evidence, predicted test scope, test status and unverified risks.\\n\\n## Runtime Pipeline\\n\\nFor non-trivial frontend work, load `.ai-agent/runtime/engine.md`, classify with `.ai-agent/runtime/router.yaml`, follow the matching pipeline, enforce gates, and write reusable outcomes to `.ai-agent/memory/`.\\n';
+}
+
 function claudeRules() {
-  return '# AAFE Architecture Runtime\n\n## AAFE Skill Router\n\nFor every task, read `.ai-agent/skill-index.md` first, then `.ai-agent/project.md` if present, then only the matching `.ai-agent/project-skills/<domain>/SKILL.md` on demand. Do not copy project knowledge into editor directories and do not eagerly read all project skills.\n\n## Runtime Pipeline\n\nFor non-trivial frontend engineering tasks, load `.ai-agent/runtime/engine.md`, classify requests with `.ai-agent/runtime/router.yaml`, follow the matching pipeline, run DDD discovery for business-heavy features, run pattern interview for new features, select patterns per module for complex frontend work, enforce gates, and only implement after DDD, architecture and pattern gates pass.\n';
+  return '# AAFE Architecture Runtime\n\n## Mandatory completion review\n\nAfter every completed task, read `.ai-agent/skills/architecture-impact-test-forecast.md` and report `.docs`-based impact scope, architecture evidence, predicted test scope, test status and unverified risks.\n\n## AAFE Skill Router\n\nFor every task, read `.ai-agent/skill-index.md` first, then `.ai-agent/project.md` if present, then only the matching `.ai-agent/project-skills/<domain>/SKILL.md` on demand. Do not copy project knowledge into editor directories and do not eagerly read all project skills.\n\n## Runtime Pipeline\n\nFor non-trivial frontend engineering tasks, load `.ai-agent/runtime/engine.md`, classify requests with `.ai-agent/runtime/router.yaml`, follow the matching pipeline, run DDD discovery for business-heavy features, run pattern interview for new features, select patterns per module for complex frontend work, enforce gates, and only implement after DDD, architecture and pattern gates pass.\n';
 }
 
 function genericEditorRules(name) {

@@ -28,6 +28,8 @@ const requiredFiles = [
   '.ai-agent/skills/experience-recorder.md',
   '.ai-agent/skills/project-architecture-analyzer.md',
   '.ai-agent/skills/downloadable-skills-installer.md',
+  '.ai-agent/skills/architecture-impact-test-forecast.md',
+  '.ai-agent/skills/knowledge-center-updater.md',
   '.ai-agent/memory/index.md',
   '.ai-agent/memory/experience.md',
   '.ai-agent/memory/project-architecture.md',
@@ -41,7 +43,11 @@ export async function doctorProject(root) {
   const projectConfig = parseJson(config);
   const files = [...requiredFiles];
   if (projectConfig.editors?.includes('cursor')) {
-    files.push('.cursor/rules/aafe-skill-router.mdc', '.cursor/hooks.json', '.cursor/hooks/run-hook.cmd', '.cursor/hooks/aafe-session-start');
+    files.push('.cursor/rules/aafe-skill-router.mdc', '.cursor/skills/aafe-runtime/SKILL.md', '.cursor/hooks.json', '.cursor/hooks/run-hook.cmd', '.cursor/hooks/aafe-session-start');
+    if (projectConfig.taskCompletion?.enabled) files.push('.cursor/hooks/aafe-task-completion');
+  }
+  if (projectConfig.editors?.includes('codebuddy')) {
+    files.push('.codebuddy/skills/aafe-runtime/SKILL.md');
   }
 
   for (const rel of files) {
@@ -79,7 +85,9 @@ export async function doctorProject(root) {
   if (projectConfig.editors?.includes('cursor') && !projectConfig.hooks?.enabled) warnings.push('Cursor hooks are not enabled in .aafe.config.json');
   if (hasProjectSkills && !skillIndex) warnings.push('project-skills/ exists but .ai-agent/skill-index.md is missing; project knowledge has no generated router');
   if (skillIndex && !skillIndex.includes('On-demand project skill loading')) warnings.push('.ai-agent/skill-index.md does not look like the index-on-demand router');
+  const cursorNativeSkill = await safeRead(path.join(root, '.cursor/skills/aafe-runtime/SKILL.md'));
   if (projectConfig.editors?.includes('cursor') && !cursorSkillRouter) warnings.push('Cursor skill router rule is missing; Cursor may not automatically enter project skill index');
+  if (projectConfig.editors?.includes('cursor') && cursorNativeSkill && !cursorNativeSkill.startsWith('---\nname:')) warnings.push('Cursor native skill entry lacks standard SKILL.md frontmatter');
   if (projectConfig.editors?.includes('cursor') && cursorSkillRouter && !cursorSkillRouter.includes('alwaysApply: true')) warnings.push('Cursor skill router is not alwaysApply; project skill index may not auto-load');
   if (cursorSkillCopies.length) warnings.push('.cursor/skills contains non-ENTRY skill copies (' + cursorSkillCopies.join(', ') + '); keep project knowledge only in .ai-agent');
   if (sessionStartHook && (sessionStartHook.includes('<AAFE_RUNTIME>') || sessionStartHook.includes('runtime/engine.md') || sessionStartHook.includes('runtime/router.yaml') || sessionStartHook.includes('runtime/gates.yaml'))) warnings.push('sessionStart hook still injects runtime file contents; use short AAFE_SKILL_ROUTER context instead');
@@ -124,7 +132,7 @@ async function listCursorSkillCopies(root) {
     const entries = await readdir(skillsDir, { withFileTypes: true });
     return entries
       .map((entry) => entry.name)
-      .filter((name) => name !== 'ENTRY.md' && name !== '.DS_Store');
+      .filter((name) => !['ENTRY.md', 'aafe-runtime', '.DS_Store'].includes(name));
   } catch {
     return [];
   }

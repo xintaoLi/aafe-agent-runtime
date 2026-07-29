@@ -20,12 +20,17 @@ Do not use project `aafe update` as a replacement for downloading Agent SKILLS.
 https://raw.githubusercontent.com/xintaoLi/aafe-agent-runtime/main/skills/manifest.json
 ```
 
-## Current published skill
+## Current published skills
 
 - `aafe-vue-complex-runtime`
-- Source: `skills/aafe-vue-complex-runtime/SKILL.md`
-- Default target when `$SIBOOT_WORKSPACE_PATH` exists: `$SIBOOT_WORKSPACE_PATH/skills/aafe-vue-complex-runtime/SKILL.md`
-- Custom target: any compatible Agent Skills directory
+  - Source: `skills/aafe-vue-complex-runtime/SKILL.md`
+  - Default target: `$SIBOOT_WORKSPACE_PATH/skills/aafe-vue-complex-runtime/SKILL.md`
+- `knowledge-center`
+  - Source: `skills/knowledge-center/SKILL.md`
+  - Default target: `$SIBOOT_WORKSPACE_PATH/skills/knowledge-center/SKILL.md`
+  - Provides project Knowledge CMS installation, code knowledge scanning, graph relations, AI search, impact analysis, Memory integration and automatic synchronization guidance.
+
+Custom target: any compatible Agent Skills directory.
 
 ## Install into an Agent Skills directory
 

@@ -1,9 +1,11 @@
 import { execFile, spawn } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { promisify } from 'node:util';
+import { pathToFileURL } from 'node:url';
 import { bootstrapProject } from './bootstrap.js';
 import { detectProject } from './detect.js';
 import { doctorProject } from './doctor.js';
+import { syncKnowledgeArtifacts } from './knowledge.js';
 
 const execFileAsync = promisify(execFile);
 const packageJsonUrl = new URL('../../package.json', import.meta.url);
@@ -27,7 +29,8 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
     yes: true,
     sync: true,
     force: true,
-    preserveMemory: true
+    preserveMemory: true,
+    editors: options.editors
   };
 
   if (options.dryRun) {
@@ -56,7 +59,16 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
   }
 
   const detection = await detectProject(process.cwd());
-  await bootstrapProject(process.cwd(), detection, updateOptions);
+  const configured = await readProjectConfig(process.cwd());
+  const effectiveDetection = {
+    ...detection,
+    editors: resolveEditors(options, configured, detection)
+  };
+  await bootstrapProject(process.cwd(), effectiveDetection, updateOptions);
+  const knowledge = options.knowledge === false ? null : await syncKnowledgeArtifacts(process.cwd(), {
+    architectureDocs: options.architectureDocs,
+    knowledgeDocs: options.knowledgeDocs
+  });
   const doctor = await doctorProject(process.cwd());
 
   console.log(JSON.stringify({
@@ -66,6 +78,7 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
     package: options.packageName,
     currentVersion: options.currentVersion,
     preserved: ['.ai-agent/project.md', '.ai-agent/project-skills/**', '.ai-agent/rules/**', '.ai-agent/memory/**'],
+    knowledge,
     doctor,
     summary: 'Refreshed generated .ai-agent runtime, Skill Index On-Demand router, editor adapters and projectKnowledge config from the currently installed aafe package. Project-owned knowledge was preserved.'
   }, null, 2));
@@ -140,16 +153,34 @@ function parseUpdateOptions(args) {
     if (arg.startsWith('--latest=')) options.latestVersion = arg.slice('--latest='.length);
     if (arg.startsWith('--package-manager=')) options.packageManager = arg.slice('--package-manager='.length);
     if (arg.startsWith('--registry=')) options.registry = arg.slice('--registry='.length);
+    if (arg.startsWith('--editors=')) options.editors = arg.slice('--editors='.length);
+    if (arg.startsWith('--architecture-docs=')) options.architectureDocs = arg.slice('--architecture-docs='.length);
+    if (arg.startsWith('--knowledge-docs=')) options.knowledgeDocs = arg.slice('--knowledge-docs='.length);
+    if (arg === '--no-knowledge') options.knowledge = false;
   }
 
   return options;
+}
+
+async function readProjectConfig(root) {
+  try {
+    return JSON.parse(await readFile(pathToFileURL(`${root.endsWith('/') ? root : `${root}/`}.aafe.config.json`), 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+function resolveEditors(options, config, detection) {
+  if (options.editors) return String(options.editors).split(',').map((item) => item.trim()).filter(Boolean);
+  if (Array.isArray(config.editors) && config.editors.length) return config.editors;
+  return detection.editors;
 }
 
 async function syncCurrentProject(options, syncOptions = {}) {
   if (!options.sync) return false;
   if (syncOptions.useInstalledCli) {
     const args = ['update'];
-    await runCommand('aafe', args);
+    await runCommand(process.platform === 'win32' ? 'aafe.cmd' : 'aafe', args);
     return true;
   }
   const detection = await detectProject(process.cwd());

@@ -4,6 +4,9 @@ import { runDDDCommand } from './ddd.js';
 import { detectProject } from './detect.js';
 import { doctorProject } from './doctor.js';
 import { runMemoryCommand } from './memory.js';
+import { runKnowledgeCommand } from './knowledge.js';
+import { runKnowledgeWebCommand } from './knowledgeWeb.js';
+import { runTaskCompletion } from './taskCompletion.js';
 import { runPatternCommand } from './patterns.js';
 import { runSkillsCommand } from './skills.js';
 import { collectInitOptions } from './prompts.js';
@@ -51,6 +54,23 @@ export async function runCli(argv) {
     return;
   }
 
+  if (command === 'knowledge') {
+    await runKnowledgeCommand(process.cwd(), argv.slice(3));
+    return;
+  }
+
+  if (command === 'knowledge-web') {
+    await runKnowledgeWebCommand(process.cwd(), argv.slice(3));
+    return;
+  }
+
+  if (command === 'task-completion') {
+    const results = await runTaskCompletion(process.cwd(), { dryRun: options.dryRun });
+    console.log(JSON.stringify({ status: results.some((item) => item.status === 'fail') ? 'fail' : 'pass', results }, null, 2));
+    if (results.some((item) => item.status === 'fail')) process.exitCode = 1;
+    return;
+  }
+
   if (command === 'pattern') {
     await runPatternCommand(argv.slice(3));
     return;
@@ -66,7 +86,7 @@ export async function runCli(argv) {
     return;
   }
 
-  if (command === 'update' || command === 'updaet') {
+  if (command === 'update' || command === 'updaet' || command === 'refresh') {
     await runUpdateCommand(argv.slice(3));
     return;
   }
@@ -96,7 +116,8 @@ function parseOptions(args) {
   const options = {
     yes: args.includes('--yes') || args.includes('-y'),
     force: args.includes('--force'),
-    nonInteractive: args.includes('--non-interactive')
+    nonInteractive: args.includes('--non-interactive'),
+    dryRun: args.includes('--dry-run')
   };
 
   for (const arg of args) {
@@ -105,6 +126,8 @@ function parseOptions(args) {
     if (arg.startsWith('--editors=')) options.editors = arg.slice('--editors='.length);
     if (arg === '--no-memory') options.memory = false;
     if (arg.startsWith('--template=')) options.template = arg.slice('--template='.length);
+    if (arg.startsWith('--architecture-docs=')) options.architectureDocs = arg.slice('--architecture-docs='.length);
+    if (arg.startsWith('--knowledge-docs=')) options.knowledgeDocs = arg.slice('--knowledge-docs='.length);
   }
   return options;
 }
@@ -117,8 +140,11 @@ Commands:
   detect    Detect framework, editor and scenario
   doctor    Validate installed runtime files
   sync      Refresh generated runtime files
-  analyze   Generate compact project architecture locator skill and memory
+  analyze   Generate architecture locator, Knowledge Center memory and project architecture skills
   memory    Manage project self-growing memory
+  knowledge  Initialize or update project Knowledge views in .docs
+  knowledge-web  Generate or serve the Knowledge Web visualization
+  task-completion  Run automatic post-task Knowledge update, Runtime update and doctor
   skills    List or install downloadable AAFE Agent Skills from GitHub
   pattern   Interview and select design patterns for features
   ddd       Analyze domain-driven design model for business features
@@ -138,6 +164,7 @@ Analyze options:
   --no-write
   --max-files=<number>
   --max-entries=<number>
+  --architecture-docs=<path>  Architecture docs directory, defaults to .docs
 
 Skills options:
   aafe skills list --github
@@ -149,6 +176,13 @@ Skills options:
   --dry-run
   --force
 
+Knowledge options:
+  aafe knowledge init|update|sync
+  aafe knowledge-web --serve
+  --architecture-docs=<path>
+  --knowledge-docs=<path>
+  --dry-run
+
 Update options:
   --dry-run
   --upgrade-package      Also upgrade the globally installed aafe package before refreshing project runtime
@@ -156,5 +190,6 @@ Update options:
   --registry=<registry-url>
   --no-sync
   --sync-force
+  --editors=cursor|codebuddy|cursor,codebuddy
 `);
 }
