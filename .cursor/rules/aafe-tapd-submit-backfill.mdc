@@ -1,0 +1,84 @@
+---
+description: AAFE TAPD Submit Backfill on Commit/Push
+alwaysApply: true
+---
+
+# AAFE 提交代码 / TAPD 回填
+
+## 触发条件
+
+当用户输入或意图等价于以下任一指令时，**在继续 git commit / push / PR 之前**执行本 Rule：
+
+- 提交代码 / 提交 / commit / git commit / github push / push / submit / 提测 / 提 PR
+
+## 前置：确认 TAPD 已启用
+
+1. Read `.aafe.config.json` 中的 `tapd` 配置
+2. 若 `tapd.enabled !== true` 或缺少 `tapd` 节：提示用户运行 `aafe init` / `aafe update` 配置 TAPD，或手动补充配置；**不要**调用 TAPD MCP
+
+## Step 1 — 判断任务是否来自 TAPD
+
+视为 **来自 TAPD** 若满足任一：
+
+- 会话/任务上下文中已有 TAPD story/bug/task ID（19 位长 ID 或短 ID）
+- 用户或系统明确引用 TAPD 单号、TAPD 链接、TAPD MCP 已用于本任务
+- `.aafe.config.json` 或 session 元数据中记录了 `tapd_entry_id` / `tapd_entry_type`
+
+否则视为 **非 TAPD 来源任务**。
+
+## Step 2A — 来自 TAPD：回填 + 逐步改状态
+
+1. Read `.ai-agent/skills/tapd-submit-backfill.md`
+2. 若尚未完成影响分析/自测，先执行 `.ai-agent/skills/architecture-impact-test-forecast.md`（或引用本轮已有结果）
+3. 通过 **TAPD MCP**（`user-tapd_taihu`）：
+   - `lookup_tool_param_schema` → `proxy_execute_tool`
+   - 使用 `comments_create` 将**自测结果 + 影响范围报告**回复到原单据（`entry_type` + `entry_id` + `workspace_id`）
+4. **状态必须逐步变更**，禁止跳步：
+   - Story/需求（已有单）：`todo → doing → for_test`（中间 `doing` 以 `tapd.tapd_story.status_doing` 逗号链为准）
+   - **禁止** `todo → for_test` 一步到位
+   - Bug/缺陷：按 `tapd.tapd_bug.status_doing` 链逐步至 `status_done`
+5. 每一步：`stories_get` / `bugs_get` 读当前状态 → `stories_update` / `bugs_update` 仅更新到链上下一状态 → 校验 `check_workflow`
+6. 向用户汇报：评论 ID、各步状态变更结果、最终状态
+
+## Step 2B — 非 TAPD 来源：询问目标单
+
+询问用户：
+
+> 是否需要关联 TAPD 单据？可选：① 新建 TAPD 需求/缺陷 ② 指定已有 TAPD 单号
+
+### 新建单据
+
+1. 确认 `tapd.workspace_id`；若未配置，**必须**向用户索取
+2. 确认 `tapd.milestone_id`（映射为创建时的 `iteration_id` 或发布计划）；若未配置，**必须**向用户索取
+3. `stories_create` / `bugs_create` 创建单据
+4. **新单据状态链必须逐步推进**：
+   - Story：**`backlog → todo → doing → for_test`**
+   - 以 `tapd.tapd_story.status_backlog`、`status_todo`、`status_doing`（逗号链）、`status_done` 为准
+   - **禁止** `backlog → for_test` 或 `todo → for_test` 跳步
+5. 创建后同样 `comments_create` 回填自测与影响范围，并逐步更新状态
+
+### 指定已有单据
+
+1. 向用户确认 `entry_type`（story/bug）与 `entry_id`
+2. 短 ID 先 `tapd_id_get` 转长 ID
+3. 按 **Step 2A** 执行回填与状态流转
+
+## 回填评论内容模板
+
+```markdown
+## 自测结果
+（测试用例表格 + pass/fail/skipped + 命令）
+
+## 影响范围
+（直接/间接/潜在影响摘要）
+
+## 变更摘要
+（commit/PR 要点、关键文件）
+```
+
+## 禁止事项
+
+- 禁止跳过中间状态（todo→for_test、backlog→for_test）
+- 禁止无自测/影响范围内容就改状态为 for_test
+- 禁止在未配置 workspace_id 时创建单据
+- 禁止伪造 TAPD MCP 调用结果

@@ -10,6 +10,8 @@ import { runTaskCompletion } from './taskCompletion.js';
 import { runPatternCommand } from './patterns.js';
 import { runSkillsCommand } from './skills.js';
 import { collectInitOptions } from './prompts.js';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import { runUpdateCommand } from './update.js';
 import { createRuntimeFromProject } from '../runtime/configLoader.js';
 import { resolveWorkspaceLayout } from './workspace.js';
@@ -22,7 +24,8 @@ export async function runCli(argv) {
     const installRoot = process.cwd();
     const detection = await detectProject(installRoot);
     const layout = await resolveWorkspaceLayout(installRoot, detection.editors);
-    const initOptions = await collectInitOptions(detection, options, layout);
+    const existingConfig = await readProjectConfig(installRoot);
+    const initOptions = await collectInitOptions(detection, { ...options, existingConfig }, layout);
     await bootstrapProject(installRoot, detection, initOptions);
     if (initOptions.workspaceLayout?.layeredEditors) {
       console.log(`AAFE runtime initialized in install dir. Editor adapters were written to workspace root for module "${initOptions.workspaceLayout.moduleName}".`);
@@ -177,6 +180,9 @@ Init options:
   --no-migrate-editors     Skip editor adapter migration during init/update
   --no-migrate-cursor      Alias of --no-migrate-editors
 
+TAPD (init/update interactive):
+  When prompted, answer Y/Yes/是 to configure TAPD commit/submit backfill in .aafe.config.json
+
 Analyze options:
   --dry-run
   --no-write
@@ -210,4 +216,13 @@ Update options:
   --sync-force
   --editors=cursor|codebuddy|cursor,codebuddy
 `);
+}
+
+async function readProjectConfig(root) {
+  try {
+    const raw = await readFile(path.join(root, '.aafe.config.json'), 'utf8');
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
 }

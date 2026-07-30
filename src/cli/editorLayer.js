@@ -1,8 +1,10 @@
 import { chmod, mkdir, readdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { EDITOR_ADAPTERS, getEditorAdapter, getLayeredEditors } from './editorRegistry.js';
+import { taskCompletionImpactRuleSection } from './completionImpactRules.js';
+import { tapdSubmitRuleSection } from './tapdSubmitRules.js';
 import { createCursorPathContext, rewriteCursorContent } from './pathRewrite.js';
-import { writeLayeredCursorAdapters, buildCursorLayerPaths, migrateInstallCursorToWorkspace } from './cursorLayer.js';
+import { writeLayeredCursorAdapters, migrateInstallCursorToWorkspace, buildCursorLayerPaths } from './cursorLayer.js';
 import { RETAIN_IN_INSTALL_DIR } from './workspace.js';
 
 export async function writeLayeredEditorAdapters({
@@ -189,6 +191,8 @@ function buildCodeBuddyRules(ctx) {
   return [
     `# AAFE Architecture Runtime (${ctx.moduleName})`,
     '',
+    taskCompletionImpactRuleSection(ctx).trimEnd(),
+    tapdSubmitRuleSection(ctx).trimEnd(),
     '## AAFE Skill Router',
     '',
     `For every task in module \`${ctx.moduleRelativePath}\`, read \`${ctx.agentPrefix}/skill-index.md\` first, then \`${ctx.agentPrefix}/project.md\` if present, and only the matching \`${ctx.agentPrefix}/project-skills/<domain>/SKILL.md\` on demand.`,
@@ -205,6 +209,8 @@ function buildGenericEditorRules(name, ctx) {
   return [
     `# AAFE Architecture Runtime for ${name} (${ctx.moduleName})`,
     '',
+    taskCompletionImpactRuleSection(ctx).trimEnd(),
+    tapdSubmitRuleSection(ctx).trimEnd(),
     '## AAFE Skill Router',
     '',
     `For module \`${ctx.moduleRelativePath}\`, read \`${ctx.agentPrefix}/skill-index.md\` first, then \`${ctx.agentPrefix}/project.md\` if present, then only matching \`${ctx.agentPrefix}/project-skills/<domain>/SKILL.md\` on demand.`,

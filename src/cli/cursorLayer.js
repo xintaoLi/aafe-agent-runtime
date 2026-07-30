@@ -1,6 +1,12 @@
 import { chmod, mkdir, readdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import {
+  taskCompletionImpactRuleMdc
+} from './completionImpactRules.js';
+import {
+  tapdSubmitRuleMdc
+} from './tapdSubmitRules.js';
+import {
   createCursorPathContext,
   rewriteCursorContent
 } from './pathRewrite.js';
@@ -42,6 +48,8 @@ export async function writeLayeredCursorAdapters({
 
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-skill-router.mdc'), cursorSkillRouterRules(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-architecture-runtime.mdc'), cursorRules(ctx), options);
+  await writeIfAllowed(path.join(paths.rulesDir, 'aafe-task-completion-impact.mdc'), taskCompletionImpactRuleMdc(ctx), options);
+  await writeIfAllowed(path.join(paths.rulesDir, 'aafe-tapd-submit-backfill.mdc'), tapdSubmitRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.skillsDir, 'aafe-runtime', 'SKILL.md'), nativeEditorSkill('Cursor', ctx), options);
   await writeIfAllowed(path.join(paths.skillsDir, 'ENTRY.md'), editorSkillEntry('Cursor', ctx), options);
   await writeIfAllowed(path.join(paths.hooksDir, 'run-hook.cmd'), cursorHookRunner(), options);
@@ -311,7 +319,8 @@ function cursorRules(ctx) {
     '8. For new features, run Pattern Interview before Pattern Selection.',
     '9. For complex frontend work, select and land patterns per module based on real business responsibility.',
     '10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.',
-    `11. Before final response, load \`${ctx.agentPrefix}/skills/architecture-impact-test-forecast.md\` and summarize \`.docs\`-based impact scope and predicted test scope.`,
+    `11. Before final response, follow layered rule \`aafe-task-completion-impact.mdc\`: ask whether to analyze impact scope and provide test references; if confirmed, run \`${ctx.agentPrefix}/skills/architecture-impact-test-forecast.md\`.`,
+    `12. On commit/push/submit intent, follow \`aafe-tapd-submit-backfill.mdc\` and \`${ctx.agentPrefix}/skills/tapd-submit-backfill.md\` when \`.aafe.config.json\` → \`tapd.enabled\`.`,
     ''
   ].join('\n');
 }

@@ -16,3 +16,5 @@ For every non-trivial frontend task after the Skill Router step:
 8. For new features, run Pattern Interview before Pattern Selection.
 9. For complex frontend work, select and land patterns per module based on real business responsibility.
 10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.
+11. Before final response, follow `.cursor/rules/aafe-task-completion-impact.mdc`: ask whether to analyze impact scope and provide test references; if confirmed, run `.ai-agent/skills/architecture-impact-test-forecast.md`.
+12. On commit/push/submit intent, follow `.cursor/rules/aafe-tapd-submit-backfill.mdc` and `.ai-agent/skills/tapd-submit-backfill.md` when `.aafe.config.json` → `tapd.enabled`.

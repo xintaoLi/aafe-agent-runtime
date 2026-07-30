@@ -46,6 +46,8 @@ npx aafe init --yes \
   --template=complex \
   --editors=cursor
 npx aafe doctor
+npx aafe knowledge update
+npx aafe knowledge-web --serve --port=4173   # 浏览器打开 http://127.0.0.1:4173/
 ```
 
 常用项目类型：
@@ -73,7 +75,7 @@ npx aafe doctor
 | `aafe knowledge init` | 初始化 Knowledge 关系视图 |
 | `aafe knowledge update` | 更新 `.docs` 下的 Knowledge 视图 |
 | `aafe knowledge sync` | `knowledge update` 的别名 |
-| `aafe knowledge-web` | 生成 Knowledge Web HTML |
+| `aafe knowledge-web` | 生成 Knowledge Web 可视化页面；加 `--serve` 启动本地服务 |
 | `aafe task-completion` | 执行任务完成后的自动同步链路 |
 | `aafe memory` | 管理项目 Memory |
 | `aafe ddd` | DDD 发现和领域模型分析 |
@@ -353,60 +355,116 @@ Knowledge 采集和管理的内容包括：
 
 ## Knowledge Web
 
-`knowledge-web` 将当前项目的 Knowledge 数据生成一个本地只读可视化页面。
+`knowledge-web` 将当前项目的 Knowledge 数据生成一套本地只读可视化页面，用于浏览模块、路由、组件、架构来源和影响/测试预测。
 
-### 生成 HTML
+### 快速启动
 
-```bash
-aafe knowledge-web
-```
-
-默认输出为模块化目录：
-
-```text
-.docs/aafe-generated/knowledge-web/
-├── index.html
-├── modules.html
-├── routes.html
-├── components.html
-├── sources.html
-├── impact.html
-├── diagrams/*.html
-└── site.json
-```
-
-不会再把所有内容塞入单个 HTML 页面。
-
-### 启动本地服务
+在 **AAFE 安装目录**（存在 `.ai-agent` 的目录，Monorepo 子模块则在对应子目录，如 `bklog/web`）执行：
 
 ```bash
-aafe knowledge-web --serve --port=4173
+# 1. 建议先更新 Knowledge 数据
+npx aafe knowledge update
+
+# 2. 生成并启动本地服务（推荐）
+npx aafe knowledge-web --serve --port=4173
 ```
 
-访问：
+浏览器访问：
 
 ```text
 http://127.0.0.1:4173/
 ```
 
-### 自定义路径
+`--serve` 会占用当前终端，按 `Ctrl+C` 停止服务。
+
+### 两种使用方式
+
+#### 仅生成静态 HTML（不启动服务）
 
 ```bash
-aafe knowledge-web \
-  --architecture-docs=.docs \
-  --output=.docs/aafe-generated
+npx aafe knowledge-web
 ```
 
-Knowledge Web 当前按模块展示：
+生成后可直接用浏览器打开 `.docs/aafe-generated/knowledge-web/index.html`，或用任意静态服务器托管该目录。
 
-- `index.html`：项目总览
+#### 生成并启动内置本地服务
+
+```bash
+npx aafe knowledge-web --serve --port=4173
+```
+
+默认监听 `127.0.0.1:4173`，可自定义端口和主机：
+
+```bash
+npx aafe knowledge-web --serve --host=127.0.0.1 --port=8080
+```
+
+### 使用 npm script
+
+在本仓库开发时：
+
+```bash
+npm run knowledge:web          # 仅生成 HTML
+npm run knowledge:web:serve    # 生成并启动本地服务
+```
+
+目标业务项目中（已安装 `@aafe/agent-runtime`）：
+
+```bash
+npx aafe knowledge-web --serve --port=4173
+```
+
+### 常用参数
+
+| 参数 | 说明 |
+| --- | --- |
+| `--serve` | 生成后启动内置 HTTP 服务 |
+| `--port=<number>` | 服务端口，默认 `4173` |
+| `--host=<host>` | 服务主机，默认 `127.0.0.1` |
+| `--dry-run` | 预览将生成的文件，不写入磁盘 |
+| `--architecture-docs=<path>` | 架构文档目录，默认 `.docs` |
+| `--output=<path>` | 输出目录，默认 `.docs/aafe-generated/knowledge-web` |
+
+示例：
+
+```bash
+# 预览生成计划
+npx aafe knowledge-web --dry-run
+
+# 指定架构文档与输出目录
+npx aafe knowledge-web \
+  --architecture-docs=.docs \
+  --output=.docs/aafe-generated/knowledge-web
+
+# 生成并启动
+npx aafe knowledge-web --serve --port=4173
+```
+
+### 默认输出目录
+
+```text
+.docs/aafe-generated/knowledge-web/
+├── index.html          # 项目总览
+├── modules.html        # 模块关系
+├── routes.html         # 路由与页面
+├── components.html     # 组件关系
+├── sources.html        # 架构来源
+├── impact.html         # 影响范围与测试预测
+├── diagrams/*.html     # 每张 Mermaid 图独立预览
+└── site.json           # 页面和图表索引
+```
+
+不会再把所有内容塞入单个 HTML 页面。
+
+### 页面说明
+
+- `index.html`：项目总览与扫描统计
 - `modules.html`：模块关系
 - `routes.html`：路由与页面
 - `components.html`：组件关系
-- `sources.html`：架构来源
-- `impact.html`：影响范围与测试预测
-- `diagrams/*.html`：每张 Mermaid 图独立预览
-- `site.json`：页面和图表索引
+- `sources.html`：架构文档与 Mermaid 来源
+- `impact.html`：影响范围与 P0/P1/P2 测试预测
+- `diagrams/*.html`：单张 Mermaid 图预览，可跳转 Mermaid Live Editor
 
 `.mmd` 架构图支持：
 
@@ -414,6 +472,14 @@ Knowledge Web 当前按模块展示：
 - 每张图独立页面；
 - 打开 Mermaid Live Editor 在线预览；
 - 根据目标项目实际 `.docs` 内容动态生成。
+
+### Monorepo / 子目录安装
+
+若 AAFE 安装在 Git 子目录（如 `bklog/web`），请在 **该安装目录** 下执行 `knowledge update` 和 `knowledge-web`，Knowledge 会基于该模块的 `.ai-agent` 与 `.docs` 生成；输出默认仍在安装目录的 `.docs/aafe-generated/knowledge-web/` 下。
+
+### 与任务完成钩子
+
+项目初始化后，任务成功结束时会自动执行 `aafe knowledge-web` 刷新页面（见 [任务完成自动同步](#任务完成自动同步)）。也可随时手动执行上述命令更新视图。
 
 它是 Knowledge 的模块化可视化索引，不替代源码、`.docs` 原文或测试结果。
 

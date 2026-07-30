@@ -6,7 +6,7 @@ import { bootstrapProject } from './bootstrap.js';
 import { detectProject } from './detect.js';
 import { doctorProject } from './doctor.js';
 import { syncKnowledgeArtifacts } from './knowledge.js';
-import { prepareWorkspaceLayoutForCommand } from './prompts.js';
+import { prepareWorkspaceLayoutForCommand, prepareTapdConfigForCommand } from './prompts.js';
 import { resolveWorkspaceLayout } from './workspace.js';
 
 const execFileAsync = promisify(execFile);
@@ -68,13 +68,15 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
     options,
     configured
   );
+  const tapdConfig = await prepareTapdConfigForCommand(options, configured);
   const effectiveDetection = {
     ...detection,
     editors: resolveEditors(options, configured, detection)
   };
   await bootstrapProject(installRoot, effectiveDetection, {
     ...updateOptions,
-    workspaceLayout
+    workspaceLayout,
+    tapdConfig
   });
   const knowledge = options.knowledge === false ? null : await syncKnowledgeArtifacts(installRoot, {
     architectureDocs: options.architectureDocs,
