@@ -1,6 +1,8 @@
 import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createTemplatePlan, packageRecommendations } from '../templates/TemplateSystem.js';
+import { writeLayeredEditorAdapters } from './editorLayer.js';
+import { getEditorAdapter, getLayeredEditors } from './editorRegistry.js';
 
 export async function bootstrapProject(root, detection, options = {}) {
   const plan = createTemplatePlan(detection, options);
@@ -76,23 +78,57 @@ async function writeConfig(root, _detection, options, plan) {
     },
     gates: ['ddd_gate', 'architecture_gate', 'pattern_gate', 'implementation_gate', 'merge_gate']
   };
+
+  if (options.workspaceLayout?.layeredEditors) {
+    const layout = options.workspaceLayout;
+    const layeredEditorIds = getLayeredEditors(plan.editors);
+    config.workspace = {
+      layeredEditors: true,
+      layeredCursor: true,
+      installRoot: '.',
+      workspaceRoot: layout.workspaceRootRelative,
+      moduleName: layout.moduleName,
+      moduleRelativePath: layout.moduleRelativePath,
+      retainInInstallDir: ['.ai-agent', '.docs', '.aafe.config.json'],
+      editorOnlyAtWorkspaceRoot: true,
+      agentPrefix: `${layout.moduleRelativePath}/.ai-agent`,
+      docsPrefix: `${layout.moduleRelativePath}/.docs`,
+      editorLayers: Object.fromEntries(layeredEditorIds.map((id) => {
+        const adapter = getEditorAdapter(id);
+        return [id, adapter.layerPattern.replace('{module}', layout.moduleName)];
+      }))
+    };
+    if (layeredEditorIds.includes('cursor')) {
+      config.hooks = {
+        ...config.hooks,
+        sessionStart: `.cursor/hooks/${layout.moduleName}/aafe-session-start`,
+        taskCompletion: `.cursor/hooks/${layout.moduleName}/aafe-task-completion`
+      };
+    }
+  }
+
   await writeIfAllowed(path.join(root, '.aafe.config.json'), `${JSON.stringify(config, null, 2)}\n`, options);
 }
 
 async function writeEditorAdapters(root, detection, options, plan) {
   const editors = new Set(plan.editors);
+  if (options.workspaceLayout?.layeredEditors) {
+    await writeLayeredEditorAdapters({
+      workspaceRoot: options.workspaceLayout.workspaceRoot,
+      moduleName: options.workspaceLayout.moduleName,
+      moduleRelativePath: options.workspaceLayout.moduleRelativePath,
+      options: {
+        ...options,
+        installRoot: root,
+        migrateInstallEditors: options.workspaceLayout.migrateInstallEditors
+      },
+      plan
+    });
+    return;
+  }
+
   if (editors.has('cursor')) {
-    await writeIfAllowed(path.join(root, '.cursor/rules/aafe-skill-router.mdc'), cursorSkillRouterRules(), options);
-    await writeIfAllowed(path.join(root, '.cursor/rules/aafe-architecture-runtime.mdc'), cursorRules(), options);
-    await writeIfAllowed(path.join(root, '.cursor/skills/aafe-runtime/SKILL.md'), nativeEditorSkill('Cursor'), options);
-    await writeIfAllowed(path.join(root, '.cursor/skills/ENTRY.md'), editorSkillEntry('Cursor'), options);
-    await writeIfAllowed(path.join(root, '.cursor/hooks.json'), cursorHooks(), options);
-    await writeIfAllowed(path.join(root, '.cursor/hooks/run-hook.cmd'), cursorHookRunner(), options);
-    await writeIfAllowed(path.join(root, '.cursor/hooks/aafe-session-start'), cursorSessionStartHook(), options);
-    await writeIfAllowed(path.join(root, '.cursor/hooks/aafe-task-completion'), cursorTaskCompletionHook(), options);
-    await makeExecutable(path.join(root, '.cursor/hooks/aafe-session-start'));
-    await makeExecutable(path.join(root, '.cursor/hooks/aafe-task-completion'));
-    await makeExecutable(path.join(root, '.cursor/hooks/run-hook.cmd'));
+    await writeFlatCursorAdapters(root, options);
   }
   if (editors.has('claude')) {
     await writeIfAllowed(path.join(root, 'CLAUDE.md'), claudeRules(), { ...options, append: true });
@@ -114,6 +150,20 @@ async function writeEditorAdapters(root, detection, options, plan) {
   if (editors.has('vscode')) {
     await writeIfAllowed(path.join(root, '.vscode/aafe.instructions.md'), genericEditorRules('VS Code'), options);
   }
+}
+
+async function writeFlatCursorAdapters(root, options) {
+  await writeIfAllowed(path.join(root, '.cursor/rules/aafe-skill-router.mdc'), cursorSkillRouterRules(), options);
+  await writeIfAllowed(path.join(root, '.cursor/rules/aafe-architecture-runtime.mdc'), cursorRules(), options);
+  await writeIfAllowed(path.join(root, '.cursor/skills/aafe-runtime/SKILL.md'), nativeEditorSkill('Cursor'), options);
+  await writeIfAllowed(path.join(root, '.cursor/skills/ENTRY.md'), editorSkillEntry('Cursor'), options);
+  await writeIfAllowed(path.join(root, '.cursor/hooks.json'), cursorHooks(), options);
+  await writeIfAllowed(path.join(root, '.cursor/hooks/run-hook.cmd'), cursorHookRunner(), options);
+  await writeIfAllowed(path.join(root, '.cursor/hooks/aafe-session-start'), cursorSessionStartHook(), options);
+  await writeIfAllowed(path.join(root, '.cursor/hooks/aafe-task-completion'), cursorTaskCompletionHook(), options);
+  await makeExecutable(path.join(root, '.cursor/hooks/aafe-session-start'));
+  await makeExecutable(path.join(root, '.cursor/hooks/aafe-task-completion'));
+  await makeExecutable(path.join(root, '.cursor/hooks/run-hook.cmd'));
 }
 
 async function writePackageManifest(root, options, plan) {

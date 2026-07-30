@@ -6,6 +6,8 @@ import { bootstrapProject } from './bootstrap.js';
 import { detectProject } from './detect.js';
 import { doctorProject } from './doctor.js';
 import { syncKnowledgeArtifacts } from './knowledge.js';
+import { prepareWorkspaceLayoutForCommand } from './prompts.js';
+import { resolveWorkspaceLayout } from './workspace.js';
 
 const execFileAsync = promisify(execFile);
 const packageJsonUrl = new URL('../../package.json', import.meta.url);
@@ -58,18 +60,27 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
     return;
   }
 
-  const detection = await detectProject(process.cwd());
-  const configured = await readProjectConfig(process.cwd());
+  const installRoot = process.cwd();
+  const configured = await readProjectConfig(installRoot);
+  const detection = await detectProject(installRoot);
+  const workspaceLayout = await prepareWorkspaceLayoutForCommand(
+    await resolveWorkspaceLayout(installRoot, resolveEditors(options, configured, detection)),
+    options,
+    configured
+  );
   const effectiveDetection = {
     ...detection,
     editors: resolveEditors(options, configured, detection)
   };
-  await bootstrapProject(process.cwd(), effectiveDetection, updateOptions);
-  const knowledge = options.knowledge === false ? null : await syncKnowledgeArtifacts(process.cwd(), {
+  await bootstrapProject(installRoot, effectiveDetection, {
+    ...updateOptions,
+    workspaceLayout
+  });
+  const knowledge = options.knowledge === false ? null : await syncKnowledgeArtifacts(installRoot, {
     architectureDocs: options.architectureDocs,
     knowledgeDocs: options.knowledgeDocs
   });
-  const doctor = await doctorProject(process.cwd());
+  const doctor = await doctorProject(installRoot);
 
   console.log(JSON.stringify({
     status: doctor.status === 'fail' ? 'fail' : 'pass',
@@ -157,6 +168,9 @@ function parseUpdateOptions(args) {
     if (arg.startsWith('--architecture-docs=')) options.architectureDocs = arg.slice('--architecture-docs='.length);
     if (arg.startsWith('--knowledge-docs=')) options.knowledgeDocs = arg.slice('--knowledge-docs='.length);
     if (arg === '--no-knowledge') options.knowledge = false;
+    if (arg.startsWith('--module-name=')) options.moduleName = arg.slice('--module-name='.length);
+    if (arg === '--migrate-cursor' || arg === '--migrate-editors') options.migrateInstallEditors = true;
+    if (arg === '--no-migrate-cursor' || arg === '--no-migrate-editors') options.migrateInstallEditors = false;
   }
 
   return options;

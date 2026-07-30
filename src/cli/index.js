@@ -12,15 +12,23 @@ import { runSkillsCommand } from './skills.js';
 import { collectInitOptions } from './prompts.js';
 import { runUpdateCommand } from './update.js';
 import { createRuntimeFromProject } from '../runtime/configLoader.js';
+import { resolveWorkspaceLayout } from './workspace.js';
 
 export async function runCli(argv) {
   const command = argv[2] ?? 'help';
   const options = parseOptions(argv.slice(3));
 
   if (command === 'init') {
-    const detection = await detectProject(process.cwd());
-    const initOptions = await collectInitOptions(detection, options);
-    await bootstrapProject(process.cwd(), detection, initOptions);
+    const installRoot = process.cwd();
+    const detection = await detectProject(installRoot);
+    const layout = await resolveWorkspaceLayout(installRoot, detection.editors);
+    const initOptions = await collectInitOptions(detection, options, layout);
+    await bootstrapProject(installRoot, detection, initOptions);
+    if (initOptions.workspaceLayout?.layeredEditors) {
+      console.log(`AAFE runtime initialized in install dir. Editor adapters were written to workspace root for module "${initOptions.workspaceLayout.moduleName}".`);
+      console.log('.ai-agent and .docs remain in the install directory; editor pointers were rewritten accordingly.');
+      return;
+    }
     console.log('AAFE runtime initialized.');
     return;
   }
@@ -128,6 +136,11 @@ function parseOptions(args) {
     if (arg.startsWith('--template=')) options.template = arg.slice('--template='.length);
     if (arg.startsWith('--architecture-docs=')) options.architectureDocs = arg.slice('--architecture-docs='.length);
     if (arg.startsWith('--knowledge-docs=')) options.knowledgeDocs = arg.slice('--knowledge-docs='.length);
+    if (arg.startsWith('--module-name=')) options.moduleName = arg.slice('--module-name='.length);
+    if (arg === '--migrate-cursor') options.migrateInstallEditors = true;
+    if (arg === '--migrate-editors') options.migrateInstallEditors = true;
+    if (arg === '--no-migrate-cursor') options.migrateInstallEditors = false;
+    if (arg === '--no-migrate-editors') options.migrateInstallEditors = false;
   }
   return options;
 }
@@ -158,6 +171,11 @@ Init options:
   --editors=cursor,claude,codebuddy,codex,trace,windsurf,vscode
   --no-memory
   --force
+  --module-name=<name>     Layered editor module name when install dir is not workspace root
+  --migrate-editors        Migrate install-dir editor adapters to workspace root
+  --migrate-cursor         Alias of --migrate-editors
+  --no-migrate-editors     Skip editor adapter migration during init/update
+  --no-migrate-cursor      Alias of --no-migrate-editors
 
 Analyze options:
   --dry-run

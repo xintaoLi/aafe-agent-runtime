@@ -1,5 +1,7 @@
 import { access, readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { resolveEditorPathsFromConfig } from './editorLayer.js';
+import { getEditorAdapter } from './editorRegistry.js';
 
 const requiredFiles = [
   '.ai-agent/skill-index.md',
@@ -41,17 +43,52 @@ export async function doctorProject(root) {
   const missing = [];
   const config = await safeRead(path.join(root, '.aafe.config.json'));
   const projectConfig = parseJson(config);
+  const layered = Boolean(projectConfig.workspace?.layeredEditors ?? projectConfig.workspace?.layeredCursor);
+  const cursorLayout = resolveEditorPathsFromConfig(root, projectConfig, 'cursor');
   const files = [...requiredFiles];
   if (projectConfig.editors?.includes('cursor')) {
-    files.push('.cursor/rules/aafe-skill-router.mdc', '.cursor/skills/aafe-runtime/SKILL.md', '.cursor/hooks.json', '.cursor/hooks/run-hook.cmd', '.cursor/hooks/aafe-session-start');
-    if (projectConfig.taskCompletion?.enabled) files.push('.cursor/hooks/aafe-task-completion');
+    if (cursorLayout.layered) {
+      const { paths, moduleName } = cursorLayout;
+      files.push(
+        path.join('.cursor', 'rules', moduleName, 'aafe-skill-router.mdc'),
+        path.join('.cursor', 'skills', moduleName, 'aafe-runtime', 'SKILL.md'),
+        path.join('.cursor', 'hooks.json'),
+        path.join('.cursor', 'hooks', moduleName, 'run-hook.cmd'),
+        path.join('.cursor', 'hooks', moduleName, 'aafe-session-start'),
+        path.join('.cursor', 'context', moduleName, 'module.json')
+      );
+      if (projectConfig.taskCompletion?.enabled) {
+        files.push(path.join('.cursor', 'hooks', moduleName, 'aafe-task-completion'));
+      }
+    } else {
+      files.push('.cursor/rules/aafe-skill-router.mdc', '.cursor/skills/aafe-runtime/SKILL.md', '.cursor/hooks.json', '.cursor/hooks/run-hook.cmd', '.cursor/hooks/aafe-session-start');
+      if (projectConfig.taskCompletion?.enabled) files.push('.cursor/hooks/aafe-task-completion');
+    }
   }
   if (projectConfig.editors?.includes('codebuddy')) {
-    files.push('.codebuddy/skills/aafe-runtime/SKILL.md');
+    if (layered && projectConfig.workspace?.moduleName) {
+      const moduleName = projectConfig.workspace.moduleName;
+      files.push(
+        path.join('.codebuddy', moduleName, 'aafe.md'),
+        path.join('.codebuddy', moduleName, 'skills', 'aafe-runtime', 'SKILL.md')
+      );
+    } else {
+      files.push('.codebuddy/skills/aafe-runtime/SKILL.md');
+    }
+  }
+  for (const editorId of ['codex', 'trace', 'vscode']) {
+    if (!projectConfig.editors?.includes(editorId)) continue;
+    const adapter = getEditorAdapter(editorId);
+    if (layered && projectConfig.workspace?.moduleName && adapter?.moduleFiles?.[0]) {
+      files.push(path.join(adapter.dirName, projectConfig.workspace.moduleName, adapter.moduleFiles[0]));
+    }
   }
 
   for (const rel of files) {
-    if (!(await exists(path.join(root, rel)))) missing.push(rel);
+    const absolute = layered && isWorkspaceRootEditorPath(rel)
+      ? path.join(cursorLayout.workspaceRoot, rel)
+      : path.join(root, rel);
+    if (!(await exists(absolute))) missing.push(rel);
   }
 
   const warnings = [];
@@ -60,10 +97,14 @@ export async function doctorProject(root) {
   const featurePipeline = await safeRead(path.join(root, '.ai-agent/pipelines/feature.yaml'));
   const domainPipeline = await safeRead(path.join(root, '.ai-agent/pipelines/domain-feature.yaml'));
   const skillIndex = await safeRead(path.join(root, '.ai-agent/skill-index.md'));
-  const cursorSkillRouter = await safeRead(path.join(root, '.cursor/rules/aafe-skill-router.mdc'));
-  const sessionStartHook = await safeRead(path.join(root, '.cursor/hooks/aafe-session-start'));
+  const cursorSkillRouter = await safeRead(cursorLayout.layered
+    ? path.join(cursorLayout.paths.rulesDir, 'aafe-skill-router.mdc')
+    : path.join(root, '.cursor/rules/aafe-skill-router.mdc'));
+  const sessionStartHook = await safeRead(cursorLayout.layered
+    ? path.join(cursorLayout.paths.hooksDir, 'aafe-session-start')
+    : path.join(root, '.cursor/hooks/aafe-session-start'));
   const hasProjectSkills = await isDirectory(path.join(root, '.ai-agent/project-skills'));
-  const cursorSkillCopies = await listCursorSkillCopies(root);
+  const cursorSkillCopies = await listCursorSkillCopies(cursorLayout.layered ? cursorLayout.workspaceRoot : root, cursorLayout.layered ? cursorLayout.moduleName : null);
 
 
   if (gates && !gates.includes('ddd_gate')) warnings.push('ddd_gate is not configured');
@@ -85,11 +126,31 @@ export async function doctorProject(root) {
   if (projectConfig.editors?.includes('cursor') && !projectConfig.hooks?.enabled) warnings.push('Cursor hooks are not enabled in .aafe.config.json');
   if (hasProjectSkills && !skillIndex) warnings.push('project-skills/ exists but .ai-agent/skill-index.md is missing; project knowledge has no generated router');
   if (skillIndex && !skillIndex.includes('On-demand project skill loading')) warnings.push('.ai-agent/skill-index.md does not look like the index-on-demand router');
-  const cursorNativeSkill = await safeRead(path.join(root, '.cursor/skills/aafe-runtime/SKILL.md'));
+  const cursorNativeSkill = await safeRead(cursorLayout.layered
+    ? path.join(cursorLayout.paths.skillsDir, 'aafe-runtime', 'SKILL.md')
+    : path.join(root, '.cursor/skills/aafe-runtime/SKILL.md'));
   if (projectConfig.editors?.includes('cursor') && !cursorSkillRouter) warnings.push('Cursor skill router rule is missing; Cursor may not automatically enter project skill index');
   if (projectConfig.editors?.includes('cursor') && cursorNativeSkill && !cursorNativeSkill.startsWith('---\nname:')) warnings.push('Cursor native skill entry lacks standard SKILL.md frontmatter');
   if (projectConfig.editors?.includes('cursor') && cursorSkillRouter && !cursorSkillRouter.includes('alwaysApply: true')) warnings.push('Cursor skill router is not alwaysApply; project skill index may not auto-load');
   if (cursorSkillCopies.length) warnings.push('.cursor/skills contains non-ENTRY skill copies (' + cursorSkillCopies.join(', ') + '); keep project knowledge only in .ai-agent');
+  if (cursorLayout.layered && (await exists(path.join(root, '.cursor')))) {
+    warnings.push('install-dir .cursor still exists; editor adapters should live at workspace root. Run aafe update --migrate-editors.');
+  }
+  if (cursorLayout.layered && (await exists(path.join(root, '.codebuddy')))) {
+    warnings.push('install-dir .codebuddy still exists; migrate/merge it to workspace root layered config.');
+  }
+  if (cursorLayout.layered && projectConfig.workspace?.hasWorkspaceRootAiAgent !== false) {
+    const workspaceRoot = cursorLayout.workspaceRoot;
+    if (await isDirectory(path.join(workspaceRoot, '.ai-agent'))) {
+      warnings.push('workspace root contains .ai-agent; keep runtime knowledge in install dir to avoid monorepo pollution.');
+    }
+    if (await isDirectory(path.join(workspaceRoot, '.docs'))) {
+      warnings.push('workspace root contains .docs; keep module docs in install dir unless this repo intentionally shares root docs.');
+    }
+  }
+  if (projectConfig.workspace?.layeredEditors && !cursorLayout.layered) {
+    warnings.push('workspace.layeredEditors is configured but moduleName is missing; rerun aafe update with --module-name');
+  }
   if (sessionStartHook && (sessionStartHook.includes('<AAFE_RUNTIME>') || sessionStartHook.includes('runtime/engine.md') || sessionStartHook.includes('runtime/router.yaml') || sessionStartHook.includes('runtime/gates.yaml'))) warnings.push('sessionStart hook still injects runtime file contents; use short AAFE_SKILL_ROUTER context instead');
   if (projectConfig.projectKnowledge && projectConfig.projectKnowledge.loadMode !== 'index-on-demand') warnings.push('projectKnowledge.loadMode should be index-on-demand');
   if ((projectConfig.editors?.length ?? 0) > 1 && projectConfig.projectKnowledge?.loadMode !== 'index-on-demand') warnings.push('multiple editors are enabled but projectKnowledge.loadMode is not index-on-demand');
@@ -126,8 +187,10 @@ async function isDirectory(filePath) {
   }
 }
 
-async function listCursorSkillCopies(root) {
-  const skillsDir = path.join(root, '.cursor/skills');
+async function listCursorSkillCopies(root, moduleName = null) {
+  const skillsDir = moduleName
+    ? path.join(root, '.cursor', 'skills', moduleName)
+    : path.join(root, '.cursor/skills');
   try {
     const entries = await readdir(skillsDir, { withFileTypes: true });
     return entries
@@ -145,4 +208,12 @@ function parseJson(text) {
   } catch {
     return {};
   }
+}
+
+function isWorkspaceRootEditorPath(rel) {
+  return rel.startsWith('.cursor')
+    || rel.startsWith('.codebuddy')
+    || rel.startsWith('.codex')
+    || rel.startsWith('.trace')
+    || rel.startsWith('.vscode');
 }

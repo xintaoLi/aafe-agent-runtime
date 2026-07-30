@@ -22,6 +22,7 @@
 - [快速开始](#快速开始)
 - [CLI 命令](#cli-命令)
 - [项目初始化](#项目初始化)
+- [Workspace Root 与编辑器分层配置](#workspace-root-与编辑器分层配置)
 - [项目更新与诊断](#项目更新与诊断)
 - [Knowledge Center](#knowledge-center)
 - [Knowledge Web](#knowledge-web)
@@ -95,8 +96,24 @@ aafe init --yes \
   --framework=vue \
   --scenarios=complex,ddd,patterns,graph \
   --template=complex \
-  --editors=cursor,codebuddy
+  --editors=cursor,codebuddy,codex
 ```
+
+常用编辑器：
+
+```text
+--editors=cursor|codebuddy|claude|codex|trace|windsurf|vscode
+```
+
+子目录安装额外参数：
+
+```text
+--module-name=web
+--migrate-editors
+--no-migrate-editors
+```
+
+Monorepo 子目录安装见 [Workspace Root 与编辑器分层配置](#workspace-root-与编辑器分层配置)。
 
 ### 检查初始化结果
 
@@ -115,6 +132,121 @@ aafe doctor
 }
 ```
 
+## Workspace Root 与编辑器分层配置
+
+当 AAFE 安装在 **Git 仓库的子目录**（例如 monorepo 中的 `bklog/web`）时，编辑器适配器必须写入 **Workspace Root** 才能生效；`.ai-agent`、`.docs`、`.aafe.config.json` 仍保留在安装目录，避免污染仓库根目录。
+
+### 适用场景
+
+```text
+仓库 Root（Workspace Root，Cursor / CodeBuddy / Claude 等在此读取编辑器配置）
+└── bklog/web/          ← 安装目录（在此执行 aafe init / update）
+    ├── .ai-agent/      ← Runtime 知识源，保留在此
+    ├── .docs/          ← 模块文档，保留在此
+    ├── .aafe.config.json
+    └── package.json
+```
+
+`aafe init` / `aafe update` 会同时扫描 **安装目录** 与 **Workspace Root**，输出分析结果，并按当前 `--editors` 智能适配。
+
+### 迁移策略
+
+| 资源 | 位置 | 说明 |
+| --- | --- | --- |
+| `.cursor` / `.codebuddy` / `.codex` 等 | Workspace Root | 仅编辑器适配器迁移/合并到 Root |
+| `.ai-agent` | 安装目录 | Runtime、Skills、Pipelines、Memory |
+| `.docs` | 安装目录 | 架构文档与 Knowledge 视图 |
+| `.aafe.config.json` | 安装目录 | 项目配置，含 `workspace` 元数据 |
+
+迁移时，编辑器文件内的路径引用会自动重写为安装目录实际路径，例如：
+
+```text
+.ai-agent/skill-index.md  →  bklog/web/.ai-agent/skill-index.md
+.docs/guide.md            →  bklog/web/.docs/guide.md
+.cursor/hooks/...         →  .cursor/hooks/web/...
+```
+
+若安装目录已存在编辑器配置，CLI 会提示是否迁移到 Workspace Root（交互模式默认确认；`--yes` 时自动迁移）。
+
+### 支持的编辑器与分层结构
+
+| 编辑器 | 安装目录标记 | Workspace Root 分层结构 |
+| --- | --- | --- |
+| Cursor | `.cursor/` | `.cursor/{rules,skills,hooks,context}/{module}/` |
+| CodeBuddy | `.codebuddy/` | `.codebuddy/{module}/` + `skills/` |
+| Claude | `CLAUDE.md` | 合并到 Root 的 `CLAUDE.md`（按模块块） |
+| Codex | `.codex/` | `.codex/{module}/aafe.md` |
+| Trace | `.trace/` | `.trace/{module}/aafe.md` |
+| Windsurf | `.windsurfrules` | 合并到 Root 文件（按模块块） |
+| VS Code | `.vscode/` | `.vscode/{module}/aafe.instructions.md` |
+
+只对 `--editors` 中启用的编辑器生成分层配置。例如 `--editors=cursor,codebuddy` 会同时处理 Cursor 与 CodeBuddy。
+
+### 子目录安装示例
+
+在模块目录下初始化（需以 **仓库 Root** 作为 IDE Workspace 打开）：
+
+```bash
+cd bklog/web
+npm install --save-dev @aafe/agent-runtime
+
+# 交互式：分析双目录、提示模块名、确认迁移
+npx aafe init --editors=cursor,codebuddy
+
+# 非交互式
+npx aafe init --yes \
+  --framework=vue \
+  --scenarios=complex,ddd,patterns \
+  --editors=cursor,codebuddy,codex \
+  --module-name=web \
+  --migrate-editors
+```
+
+更新并迁移安装目录下遗留的编辑器配置：
+
+```bash
+cd bklog/web
+npx aafe update --yes --module-name=web --migrate-editors
+npx aafe doctor
+```
+
+### 相关 CLI 参数
+
+| 参数 | 说明 |
+| --- | --- |
+| `--module-name=<name>` | 分层配置的模块名，默认取安装目录名（如 `web`） |
+| `--migrate-editors` | 将安装目录下的编辑器适配器迁移/合并到 Workspace Root |
+| `--migrate-cursor` | `--migrate-editors` 的别名 |
+| `--no-migrate-editors` | 跳过编辑器适配器迁移 |
+| `--no-migrate-cursor` | `--no-migrate-editors` 的别名 |
+
+### `.aafe.config.json` 中的 workspace 配置
+
+子目录安装且启用分层后，安装目录下的 `.aafe.config.json` 会写入类似配置：
+
+```json
+{
+  "workspace": {
+    "layeredEditors": true,
+    "installRoot": ".",
+    "workspaceRoot": "../..",
+    "moduleName": "web",
+    "moduleRelativePath": "bklog/web",
+    "retainInInstallDir": [".ai-agent", ".docs", ".aafe.config.json"],
+    "editorOnlyAtWorkspaceRoot": true,
+    "agentPrefix": "bklog/web/.ai-agent",
+    "docsPrefix": "bklog/web/.docs",
+    "editorLayers": {
+      "cursor": ".cursor/{rules,skills,hooks,context}/web",
+      "codebuddy": ".codebuddy/web",
+      "codex": ".codex/web"
+    }
+  }
+}
+```
+
+`aafe doctor` 会校验 Workspace Root 下的分层编辑器文件，并警告安装目录仍残留 `.cursor` / `.codebuddy` 或 Root 下误放的 `.ai-agent` / `.docs`。
+
 ## 项目更新与诊断
 
 ### 更新已安装项目
@@ -130,10 +262,12 @@ npx --yes @aafe/agent-runtime@latest doctor
 `aafe update` 默认会：
 
 - 刷新 `.ai-agent` Runtime、Skills、Pipelines 和 Gates；
-- 刷新编辑器入口和 Hooks；
+- 刷新编辑器入口和 Hooks（含 Workspace Root 分层编辑器配置）；
 - 保留 `.ai-agent/project.md`、`.ai-agent/project-skills/**`、`.ai-agent/rules/**` 和 `.ai-agent/memory/**`；
 - 自动刷新 Knowledge 关系视图；
 - 执行 `doctor` 校验。
+
+子目录安装时，`aafe update` 同样会分析安装目录与 Workspace Root，并按 `--editors` 更新 Root 下的分层编辑器配置；`.ai-agent` / `.docs` 不会迁移到 Root。详见 [Workspace Root 与编辑器分层配置](#workspace-root-与编辑器分层配置)。
 
 预览更新：
 
@@ -151,6 +285,12 @@ aafe update --upgrade-package
 
 ```bash
 aafe update --no-knowledge
+```
+
+子目录安装时迁移编辑器配置到 Workspace Root：
+
+```bash
+aafe update --yes --module-name=web --migrate-editors
 ```
 
 ## Knowledge Center
@@ -438,6 +578,8 @@ Pipeline | Observer | Adapter | Composition
 
 ## 项目目录结构
 
+### 标准安装（项目根目录即 Workspace Root）
+
 初始化后主要结构：
 
 ```text
@@ -459,16 +601,49 @@ Pipeline | Observer | Adapter | Composition
 ├── scenarios/
 └── memory/
 
+.cursor/                  # --editors=cursor 时
+├── rules/
+├── skills/
+└── hooks/
+
+.codebuddy/               # --editors=codebuddy 时
+├── aafe.md
+└── skills/
+
 .docs/
 └── aafe-generated/
     ├── README.md
     ├── 组件关系.md
     ├── 业务关系与数据流.md
     ├── 影响范围与测试预测.md
-    └── knowledge-web.html
+    └── knowledge-web/
 ```
 
-`.ai-agent/` 是项目 AI Runtime 和 Memory 的单一知识入口；`.docs/` 保留项目原始架构说明及 Knowledge 生成视图。
+### 子目录安装（Monorepo / 多模块）
+
+Runtime 知识仍在安装目录；编辑器适配器在 Workspace Root 按模块分层：
+
+```text
+# Workspace Root
+.cursor/
+├── rules/web/
+├── skills/web/
+├── hooks/web/
+└── hooks.json
+.codebuddy/web/
+├── aafe.md
+└── skills/
+.codex/web/aafe.md
+CLAUDE.md                  # 含 <!-- AAFE:module:web --> 模块块
+
+# 安装目录 bklog/web/
+.ai-agent/
+.docs/
+.aafe.config.json          # 含 workspace 元数据
+package.json
+```
+
+`.ai-agent/` 是项目 AI Runtime 和 Memory 的单一知识入口；`.docs/` 保留项目原始架构说明及 Knowledge 生成视图；编辑器目录只是指向 `.ai-agent` 的薄适配层，不复制项目知识。
 
 ## Agent Skills 分发
 
@@ -506,6 +681,7 @@ npx --yes @aafe/agent-runtime@latest skills install aafe-vue-complex-runtime --g
 ```bash
 npm test
 npm run doctor
+node ./scripts/test-workspace-cursor.js
 node ./bin/aafe.js knowledge update --dry-run
 node ./bin/aafe.js knowledge-web --dry-run
 node --check src/cli/knowledge.js
@@ -536,6 +712,20 @@ npx aafe knowledge-web
 npx aafe doctor
 ```
 
+Monorepo 子目录（例如 `bklog/web`）初始化：
+
+```bash
+cd bklog/web
+npx aafe init --yes \
+  --framework=vue \
+  --scenarios=complex,ddd,patterns \
+  --editors=cursor,codebuddy \
+  --module-name=web \
+  --migrate-editors
+# 在 IDE 中以仓库 Root 打开 Workspace
+npx aafe doctor
+```
+
 日常开发完成后，任务钩子会自动执行；如需手动刷新：
 
 ```bash
@@ -549,6 +739,7 @@ npx aafe doctor
 - Runtime 核心提供通用编排能力，不承载具体业务 CMS 数据模型；
 - Knowledge Center 使用项目代码、`.docs`、Mermaid 图和 Memory；
 - Knowledge Web 是本地可视化索引，不是独立深度文档站点；
+- 子目录安装时，仅编辑器适配器（`.cursor`、`.codebuddy`、`CLAUDE.md` 等）写入 Workspace Root；`.ai-agent` / `.docs` 保留在安装目录；
 - 自动生成内容必须保留来源、版本、置信度和审核状态；
 - 不上传源码、密钥、Token、Cookie 或未脱敏业务数据；
 - 自动更新不应覆盖人工维护的原始架构文档。
