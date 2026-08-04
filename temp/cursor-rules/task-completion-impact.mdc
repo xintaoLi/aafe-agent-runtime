@@ -1,0 +1,13 @@
+---
+description: Task completion impact & self-test (portable pack pointer)
+alwaysApply: true
+---
+
+# Task Completion Impact（Portable Pointer）
+
+Load from **this pack's bundle root** (same folder that contains `rules/` and `skills/`):
+
+1. Rule: `rules/task-completion-impact.mdc`
+2. Skills: `skills/architecture-impact-test-forecast.md`, `skills/minimal-convergent-self-test.md`, `skills/tapd-submit-backfill.md`
+
+No `.ai-agent` or monorepo path required. TAPD config: `tapd.config.json` in project workspace.

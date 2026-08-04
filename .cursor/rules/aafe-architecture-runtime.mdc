@@ -6,6 +6,7 @@ alwaysApply: true
 # AAFE Architecture Runtime
 
 For every non-trivial frontend task after the Skill Router step:
+0. After concrete requirement is obtained (TAPD pull or user spec), follow `aafe-requirement-intake-analysis.mdc` / `requirement-intake-analysis.md`: clarify ambiguities → history search → code scope & root cause → sizing gate (direct fix vs ask Plan mode).
 1. Read `.ai-agent/runtime/engine.md`.
 2. Classify the task using `.ai-agent/runtime/router.yaml`.
 3. Follow the selected `.ai-agent/pipelines/*.yaml`.
@@ -16,5 +17,5 @@ For every non-trivial frontend task after the Skill Router step:
 8. For new features, run Pattern Interview before Pattern Selection.
 9. For complex frontend work, select and land patterns per module based on real business responsibility.
 10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.
-11. Before final response, follow `.cursor/rules/aafe-task-completion-impact.mdc`: ask whether to analyze impact scope and provide test references; if confirmed, run `.ai-agent/skills/architecture-impact-test-forecast.md`.
-12. On commit/push/submit intent, follow `.cursor/rules/aafe-tapd-submit-backfill.mdc` and `.ai-agent/skills/tapd-submit-backfill.md` when `.aafe.config.json` → `tapd.enabled`.
+11. Before final response, follow `aafe-task-completion-impact.mdc`: **task assessment first** — only ask impact/self-test when code changed (skip docs/requirements-only); if confirmed, run impact + self-test skills（UI 子询问仅代码变更且影响含 UI；须先预生成 `ui_test_paths`）.
+12. After self-test (or commit/push/submit intent): follow `aafe-tapd-submit-backfill.mdc` — **only when task has TAPD association** and `tapd.enabled`: Commit → PR → ask TAPD backfill; no TAPD link → skip backfill asks.

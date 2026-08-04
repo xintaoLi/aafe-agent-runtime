@@ -1,0 +1,12 @@
+---
+description: TAPD submit backfill (portable pack pointer)
+alwaysApply: true
+---
+
+# TAPD Submit Backfill（Portable Pointer）
+
+1. Rule: `rules/tapd-submit-backfill.mdc`
+2. Skill: `skills/tapd-submit-backfill.md`
+3. Config: `tapd.config.json`
+
+Only when task has TAPD association. Comment-only backfill via MCP.

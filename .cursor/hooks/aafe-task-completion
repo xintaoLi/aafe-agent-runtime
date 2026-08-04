@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -u
+
+if [ "${AAFE_TASK_STATUS:-success}" != "success" ]; then
+  exit 0
+fi
+
+if command -v aafe >/dev/null 2>&1; then
+  aafe task-completion || true
+fi

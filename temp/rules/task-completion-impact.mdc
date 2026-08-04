@@ -1,0 +1,63 @@
+---
+description: 代码变更任务完成后条件询问影响分析与自测；UI 须先预生成测试路径；自测后按 TAPD 关联进入 Commit/PR/回填。
+alwaysApply: true
+---
+
+# Task Completion Impact & Self-Test（Portable）
+
+> **Bundle paths**（相对本包根目录）：Rule `rules/task-completion-impact.mdc` · Skills `skills/architecture-impact-test-forecast.md` · `skills/minimal-convergent-self-test.md` · `skills/tapd-submit-backfill.md`
+
+## 任务评估（前置 Gate，必须先做）
+
+任务执行完毕、给出最终回复前，先评估本次任务性质：
+
+### 涉及代码变更 → 有测试潜在需求
+
+满足任一即视为**涉及代码变更**：
+
+- git diff / 实际改动含**可执行代码或运行时配置**（如 `.ts` / `.tsx` / `.vue` / `.js` / `.css` / `.scss` / 影响构建或运行的配置）
+- 用户明确说明改了逻辑、组件、接口、样式行为等
+
+### 不涉及代码变更 → 跳过本 Rule 全流程
+
+以下情况**不要**询问影响分析，也**不要**进入 UI 自测子询问：
+
+- 纯文本：文档、README、说明 Markdown、注释-only（无行为变化）
+- 需求分析、方案讨论、架构评审、问答解释、Review-only（未改代码）
+- 用户明确「只改文档 / 只分析 / 不改代码」
+
+跳过时：正常收尾；若用户随后提交，按 `rules/tapd-submit-backfill.mdc` 评估是否有关联 TAPD 单。
+
+## 条件询问（仅「涉及代码变更」时）
+
+**仅当任务评估为涉及代码变更**，在最终回复前问：
+
+> 是否需要分析当前任务的影响范围并提供测试参考？
+
+- 否定：不再追问影响分析。
+- 肯定（是 / Yes / Y / 需要）：进入 Skills 流程。
+
+## 确认后加载顺序
+
+1. `skills/architecture-impact-test-forecast.md`
+2. `skills/minimal-convergent-self-test.md`
+3. 自测结束后：若任务**有关联 TAPD 单**且 `tapd.enabled`（见 `tapd.config.json`）→ `skills/tapd-submit-backfill.md`；无 TAPD 关联则可选 Commit/PR，跳过 TAPD 回填
+4. 可选：项目内架构文档（`docs/`、设计说明、Mermaid 图等），**不依赖**固定目录名
+
+## 硬约束
+
+- 自测按**本次 diff**最小收敛，禁止无关全量回归。
+- 逻辑变更：Mock Props / 函数 I/O，测试落盘到**当前任务工作区根目录** `test/`（无则创建）。
+- **UI 自测子询问**仅当：代码变更 + 已进入自测 + 影响含 **UI 渲染/交互**。
+- UI：先问浏览器 MCP → 再问用户指定 URL → 执行前产出 `ui_test_paths`；禁止猜环境地址。
+- 禁止未实际执行却声称 pass。
+
+## 自测完成后的衔接
+
+1. 询问 Commit（有 TAPD 关联时用 bug/feat 格式，见 `rules/tapd-submit-backfill.mdc`）
+2. Commit 后尝试 PR
+3. **仅有关联 TAPD 单**且 `tapd.enabled` → 询问 TAPD 回填
+
+## 配置
+
+TAPD 开关与状态映射见包内 `tapd.config.example.json`，部署为工作区 `tapd.config.json` 或合并到自有 JSON 的 `tapd` 节。

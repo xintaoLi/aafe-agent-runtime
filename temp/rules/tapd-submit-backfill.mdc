@@ -1,0 +1,56 @@
+---
+description: 有关联 TAPD 单时自测后 Commit → PR → 回填；内容仅评论；无 TAPD 关联则跳过。
+alwaysApply: true
+---
+
+# TAPD Submit Backfill（Portable · Comment-Only + Commit/PR Gate）
+
+> **Bundle paths**：Rule `rules/tapd-submit-backfill.mdc` · Skill `skills/tapd-submit-backfill.md` · Config `tapd.config.json`
+
+## TAPD 关联评估（前置 Gate）
+
+**仅当任务过程中已涉及 TAPD 单**，才进入回填分支。
+
+视为有关联（满足任一）：
+
+- 任务来自 TAPD（story/bug ID、链接、TAPD MCP 已用于本任务）
+- 用户在本任务中引用/绑定 TAPD 单号
+- 会话记录 `tapd_entry_id` / `tapd_entry_type`
+
+**无关联** → 跳过回填询问、新建单、`workspace_id` / `milestone_id` 索取；可常规 Commit/PR。
+
+## 触发
+
+同时满足：
+
+1. `tapd.enabled === true`（自 `tapd.config.json` 或项目 JSON 的 `tapd` 节读取）
+2. **TAPD 关联评估为有关联**
+3. 自测完成，或用户意图 commit / push / 提测 / 提 PR
+
+详细步骤：`skills/tapd-submit-backfill.md`
+
+## 强制顺序（有关联 TAPD 时）
+
+```text
+自测完成 → 询问 Commit？
+  ├─ 是 → TAPD 格式 commit → 尝试 PR → 询问回填 TAPD？
+  └─ 否 → 仍询问回填 TAPD？
+同意回填 → comments_create + 可选 PR 字段 + 状态逐步流转
+```
+
+### Commit message（有关联 TAPD）
+
+| 类型 | 格式 |
+| --- | --- |
+| bug | `bug: {标题} --bug={bug_id}` |
+| story | `feat: {标题} --story={story_id}` |
+
+### 回填
+
+仅 `comments_create` 追加评论；禁止改 `description` / `test_focus`。状态可逐步 update。
+
+## 禁止
+
+- 无 TAPD 关联时问回填或新建单
+- todo → for_test 跳步
+- 伪造 MCP / 测试结果

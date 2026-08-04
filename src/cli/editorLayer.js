@@ -1,6 +1,7 @@
 import { chmod, mkdir, readdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { EDITOR_ADAPTERS, getEditorAdapter, getLayeredEditors } from './editorRegistry.js';
+import { requirementIntakeRuleSection } from './requirementAnalysisRules.js';
 import { taskCompletionImpactRuleSection } from './completionImpactRules.js';
 import { tapdSubmitRuleSection } from './tapdSubmitRules.js';
 import { createCursorPathContext, rewriteCursorContent } from './pathRewrite.js';
@@ -191,6 +192,7 @@ function buildCodeBuddyRules(ctx) {
   return [
     `# AAFE Architecture Runtime (${ctx.moduleName})`,
     '',
+    requirementIntakeRuleSection(ctx).trimEnd(),
     taskCompletionImpactRuleSection(ctx).trimEnd(),
     tapdSubmitRuleSection(ctx).trimEnd(),
     '## AAFE Skill Router',
@@ -209,6 +211,7 @@ function buildGenericEditorRules(name, ctx) {
   return [
     `# AAFE Architecture Runtime for ${name} (${ctx.moduleName})`,
     '',
+    requirementIntakeRuleSection(ctx).trimEnd(),
     taskCompletionImpactRuleSection(ctx).trimEnd(),
     tapdSubmitRuleSection(ctx).trimEnd(),
     '## AAFE Skill Router',

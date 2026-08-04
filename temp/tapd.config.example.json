@@ -1,0 +1,25 @@
+{
+  "tapd": {
+    "enabled": true,
+    "username": "",
+    "api_password": "",
+    "workspace_id": "",
+    "milestone_id": "",
+    "default_entry_type": "story",
+    "pr_field": "",
+    "tapd_story": {
+      "status_backlog": "backlog",
+      "status_todo": "todo",
+      "status_doing": "developing,status_7",
+      "status_done": "for_test",
+      "status_release": "status_3,status_9",
+      "pr_field": ""
+    },
+    "tapd_bug": {
+      "status_done": "resolved",
+      "status_release": "verified",
+      "status_doing": "assigned,in_progress",
+      "pr_field": ""
+    }
+  }
+}

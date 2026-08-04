@@ -63,12 +63,14 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
   const installRoot = process.cwd();
   const configured = await readProjectConfig(installRoot);
   const detection = await detectProject(installRoot);
+  // update is non-interactive by design; keep existing tapd/workspace config without prompts
+  const nonInteractiveOptions = { ...options, yes: true, nonInteractive: true };
   const workspaceLayout = await prepareWorkspaceLayoutForCommand(
     await resolveWorkspaceLayout(installRoot, resolveEditors(options, configured, detection)),
-    options,
+    nonInteractiveOptions,
     configured
   );
-  const tapdConfig = await prepareTapdConfigForCommand(options, configured);
+  const tapdConfig = await prepareTapdConfigForCommand(nonInteractiveOptions, configured);
   const effectiveDetection = {
     ...detection,
     editors: resolveEditors(options, configured, detection)

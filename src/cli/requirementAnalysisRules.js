@@ -1,0 +1,363 @@
+export function requirementIntakeRuleMdc(ctx = {}) {
+  return requirementIntakePointerRuleMdc(ctx);
+}
+
+export function requirementIntakePointerRuleMdc(ctx = {}) {
+  const agentPrefix = ctx.agentPrefix ?? '.ai-agent';
+  const moduleName = ctx.moduleName ?? 'module';
+  const moduleGlob = ctx.moduleGlob;
+  const header = moduleGlob
+    ? `---\ndescription: AAFE Requirement Intake & Analysis (${moduleName})\nalwaysApply: true\nglobs: ${moduleGlob}\n---`
+    : '---\ndescription: AAFE Requirement Intake & Analysis\nalwaysApply: true\n---';
+
+  return `${header}
+
+# AAFE 需求分析阶段（Pointer）
+
+Source of truth:
+
+1. Rule: \`${agentPrefix}/rules/requirement-intake-analysis.mdc\`
+2. Skill: \`${agentPrefix}/skills/requirement-intake-analysis.md\`
+
+在**拿到具体需求之后、写代码之前**执行；任务完成后的自测 / TAPD 回填 / Commit / PR 流程不变。
+
+Do not duplicate project knowledge here.
+`;
+}
+
+export function requirementIntakeProjectRuleMdc(ctx = {}) {
+  const agentPrefix = ctx.agentPrefix ?? '.ai-agent';
+  return `---
+description: 拿到具体需求后必须先做需求澄清、历史检索、代码范围与根因分析；大规模变更需确认切换 Plan 模式。
+alwaysApply: true
+---
+
+${requirementIntakeProjectRuleBody(agentPrefix)}
+`;
+}
+
+function requirementIntakeProjectRuleBody(agentPrefix = '.ai-agent') {
+  return `# Requirement Intake & Analysis
+
+## 触发（需求已到手）
+
+在**开始改代码之前**，必须先完成本 Rule。需求来源：
+
+| 来源 | 触发点 |
+| --- | --- |
+| TAPD 单 | 已通过 MCP / 用户拉取到**具体** story/bug 描述、验收标准、附件要点 |
+| 非 TAPD | 用户给出**具体**需求描述（非空泛话题） |
+
+若仅有「帮我看看」「优化一下」等模糊意图 → 先在本阶段澄清，**不得**直接写代码。
+
+详细步骤：\`${agentPrefix}/skills/requirement-intake-analysis.md\`
+
+## 阶段 A — 需求分析与澄清
+
+1. 解析需求：目标、范围、验收标准、约束、依赖、风险
+2. 列出**不明确项**（歧义、缺失边界、多解路径、未定义异常/兼容策略）
+3. 对每项不明确点**必须交互**获取明确答复，输出形式任选或组合：
+   - **方案选择**：A / B / C + 推荐与 tradeoff
+   - **问题明确**：结构化追问（Who/What/When/边界/反例）
+   - **需详细答复**：请用户补充完整说明或示例
+
+**Hard：** 存在未决不明确项时，禁止进入阶段 B（历史检索）及之后写代码。
+
+## 阶段 B — 历史积累检索（需求已明确后）
+
+需求全部明确后，**先查历史再定方案**：
+
+1. Read \`${agentPrefix}/skills/memory-recaller.md\`
+2. 检索 \`${agentPrefix}/memory/experience.md\`、\`${agentPrefix}/memory/learnings.jsonl\`、相关 topic memory
+3. 可选：项目 \`.docs\`、Knowledge Center、TAPD 评论历史（若 MCP 可查）
+
+输出：
+
+- 是否命中历史方案 / 类似问题
+- **能否直接复用或部分复用**（满足当前修复则标注 reuse；否则说明差异）
+
+## 阶段 C — 代码范围与根因
+
+在历史检索之后、实施之前：
+
+1. **代码范围**：受影响文件/模块/函数清单（基于 locator + diff 意图，非全库）
+2. **根因分析**：现象 → 直接原因 → 根因假设 → 验证点
+3. **实施策略草案**：改哪些点、不改哪些点
+
+## 阶段 D — 实施规模 Gate（Plan 模式）
+
+评估本次**预计**变更规模（基于阶段 C，非臆测）：
+
+### 直接实施（无需 Plan）
+
+满足**全部**或等价为**小改**：
+
+- 仅**单个函数**逻辑修复，或
+- 仅**样式**调整（CSS/class/布局，无多文件逻辑交叉）
+
+→ 进入阶段 E 直接修复/实现。
+
+### 建议切换 Plan 模式
+
+满足**任一**即视为**大规模**：
+
+- 多个函数 + 多文件**相互交叉**依赖变更
+- 预计改动 **> 5 个函数**（含新增）
+- 预计涉及 **> 5 个文件**
+- 预计**新增代码 > 300 行**（含新功能）
+
+→ **必须先询问用户**：
+
+> 本次变更规模较大，是否切换 Plan 模式先制定详细实施计划？
+
+- 用户 **确认 / 同意 / Yes / 是 / Y** → 调用 **SwitchMode**（\`target_mode_id: plan\`），在 Plan 中输出分步计划后再实施
+- 用户拒绝 → 仍可实施，但须在回复中说明风险与未 plan 的 tradeoff
+
+### Plan 模式内
+
+- 输出：目标、模块边界、步骤、文件清单、风险、验证点
+- 用户认可计划后再 Agent 模式实施（或用户在 Plan 中确认继续）
+
+## 阶段 E — 实施
+
+- **小改**：直接修改
+- **大改且已 plan**：按批准计划执行
+- 非 trivial 前端任务仍遵循 \`${agentPrefix}/runtime/engine.md\`、router、pipelines、gates（在需求分析**之后**）
+
+## 任务完成后（不变）
+
+需求分析**不替代**收尾流程。实施完成后仍按：
+
+- \`${agentPrefix}/rules/task-completion-impact.mdc\`（代码变更时条件影响分析 + 自测）
+- \`${agentPrefix}/rules/tapd-submit-backfill.mdc\`（有关联 TAPD 时 Commit / PR / 回填）
+
+## 禁止
+
+- 未澄清需求就写代码
+- 跳过历史检索直接大改
+- 大规模变更不询问就 silent 全量实施
+- 将「需求分析阶段」与「任务完成影响分析」混淆（后者在**实施完成后**）`;
+}
+
+export function requirementIntakeRuleSection(ctx = {}) {
+  const agentPrefix = ctx.agentPrefix ?? '.ai-agent';
+  return [
+    '## AAFE 需求分析阶段（Requirement Intake）',
+    '',
+    '拿到具体需求后（TAPD 拉取或用户描述）、写代码前：',
+    `1. 澄清不明确项（方案选择 / 追问 / 要详细答复）；未明确禁止写代码。`,
+    `2. 需求明确后查历史：\`${agentPrefix}/skills/memory-recaller.md\` + experience/learnings。`,
+    '3. 分析代码范围与根因，再定实施策略。',
+    '4. 单函数或纯样式小改 → 直接修；>5 函数 / >5 文件 / >300 行新增或多文件交叉 → 询问是否 SwitchMode 到 plan。',
+    '5. 实施后：task-completion-impact + tapd-submit-backfill 流程不变。',
+    `6. 详见 \`${agentPrefix}/skills/requirement-intake-analysis.md\`。`,
+    ''
+  ].join('\n');
+}
+
+export function requirementIntakeAnalysisSkillContent(agentPrefix = '.ai-agent') {
+  const prefix = normalizeAgentPrefix(agentPrefix);
+  return `# Skill: Requirement Intake & Analysis
+
+Trigger: **具体需求已获取**（TAPD 单据内容已拉取，或用户给出可执行的需求描述），且尚未开始写代码。
+
+Rule: \`${prefix}/rules/requirement-intake-analysis.mdc\`
+
+Post-implementation (unchanged): \`${prefix}/rules/task-completion-impact.mdc\` → \`${prefix}/rules/tapd-submit-backfill.mdc\`
+
+---
+
+## Phase 0 — Confirm requirement source
+
+| Source | Done when |
+| --- | --- |
+| TAPD | \`stories_get\` / \`bugs_get\` 或用户粘贴：标题、描述、验收、优先级、关联信息 |
+| Non-TAPD | 用户消息含：要做什么、期望结果、范围边界（或经 Phase 1 补全） |
+
+Record: \`requirement_source\`, \`requirement_summary\`, \`tapd_entry_id\`（若有）
+
+---
+
+## Phase 1 — Analyze & clarify (mandatory)
+
+### 1.1 Parse
+
+Extract:
+
+- **Goal** — user-visible outcome
+- **Scope** — in / out
+- **Acceptance** — how to verify done
+- **Constraints** — perf, compat, auth, deadline
+- **Dependencies** — API, other modules, flags
+
+### 1.2 Ambiguity register
+
+For each unclear item, create \`AMB-001\`… with:
+
+| Field | Content |
+| --- | --- |
+| Topic | What's unclear |
+| Risk if guessed | Wrong fix cost |
+| Resolution type | \`choice\` \\| \`question\` \\| \`detail_needed\` |
+
+### 1.3 Interactive resolution (mandatory)
+
+**choice** — present 2–4 options + recommendation:
+
+\`\`\`markdown
+### AMB-001: （主题）
+请选择：
+- **A** …（推荐：…）
+- **B** …
+- **C** …
+\`\`\`
+
+**question** — numbered precise questions.
+
+**detail_needed** — ask for example, screenshot, API contract, edge case list.
+
+**Hard:** \`ambiguity_register\` 非空且未关闭 → **stop**；不得进入 Phase 2。
+
+Close each AMB with \`resolution\` text in output.
+
+---
+
+## Phase 2 — Historical accumulation search
+
+**Only after** all AMB closed.
+
+1. Read \`${prefix}/skills/memory-recaller.md\`
+2. Search:
+   - \`${prefix}/memory/experience.md\`
+   - \`${prefix}/memory/learnings.jsonl\`
+   - \`${prefix}/memory/decisions.md\`, topic files if relevant
+   - Optional: \`.docs\`, TAPD comments (MCP)
+
+Output \`history_hits\`:
+
+| Hit | Source | Summary | Reuse? |
+| --- | --- | --- | --- |
+| H-001 | experience.md | … | full / partial / none |
+
+If **full reuse** possible: propose applying historical path; confirm with user before skipping new design.
+
+---
+
+## Phase 3 — Code scope & root cause
+
+After history review:
+
+### 3.1 Code scope
+
+- List files / symbols likely touched (use \`project-architecture-locator.md\` when needed)
+- Mark read-only vs must-change
+- Artifact: \`code_scope\`
+
+### 3.2 Root cause (bugs / defects)
+
+\`\`\`text
+Symptom → Immediate cause → Root cause hypothesis → How to verify
+\`\`\`
+
+Artifact: \`root_cause_analysis\`
+
+### 3.3 Implementation sketch
+
+Bullet plan: what to change, what NOT to change.
+
+---
+
+## Phase 4 — Sizing gate & Plan mode
+
+Estimate **before** coding:
+
+| Signal | Count |
+| --- | --- |
+| Functions touched (incl. new) | n |
+| Files touched | m |
+| Estimated new lines | L |
+
+### Direct path (small)
+
+**All true:**
+
+- Single-function logic fix **OR** style-only (CSS/class/layout), AND
+- Not cross-cutting multi-module refactor
+
+→ **Phase 5 direct implement**
+
+### Plan path (large)
+
+**Any true:**
+
+- Cross-cutting multi-function **and** multi-file interdependency
+- n > 5
+- m > 5
+- L > 300 (new feature / substantial addition)
+
+Ask:
+
+> 本次变更规模较大（约 n 个函数 / m 个文件 / L 行新增）。是否切换 **Plan 模式** 先制定详细实施计划？
+
+Affirmative: \`确认\` / \`同意\` / \`Yes\` / \`是\` / \`Y\` / \`切换plan\` / \`好\`
+
+**Action:** invoke **SwitchMode** with \`target_mode_id: "plan"\`. In Plan:
+
+- Module boundaries, step order, file list, risks, test hooks
+- Get user approval before returning to Agent for code
+
+If user declines Plan: document risk; may proceed in Agent with explicit \`plan_skipped: true\`.
+
+---
+
+## Phase 5 — Implement
+
+- Small: implement immediately
+- Large + approved plan: follow plan steps
+- Non-trivial frontend: then \`${prefix}/runtime/engine.md\`, router, pipelines, gates as usual
+
+**Do not** run task-completion-impact / TAPD backfill here — those run **after** implementation complete.
+
+---
+
+## Output template (end of intake, before code)
+
+\`\`\`markdown
+## 需求摘要
+...
+
+## 不明确项处理
+| ID | 问题 | _resolution |
+...
+
+## 历史方案检索
+| Hit | 来源 | 是否复用 |
+...
+
+## 代码范围
+...
+
+## 根因分析
+...
+
+## 规模评估
+functions: n, files: m, new_lines: L → direct | plan (user: yes/no)
+
+## 下一步
+direct fix | plan mode | blocked (waiting user)
+\`\`\`
+
+---
+
+## Anti-patterns
+
+- Coding with open AMB items
+- Skipping history on recurring bug classes
+- >5 files change without plan ask
+- Confusing this skill with post-task impact analysis (\`architecture-impact-test-forecast.md\`)
+`;
+}
+
+function normalizeAgentPrefix(agentPrefix = '.ai-agent') {
+  return agentPrefix.startsWith('.') || agentPrefix.includes('/') ? agentPrefix : '.ai-agent';
+}

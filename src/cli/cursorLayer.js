@@ -1,9 +1,15 @@
 import { chmod, mkdir, readdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import {
+  requirementIntakeProjectRuleMdc,
+  requirementIntakeRuleMdc
+} from './requirementAnalysisRules.js';
+import {
+  taskCompletionImpactProjectRuleMdc,
   taskCompletionImpactRuleMdc
 } from './completionImpactRules.js';
 import {
+  tapdSubmitProjectRuleMdc,
   tapdSubmitRuleMdc
 } from './tapdSubmitRules.js';
 import {
@@ -46,9 +52,29 @@ export async function writeLayeredCursorAdapters({
     });
   }
 
+  // Refresh project-owned rule bodies only when missing; path refs stay workspace-relative for layered installs.
+  if (options.installRoot) {
+    await writeIfAllowed(
+      path.join(options.installRoot, '.ai-agent/rules/task-completion-impact.mdc'),
+      taskCompletionImpactProjectRuleMdc({ agentPrefix: ctx.agentPrefix }),
+      { ...options, force: false }
+    );
+    await writeIfAllowed(
+      path.join(options.installRoot, '.ai-agent/rules/requirement-intake-analysis.mdc'),
+      requirementIntakeProjectRuleMdc({ agentPrefix: ctx.agentPrefix }),
+      { ...options, force: false }
+    );
+    await writeIfAllowed(
+      path.join(options.installRoot, '.ai-agent/rules/tapd-submit-backfill.mdc'),
+      tapdSubmitProjectRuleMdc({ agentPrefix: ctx.agentPrefix }),
+      { ...options, force: false }
+    );
+  }
+
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-skill-router.mdc'), cursorSkillRouterRules(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-architecture-runtime.mdc'), cursorRules(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-task-completion-impact.mdc'), taskCompletionImpactRuleMdc(ctx), options);
+  await writeIfAllowed(path.join(paths.rulesDir, 'aafe-requirement-intake-analysis.mdc'), requirementIntakeRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-tapd-submit-backfill.mdc'), tapdSubmitRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.skillsDir, 'aafe-runtime', 'SKILL.md'), nativeEditorSkill('Cursor', ctx), options);
   await writeIfAllowed(path.join(paths.skillsDir, 'ENTRY.md'), editorSkillEntry('Cursor', ctx), options);
@@ -309,6 +335,7 @@ function cursorRules(ctx) {
     `# AAFE Architecture Runtime (${ctx.moduleName})`,
     '',
     'For every non-trivial frontend task after the Skill Router step:',
+    `0. After concrete requirement (TAPD or user), follow \`aafe-requirement-intake-analysis.mdc\` / \`${ctx.agentPrefix}/skills/requirement-intake-analysis.md\`: clarify → history → scope/root cause → Plan gate if large.`,
     `1. Read \`${ctx.agentPrefix}/runtime/engine.md\`.`,
     `2. Classify the task using \`${ctx.agentPrefix}/runtime/router.yaml\`.`,
     `3. Follow the selected \`${ctx.agentPrefix}/pipelines/*.yaml\`.`,
@@ -319,8 +346,8 @@ function cursorRules(ctx) {
     '8. For new features, run Pattern Interview before Pattern Selection.',
     '9. For complex frontend work, select and land patterns per module based on real business responsibility.',
     '10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.',
-    `11. Before final response, follow layered rule \`aafe-task-completion-impact.mdc\`: ask whether to analyze impact scope and provide test references; if confirmed, run \`${ctx.agentPrefix}/skills/architecture-impact-test-forecast.md\`.`,
-    `12. On commit/push/submit intent, follow \`aafe-tapd-submit-backfill.mdc\` and \`${ctx.agentPrefix}/skills/tapd-submit-backfill.md\` when \`.aafe.config.json\` → \`tapd.enabled\`.`,
+    `11. Before final response, follow layered rule \`aafe-task-completion-impact.mdc\`: **task assessment** — only ask impact/self-test when code changed; UI sub-asks only for code + UI impact; pre-generate \`ui_test_paths\`.`,
+    `12. After self-test or submit intent: \`aafe-tapd-submit-backfill.mdc\` **only when task has TAPD association** and \`tapd.enabled\`; else skip TAPD backfill asks.`,
     ''
   ].join('\n');
 }

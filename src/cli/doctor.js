@@ -31,7 +31,12 @@ const requiredFiles = [
   '.ai-agent/skills/project-architecture-analyzer.md',
   '.ai-agent/skills/downloadable-skills-installer.md',
   '.ai-agent/skills/architecture-impact-test-forecast.md',
+  '.ai-agent/skills/minimal-convergent-self-test.md',
   '.ai-agent/skills/tapd-submit-backfill.md',
+  '.ai-agent/skills/requirement-intake-analysis.md',
+  '.ai-agent/rules/task-completion-impact.mdc',
+  '.ai-agent/rules/requirement-intake-analysis.mdc',
+  '.ai-agent/rules/tapd-submit-backfill.mdc',
   '.ai-agent/skills/knowledge-center-updater.md',
   '.ai-agent/memory/index.md',
   '.ai-agent/memory/experience.md',
@@ -53,6 +58,7 @@ export async function doctorProject(root) {
       files.push(
         path.join('.cursor', 'rules', moduleName, 'aafe-skill-router.mdc'),
         path.join('.cursor', 'rules', moduleName, 'aafe-architecture-runtime.mdc'),
+        path.join('.cursor', 'rules', moduleName, 'aafe-requirement-intake-analysis.mdc'),
         path.join('.cursor', 'rules', moduleName, 'aafe-task-completion-impact.mdc'),
         path.join('.cursor', 'rules', moduleName, 'aafe-tapd-submit-backfill.mdc'),
         path.join('.cursor', 'skills', moduleName, 'aafe-runtime', 'SKILL.md'),
@@ -65,7 +71,7 @@ export async function doctorProject(root) {
         files.push(path.join('.cursor', 'hooks', moduleName, 'aafe-task-completion'));
       }
     } else {
-      files.push('.cursor/rules/aafe-skill-router.mdc', '.cursor/rules/aafe-architecture-runtime.mdc', '.cursor/rules/aafe-task-completion-impact.mdc', '.cursor/rules/aafe-tapd-submit-backfill.mdc', '.cursor/skills/aafe-runtime/SKILL.md', '.cursor/hooks.json', '.cursor/hooks/run-hook.cmd', '.cursor/hooks/aafe-session-start');
+      files.push('.cursor/rules/aafe-skill-router.mdc', '.cursor/rules/aafe-architecture-runtime.mdc', '.cursor/rules/aafe-requirement-intake-analysis.mdc', '.cursor/rules/aafe-task-completion-impact.mdc', '.cursor/rules/aafe-tapd-submit-backfill.mdc', '.cursor/skills/aafe-runtime/SKILL.md', '.cursor/hooks.json', '.cursor/hooks/run-hook.cmd', '.cursor/hooks/aafe-session-start');
       if (projectConfig.taskCompletion?.enabled) files.push('.cursor/hooks/aafe-task-completion');
     }
   }

@@ -1,0 +1,27 @@
+{
+  "name": "completion-tapd-portable-pack",
+  "version": "1.0.0",
+  "description": "Impact analysis, minimal self-test, TAPD backfill — portable rules & skills",
+  "layout": {
+    "rules": [
+      "rules/task-completion-impact.mdc",
+      "rules/tapd-submit-backfill.mdc"
+    ],
+    "skills": [
+      "skills/architecture-impact-test-forecast.md",
+      "skills/minimal-convergent-self-test.md",
+      "skills/tapd-submit-backfill.md"
+    ],
+    "configExample": "tapd.config.example.json",
+    "cursorPointers": [
+      "cursor-rules/task-completion-impact.mdc",
+      "cursor-rules/tapd-submit-backfill.mdc"
+    ]
+  },
+  "usage": {
+    "bundleRoot": "Copy entire temp/ folder anywhere; keep rules/ and skills/ as siblings.",
+    "config": "Copy tapd.config.example.json to project workspace as tapd.config.json (or merge tapd key into your own config).",
+    "cursor": "Optional: copy cursor-rules/*.mdc into .cursor/rules/",
+    "skills": "Register skills/ paths in your agent (Cursor Rules point to rules/; load skills/ on demand)."
+  }
+}
