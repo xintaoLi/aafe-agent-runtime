@@ -6,7 +6,7 @@ import { bootstrapProject } from './bootstrap.js';
 import { detectProject } from './detect.js';
 import { doctorProject } from './doctor.js';
 import { syncKnowledgeArtifacts } from './knowledge.js';
-import { prepareWorkspaceLayoutForCommand, prepareTapdConfigForCommand } from './prompts.js';
+import { prepareWorkspaceLayoutForCommand, prepareTapdConfigForCommand, prepareSubmitConfigForCommand } from './prompts.js';
 import { resolveWorkspaceLayout } from './workspace.js';
 
 const execFileAsync = promisify(execFile);
@@ -49,10 +49,12 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
         refreshSkillIndex: true,
         refreshEditorAdapters: true,
         refreshProjectKnowledgeConfig: true,
+        refreshSubmitCliConfig: true,
         forceGeneratedFiles: true,
         preserveProjectKnowledge: true,
         preserveMemory: true,
-        idempotentWrites: true
+        idempotentWrites: true,
+        submitCli: options.submitCli ?? null
       },
       preserved: ['.ai-agent/project.md', '.ai-agent/project-skills/**', '.ai-agent/rules/**', '.ai-agent/memory/**'],
       summary: 'Would refresh generated .ai-agent runtime, Skill Index On-Demand router, editor adapters and projectKnowledge config from the currently installed aafe package without reinstalling the package. Project-owned knowledge would be preserved.'
@@ -63,14 +65,19 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
   const installRoot = process.cwd();
   const configured = await readProjectConfig(installRoot);
   const detection = await detectProject(installRoot);
-  // update is non-interactive by design; keep existing tapd/workspace config without prompts
-  const nonInteractiveOptions = { ...options, yes: true, nonInteractive: true };
+  // update defaults to non-interactive; --submit-cli= can still patch submit config
+  const nonInteractiveOptions = {
+    ...options,
+    yes: options.interactive ? false : true,
+    nonInteractive: options.interactive ? false : true
+  };
   const workspaceLayout = await prepareWorkspaceLayoutForCommand(
     await resolveWorkspaceLayout(installRoot, resolveEditors(options, configured, detection)),
     nonInteractiveOptions,
     configured
   );
   const tapdConfig = await prepareTapdConfigForCommand(nonInteractiveOptions, configured);
+  const submitConfig = await prepareSubmitConfigForCommand(nonInteractiveOptions, configured);
   const effectiveDetection = {
     ...detection,
     editors: resolveEditors(options, configured, detection)
@@ -78,7 +85,8 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
   await bootstrapProject(installRoot, effectiveDetection, {
     ...updateOptions,
     workspaceLayout,
-    tapdConfig
+    tapdConfig,
+    submitConfig
   });
   const knowledge = options.knowledge === false ? null : await syncKnowledgeArtifacts(installRoot, {
     architectureDocs: options.architectureDocs,
@@ -175,6 +183,8 @@ function parseUpdateOptions(args) {
     if (arg.startsWith('--module-name=')) options.moduleName = arg.slice('--module-name='.length);
     if (arg === '--migrate-cursor' || arg === '--migrate-editors') options.migrateInstallEditors = true;
     if (arg === '--no-migrate-cursor' || arg === '--no-migrate-editors') options.migrateInstallEditors = false;
+    if (arg.startsWith('--submit-cli=')) options.submitCli = arg.slice('--submit-cli='.length);
+    if (arg === '--interactive') options.interactive = true;
   }
 
   return options;

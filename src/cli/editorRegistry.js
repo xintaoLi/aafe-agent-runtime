@@ -18,9 +18,17 @@ export const EDITOR_ADAPTERS = {
     workspaceRootOnly: true,
     layered: true,
     migrateKind: 'directory',
+    // Module layer is AAFE sync source; CodeBuddy only discovers flat
+    // .codebuddy/{rules,skills,settings.json,mcp.json} (non-recursive).
     layerPattern: '.codebuddy/{module}',
-    subdirs: ['skills'],
-    moduleFiles: ['aafe.md']
+    nativeDiscovery: {
+      rules: '.codebuddy/rules/aafe-{module}/RULE.mdc',
+      skills: '.codebuddy/skills/aafe-runtime/SKILL.md',
+      settings: '.codebuddy/settings.json',
+      mcp: '.codebuddy/mcp.json'
+    },
+    subdirs: ['skills', 'hooks', 'rules'],
+    moduleFiles: ['aafe.md', 'settings.json', 'module.json']
   },
   claude: {
     id: 'claude',

@@ -33,17 +33,14 @@ alwaysApply: true
 
 ```text
 自测完成 → 询问 Commit？
-  ├─ 是 → TAPD 格式 commit → 尝试 PR → 询问回填 TAPD？
+  ├─ 是 → 按 submit.cli（git|gtm）执行 Commit/PR → 询问回填 TAPD？
   └─ 否 → 仍询问回填 TAPD？
 同意回填 → comments_create + 可选 PR 字段 + 状态逐步流转
 ```
 
-### Commit message（有关联 TAPD）
+### Commit / PR（`submit.cli`）
 
-| 类型 | 格式 |
-| --- | --- |
-| bug | `bug: {标题} --bug={bug_id}` |
-| story | `feat: {标题} --story={story_id}` |
+`.aafe.config.json` → `submit.cli`：`git`（默认）或 `gtm`。`aafe update --submit-cli=git|gtm` 可更新。
 
 ### 回填
 
@@ -52,5 +49,6 @@ alwaysApply: true
 ## 禁止
 
 - 无 TAPD 关联时问回填或新建单
-- todo → for_test 跳步
+- backlog → doing 跳步
+- 提交回填自动改到 for_test
 - 伪造 MCP / 测试结果

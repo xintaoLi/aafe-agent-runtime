@@ -19,6 +19,7 @@ export function createMigrationRewriteContext(moduleName, moduleRelativePath) {
     cursorContextPrefix: `.cursor/context/${moduleName}`,
     codebuddyPrefix: `.codebuddy/${moduleName}`,
     codebuddySkillsPrefix: `.codebuddy/${moduleName}/skills`,
+    codebuddyHooksPrefix: `.codebuddy/${moduleName}/hooks`,
     codexPrefix: `.codex/${moduleName}`,
     tracePrefix: `.trace/${moduleName}`,
     vscodePrefix: `.vscode/${moduleName}`,
@@ -114,6 +115,10 @@ function rewriteEditorLayerPaths(content, ctx) {
     next = next.replace(new RegExp(`(?<![A-Za-z0-9_./-])${escapeRegExp(token)}(?!${module}/)`, 'g'), replacement);
   }
 
+  // Module-layer rewrite for migrated install content. Native discovery paths
+  // (.codebuddy/rules|skills|settings.json|mcp.json) are generated separately and
+  // must not be rewritten into .codebuddy/{module}/.
+  next = next.replace(/(?<![A-Za-z0-9_./-])\.codebuddy\/hooks\//g, `${ctx.codebuddyHooksPrefix}/`);
   next = next.replace(/(?<![A-Za-z0-9_./-])\.codebuddy\/skills\//g, `${ctx.codebuddySkillsPrefix}/`);
   next = next.replace(/(?<![A-Za-z0-9_./-])\.codebuddy\/aafe\.md/g, `${ctx.codebuddyPrefix}/aafe.md`);
   next = next.replace(/(?<![A-Za-z0-9_./-])\.codex\/aafe\.md/g, `${ctx.codexPrefix}/aafe.md`);

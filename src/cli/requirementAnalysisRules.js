@@ -52,6 +52,14 @@ function requirementIntakeProjectRuleBody(agentPrefix = '.ai-agent') {
 
 详细步骤：\`${agentPrefix}/skills/requirement-intake-analysis.md\`
 
+## GTM 分支关联（仅 \`submit.cli=gtm\`）
+
+新任务且有 TAPD 单时，写代码前：
+
+1. 检查当前分支是否 \`feat|bug/<slug>/#<tapd_full_id>\`
+2. 未关联 → \`gtm create issue\` → 关联已有单据（短 ID = TAPD 链接最后 9 位）→ 目标分支 \`master\` → 按 TAPD 标题生成英文短名
+3. 详见 \`${agentPrefix}/skills/tapd-submit-backfill.md\`「GTM Task Start」
+
 ## 阶段 A — 需求分析与澄清
 
 1. 解析需求：目标、范围、验收标准、约束、依赖、风险
@@ -145,6 +153,7 @@ export function requirementIntakeRuleSection(ctx = {}) {
     '## AAFE 需求分析阶段（Requirement Intake）',
     '',
     '拿到具体需求后（TAPD 拉取或用户描述）、写代码前：',
+    '0. 若 `.aafe.config.json` → `submit.cli=gtm`：检查当前分支是否 `feat|bug/<slug>/#<tapd_id>`；未关联则按 `tapd-submit-backfill`「GTM Task Start」执行 `gtm create issue`。',
     `1. 澄清不明确项（方案选择 / 追问 / 要详细答复）；未明确禁止写代码。`,
     `2. 需求明确后查历史：\`${agentPrefix}/skills/memory-recaller.md\` + experience/learnings。`,
     '3. 分析代码范围与根因，再定实施策略。',
@@ -175,6 +184,17 @@ Post-implementation (unchanged): \`${prefix}/rules/task-completion-impact.mdc\` 
 | Non-TAPD | 用户消息含：要做什么、期望结果、范围边界（或经 Phase 1 补全） |
 
 Record: \`requirement_source\`, \`requirement_summary\`, \`tapd_entry_id\`（若有）
+
+### Phase 0.5 — GTM branch association（仅 \`submit.cli=gtm\`）
+
+若 \`.aafe.config.json\` → \`submit.cli=gtm\` 且本任务有 TAPD 单：
+
+1. \`git branch --show-current\`：是否匹配 \`feat|bug/<slug>/#<fullId>\`
+2. **已匹配** → 记录 \`tapd_entry_id\` / 短 ID（fullId 最后 9 位），继续 Phase 1
+3. **未匹配** → 按 \`${prefix}/skills/tapd-submit-backfill.md\`「GTM Task Start」执行：  
+   \`gtm create issue\` → 关联已有单据 → 短 ID（TAPD URL 最后 9 位）→ 目标分支 \`master\` → 按 TAPD 标题生成英文短名建开发分支
+
+\`submit.cli=git\` 或无 TAPD 单时跳过本小节。
 
 ---
 

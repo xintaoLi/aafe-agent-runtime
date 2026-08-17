@@ -64,6 +64,9 @@
       "merge_gate:fail"
     ]
   },
+  "submit": {
+    "cli": "git"
+  },
   "hooks": {
     "enabled": true,
     "sessionStart": ".cursor/hooks/aafe-session-start",

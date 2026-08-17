@@ -155,8 +155,50 @@ async function testLayeredCodebuddyInit() {
 
     const rule = await readFile(path.join(root, '.codebuddy/web/aafe.md'), 'utf8');
     assert.match(rule, /bklog\/web\/\.ai-agent\/skill-index\.md/);
+    assert.match(rule, /\.codebuddy\/skills\/aafe-runtime\/SKILL\.md/);
+
+    const nativeRule = await readFile(path.join(root, '.codebuddy/rules/aafe-web/RULE.mdc'), 'utf8');
+    assert.match(nativeRule, /alwaysApply: true/);
+    assert.match(nativeRule, /bklog\/web\/\.ai-agent\/skill-index\.md/);
+
+    const nativeSkill = await readFile(path.join(root, '.codebuddy/skills/aafe-runtime/SKILL.md'), 'utf8');
+    assert.match(nativeSkill, /requirement intake|impact analysis|TAPD backfill/i);
+    assert.match(nativeSkill, /bklog\/web\/\.ai-agent/);
+
+    const settings = JSON.parse(await readFile(path.join(root, '.codebuddy/settings.json'), 'utf8'));
+    assert.equal(
+      settings.hooks.SessionStart[0].hooks[0].command,
+      '$CODEBUDDY_PROJECT_DIR/.codebuddy/web/hooks/run-hook.cmd aafe-session-start'
+    );
+
+    const hookPath = path.join(root, '.codebuddy/web/hooks/aafe-session-start');
+    const hookStat = await stat(hookPath);
+    assert.ok((hookStat.mode & 0o111) !== 0, 'aafe-session-start should be executable');
+
+    const manifest = JSON.parse(await readFile(path.join(root, '.codebuddy/web/module.json'), 'utf8'));
+    assert.equal(manifest.moduleRelativePath, 'bklog/web');
+    assert.equal(manifest.nativeDiscovery.skills, '.codebuddy/skills/aafe-runtime/SKILL.md');
+
+    // Hook resolves .ai-agent via module.json and emits real newlines in additionalContext.
+    const { stdout } = await execFileAsync('bash', [hookPath], {
+      env: { ...process.env, CODEBUDDY_PROJECT_DIR: root },
+      cwd: root,
+      timeout: 10000,
+      input: ''
+    });
+    const payload = JSON.parse(stdout.trim());
+    assert.equal(payload.continue, true);
+    const context = payload.hookSpecificOutput.additionalContext;
+    assert.match(context, /<AAFE_RUNTIME>/);
+    assert.match(context, /Engine:/);
+    assert.doesNotMatch(context, /\\n/);
+    assert.ok(context.includes('\n'), 'additionalContext should contain real newlines');
+
     assert.equal(await exists(path.join(installRoot, '.ai-agent')), true);
     assert.equal(await exists(path.join(root, '.ai-agent')), false);
+
+    const doctor = await doctorProject(installRoot);
+    assert.equal(doctor.missing.length, 0, `missing: ${doctor.missing.join(', ')}`);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

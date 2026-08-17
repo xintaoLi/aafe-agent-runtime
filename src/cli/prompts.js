@@ -6,6 +6,11 @@ import {
   defaultTapdBugStatus,
   defaultTapdStoryStatus
 } from './tapdConfig.js';
+import {
+  buildSubmitConfigFromAnswers,
+  defaultSubmitConfig,
+  resolveSubmitConfig
+} from './submitConfig.js';
 
 export async function collectInitOptions(detection, options, workspaceLayout = null) {
   if (options.yes || options.nonInteractive) {
@@ -20,7 +25,15 @@ export async function collectInitOptions(detection, options, workspaceLayout = n
         migrateInstallCursor: options.migrateInstallCursor
       })
       : null;
-    return { ...options, workspaceLayout: enrichedLayout ?? workspaceLayout, tapdConfig: options.tapdConfig ?? null };
+    const submitConfig = resolveSubmitConfig(options.existingConfig ?? {}, {
+      cli: options.submitCli ?? options.submitConfig?.cli
+    });
+    return {
+      ...options,
+      workspaceLayout: enrichedLayout ?? workspaceLayout,
+      tapdConfig: options.tapdConfig ?? null,
+      submitConfig
+    };
   }
 
   const rl = createInterface({ input, output });
@@ -33,6 +46,7 @@ export async function collectInitOptions(detection, options, workspaceLayout = n
     const workspaceOptions = workspaceLayout
       ? await collectWorkspaceLayoutOptions(rl, workspaceLayout, options)
       : workspaceLayout;
+    const submitConfig = await collectSubmitConfigOptions(rl, options.existingConfig?.submit, options);
     const tapdConfig = await collectTapdConfigOptions(rl, options.existingConfig?.tapd);
 
     return {
@@ -43,6 +57,7 @@ export async function collectInitOptions(detection, options, workspaceLayout = n
       memory: !/^n/i.test(memoryText),
       force: /^y/i.test(forceText),
       workspaceLayout: workspaceOptions,
+      submitConfig,
       tapdConfig
     };
   } finally {
@@ -121,6 +136,41 @@ export async function prepareTapdConfigForCommand(options = {}, existingConfig =
   } finally {
     rl.close();
   }
+}
+
+export async function prepareSubmitConfigForCommand(options = {}, existingConfig = {}) {
+  if (options.submitConfig) {
+    return resolveSubmitConfig(existingConfig, { cli: options.submitConfig.cli ?? options.submitCli });
+  }
+  if (options.submitCli) {
+    return resolveSubmitConfig(existingConfig, { cli: options.submitCli });
+  }
+  if (options.yes || options.nonInteractive) {
+    return resolveSubmitConfig(existingConfig);
+  }
+
+  const rl = createInterface({ input, output });
+  try {
+    return await collectSubmitConfigOptions(rl, existingConfig.submit, options);
+  } finally {
+    rl.close();
+  }
+}
+
+export async function collectSubmitConfigOptions(rl, existingSubmit = null, options = {}) {
+  const current = resolveSubmitConfig({ submit: existingSubmit }, { cli: options.submitCli });
+  console.log('');
+  console.log('Submit CLI provider: choose how Commit / PR are executed.');
+  console.log('  git  — Git CLI (+ gh for PR)  [default]');
+  console.log('  gtm  — GTM CLI (`gtm commit` / `gtm pr`; project GTM config required)');
+  console.log('');
+
+  const answer = await ask(
+    rl,
+    `Submit CLI (git|gtm) [${current.cli}]: `,
+    current.cli
+  );
+  return buildSubmitConfigFromAnswers({ cli: answer }, existingSubmit ?? defaultSubmitConfig());
 }
 
 export async function collectTapdConfigOptions(rl, existingTapd = null) {

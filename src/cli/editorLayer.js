@@ -1,4 +1,4 @@
-import { chmod, mkdir, readdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { EDITOR_ADAPTERS, getEditorAdapter, getLayeredEditors } from './editorRegistry.js';
 import { requirementIntakeRuleSection } from './requirementAnalysisRules.js';
@@ -6,6 +6,16 @@ import { taskCompletionImpactRuleSection } from './completionImpactRules.js';
 import { tapdSubmitRuleSection } from './tapdSubmitRules.js';
 import { createCursorPathContext, rewriteCursorContent } from './pathRewrite.js';
 import { writeLayeredCursorAdapters, migrateInstallCursorToWorkspace, buildCursorLayerPaths } from './cursorLayer.js';
+import { writeLayeredCodeBuddyAdapters } from './codebuddyLayer.js';
+import {
+  requirementIntakeProjectRuleMdc
+} from './requirementAnalysisRules.js';
+import {
+  taskCompletionImpactProjectRuleMdc
+} from './completionImpactRules.js';
+import {
+  tapdSubmitProjectRuleMdc
+} from './tapdSubmitRules.js';
 import { RETAIN_IN_INSTALL_DIR } from './workspace.js';
 
 export async function writeLayeredEditorAdapters({
@@ -18,6 +28,25 @@ export async function writeLayeredEditorAdapters({
   const editors = getLayeredEditors(plan.editors ?? ['cursor']);
   const ctx = createCursorPathContext(moduleName, moduleRelativePath);
   const results = [];
+
+  // Seed project-owned rules once for any layered editor (not only Cursor).
+  if (options.installRoot) {
+    await writeIfAllowed(
+      path.join(options.installRoot, '.ai-agent/rules/task-completion-impact.mdc'),
+      taskCompletionImpactProjectRuleMdc({ agentPrefix: ctx.agentPrefix }),
+      { ...options, force: false }
+    );
+    await writeIfAllowed(
+      path.join(options.installRoot, '.ai-agent/rules/requirement-intake-analysis.mdc'),
+      requirementIntakeProjectRuleMdc({ agentPrefix: ctx.agentPrefix }),
+      { ...options, force: false }
+    );
+    await writeIfAllowed(
+      path.join(options.installRoot, '.ai-agent/rules/tapd-submit-backfill.mdc'),
+      tapdSubmitProjectRuleMdc({ agentPrefix: ctx.agentPrefix }),
+      { ...options, force: false }
+    );
+  }
 
   for (const editorId of editors) {
     if (options.migrateInstallEditors !== false && options.installRoot && editorId !== 'cursor') {
@@ -135,10 +164,12 @@ async function writeLayeredGenericEditor({ editorId, workspaceRoot, moduleName, 
 
   const moduleDir = path.join(workspaceRoot, adapter.dirName, moduleName);
   if (editorId === 'codebuddy') {
-    await writeIfAllowed(path.join(moduleDir, 'aafe.md'), buildCodeBuddyRules(ctx), options);
-    await writeIfAllowed(path.join(moduleDir, 'skills', 'aafe-runtime', 'SKILL.md'), buildNativeEditorSkill('CodeBuddy', ctx), options);
-    await writeIfAllowed(path.join(moduleDir, 'skills', 'ENTRY.md'), buildEditorSkillEntry('CodeBuddy', ctx), options);
-    await writeIfAllowed(path.join(moduleDir, 'module.json'), buildModuleManifest(adapter, ctx), options);
+    await writeLayeredCodeBuddyAdapters({
+      workspaceRoot,
+      moduleName,
+      moduleRelativePath,
+      options
+    });
     return;
   }
 
@@ -161,50 +192,6 @@ function buildModuleManifest(adapter, ctx) {
     editorOnlyAtWorkspaceRoot: true,
     generatedBy: '@aafe/agent-runtime'
   }, null, 2)}\n`;
-}
-
-function buildEditorSkillEntry(name, ctx) {
-  return [
-    `# AAFE Project Skill Entry (${name} / ${ctx.moduleName})`,
-    '',
-    `Read \`${ctx.agentPrefix}/skill-index.md\` first, then \`${ctx.agentPrefix}/project.md\` if present.`,
-    ''
-  ].join('\n');
-}
-
-function buildNativeEditorSkill(name, ctx) {
-  return [
-    '---',
-    'name: aafe-runtime',
-    `description: AAFE runtime entry for module ${ctx.moduleName}.`,
-    '---',
-    '',
-    `# AAFE Runtime (${name} / ${ctx.moduleName})`,
-    '',
-    `1. Read \`${ctx.agentPrefix}/skill-index.md\` first.`,
-    `2. Read \`${ctx.agentPrefix}/project.md\` when present.`,
-    `3. Load matching \`${ctx.agentPrefix}/project-skills/<domain>/SKILL.md\` on demand.`,
-    ''
-  ].join('\n');
-}
-
-function buildCodeBuddyRules(ctx) {
-  return [
-    `# AAFE Architecture Runtime (${ctx.moduleName})`,
-    '',
-    requirementIntakeRuleSection(ctx).trimEnd(),
-    taskCompletionImpactRuleSection(ctx).trimEnd(),
-    tapdSubmitRuleSection(ctx).trimEnd(),
-    '## AAFE Skill Router',
-    '',
-    `For every task in module \`${ctx.moduleRelativePath}\`, read \`${ctx.agentPrefix}/skill-index.md\` first, then \`${ctx.agentPrefix}/project.md\` if present, and only the matching \`${ctx.agentPrefix}/project-skills/<domain>/SKILL.md\` on demand.`,
-    `Native entry: \`.codebuddy/${ctx.moduleName}/skills/aafe-runtime/SKILL.md\`. Runtime knowledge stays in \`${ctx.agentPrefix}/\`.`,
-    '',
-    '## Runtime Pipeline',
-    '',
-    `Load \`${ctx.agentPrefix}/runtime/engine.md\`, classify with \`${ctx.agentPrefix}/runtime/router.yaml\`, follow pipelines and enforce \`${ctx.agentPrefix}/runtime/gates.yaml\`.`,
-    ''
-  ].join('\n');
 }
 
 function buildGenericEditorRules(name, ctx) {

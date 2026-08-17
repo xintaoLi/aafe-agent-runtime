@@ -80,10 +80,23 @@ export async function doctorProject(root) {
       const moduleName = projectConfig.workspace.moduleName;
       files.push(
         path.join('.codebuddy', moduleName, 'aafe.md'),
-        path.join('.codebuddy', moduleName, 'skills', 'aafe-runtime', 'SKILL.md')
+        path.join('.codebuddy', moduleName, 'module.json'),
+        path.join('.codebuddy', moduleName, 'skills', 'aafe-runtime', 'SKILL.md'),
+        path.join('.codebuddy', moduleName, 'hooks', 'aafe-session-start'),
+        path.join('.codebuddy', moduleName, 'hooks', 'run-hook.cmd'),
+        path.join('.codebuddy', moduleName, 'settings.json'),
+        path.join('.codebuddy', 'rules', `aafe-${moduleName}`, 'RULE.mdc'),
+        path.join('.codebuddy', 'skills', 'aafe-runtime', 'SKILL.md'),
+        path.join('.codebuddy', 'settings.json')
       );
     } else {
-      files.push('.codebuddy/skills/aafe-runtime/SKILL.md');
+      files.push(
+        '.codebuddy/aafe.md',
+        '.codebuddy/skills/aafe-runtime/SKILL.md',
+        '.codebuddy/rules/aafe/RULE.mdc',
+        '.codebuddy/hooks/aafe-session-start',
+        '.codebuddy/settings.json'
+      );
     }
   }
   for (const editorId of ['codex', 'trace', 'vscode']) {

@@ -2,7 +2,7 @@ export function defaultTapdStoryStatus() {
   return {
     status_backlog: 'backlog',
     status_todo: 'todo',
-    status_doing: 'developing,status_7',
+    status_doing: 'doing',
     status_done: 'for_test',
     status_release: 'status_3,status_9'
   };
@@ -12,7 +12,7 @@ export function defaultTapdBugStatus() {
   return {
     status_done: 'resolved',
     status_release: 'verified',
-    status_doing: 'assigned,in_progress'
+    status_doing: 'doing'
   };
 }
 
@@ -55,15 +55,54 @@ export function parseStatusChain(value) {
   return value.split(',').map((item) => item.trim()).filter(Boolean);
 }
 
-export function storySubmitTransitionPath(statusConfig = {}, { isNewStory = false } = {}) {
-  const done = statusConfig.status_done ?? 'for_test';
-  if (isNewStory) {
-    const backlog = statusConfig.status_backlog ?? 'backlog';
-    const todo = statusConfig.status_todo ?? 'todo';
-    const doingChain = parseStatusChain(statusConfig.status_doing);
-    return [backlog, todo, ...doingChain, done].filter((status, index, arr) => arr.indexOf(status) === index);
-  }
+/**
+ * Submit-backfill story chain (stops at doing; never advances to status_done/for_test):
+ * backlog → todo → doing
+ */
+export function storySubmitTransitionPath(statusConfig = {}) {
+  const backlog = statusConfig.status_backlog ?? 'backlog';
   const todo = statusConfig.status_todo ?? 'todo';
+  const doing = resolveDoingTarget(statusConfig.status_doing);
+  return [backlog, todo, doing].filter((status, index, arr) => arr.indexOf(status) === index);
+}
+
+/**
+ * Remaining status steps from current story status for submit backfill.
+ * - backlog → [todo, doing]
+ * - todo → [doing]
+ * - doing (or any later status in doing chain / done) → []
+ */
+export function storySubmitRemainingPath(currentStatus, statusConfig = {}) {
+  const path = storySubmitTransitionPath(statusConfig);
+  const backlog = path[0];
+  const todo = path[1];
+  const doing = path[path.length - 1];
   const doingChain = parseStatusChain(statusConfig.status_doing);
-  return [todo, ...doingChain, done].filter((status, index, arr) => arr.indexOf(status) === index);
+  const done = statusConfig.status_done ?? 'for_test';
+  const current = String(currentStatus ?? '').trim();
+
+  if (!current) return [];
+
+  if (isAlreadyDoingOrBeyond(current, { doing, doingChain, done })) {
+    return [];
+  }
+
+  if (current === backlog) return path.slice(1);
+  if (current === todo) return doing && doing !== todo ? [doing] : [];
+
+  const idx = path.indexOf(current);
+  if (idx === -1) return [];
+  return path.slice(idx + 1);
+}
+
+function resolveDoingTarget(statusDoing) {
+  const chain = parseStatusChain(statusDoing);
+  return chain[0] ?? 'doing';
+}
+
+function isAlreadyDoingOrBeyond(current, { doing, doingChain, done }) {
+  if (current === doing) return true;
+  if (doingChain.includes(current)) return true;
+  if (current === done) return true;
+  return false;
 }

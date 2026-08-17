@@ -14,6 +14,7 @@ alwaysApply: true
 - 任务来自 TAPD（story/bug/task ID、链接、TAPD MCP 已用于本任务）
 - 用户在本任务中明确引用/绑定 TAPD 单号
 - 会话或元数据记录 `tapd_entry_id` / `tapd_entry_type`
+- `submit.cli=gtm` 且当前分支名为 `feat|bug/<slug>/#<tapd_full_id>`（GTM 已关联）
 
 **无 TAPD 关联** → **跳过**：
 
@@ -35,26 +36,26 @@ alwaysApply: true
 ```text
 自测完成（含 UI 路径预生成与执行）
   → 询问：是否执行 Commit？
-      ├─ 是 → 按 TAPD 格式 commit → 尝试 PR → 询问：是否回填 TAPD？
+      ├─ 是 → 按 `.aafe.config.json` → `submit.cli` 执行 Commit/PR → 询问：是否回填 TAPD？
       └─ 否 → 仍询问：是否回填 TAPD？（仅有关联 TAPD 时）
   → 用户同意回填 → comments_create（+ 可选 PR 字段 / 状态流转）
 ```
 
 无 TAPD 关联时：Commit/PR 可选，**不进入**上述回填询问。
 
-### Commit message（有关联 TAPD 时）
+### Commit / PR（`submit.cli`）
 
-| 单子类型 | 格式 |
-| --- | --- |
-| bug | `bug: {TAPD 标题} --bug={bug_id}` |
-| 需求 / story | `feat: {TAPD 标题} --story={story_id}` |
+先读 `.aafe.config.json` → `submit.cli`（缺省 / 非法值按 `git`）：
 
-- 标题取自 TAPD 单据 `name` / `title`；ID 为完整数字 ID
-- **无 TAPD 关联**：常规 commit message，不强制 TAPD ID 格式
+| `submit.cli` | Commit | PR |
+| --- | --- | --- |
+| `git`（默认） | Git CLI（stage + commit） | `gh pr create`（按需 push） |
+| `gtm` | `gtm commit` | `gtm pr` |
 
-### PR
-
-Commit 成功后**尝试**执行 git PR。PR 成功则保留 URL，供回填（有关联 TAPD 且用户同意回填时）。
+- `aafe init` / `aafe update --submit-cli=git|gtm` 可写入/更新该配置
+- `gtm`：项目 GTM 已配置完毕；抛错由项目侧处理，**不强制**重试或降级
+- `gtm` 新任务开始：先检查分支是否含 `#<tapd_id>`；未关联则 `gtm create issue` → 关联已有单据（短 ID=链接最后 9 位）→ 目标分支 `master` → 按 TAPD 标题取英文短名建开发分支（详见 Skill「GTM Task Start」）
+- 有关联 TAPD 时，尽量保证 commit message 含 `--bug=` / `--story=`
 
 ### 回填询问（仅有关联 TAPD 时）
 
@@ -79,8 +80,8 @@ Commit 成功后**尝试**执行 git PR。PR 成功则保留 URL，供回填（�
 - **禁止**为回填内容调用 update 改写 `description`、`test_focus` 或其他业务正文
 - **禁止**覆盖/重写原单据背景、截图、目标等已有内容
 - 允许的 update：状态逐步流转；PR 链接字段；用户明确要求改的字段
-- 禁止跳过中间状态（如 todo → for_test）
-- 禁止无自测/影响范围评论就改到 `for_test`（用户明确跳过自测并仍要求回填时，评论中标注 `self_test=skipped`）
+- 禁止跳过中间状态（如 backlog → doing）
+- 提交回填状态流转目标为 `doing`，禁止自动流转到 `for_test` / `status_done`
 - 禁止伪造 MCP / 测试结果；禁止未拿到用户指定 URL 时自动探测环境
 - **禁止**在无 TAPD 关联时主动询问回填、新建 TAPD 单或索取 `workspace_id` / `milestone_id`
 
@@ -89,6 +90,7 @@ Commit 成功后**尝试**执行 git PR。PR 成功则保留 URL，供回填（�
 - 自测规则见 `task-completion-impact.mdc`；影响分析/ UI 子询问仅对**代码变更**任务
 - UI 自测须先产出 `ui_test_paths`（见 `minimal-convergent-self-test.md`）
 
-## 状态流转
+## 状态流转（提交回填）
 
+固定链路：`backlog → todo → doing`（按当前状态续走，已到 doing 则跳过）。  
 规则见 Skill；**内容回填 = 评论，状态流转 ≠ 改写描述**。

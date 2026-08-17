@@ -49,6 +49,7 @@ function tapdSubmitProjectRuleBody(agentPrefix = '.ai-agent') {
 - 任务来自 TAPD（story/bug/task ID、链接、TAPD MCP 已用于本任务）
 - 用户在本任务中明确引用/绑定 TAPD 单号
 - 会话或元数据记录 \`tapd_entry_id\` / \`tapd_entry_type\`
+- \`submit.cli=gtm\` 且当前分支名为 \`feat|bug/<slug>/#<tapd_full_id>\`（GTM 已关联）
 
 **无 TAPD 关联** → **跳过**：
 
@@ -70,26 +71,26 @@ function tapdSubmitProjectRuleBody(agentPrefix = '.ai-agent') {
 \`\`\`text
 自测完成（含 UI 路径预生成与执行）
   → 询问：是否执行 Commit？
-      ├─ 是 → 按 TAPD 格式 commit → 尝试 PR → 询问：是否回填 TAPD？
+      ├─ 是 → 按 \`.aafe.config.json\` → \`submit.cli\` 执行 Commit/PR → 询问：是否回填 TAPD？
       └─ 否 → 仍询问：是否回填 TAPD？（仅有关联 TAPD 时）
   → 用户同意回填 → comments_create（+ 可选 PR 字段 / 状态流转）
 \`\`\`
 
 无 TAPD 关联时：Commit/PR 可选，**不进入**上述回填询问。
 
-### Commit message（有关联 TAPD 时）
+### Commit / PR（\`submit.cli\`）
 
-| 单子类型 | 格式 |
-| --- | --- |
-| bug | \`bug: {TAPD 标题} --bug={bug_id}\` |
-| 需求 / story | \`feat: {TAPD 标题} --story={story_id}\` |
+先读 \`.aafe.config.json\` → \`submit.cli\`（缺省 / 非法值按 \`git\`）：
 
-- 标题取自 TAPD 单据 \`name\` / \`title\`；ID 为完整数字 ID
-- **无 TAPD 关联**：常规 commit message，不强制 TAPD ID 格式
+| \`submit.cli\` | Commit | PR |
+| --- | --- | --- |
+| \`git\`（默认） | Git CLI（stage + commit） | \`gh pr create\`（按需 push） |
+| \`gtm\` | \`gtm commit\` | \`gtm pr\` |
 
-### PR
-
-Commit 成功后**尝试**执行 git PR。PR 成功则保留 URL，供回填（有关联 TAPD 且用户同意回填时）。
+- \`aafe init\` / \`aafe update --submit-cli=git|gtm\` 可写入/更新该配置
+- \`gtm\`：项目 GTM 已配置完毕；抛错由项目侧处理，**不强制**重试或降级
+- \`gtm\` 新任务开始：先检查分支是否含 \`#<tapd_id>\`；未关联则 \`gtm create issue\` → 关联已有单据（短 ID=链接最后 9 位）→ 目标分支 \`master\` → 按 TAPD 标题取英文短名建开发分支（详见 Skill「GTM Task Start」）
+- 有关联 TAPD 时，尽量保证 commit message 含 \`--bug=\` / \`--story=\`
 
 ### 回填询问（仅有关联 TAPD 时）
 
@@ -114,8 +115,8 @@ Commit 成功后**尝试**执行 git PR。PR 成功则保留 URL，供回填（�
 - **禁止**为回填内容调用 update 改写 \`description\`、\`test_focus\` 或其他业务正文
 - **禁止**覆盖/重写原单据背景、截图、目标等已有内容
 - 允许的 update：状态逐步流转；PR 链接字段；用户明确要求改的字段
-- 禁止跳过中间状态（如 todo → for_test）
-- 禁止无自测/影响范围评论就改到 \`for_test\`（用户明确跳过自测并仍要求回填时，评论中标注 \`self_test=skipped\`）
+- 禁止跳过中间状态（如 backlog → doing）
+- 提交回填状态流转目标为 \`doing\`，禁止自动流转到 \`for_test\` / \`status_done\`
 - 禁止伪造 MCP / 测试结果；禁止未拿到用户指定 URL 时自动探测环境
 - **禁止**在无 TAPD 关联时主动询问回填、新建 TAPD 单或索取 \`workspace_id\` / \`milestone_id\`
 
@@ -124,8 +125,9 @@ Commit 成功后**尝试**执行 git PR。PR 成功则保留 URL，供回填（�
 - 自测规则见 \`task-completion-impact.mdc\`；影响分析/ UI 子询问仅对**代码变更**任务
 - UI 自测须先产出 \`ui_test_paths\`（见 \`minimal-convergent-self-test.md\`）
 
-## 状态流转
+## 状态流转（提交回填）
 
+固定链路：\`backlog → todo → doing\`（按当前状态续走，已到 doing 则跳过）。  
 规则见 Skill；**内容回填 = 评论，状态流转 ≠ 改写描述**。`;
 }
 
@@ -137,10 +139,11 @@ export function tapdSubmitRuleSection(ctx = {}) {
     '**前置**：任务过程中须**已关联 TAPD 单**；无关联则跳过回填及新建单/workspace_id 等条件询问。',
     '',
     '有关联且 tapd.enabled 时，自测完成后或用户说 commit/push/submit/提测：',
-    '1. 询问 Commit（TAPD 格式）→ 若 Commit 则尝试 PR → **询问是否回填 TAPD**（无关联则整段跳过）。',
-    '2. 回填内容 **只通过 `comments_create` 追加**；禁止改写 description/test_focus。',
-    '3. 评论回填后逐步改状态（todo→doing→for_test，禁止跳步）。',
-    `4. 详细流程见 \`${agentPrefix}/skills/tapd-submit-backfill.md\`。`,
+    '1. \`submit.cli=gtm\` 时新任务先检查分支 \`feat|bug/<slug>/#<id>\`；未关联则 \`gtm create issue\` 关联短 ID（TAPD 链接最后 9 位）并建开发分支。',
+    '2. 询问 Commit → 同意则按 \`submit.cli\`（\`git\` 默认 / \`gtm\`）执行 Commit/PR → **询问是否回填 TAPD**（无关联则整段跳过）。',
+    '3. 回填内容 **只通过 `comments_create` 追加**；禁止改写 description/test_focus。',
+    '4. 评论回填后按当前状态流转：backlog→todo→doing；已是 todo 则直接 →doing；已是 doing 则跳过。',
+    `5. 详细流程见 \`${agentPrefix}/skills/tapd-submit-backfill.md\`。`,
     ''
   ].join('\n');
 }
@@ -172,13 +175,84 @@ Companions:
 \`\`\`text
 [A] 确保自测产物齐全（缺则先跑 impact + self-test；代码变更任务才需）
 [B] 询问是否 Commit
-    ├─ 是 → [C] Commit（bug:/feat: 格式）→ [D] 尝试 PR → [E] 询问回填 TAPD
+    ├─ 是 → [C]/[D] 按 submit.cli（git|gtm）执行 Commit/PR → [E] 询问回填 TAPD
     └─ 否 → [E] 仍询问回填 TAPD
 [E] 同意 → [F] 评论回填 + 可选 PR 字段 + 状态流转
     拒绝 → 结束
 \`\`\`
 
 **Hard：** 有关联 TAPD 时，即使不 Commit 也必须执行 [E]。**无关联**则整段 [E][F] 跳过。
+
+### Submit CLI 选择（强制先读配置）
+
+Read \`.aafe.config.json\` → \`submit.cli\`:
+
+| 值 | 含义 |
+| --- | --- |
+| \`git\`（默认） | Phase C/D 走 Git CLI + \`gh\` |
+| \`gtm\` | Phase C/D 走 \`gtm commit\` / \`gtm pr\` |
+
+可用 \`aafe update --submit-cli=git|gtm\` 更新配置。
+
+---
+
+## GTM Task Start — 分支与 TAPD 关联（仅 \`submit.cli=gtm\`）
+
+**触发**：新任务开始（已拿到具体 TAPD 单 / 需求，准备改代码前）。\`submit.cli=git\` 时跳过本节。
+
+### G0 检查当前分支是否已关联 TAPD
+
+\`\`\`bash
+git branch --show-current
+\`\`\`
+
+GTM 关联分支命名约定：
+
+\`\`\`text
+{type}/{feature-slug}/#{tapd_full_id}
+\`\`\`
+
+示例：\`feat/search-tag/#1010158081136674445\`
+
+| 段 | 含义 |
+| --- | --- |
+| \`feat\` / \`feature\` | 需求（story） |
+| \`bug\` / \`fix\` | 缺陷（bug） |
+| \`search-tag\` | 当前分支功能短名（可读英文） |
+| \`#1010158081136674445\` | TAPD 链接最后一段数字 ID |
+
+TAPD 链接示例：
+
+\`\`\`text
+https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081136674445
+→ full id = 1010158081136674445
+→ GTM 单据短 ID = 最后 9 位 = 136674445
+\`\`\`
+
+**判定**：
+
+- 当前分支匹配 \`{type}/{slug}/#{digits}\` → **已关联**，记录 \`tapd_entry_type\` / \`tapd_entry_id\` / \`tapd_short_id\`，进入需求分析/开发
+- 不匹配（如 \`master\` / \`main\` / 无 \`#id\` 后缀）→ **未关联**，执行 G1
+
+### G1 未关联时：\`gtm create issue\` 关联已有单据并建开发分支
+
+\`\`\`bash
+gtm create issue
+\`\`\`
+
+按交互提示依次操作：
+
+1. 选择 **关联已有单据**
+2. **输入单据 ID**：TAPD 地址最后一段数字的**最后 9 位**  
+   - 例：\`.../detail/1010158081136674445\` → 输入 \`136674445\`
+3. **请输入目标分支**：\`master\`（或项目约定的主干名）
+4. **请输入新的开发分支名称**：根据 TAPD 单据标题生成**可读英文短名**（kebab-case，如 \`search-tag\`）  
+   - 只需输入功能短名；**系统会自动补充前缀（feat/bug）与后缀（\`#fullId\`）**
+   - 不要手写完整 \`feat/.../#...\`，避免与 GTM 自动规则冲突
+
+完成后再次 \`git branch --show-current\`，确认已变为 \`feat|bug/<slug>/#<fullId>\`，再继续写代码。
+
+**失败/异常**：简要报告；由项目 GTM 侧处理，本 Skill 不强制降级；未关联成功时提醒用户手动完成后继续。
 
 ---
 
@@ -189,8 +263,8 @@ Companions:
 | \`comments_create\` | \`stories_update\` / \`bugs_update\` 改 \`description\` |
 | 状态逐步流转（status only） | 改写 \`test_focus\` / 业务自定义字段正文塞自测 |
 | 图片上传后嵌入评论 | 覆盖原单背景、截图、目标 |
-| PR 链接字段写入（见 Step F3） | 跳步状态、伪造测试 pass |
-| 用户明确要求的其它单字段 | 无评论证据就标 for_test |
+| PR 链接字段写入（见 Step F3） | 跳步状态（如 backlog→doing）、伪造测试 pass |
+| 用户明确要求的其它单字段 | 自动流转到 for_test / status_done |
 
 ---
 
@@ -202,10 +276,22 @@ Companions:
 
 Common tools: \`stories_get\`, \`stories_create\`, \`stories_update\`, \`bugs_*\`, \`comments_create\`, \`tapd_id_get\`, \`tapd_file_upload_url_generate\`
 
-## Config（\`.aafe.config.json\` → \`tapd\`）
+## Config（\`.aafe.config.json\`）
 
-Use \`workspace_id\`, \`milestone_id\`, \`tapd_story.*\`, \`tapd_bug.*\` status chains.
-\`status_doing\` is a comma-separated sequential list before \`status_done\`.
+### \`submit.cli\`（Commit/PR provider）
+
+\`\`\`json
+{ "submit": { "cli": "git" } }
+\`\`\`
+
+- \`git\`（默认）：Git CLI + \`gh\`
+- \`gtm\`：\`gtm commit\` / \`gtm pr\`
+- Update: \`aafe update --submit-cli=gtm\`
+
+### \`tapd\`
+
+Use \`workspace_id\`, \`milestone_id\`, \`tapd_story.*\`, \`tapd_bug.*\` status values.
+Submit-backfill story target is \`status_doing\` (first token if comma-separated); do **not** auto-advance to \`status_done\`.
 
 Optional PR field keys（任一存在且非空即用）:
 
@@ -247,6 +333,8 @@ Ensure before Commit/回填询问：
 
 ## Phase C — Commit
 
+先确认 \`submit.cli\`（见上表），再执行对应分支。仅在用户同意 Phase B 后执行。
+
 ### C1 Resolve TAPD entry（**仅有关联 TAPD 时**）
 
 | Source | Action |
@@ -254,11 +342,11 @@ Ensure before Commit/回填询问：
 | TAPD-origin task | Use known \`entry_type\`, \`entry_id\`, \`workspace_id\`, title |
 | User provides ID | Short ID → \`tapd_id_get\`；确认 story vs bug；\`stories_get\` / \`bugs_get\` 取标题 |
 
-**无 TAPD 关联**：不询问新建/关联单、不索取 \`workspace_id\` / \`milestone_id\`；Commit 用常规 message。
+**无 TAPD 关联**：不询问新建/关联单、不索取 \`workspace_id\` / \`milestone_id\`。
 
 **禁止**在无 TAPD 关联时瞎编 \`--bug=\` / \`--story=\` ID。
 
-### C2 Message format（强制）
+### C2 Message hint（有关联 TAPD 时）
 
 \`\`\`text
 # bug
@@ -268,20 +356,27 @@ bug: {TAPD标题} --bug={bug_id}
 feat: {TAPD标题} --story={story_id}
 \`\`\`
 
-规则：
+若 \`submit.cli=gtm\` 且项目 GTM 已自动注入 TAPD ID，可直接执行。
 
-- \`{TAPD标题}\`：单据名称，去掉换行；过长可截断到合理长度（保留语义）
-- \`{bug_id}\` / \`{story_id}\`：TAPD 数字 ID
-- 遵循用户 git commit 安全协议（仅在用户同意本 Phase 后执行；HEREDOC 传 message；不改 git config；不 force push）
+### C3a Execute when \`submit.cli=git\`（默认）
 
-### C3 Execute
-
-按仓库 committing-changes 规则：\`git status\` / \`diff\` / \`log\` → stage 相关文件 → commit → \`git status\` 验证。  
+按仓库 committing-changes 规则：\`git status\` / \`diff\` / \`log\` → stage 相关文件 → commit（HEREDOC message）→ \`git status\` 验证。  
 Hook 失败：修问题后 **新建** commit，禁止擅自 amend（除非用户规则允许）。
+
+### C3b Execute when \`submit.cli=gtm\`
+
+\`\`\`bash
+gtm commit
+\`\`\`
+
+- 成功：记录 commit 结果（若输出可见）
+- **失败/异常**：简要报告；由项目内 GTM/钩子处理，**不强制**重试、amend 或降级裸 git；**不阻断** Phase D/E
 
 ---
 
 ## Phase D — Try PR
+
+### D1 when \`submit.cli=git\`（默认）
 
 Commit 成功后尝试 PR：
 
@@ -289,6 +384,15 @@ Commit 成功后尝试 PR：
 2. 需要时 \`git push -u origin HEAD\`
 3. \`gh pr create\`（HEREDOC body），Summary 含变更要点；Test plan 可引用自测表
 4. 记录 \`pr_url\`；失败则报告原因，**不阻断** Phase E
+
+### D2 when \`submit.cli=gtm\`
+
+\`\`\`bash
+gtm pr
+\`\`\`
+
+- 成功：记录 \`pr_url\`（若输出可见）
+- **失败/异常**：简要报告；项目内处理，**不强制**补救或降级 \`gh\`；**不阻断** Phase E
 
 ---
 
@@ -374,30 +478,36 @@ Commit 成功后尝试 PR：
 
 未 Commit 仍回填时：\`提交信息\` 标 \`Commit: skipped\`，照常写处理结果与自测。
 
-### F5 Status transitions（strict, no skips）
+### F5 Status transitions（submit backfill: backlog → todo → doing）
 
-内容回填 ≠ 状态更新。Status 仅用 update 的 **status 字段**。
+内容回填 ≠ 状态更新。Status 仅用 update 的 **status 字段**。  
+提交回填**只推进到 doing**，不自动走到 \`for_test\` / \`status_done\`。
 
-#### Existing story
+固定链路（映射 \`tapd_story\`）：
 
-\`status_todo\` → each token in \`status_doing\` → \`status_done\`
+\`status_backlog\` → \`status_todo\` → \`status_doing\`（取配置首个 token）
 
-**Forbidden:** todo → for_test in one call.
+按**当前状态**决定剩余步骤：
 
-#### New story
+| 当前状态 | 操作 |
+| --- | --- |
+| \`backlog\`（\`status_backlog\`） | 先 → \`todo\`，再 → \`doing\` |
+| \`todo\`（\`status_todo\`） | 直接 → \`doing\` |
+| \`doing\`（\`status_doing\` / doing 链内任一） | **不做处理** |
+| 已是 \`for_test\` / \`status_done\` 等更后状态 | **不做处理** |
 
-\`status_backlog\` → \`status_todo\` → each \`status_doing\` → \`status_done\`
+**Forbidden:** backlog → doing 一步跳过；提交回填自动改到 for_test。
 
 #### Bug
 
-Follow \`tapd_bug.status_doing\` → \`status_done\`.
+对齐同一目标：向 \`tapd_bug.status_doing\` 推进；已在 doing 则跳过；不自动改 \`status_done\`。
 
 Algorithm:
 
 1. \`stories_get\` / \`bugs_get\` — current status
-2. Build ordered chain from config
-3. Advance one step at a time with \`check_workflow: "permission,condition"\`
-4. Stop and report on failure; never skip
+2. 按上表计算剩余步骤（可用 \`storySubmitRemainingPath\` 语义）
+3. Advance **one step at a time** with \`check_workflow: "permission,condition"\`
+4. Stop and report on failure; never skip; already-doing → report skipped
 
 ### F6 Report to user
 
@@ -413,7 +523,7 @@ Algorithm:
 
 If \`tapd\` absent, \`enabled: false\`, or **任务无 TAPD 关联**：
 
-- 仍可走 Commit / PR（常规 commit message）
+- 仍可按 \`submit.cli\` 走 Commit/PR（\`git\` 默认 / \`gtm\`）
 - **不询问** TAPD 回填、新建单、\`workspace_id\` / \`milestone_id\`
 - 用户**主动**要求关联 TAPD 时，可单独走本 Skill 并先确认 entry
 `;

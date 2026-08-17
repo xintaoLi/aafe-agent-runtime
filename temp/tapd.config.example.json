@@ -1,4 +1,7 @@
 {
+  "submit": {
+    "cli": "git"
+  },
   "tapd": {
     "enabled": true,
     "username": "",
@@ -10,7 +13,7 @@
     "tapd_story": {
       "status_backlog": "backlog",
       "status_todo": "todo",
-      "status_doing": "developing,status_7",
+      "status_doing": "doing",
       "status_done": "for_test",
       "status_release": "status_3,status_9",
       "pr_field": ""
@@ -18,7 +21,7 @@
     "tapd_bug": {
       "status_done": "resolved",
       "status_release": "verified",
-      "status_doing": "assigned,in_progress",
+      "status_doing": "doing",
       "pr_field": ""
     }
   }

@@ -18,6 +18,14 @@ alwaysApply: true
 
 详细步骤：`.ai-agent/skills/requirement-intake-analysis.md`
 
+## GTM 分支关联（仅 `submit.cli=gtm`）
+
+新任务且有 TAPD 单时，写代码前：
+
+1. 检查当前分支是否 `feat|bug/<slug>/#<tapd_full_id>`
+2. 未关联 → `gtm create issue` → 关联已有单据（短 ID = TAPD 链接最后 9 位）→ 目标分支 `master` → 按 TAPD 标题生成英文短名
+3. 详见 `.ai-agent/skills/tapd-submit-backfill.md`「GTM Task Start」
+
 ## 阶段 A — 需求分析与澄清
 
 1. 解析需求：目标、范围、验收标准、约束、依赖、风险

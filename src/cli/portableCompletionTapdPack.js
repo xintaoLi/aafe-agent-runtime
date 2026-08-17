@@ -85,8 +85,8 @@ alwaysApply: true
 
 ## 自测完成后的衔接
 
-1. 询问 Commit（有 TAPD 关联时用 bug/feat 格式，见 \`${RULE_TAPD}\`）
-2. Commit 后尝试 PR
+1. 询问 Commit → 同意则按 \`submit.cli\`（\`git\` 默认 / \`gtm\`）执行 Commit/PR（见 \`${RULE_TAPD}\`）
+2. 有关联 TAPD 时再问回填
 3. **仅有关联 TAPD 单**且 \`tapd.enabled\` → 询问 TAPD 回填
 
 ## 配置
@@ -131,17 +131,15 @@ alwaysApply: true
 
 \`\`\`text
 自测完成 → 询问 Commit？
-  ├─ 是 → TAPD 格式 commit → 尝试 PR → 询问回填 TAPD？
+  ├─ 是 → 按 submit.cli（git|gtm）执行 Commit/PR → 询问回填 TAPD？
   └─ 否 → 仍询问回填 TAPD？
 同意回填 → comments_create + 可选 PR 字段 + 状态逐步流转
 \`\`\`
 
-### Commit message（有关联 TAPD）
+### Commit / PR（\`submit.cli\`）
 
-| 类型 | 格式 |
-| --- | --- |
-| bug | \`bug: {标题} --bug={bug_id}\` |
-| story | \`feat: {标题} --story={story_id}\` |
+\`.aafe.config.json\` → \`submit.cli\`：\`git\`（默认，Git+\`gh\`）或 \`gtm\`（\`gtm commit\`/\`gtm pr\`）。  
+\`aafe update --submit-cli=git|gtm\` 可更新。
 
 ### 回填
 
@@ -150,7 +148,8 @@ alwaysApply: true
 ## 禁止
 
 - 无 TAPD 关联时问回填或新建单
-- todo → for_test 跳步
+- backlog → doing 跳步
+- 提交回填自动改到 for_test
 - 伪造 MCP / 测试结果
 `;
 }
@@ -286,21 +285,26 @@ Tools: \`stories_*\`, \`bugs_*\`, \`comments_create\`, \`tapd_id_get\`, \`tapd_f
 
 Read \`${CONFIG_TAPD}\` → \`tapd\` object: \`enabled\`, \`workspace_id\`, \`milestone_id\`, \`tapd_story.*\`, \`tapd_bug.*\`, optional \`pr_field\`.
 
-\`status_doing\`: comma-separated chain before \`status_done\`.
+Submit-backfill status: backlog → todo → doing（已是 doing 则跳过；不自动到 for_test）。
 
 ## Pipeline（有关联 TAPD）
 
 \`\`\`text
 [A] 自测产物齐全
-[B] 问 Commit → [C] bug:/feat: commit → [D] PR → [E] 问回填
+[B] 问 Commit → [C]/[D] 按 submit.cli（git|gtm）→ [E] 问回填
 [E] 同意 → [F] 评论 + PR 字段 + 状态流转
 \`\`\`
 
 无关联：跳过 [E][F]。
 
-## Phase C — Commit
+## Phase C / D — Submit CLI
 
-使用已关联 \`entry_type\` / \`entry_id\` / 标题；禁止无关联时编造 ID。
+先读 \`submit.cli\`：\`git\`（默认）用 Git+\`gh\`；\`gtm\` 用 \`gtm commit\`/\`gtm pr\`（异常不强制）。  
+有关联 TAPD 时使用已关联 \`entry_type\` / \`entry_id\`；禁止无关联时编造 ID。
+
+### GTM Task Start（\`submit.cli=gtm\`）
+
+新任务：检查分支 \`feat|bug/<slug>/#<fullId>\`。未关联则 \`gtm create issue\` → 关联已有单据（短 ID=URL 最后 9 位）→ 目标 \`master\` → 按 TAPD 标题取英文短名建分支。
 
 ## Phase E — Ask backfill
 
@@ -309,12 +313,12 @@ Read \`${CONFIG_TAPD}\` → \`tapd\` object: \`enabled\`, \`workspace_id\`, \`mi
 ## Phase F — Backfill
 
 - F4: \`comments_create\` only（模板含处理结果、影响范围、自测表、Commit/PR）
-- F5: 状态逐步：story todo→doing→for_test；新单 backlog→todo→doing→for_test；禁止跳步
+- F5: 状态按当前续走：backlog→todo→doing；todo→doing；doing 跳过；禁止跳步/自动到 for_test
 - UI 截图：upload 后 embed \`html_code\`
 
 ## Pure GitHub / 无 TAPD 关联
 
-常规 Commit/PR；不询问 TAPD 回填。
+可选按 \`submit.cli\` 提交；不询问 TAPD 回填。
 `;
 }
 
@@ -353,6 +357,9 @@ Only when task has TAPD association. Comment-only backfill via MCP.
 
 export function portableTapdConfigExample() {
   return {
+    submit: {
+      cli: 'git'
+    },
     tapd: {
       enabled: true,
       username: '',
@@ -364,7 +371,7 @@ export function portableTapdConfigExample() {
       tapd_story: {
         status_backlog: 'backlog',
         status_todo: 'todo',
-        status_doing: 'developing,status_7',
+        status_doing: 'doing',
         status_done: 'for_test',
         status_release: 'status_3,status_9',
         pr_field: ''
@@ -372,7 +379,7 @@ export function portableTapdConfigExample() {
       tapd_bug: {
         status_done: 'resolved',
         status_release: 'verified',
-        status_doing: 'assigned,in_progress',
+        status_doing: 'doing',
         pr_field: ''
       }
     }

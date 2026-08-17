@@ -2,6 +2,7 @@ import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createTemplatePlan, packageRecommendations } from '../templates/TemplateSystem.js';
 import { writeLayeredEditorAdapters } from './editorLayer.js';
+import { writeFlatCodeBuddyAdapters } from './codebuddyLayer.js';
 import { getEditorAdapter, getLayeredEditors } from './editorRegistry.js';
 import {
   architectureImpactTestForecastSkillContent,
@@ -19,6 +20,7 @@ import {
   tapdSubmitProjectRuleMdc,
   tapdSubmitRuleMdc
 } from './tapdSubmitRules.js';
+import { resolveSubmitConfig } from './submitConfig.js';
 
 export async function bootstrapProject(root, detection, options = {}) {
   const plan = createTemplatePlan(detection, options);
@@ -120,6 +122,10 @@ async function writeConfig(root, _detection, options, plan) {
     config.tapd = existingConfig.tapd;
   }
 
+  config.submit = resolveSubmitConfig(existingConfig, {
+    cli: options.submitConfig?.cli ?? options.submitCli
+  });
+
   if (existingConfig.taskCompletion && !config.taskCompletion) {
     config.taskCompletion = existingConfig.taskCompletion;
   }
@@ -179,9 +185,7 @@ async function writeEditorAdapters(root, detection, options, plan) {
     await writeIfAllowed(path.join(root, 'CLAUDE.md'), claudeRules(), { ...options, append: true });
   }
   if (editors.has('codebuddy')) {
-    await writeIfAllowed(path.join(root, '.codebuddy/aafe.md'), codeBuddyRules(), options);
-    await writeIfAllowed(path.join(root, '.codebuddy/skills/aafe-runtime/SKILL.md'), nativeEditorSkill('CodeBuddy'), options);
-    await writeIfAllowed(path.join(root, '.codebuddy/skills/ENTRY.md'), editorSkillEntry('CodeBuddy'), options);
+    await writeFlatCodeBuddyAdapters(root, options);
   }
   if (editors.has('codex')) {
     await writeIfAllowed(path.join(root, '.codex/aafe.md'), genericEditorRules('CodeX'), options);
@@ -1379,10 +1383,6 @@ function cursorTaskCompletionHook() {
 
 function cursorSessionStartHook() {
   return '#!/usr/bin/env bash\nset -euo pipefail\n\ncat <<\'JSON\'\n{\n  "additional_context": "<AAFE_SKILL_ROUTER>\\n1. Read .ai-agent/skill-index.md.\\n2. Read .ai-agent/project.md if present.\\n3. Load matching .ai-agent/project-skills/*/SKILL.md on demand only.\\n4. For non-trivial tasks, follow .ai-agent/runtime/* and .ai-agent/pipelines/*.\\n5. Do not copy project knowledge into editor directories.\\n</AAFE_SKILL_ROUTER>"\n}\nJSON\nexit 0\n';
-}
-
-function codeBuddyRules() {
-  return '# AAFE Architecture Runtime\\n\\n## AAFE Skill Router\\n\\nFor every task, read `.ai-agent/skill-index.md` first, then `.ai-agent/project.md` if present, and only the matching `.ai-agent/project-skills/<domain>/SKILL.md` on demand. The native `.codebuddy/skills/aafe-runtime/SKILL.md` is the discovery entry; the `.ai-agent/` directory remains the single source of truth.\\n\\n## Requirement intake (before code)\\n\\nAfter concrete requirement (TAPD or user): clarify ambiguities → memory/history search → code scope & root cause → sizing gate (>5 fn/files or >300 lines → ask Plan mode via SwitchMode). See `.ai-agent/skills/requirement-intake-analysis.md`.\\n\\n## Task completion impact and test (conditional)\\n\\nTask assessment first: only ask impact/self-test when the task changed executable code (skip docs/requirements-only). If confirmed, read impact + minimal-convergent-self-test skills. UI browser MCP asks only for code changes with UI impact. After self-test: Commit/PR optional; TAPD backfill asks only when task has TAPD association.\\n\\n## TAPD submit backfill\\n\\nOnly when task has TAPD association and tapd.enabled: Commit (bug/feat format) → PR → ask comment-only backfill. Skip all TAPD asks if no TAPD link in task. See `.ai-agent/skills/tapd-submit-backfill.md`.\\n\\n## Runtime Pipeline\\n\\nFor non-trivial frontend work, load `.ai-agent/runtime/engine.md`, classify with `.ai-agent/runtime/router.yaml`, follow the matching pipeline, enforce gates, and write reusable outcomes to `.ai-agent/memory/`.\\n';
 }
 
 function claudeRules() {

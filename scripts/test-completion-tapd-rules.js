@@ -31,12 +31,13 @@ assert.match(flatImpact, /\.ai-agent\/rules\/task-completion-impact\.mdc/);
 const projectImpact = taskCompletionImpactProjectRuleMdc({ agentPrefix: '.ai-agent' });
 assert.match(projectImpact, /ui_test_paths/);
 assert.match(projectImpact, /询问是否 Commit/);
+assert.match(projectImpact, /submit\.cli/);
 assert.match(projectImpact, /仅当任务过程中有关联 TAPD 单/);
 assert.match(projectImpact, /任务评估/);
 
 const impactSection = taskCompletionImpactRuleSection({ agentPrefix: '.ai-agent' });
 assert.match(impactSection, /ui_test_paths/);
-assert.match(impactSection, /Commit → PR/);
+assert.match(impactSection, /submit\.cli/);
 
 const forecast = architectureImpactTestForecastSkillContent('.ai-agent');
 assert.match(forecast, /impact_class/);
@@ -64,6 +65,8 @@ assert.match(layeredTapd, /bklog\/web\/\.ai-agent\/rules\/tapd-submit-backfill\.
 
 const projectTapd = tapdSubmitProjectRuleMdc({ agentPrefix: '.ai-agent' });
 assert.match(projectTapd, /Commit\/PR Gate/);
+assert.match(projectTapd, /submit\.cli/);
+assert.match(projectTapd, /gtm commit/);
 assert.match(projectTapd, /--bug=/);
 assert.match(projectTapd, /comments_create/);
 assert.match(projectTapd, /ui_test_paths/);
@@ -71,11 +74,20 @@ assert.match(projectTapd, /PR 链接字段/);
 
 const tapdSection = tapdSubmitRuleSection();
 assert.match(tapdSection, /comments_create/);
+assert.match(tapdSection, /submit\.cli/);
 assert.match(tapdSection, /Commit\/PR Gate|询问 Commit/);
 
 const tapdSkill = tapdSubmitBackfillSkillContent('.ai-agent');
 assert.match(tapdSkill, /Commit\/PR Gate/);
 assert.match(tapdSkill, /Phase B — Ask Commit/);
+assert.match(tapdSkill, /submit\.cli/);
+assert.match(tapdSkill, /gtm commit/);
+assert.match(tapdSkill, /gtm pr/);
+assert.match(tapdSkill, /gh pr create/);
+assert.match(tapdSkill, /aafe update --submit-cli/);
+assert.match(tapdSkill, /GTM Task Start/);
+assert.match(tapdSkill, /gtm create issue/);
+assert.match(tapdSkill, /最后 9 位/);
 assert.match(tapdSkill, /Phase D — Try PR/);
 assert.match(tapdSkill, /Phase E — Ask TAPD backfill/);
 assert.match(tapdSkill, /有关联 TAPD 时/);

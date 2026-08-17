@@ -76,7 +76,7 @@ function taskCompletionImpactProjectRuleBody(agentPrefix = '.ai-agent') {
 
 1. \`${agentPrefix}/skills/architecture-impact-test-forecast.md\`
 2. \`${agentPrefix}/skills/minimal-convergent-self-test.md\`
-3. 自测结束后：若任务过程中**有关联 TAPD 单**且 \`tapd.enabled\`，进入 \`${agentPrefix}/skills/tapd-submit-backfill.md\`（Commit → PR → 回填）；无 TAPD 关联则仅可选 Commit/PR，跳过 TAPD 回填询问
+3. 自测结束后：若任务过程中**有关联 TAPD 单**且 \`tapd.enabled\`，进入 \`${agentPrefix}/skills/tapd-submit-backfill.md\`（按 \`submit.cli\` 执行 Commit/PR → 回填）；无 TAPD 关联则仅可选提交，跳过 TAPD 回填询问
 4. 按需读取 architecture 相关 docs / memory（含 \`${agentPrefix}/skills/knowledge-center-architecture.md\` / \`${agentPrefix}/memory/knowledge-center-architecture.md\` when present）
 
 ## 硬约束
@@ -96,9 +96,8 @@ function taskCompletionImpactProjectRuleBody(agentPrefix = '.ai-agent') {
 
 自测（或用户明确跳过）结束后：
 
-1. 询问是否 Commit（有 TAPD 关联时用 bug/feat + ID 格式，见 \`tapd-submit-backfill\`）
-2. 若 Commit → 尝试 PR
-3. **仅当任务过程中有关联 TAPD 单**且 \`tapd.enabled\` → 询问是否回填 TAPD；**无 TAPD 关联则跳过回填询问**
+1. 询问是否 Commit → 同意则按 \`.aafe.config.json\` → \`submit.cli\`（\`git\` 默认 / \`gtm\`）执行 Commit/PR（见 \`tapd-submit-backfill\`）
+2. **仅当任务过程中有关联 TAPD 单**且 \`tapd.enabled\` → 询问是否回填 TAPD；**无 TAPD 关联则跳过回填询问**
 
 ## 与 TAPD 回填的关系
 
@@ -118,7 +117,7 @@ export function taskCompletionImpactRuleSection(ctx = {}) {
     '3. 按 diff 最小收敛设计测试：逻辑优先 Mock Props/I/O，落盘到 `test/`；',
     '4. **UI 子询问**（浏览器 MCP、URL、`ui_test_paths`）仅当：代码变更 + 已进入自测 + 影响含 UI；否则跳过；',
     '5. 执行可运行测试并输出 pass/fail/skipped/not_run；禁止虚假声称通过；',
-    `6. 自测结束后：仅当任务过程中**有关联 TAPD 单**且 tapd.enabled → Commit → PR → 询问 TAPD 回填；无 TAPD 关联则跳过回填。`,
+    `6. 自测结束后：仅当任务过程中**有关联 TAPD 单**且 tapd.enabled → 按 submit.cli 执行 Commit/PR → 询问 TAPD 回填；无 TAPD 关联则跳过回填。`,
     ''
   ].join('\n');
 }
@@ -197,7 +196,7 @@ Read and follow \`${prefix}/skills/minimal-convergent-self-test.md\` to:
 2. Run unit tests with Mock
 3. Ask before any browser MCP; require user-provided URL for UI
 4. 执行 UI 前补全并锁定 \`ui_test_paths\`，再按路径操作
-5. 自测结束后：若任务过程中**有关联 TAPD 单** → \`tapd-submit-backfill.md\`（Commit → PR → 条件回填）；无 TAPD 关联则跳过 TAPD 回填
+5. 自测结束后：若任务过程中**有关联 TAPD 单** → \`tapd-submit-backfill.md\`（按 submit.cli 执行 Commit/PR → 条件回填）；无 TAPD 关联则跳过 TAPD 回填
 
 Collect \`test_results\`（及 UI 时的 \`ui_test_paths\`）from that skill.
 
@@ -412,7 +411,7 @@ Hard rules:
 
 自测结束后（含用户拒绝 UI、或仅 unit）：
 
-1. 若任务过程中**有关联 TAPD 单**且 \`tapd.enabled\`：Read \`${prefix}/skills/tapd-submit-backfill.md\` Phase B 起（Commit → PR → 询问 TAPD 回填）
+1. 若任务过程中**有关联 TAPD 单**且 \`tapd.enabled\`：Read \`${prefix}/skills/tapd-submit-backfill.md\` Phase B 起（按 submit.cli 执行 Commit/PR → 询问 TAPD 回填）
 2. 若无 TAPD 关联：可询问常规 Commit/PR；**跳过 TAPD 回填及关联单号/新建单等条件询问**
 3. 若 \`tapd.enabled !== true\`：跳过 TAPD 回填询问
 

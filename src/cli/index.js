@@ -144,6 +144,7 @@ function parseOptions(args) {
     if (arg === '--migrate-editors') options.migrateInstallEditors = true;
     if (arg === '--no-migrate-cursor') options.migrateInstallEditors = false;
     if (arg === '--no-migrate-editors') options.migrateInstallEditors = false;
+    if (arg.startsWith('--submit-cli=')) options.submitCli = arg.slice('--submit-cli='.length);
   }
   return options;
 }
@@ -179,9 +180,15 @@ Init options:
   --migrate-cursor         Alias of --migrate-editors
   --no-migrate-editors     Skip editor adapter migration during init/update
   --no-migrate-cursor      Alias of --no-migrate-editors
+  --submit-cli=git|gtm     Commit/PR provider written to .aafe.config.json → submit.cli (default: git)
 
 TAPD (init/update interactive):
   When prompted, answer Y/Yes/是 to configure TAPD commit/submit backfill in .aafe.config.json
+
+Submit CLI:
+  .aafe.config.json → "submit": { "cli": "git" | "gtm" }
+  git (default): Git CLI + gh for PR
+  gtm: gtm commit / gtm pr (project GTM config required; errors not forced)
 
 Analyze options:
   --dry-run
@@ -215,6 +222,8 @@ Update options:
   --no-sync
   --sync-force
   --editors=cursor|codebuddy|cursor,codebuddy
+  --submit-cli=git|gtm   Update .aafe.config.json submit.cli without full interactive prompts
+  --interactive          Allow interactive prompts during update (e.g. submit CLI / TAPD)
 `);
 }
 
