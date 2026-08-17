@@ -12,6 +12,7 @@ import { runSkillsCommand } from './skills.js';
 import { collectInitOptions } from './prompts.js';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { runFileLicenseCommand } from './fileLicense.js';
 import { runUpdateCommand } from './update.js';
 import { createRuntimeFromProject } from '../runtime/configLoader.js';
 import { resolveWorkspaceLayout } from './workspace.js';
@@ -62,6 +63,11 @@ export async function runCli(argv) {
 
   if (command === 'memory') {
     await runMemoryCommand(process.cwd(), argv.slice(3));
+    return;
+  }
+
+  if (command === 'license') {
+    await runFileLicenseCommand(process.cwd(), argv.slice(3));
     return;
   }
 
@@ -159,6 +165,7 @@ Commands:
   sync      Refresh generated runtime files
   analyze   Generate architecture locator, Knowledge Center memory and project architecture skills
   memory    Manage project self-growing memory
+  license   Local fast BlueKing license check/ensure/mark (no AI; do not Read memory file)
   knowledge  Initialize or update project Knowledge views in .docs
   knowledge-web  Generate or serve the Knowledge Web visualization
   task-completion  Run automatic post-task Knowledge update, Runtime update and doctor

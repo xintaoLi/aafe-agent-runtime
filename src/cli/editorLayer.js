@@ -16,6 +16,10 @@ import {
 import {
   tapdSubmitProjectRuleMdc
 } from './tapdSubmitRules.js';
+import {
+  fileLicenseProjectRuleMdc,
+  fileLicenseRuleSection
+} from './fileLicenseRules.js';
 import { RETAIN_IN_INSTALL_DIR } from './workspace.js';
 
 export async function writeLayeredEditorAdapters({
@@ -44,6 +48,11 @@ export async function writeLayeredEditorAdapters({
     await writeIfAllowed(
       path.join(options.installRoot, '.ai-agent/rules/tapd-submit-backfill.mdc'),
       tapdSubmitProjectRuleMdc({ agentPrefix: ctx.agentPrefix }),
+      { ...options, force: false }
+    );
+    await writeIfAllowed(
+      path.join(options.installRoot, '.ai-agent/rules/new-file-license.mdc'),
+      fileLicenseProjectRuleMdc({ agentPrefix: ctx.agentPrefix }),
       { ...options, force: false }
     );
   }
@@ -201,6 +210,7 @@ function buildGenericEditorRules(name, ctx) {
     requirementIntakeRuleSection(ctx).trimEnd(),
     taskCompletionImpactRuleSection(ctx).trimEnd(),
     tapdSubmitRuleSection(ctx).trimEnd(),
+    fileLicenseRuleSection(ctx).trimEnd(),
     '## AAFE Skill Router',
     '',
     `For module \`${ctx.moduleRelativePath}\`, read \`${ctx.agentPrefix}/skill-index.md\` first, then \`${ctx.agentPrefix}/project.md\` if present, then only matching \`${ctx.agentPrefix}/project-skills/<domain>/SKILL.md\` on demand.`,

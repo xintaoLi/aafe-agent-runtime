@@ -3,6 +3,7 @@ import path from 'node:path';
 import { requirementIntakeRuleSection } from './requirementAnalysisRules.js';
 import { taskCompletionImpactRuleSection } from './completionImpactRules.js';
 import { tapdSubmitRuleSection } from './tapdSubmitRules.js';
+import { fileLicenseRuleSection } from './fileLicenseRules.js';
 import { createCursorPathContext } from './pathRewrite.js';
 import { RETAIN_IN_INSTALL_DIR } from './workspace.js';
 
@@ -118,6 +119,7 @@ export function buildCodeBuddyRules(ctx, paths = null) {
     requirementIntakeRuleSection(ctx).trimEnd(),
     taskCompletionImpactRuleSection(ctx).trimEnd(),
     tapdSubmitRuleSection(ctx).trimEnd(),
+    fileLicenseRuleSection(ctx).trimEnd(),
     '## AAFE Skill Router',
     '',
     `For every task in module \`${ctx.moduleRelativePath}\`, read \`${ctx.agentPrefix}/skill-index.md\` first, then \`${ctx.agentPrefix}/project.md\` if present, and only the matching \`${ctx.agentPrefix}/project-skills/<domain>/SKILL.md\` on demand.`,

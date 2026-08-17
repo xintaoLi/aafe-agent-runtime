@@ -19,3 +19,4 @@ For every non-trivial frontend task after the Skill Router step:
 10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.
 11. Before final response, follow `aafe-task-completion-impact.mdc`: **task assessment first** — only ask impact/self-test when code changed (skip docs/requirements-only); if confirmed, run impact + self-test skills（UI 子询问仅代码变更且影响含 UI；须先预生成 `ui_test_paths`）.
 12. After self-test (or commit/push/submit intent): follow `aafe-tapd-submit-backfill.mdc` — **only when task has TAPD association** and `tapd.enabled`: Commit → PR → ask TAPD backfill; no TAPD link → skip backfill asks.
+13. File license: follow `aafe-new-file-license.mdc` — new files add header; edits use local `aafe license ensure <path>` (never AI-Read memory JSONL).

@@ -13,6 +13,10 @@ import {
   tapdSubmitRuleMdc
 } from './tapdSubmitRules.js';
 import {
+  fileLicenseProjectRuleMdc,
+  fileLicenseRuleMdc
+} from './fileLicenseRules.js';
+import {
   createCursorPathContext,
   rewriteCursorContent
 } from './pathRewrite.js';
@@ -69,6 +73,11 @@ export async function writeLayeredCursorAdapters({
       tapdSubmitProjectRuleMdc({ agentPrefix: ctx.agentPrefix }),
       { ...options, force: false }
     );
+    await writeIfAllowed(
+      path.join(options.installRoot, '.ai-agent/rules/new-file-license.mdc'),
+      fileLicenseProjectRuleMdc({ agentPrefix: ctx.agentPrefix }),
+      { ...options, force: false }
+    );
   }
 
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-skill-router.mdc'), cursorSkillRouterRules(ctx), options);
@@ -76,6 +85,7 @@ export async function writeLayeredCursorAdapters({
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-task-completion-impact.mdc'), taskCompletionImpactRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-requirement-intake-analysis.mdc'), requirementIntakeRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-tapd-submit-backfill.mdc'), tapdSubmitRuleMdc(ctx), options);
+  await writeIfAllowed(path.join(paths.rulesDir, 'aafe-new-file-license.mdc'), fileLicenseRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.skillsDir, 'aafe-runtime', 'SKILL.md'), nativeEditorSkill('Cursor', ctx), options);
   await writeIfAllowed(path.join(paths.skillsDir, 'ENTRY.md'), editorSkillEntry('Cursor', ctx), options);
   await writeIfAllowed(path.join(paths.hooksDir, 'run-hook.cmd'), cursorHookRunner(), options);
@@ -348,6 +358,7 @@ function cursorRules(ctx) {
     '10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.',
     `11. Before final response, follow layered rule \`aafe-task-completion-impact.mdc\`: **task assessment** — only ask impact/self-test when code changed; UI sub-asks only for code + UI impact; pre-generate \`ui_test_paths\`.`,
     `12. After self-test or submit intent: \`aafe-tapd-submit-backfill.mdc\` **only when task has TAPD association** and \`tapd.enabled\`; else skip TAPD backfill asks.`,
+    '13. File license: follow `aafe-new-file-license.mdc` — new files add header; edits use local `aafe license ensure <path>` (never AI-Read memory JSONL).',
     ''
   ].join('\n');
 }
