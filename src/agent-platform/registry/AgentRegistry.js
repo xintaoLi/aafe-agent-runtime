@@ -24,11 +24,19 @@ import { createAgentDefinition } from './definition.js';
  * Capability-addressed agent registry (RFC §8, §11).
  */
 export class AgentRegistry {
-  constructor() {
+  /**
+   * @param {object} [options]
+   * @param {{ enabled?: boolean, mode?: string, capabilities?: string[] }} [options.ideAgent]
+   *   When enabled, capabilities that no registered agent serves resolve to the
+   *   IDE agent instead of failing. It cannot be pre-registered like a normal
+   *   agent because the set of capabilities it may be asked for is open-ended.
+   */
+  constructor({ ideAgent = null } = {}) {
     /** @type {Map<string, import('./definition.js').AgentDefinition>} */
     this.agents = new Map();
     /** @type {Map<string, string[]>} capability -> agent ids in registration order */
     this.capabilityIndex = new Map();
+    this.ideAgent = ideAgent?.enabled ? ideAgent : null;
   }
 
   register(definition) {
@@ -58,15 +66,43 @@ export class AgentRegistry {
    * @returns {{ agent: import('./definition.js').AgentDefinition|null, reason?: string }}
    */
   resolveCapability(capability) {
-    const owners = this.capabilityIndex.get(capability) ?? [];
-    if (owners.length === 0) {
-      return { agent: null, reason: `no-agent-provides-capability:${capability}` };
+    // An explicit allowlist wins over a configured agent: it is how a project
+    // says "this particular analysis needs judgement, send it to the IDE".
+    if (this.ideAgent?.capabilities?.includes(capability)) {
+      return { agent: this.ideAgentDefinition(capability), reason: 'ide-agent-requested' };
     }
+
+    const owners = this.capabilityIndex.get(capability) ?? [];
     for (const id of owners) {
       const agent = this.agents.get(id);
       if (agent?.enabled) return { agent };
     }
-    return { agent: null, reason: `capability-disabled:${capability}` };
+
+    if (this.ideAgent) {
+      return { agent: this.ideAgentDefinition(capability), reason: 'ide-agent-fallback' };
+    }
+    return {
+      agent: null,
+      reason: owners.length === 0
+        ? `no-agent-provides-capability:${capability}`
+        : `capability-disabled:${capability}`
+    };
+  }
+
+  /**
+   * The synthesized handoff agent. It declares only the capability being asked
+   * for, so nothing downstream mistakes the fallback for an agent that can
+   * serve everything.
+   */
+  ideAgentDefinition(capability) {
+    return createAgentDefinition('ide-agent', {
+      name: 'IDE Agent',
+      description: 'Hands the capability to the coding agent running in the editor.',
+      provider: 'ide',
+      ref: `ide:${this.ideAgent.mode ?? 'current'}`,
+      capabilities: [capability],
+      enabled: true
+    });
   }
 
   hasCapability(capability) {
@@ -117,8 +153,8 @@ export class AgentRegistry {
 /**
  * Build a registry from a resolved `.aafe.agents.json` agents block.
  */
-export function createRegistryFromConfig(agentsConfig = {}) {
-  const registry = new AgentRegistry();
+export function createRegistryFromConfig(agentsConfig = {}, { ideAgent = null } = {}) {
+  const registry = new AgentRegistry({ ideAgent });
   for (const [id, entry] of Object.entries(agentsConfig)) {
     registry.register(createAgentDefinition(id, entry));
   }

@@ -244,6 +244,8 @@ async function checkAgentPlatform(root, projectConfig) {
   const { config, warnings: configWarnings } = await loadAgentsConfig(root, projectConfig);
   warnings.push(...configWarnings.map((warning) => `${AGENTS_CONFIG_FILE}: ${warning}`));
 
+  // Resolve without the IDE fallback: it can serve anything, so leaving it on
+  // here would mask a capability the project meant to wire up itself.
   const registry = createRegistryFromConfig(config.agents);
   const knownProviders = new Set(['local', 'http', 'cli', 'ide']);
   for (const agent of registry.list()) {
@@ -257,7 +259,10 @@ async function checkAgentPlatform(root, projectConfig) {
 
   for (const capability of REQUIRED_CAPABILITIES) {
     const { agent, reason } = registry.resolveCapability(capability);
-    if (!agent) warnings.push(`capability "${capability}" cannot be resolved (${reason})`);
+    if (agent) continue;
+    warnings.push(config.ideAgent?.enabled
+      ? `capability "${capability}" has no configured agent (${reason}); it will be handed to the IDE agent`
+      : `capability "${capability}" cannot be resolved (${reason}) and ideAgent.enabled is false`);
   }
   return warnings;
 }

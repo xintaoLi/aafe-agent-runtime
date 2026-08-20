@@ -15,7 +15,9 @@
     "packages",
     "skills",
     "README.md",
-    "SKILLS.md"
+    "SKILLS.md",
+    "AGENTS.CONFIG.md",
+    "AGENTS.SCHEMA.md"
   ],
   "publishConfig": {
     "access": "public"

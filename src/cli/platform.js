@@ -359,7 +359,11 @@ async function tracePlan(platform, task) {
 }
 
 async function executeTask(root, task, options, constraints = {}) {
-  const platform = await createAgentPlatform(root, { write: options.write !== false, constraints });
+  const platform = await createAgentPlatform(root, {
+    write: options.write !== false,
+    constraints,
+    ideAgent: options.ideAgent
+  });
   const result = await platform.orchestrator.execute(task);
   return { result, warnings: platform.warnings, platform };
 }
@@ -403,6 +407,7 @@ export function parsePlatformArgs(args = []) {
   for (const arg of args) {
     if (arg === '--dry-run') { options.dryRun = true; continue; }
     if (arg === '--no-write') { options.write = false; continue; }
+    if (arg === '--no-ide-agent') { options.ideAgent = false; continue; }
     if (arg === '--run') { options.run = true; continue; }
     if (arg === '--json') { options.format = 'json'; continue; }
     if (arg === '--list') { options.list = true; continue; }

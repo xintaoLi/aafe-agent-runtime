@@ -57,12 +57,17 @@ export async function createAgentPlatform(root, options = {}) {
   const output = options.output ?? projectConfig.analyze?.output ?? '.aafe';
   const knowledge = options.knowledge ?? new KnowledgeStore({ root, output });
 
-  const registry = createRegistryFromConfig(agentsConfig.agents);
+  // `--no-ide-agent` is a per-invocation override on top of the resolved config.
+  const ideAgent = options.ideAgent === false
+    ? { ...agentsConfig.ideAgent, enabled: false }
+    : agentsConfig.ideAgent;
+
+  const registry = createRegistryFromConfig(agentsConfig.agents, { ideAgent });
   const planner = options.planner ?? createPlanner(agentsConfig.planner, options.plannerDeps ?? {});
   const providers = options.providers ?? createDefaultProviders({
     implementations: createBuiltinAgents({ knowledge }),
     cwd: root,
-    developer: agentsConfig.developer
+    developer: { ...agentsConfig.developer, mode: ideAgent?.mode ?? agentsConfig.developer?.mode }
   });
 
   // The contract loader resolves prompts and schemas from the project first and

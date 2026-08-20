@@ -278,6 +278,8 @@ Agent platform (context / impact / plan / run):
   aafe diagnose --failure=<report.json|log.txt> [--diff[=<ref>]]
   aafe pipeline "<task>"           Legacy skill pipeline (alias: aafe run --legacy)
   --no-write                       Do not persist the run under <output>/runs/
+  --no-ide-agent                   Do not hand unserved capabilities to the IDE agent
+                                   (same as AAFE_IDE_AGENT=0 or ideAgent.enabled: false)
   Agent wiring lives in .aafe.agents.json (planner provider, per-agent contract, policies).
   Contracts (prompt + input/output schema) default to builtin:<agent-id> and may be
   overridden per agent; endpoint/model/prompt/schema fields expand \${ENV_VAR}.

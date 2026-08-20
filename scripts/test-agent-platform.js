@@ -1365,6 +1365,55 @@ try {
   await rm(fixture, { recursive: true, force: true });
 }
 
+// --- IDE agent global switch --------------------------------------------------
+{
+  const resolve = (raw, env = {}) => resolveAgentsConfig(raw, {}, { env }).config;
+  const registryFor = (raw, env = {}) => {
+    const config = resolve(raw, env);
+    return createRegistryFromConfig(config.agents, { ideAgent: config.ideAgent });
+  };
+
+  // Seeded on, so an unwired capability reaches the agent already in the editor
+  // instead of ending the run at "no agent provides this".
+  assert.equal(defaultAgentsConfig().ideAgent.enabled, true);
+  const fallback = registryFor({}).resolveCapability('some-unwired-capability');
+  assert.equal(fallback.agent.id, 'ide-agent');
+  assert.equal(fallback.agent.provider, 'ide');
+  assert.deepEqual(fallback.agent.capabilities, ['some-unwired-capability'],
+    'the handoff must claim only what it was asked for');
+
+  // A configured agent still wins; the fallback never displaces real wiring.
+  assert.equal(registryFor({}).resolveCapability('requirement-impact').agent.id, 'impact-analyzer');
+
+  // Three ways out, narrowest first.
+  assert.equal(registryFor({ ideAgent: { enabled: false } }).resolveCapability('x').agent, null);
+  assert.equal(registryFor({}, { AAFE_IDE_AGENT: '0' }).resolveCapability('x').agent, null);
+  assert.equal(registryFor({}, { AAFE_IDE_AGENT: 'off' }).resolveCapability('x').agent, null);
+  assert.equal(
+    registryFor({ ideAgent: { enabled: false } }, { AAFE_IDE_AGENT: '1' }).resolveCapability('x').agent.id,
+    'ide-agent',
+    'the environment must be able to re-enable what the project turned off'
+  );
+  assert.equal(resolve({}, { AAFE_IDE_AGENT: '' }).ideAgent.enabled, true,
+    'an empty value is not a decision');
+
+  // A project that already pointed the developer role elsewhere was saying it
+  // does not want IDE handoffs, and must not acquire them by upgrading.
+  assert.equal(resolve({ developer: { provider: 'http' } }).ideAgent.enabled, false);
+  assert.equal(resolve({ developer: { provider: 'http' }, ideAgent: { enabled: true } }).ideAgent.enabled, true,
+    'an explicit ideAgent block outranks the legacy developer block');
+
+  // An allowlist routes a capability to the IDE even when an agent serves it.
+  const forced = registryFor({ ideAgent: { capabilities: ['requirement-impact'] } })
+    .resolveCapability('requirement-impact');
+  assert.equal(forced.agent.id, 'ide-agent');
+  assert.equal(forced.reason, 'ide-agent-requested');
+
+  const badList = resolveAgentsConfig({ ideAgent: { capabilities: 'requirement-impact' } }, {}, { env: {} });
+  assert.deepEqual(badList.config.ideAgent.capabilities, []);
+  assert.ok(badList.warnings.some((w) => /ideAgent\.capabilities must be an array/.test(w)));
+}
+
 // --- agent-facing entry points -----------------------------------------------
 {
   // The documented install is a devDependency, which puts the binary in

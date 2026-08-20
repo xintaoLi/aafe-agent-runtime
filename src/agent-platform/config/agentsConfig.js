@@ -87,6 +87,17 @@ export function defaultAgentsConfig() {
     },
     agents,
     developer: { provider: 'ide', mode: 'current' },
+    /**
+     * Whether a capability nobody else serves falls through to the IDE agent
+     * already running this session.
+     *
+     * On by default: the alternative is a run that stops at
+     * `no-agent-provides-capability` while a perfectly capable agent sits idle
+     * in the editor. Off means such a capability stays unserved and is reported
+     * as such — a deliberate choice for projects that want every step to be
+     * deterministic and reproducible, e.g. in CI.
+     */
+    ideAgent: { enabled: true, mode: 'current', capabilities: [] },
     policies: {
       timeoutMs: 120000,
       maxRetries: 1,
@@ -196,16 +207,54 @@ export function resolveAgentsConfig(raw = {}, projectConfig = {}, { env = proces
     warnings.push('planner.provider is "llm" but planner.llm.endpoint is not set; the planner will fall back to rules');
   }
 
+  const developer = { ...defaults.developer, ...(raw.developer ?? {}) };
+
   return {
     config: {
       version: raw.version ?? defaults.version,
       planner,
       agents,
-      developer: { ...defaults.developer, ...(raw.developer ?? {}) },
+      developer,
+      ideAgent: resolveIdeAgent(raw, defaults, developer, env, warnings),
       policies: { ...defaults.policies, ...(raw.policies ?? {}) }
     },
     warnings
   };
+}
+
+/** Values that read as "off" for the environment switch. */
+const OFF = /^(0|false|off|no)$/i;
+
+/**
+ * Resolves the global IDE-agent switch.
+ *
+ * Three levels, narrowest wins, so there is always a way out without editing a
+ * committed file: `AAFE_IDE_AGENT=0` for one command or a CI job, then
+ * `ideAgent.enabled` for the project, then the default.
+ *
+ * `developer.provider` is honoured for back-compat — a project that already
+ * pointed the developer role somewhere other than the IDE was saying it does
+ * not want IDE handoffs, and should not silently acquire them on upgrade.
+ */
+function resolveIdeAgent(raw, defaults, developer, env, warnings) {
+  const ideAgent = { ...defaults.ideAgent, ...(raw.ideAgent ?? {}) };
+
+  if (raw.ideAgent?.mode === undefined && developer.mode) ideAgent.mode = developer.mode;
+  if (raw.ideAgent?.enabled === undefined && developer.provider !== 'ide') ideAgent.enabled = false;
+
+  const override = env.AAFE_IDE_AGENT;
+  if (override !== undefined && String(override).trim() !== '') {
+    ideAgent.enabled = !OFF.test(String(override).trim());
+  }
+
+  ideAgent.enabled = ideAgent.enabled !== false;
+  if (!Array.isArray(ideAgent.capabilities)) {
+    if (raw.ideAgent?.capabilities !== undefined) {
+      warnings.push('ideAgent.capabilities must be an array of capability names; ignoring it');
+    }
+    ideAgent.capabilities = [];
+  }
+  return ideAgent;
 }
 
 /**

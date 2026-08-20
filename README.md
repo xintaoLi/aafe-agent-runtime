@@ -30,6 +30,7 @@ AAFE 自己不改代码。它负责让 IDE Agent 在动手之前，先拿到这�
 - [DDD（显式开启）](#ddd显式开启)
 - [前端设计模式（显式开启）](#前端设计模式显式开启)
 - [Agent Platform](#agent-platform)
+- [Agent 作用与配置指南](./AGENTS.CONFIG.md)
 - [Agent 内自主命中](#agent-内自主命中)
 - [Knowledge Center](#knowledge-center)
 - [Knowledge Web](#knowledge-web)
@@ -591,7 +592,27 @@ Planner 只认 capability，不认 Agent 名字，因此换实现不需要改 Pl
 | `test-agent` | `test-planning` / `test-generation` / `e2e-execution` | 已实现；`e2e-execution` 需 `allowTestExecution`（或 `aafe test --run`） |
 | `failure-analyzer` | `failure-analysis` / `root-cause-analysis` / `fix-analysis` | 已实现 |
 
-`risk-analysis` 与 `evidence-check` 两个 capability 已注册但尚无实现分支，解析到它们会返回 `skipped`。
+`risk-analysis` 与 `evidence-check` 两个 capability 已注册但尚无本地实现分支。
+
+### 交给当前 IDE Agent（默认开启）
+
+没有可用 Agent 的 capability 不会停在 `no-agent-provides-capability`——此时编辑器里正跑着一个完全有能力做这件事的 Agent。默认会包装成一次 handoff 交给它，已配置且启用的 Agent 永远优先，回退不顶掉真实接线。
+
+```json
+{ "ideAgent": { "enabled": true, "mode": "current", "capabilities": [] } }
+```
+
+三级关闭窗口，范围越窄越优先：
+
+```bash
+AAFE_IDE_AGENT=0 aafe run "..."   # 单次命令 / CI，也接受 false / off / no
+aafe run "..." --no-ide-agent      # 等价的 CLI 参数
+# 项目级：.aafe.agents.json → "ideAgent": { "enabled": false }
+```
+
+CI 里建议关掉：没有交互式 IDE Agent 能接手，handoff 只会变成永远没人认领的 `skipped`，明确失败更有价值。要求结果完全可复现时同理。
+
+`ideAgent.capabilities` 是白名单，列进去的 capability **总是**走 IDE Agent，适合那些需要判断而非查表的分析。完整说明见 [Agent 作用与配置指南](./AGENTS.CONFIG.md#全局开关是否自动交给当前-ide-agent)。
 
 ### Agent 契约与 Schema 校验
 
@@ -637,6 +658,7 @@ Agent 接线独立成文件，避免把 `.aafe.config.json` 撑爆。`aafe init`
       "maxRepairAttempts": 2
     }
   },
+  "ideAgent": { "enabled": true, "mode": "current", "capabilities": [] },
   "developer": { "provider": "ide", "mode": "current" },
   "policies": {
     "timeoutMs": 120000, "maxRetries": 1, "maxParallel": 4, "allowNetwork": false,
@@ -644,6 +666,8 @@ Agent 接线独立成文件，避免把 `.aafe.config.json` 撑爆。`aafe init`
   }
 }
 ```
+
+字段逐条说明、五种 provider 的配置示例和自定义 Agent 的写法见 **[Agent 作用与配置指南](./AGENTS.CONFIG.md)**；协议层面的请求/响应结构见 [`AGENTS.SCHEMA.md`](./AGENTS.SCHEMA.md)。
 
 Planner 默认是确定性的 `RulePlanner`，无需 API Key 即可离线运行。把 `planner.provider` 改成 `"llm"` 并填好 `endpoint` / `model` 即可启用 OpenAI 兼容的 `LlmPlanner`；它在网络异常、返回非 JSON 或请求了不存在的 capability 时会**自动回退到 RulePlanner**，所以开启 LLM 只会变慢，不会让流程中断。
 
