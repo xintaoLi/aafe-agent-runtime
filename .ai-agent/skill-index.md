@@ -70,6 +70,8 @@ not on `PATH`; if neither resolves, fall back to reading files and say so.
 | Planning tests for a change | `aafe test --diff` or `aafe test --requirement="<text>"` |
 | Full functional coverage from analyze | `aafe test --coverage` |
 | Generate cases from a PR vs its target branch | `aafe test --pr=<url>` |
+| 分析此PR / 按 PR 补测试 / 贴 PR 链接生成用例 | `aafe test --pr=<url>` |
+| 生成用例并执行 E2E、出报告 | `aafe test --pr=<url> --run` |
 | Enable Playwright E2E after init | `aafe e2e enable` |
 | A test run failed and the cause is unclear | `aafe diagnose --failure=<report>` |
 | Runtime files look stale or inconsistent | `aafe doctor`, then `aafe migrate --dry-run` |
@@ -87,6 +89,7 @@ These commands mostly read and report. Writers: `aafe analyze` (refreshes analyz
 - Do not eagerly read every analyze output module/graph file.
 - Do not treat editor `skills/ENTRY.md` files as full knowledge; they are pointers to this index.
 - Do not inject full runtime files into session hooks; read runtime files on demand.
+- Do not install or run `uitest` / `@aafe/ai-test` / `npx uitest`. PR and E2E belong to `aafe test`. Do not write `ai-ui-test` / `uitest-from-pr` back into `.cursor/`.
 
 ## Ownership and update policy
 

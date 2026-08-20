@@ -184,4 +184,3 @@ Hard rules:
 - Full-suite regression for a one-file logic fix
 - Editing TAPD story description to dump test matrices（评论回填即可）
 - 自测结束后直接 commit/回填而不询问
-

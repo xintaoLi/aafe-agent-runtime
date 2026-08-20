@@ -557,7 +557,9 @@ aafe run "增加用户手机号搜索"
 # 规划测试 / 生成 YAML Case；加 --run 才真正用 Playwright 执行
 aafe test --diff
 aafe test --coverage
+# 「分析此PR … 生成测试用例」走 aafe test --pr，不要安装 uitest / @aafe/ai-test
 aafe test --pr=https://github.com/acme/app/pull/12
+aafe test --pr=https://github.com/acme/app/pull/12 --run
 
 # 启用 / 关闭 E2E（init 与 update 也会询问）
 aafe e2e enable

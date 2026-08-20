@@ -8,6 +8,7 @@ import { dddRuntimePaths } from './dddRuntimeFiles.js';
 import { patternRuntimePaths } from './patternRuntimeFiles.js';
 import { inspectPlaywrightSetup } from './e2eSetup.js';
 import { isE2eEnabled } from '../testing/e2e/config.js';
+import { collectUitestAdapterChanges } from './migrate.js';
 
 /** Capabilities the default planner sequences depend on. */
 const REQUIRED_CAPABILITIES = [
@@ -46,6 +47,7 @@ const requiredFiles = [
   '.ai-agent/skills/downloadable-skills-installer.md',
   '.ai-agent/skills/architecture-impact-test-forecast.md',
   '.ai-agent/skills/minimal-convergent-self-test.md',
+  '.ai-agent/skills/aafe-test-from-pr.md',
   '.ai-agent/skills/tapd-submit-backfill.md',
   '.ai-agent/skills/requirement-intake-analysis.md',
   '.ai-agent/rules/task-completion-impact.mdc',
@@ -78,6 +80,8 @@ export async function doctorProject(root) {
         path.join('.cursor', 'rules', moduleName, 'aafe-tapd-submit-backfill.mdc'),
         path.join('.cursor', 'rules', moduleName, 'aafe-new-file-license.mdc'),
         path.join('.cursor', 'skills', moduleName, 'aafe-runtime', 'SKILL.md'),
+        path.join('.cursor', 'skills', moduleName, 'aafe-test-from-pr', 'SKILL.md'),
+        path.join('.cursor', 'rules', moduleName, 'aafe-test-from-pr.mdc'),
         path.join('.cursor', 'hooks.json'),
         path.join('.cursor', 'hooks', moduleName, 'run-hook.cmd'),
         path.join('.cursor', 'hooks', moduleName, 'aafe-session-start'),
@@ -87,7 +91,7 @@ export async function doctorProject(root) {
         files.push(path.join('.cursor', 'hooks', moduleName, 'aafe-task-completion'));
       }
     } else {
-      files.push('.cursor/rules/aafe-skill-router.mdc', '.cursor/rules/aafe-architecture-runtime.mdc', '.cursor/rules/aafe-requirement-intake-analysis.mdc', '.cursor/rules/aafe-task-completion-impact.mdc', '.cursor/rules/aafe-tapd-submit-backfill.mdc', '.cursor/rules/aafe-new-file-license.mdc', '.cursor/skills/aafe-runtime/SKILL.md', '.cursor/hooks.json', '.cursor/hooks/run-hook.cmd', '.cursor/hooks/aafe-session-start');
+      files.push('.cursor/rules/aafe-skill-router.mdc', '.cursor/rules/aafe-architecture-runtime.mdc', '.cursor/rules/aafe-requirement-intake-analysis.mdc', '.cursor/rules/aafe-task-completion-impact.mdc', '.cursor/rules/aafe-tapd-submit-backfill.mdc', '.cursor/rules/aafe-new-file-license.mdc', '.cursor/rules/aafe-test-from-pr.mdc', '.cursor/skills/aafe-runtime/SKILL.md', '.cursor/skills/aafe-test-from-pr/SKILL.md', '.cursor/hooks.json', '.cursor/hooks/run-hook.cmd', '.cursor/hooks/aafe-session-start');
       if (projectConfig.taskCompletion?.enabled) files.push('.cursor/hooks/aafe-task-completion');
     }
   }
@@ -224,6 +228,13 @@ export async function doctorProject(root) {
     }
   }
   if (skillIndex && !skillIndex.includes('architecture-on-demand')) warnings.push('.ai-agent/skill-index.md does not mention architecture-on-demand loading');
+  if (skillIndex && /npx uitest|@aafe\/ai-test/.test(skillIndex) && !skillIndex.includes('Do not install or run')) {
+    warnings.push('.ai-agent/skill-index.md still points at uitest; run aafe update so PR E2E uses aafe test --pr');
+  }
+  const uitestLeftovers = await collectUitestAdapterChanges(root);
+  if (uitestLeftovers.length) {
+    warnings.push(`leftover uitest Cursor adapters (${uitestLeftovers.map((item) => item.from).join(', ')}); run aafe migrate. Do not install uitest — use aafe test --pr`);
+  }
   const analyzeOutput = projectConfig.analyze?.output ?? projectConfig.analyze?.docsOut ?? '.aafe';
   if (await exists(path.join(root, analyzeOutput)) && !(await exists(path.join(root, analyzeOutput, 'manifest.json')))) {
     warnings.push(`${analyzeOutput} exists but manifest.json is missing; re-run aafe analyze`);
@@ -308,7 +319,7 @@ async function listCursorSkillCopies(root, moduleName = null) {
     const entries = await readdir(skillsDir, { withFileTypes: true });
     return entries
       .map((entry) => entry.name)
-      .filter((name) => !['ENTRY.md', 'aafe-runtime', '.DS_Store'].includes(name));
+      .filter((name) => !['ENTRY.md', 'aafe-runtime', 'aafe-test-from-pr', '.DS_Store'].includes(name));
   } catch {
     return [];
   }

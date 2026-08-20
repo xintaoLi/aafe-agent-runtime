@@ -18,6 +18,11 @@ import {
   fileLicenseRuleMdc
 } from './fileLicenseRules.js';
 import {
+  aafeTestFromPrCursorSkill,
+  aafeTestFromPrPointerRuleMdc,
+  AAFE_TEST_FROM_PR_SKILL_DIR
+} from './e2eFromPrRules.js';
+import {
   createCursorPathContext,
   rewriteCursorContent
 } from './pathRewrite.js';
@@ -87,7 +92,13 @@ export async function writeLayeredCursorAdapters({
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-requirement-intake-analysis.mdc'), requirementIntakeRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-tapd-submit-backfill.mdc'), tapdSubmitRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-new-file-license.mdc'), fileLicenseRuleMdc(ctx), options);
+  await writeIfAllowed(path.join(paths.rulesDir, 'aafe-test-from-pr.mdc'), aafeTestFromPrPointerRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.skillsDir, 'aafe-runtime', 'SKILL.md'), nativeEditorSkill('Cursor', ctx), options);
+  await writeIfAllowed(
+    path.join(paths.skillsDir, AAFE_TEST_FROM_PR_SKILL_DIR, 'SKILL.md'),
+    aafeTestFromPrCursorSkill(ctx),
+    options
+  );
   await writeIfAllowed(path.join(paths.skillsDir, 'ENTRY.md'), editorSkillEntry('Cursor', ctx), options);
   await writeIfAllowed(path.join(paths.hooksDir, 'run-hook.cmd'), cursorHookRunner(), options);
   await writeIfAllowed(path.join(paths.hooksDir, 'aafe-session-start'), cursorSessionStartHook(ctx), options);

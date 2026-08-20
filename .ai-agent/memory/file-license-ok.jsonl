@@ -100,3 +100,4 @@
 {"path":"src/testing/e2e/index.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-08-20T09:08:11.763Z"}
 {"path":"scripts/test-e2e-platform.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-08-20T09:08:11.843Z"}
 {"path":"src/cli/e2eSetup.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-08-20T09:37:23.276Z"}
+{"path":"src/cli/e2eFromPrRules.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-08-20T11:31:57.698Z"}

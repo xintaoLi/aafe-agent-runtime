@@ -243,6 +243,13 @@ async function testLayeredInit() {
     assert.equal(await exists(path.join(installRoot, '.ai-agent')), true);
     assert.equal(await exists(path.join(root, '.ai-agent')), false);
 
+    const fromPr = await readFile(path.join(root, '.cursor/skills/web/aafe-test-from-pr/SKILL.md'), 'utf8');
+    assert.match(fromPr, /aafe test --pr/);
+    assert.match(fromPr, /Do \*\*not\*\* install or run/);
+    const fromPrRule = await readFile(path.join(root, '.cursor/rules/web/aafe-test-from-pr.mdc'), 'utf8');
+    assert.match(fromPrRule, /alwaysApply: false/);
+    assert.equal(await exists(path.join(installRoot, '.ai-agent/skills/aafe-test-from-pr.md')), true);
+
     const doctor = await doctorProject(installRoot);
     assert.equal(doctor.missing.length, 0, `missing: ${doctor.missing.join(', ')}`);
   } finally {

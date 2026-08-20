@@ -141,9 +141,6 @@
     "implementation_gate",
     "merge_gate"
   ],
-  "submit": {
-    "cli": "git"
-  },
   "e2e": {
     "casesDir": "tests/ui-ai/cases",
     "reportDir": ".aafe/e2e/reports",
@@ -154,5 +151,8 @@
     "enabled": false,
     "githubAccessToken": null,
     "gongfengAccessToken": null
+  },
+  "submit": {
+    "cli": "git"
   }
 }

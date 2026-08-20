@@ -118,4 +118,3 @@ logic | store | api | ui | mixed
 - Distinguish **tested / predicted / not covered**.
 - UI browser work is opt-in via `minimal-convergent-self-test.md`；本 Skill 不自动开浏览器。
 - UI 路径分析在设计/自测准备阶段完成；禁止把大量源码分析留到点击执行中。
-

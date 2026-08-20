@@ -211,6 +211,20 @@ export const MIGRATIONS = [
       delete config.analyze.llm.agents;
       await writeJson(file, config);
     }
+  },
+
+  {
+    id: 'retire-uitest-cursor-adapters',
+    title: '移除 .cursor 里的 uitest / ai-ui-test 适配层，改走 aafe test --pr',
+    async detect({ root }) {
+      const changes = await collectUitestAdapterChanges(root);
+      return changes.length > 0 ? { changes } : null;
+    },
+    async apply({ root }, plan) {
+      for (const change of plan.changes) {
+        await rm(path.resolve(root, change.from), { recursive: true, force: true });
+      }
+    }
   }
 ];
 
@@ -380,6 +394,49 @@ async function statOrNull(target) {
   } catch {
     return null;
   }
+}
+
+/**
+ * Leftover `@aafe/ai-test` Cursor ads. Their descriptions steal「分析此PR」
+ * and send the agent to `npx uitest from-pr`.
+ */
+export async function collectUitestAdapterChanges(root) {
+  const cursorRoots = [path.join(root, '.cursor')];
+  const config = await readJson(path.join(root, CONFIG_FILE));
+  const workspaceRel = config?.workspace?.workspaceRoot;
+  if (typeof workspaceRel === 'string' && workspaceRel !== '.') {
+    cursorRoots.push(path.resolve(root, workspaceRel, '.cursor'));
+  }
+  const seen = new Set();
+  const changes = [];
+  for (const cursorRoot of cursorRoots) {
+    for (const change of await walkUitestLeftovers(cursorRoot, root)) {
+      if (seen.has(change.from)) continue;
+      seen.add(change.from);
+      changes.push(change);
+    }
+  }
+  return changes;
+}
+
+async function walkUitestLeftovers(dir, root, acc = []) {
+  const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    const from = path.relative(root, full).split(path.sep).join('/');
+    if (entry.isDirectory()) {
+      if (entry.name === 'ai-ui-test') {
+        acc.push({ action: 'remove', from, to: null, detail: '由 aafe test --pr 取代，禁止残留 uitest 适配层' });
+        continue;
+      }
+      await walkUitestLeftovers(full, root, acc);
+      continue;
+    }
+    if (entry.name === 'uitest-from-pr.mdc') {
+      acc.push({ action: 'remove', from, to: null, detail: '由 aafe test --pr 取代' });
+    }
+  }
+  return acc;
 }
 
 async function pathExists(target) {

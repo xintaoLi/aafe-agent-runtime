@@ -1,0 +1,16 @@
+---
+description: 用户说「分析此PR <PR URL>影响并生成测试用例」「按 PR 补测试」「执行 PR 分析生成测试用例」「生成测试用例并执行e2e测试」或直接贴出 GitHub/工蜂 PR/MR 链接时，跑 aafe test --pr=<url>（要执行再加 --run）。禁止安装或调用 uitest / @aafe/ai-test。
+alwaysApply: false
+---
+
+# AAFE Test from PR（Pointer）
+
+Source of truth: `.ai-agent/skills/aafe-test-from-pr.md`
+
+用户要「分析此PR」「按 PR 补测试」「生成测试用例并执行e2e」或直接贴 PR/MR 链接时：
+
+1. `aafe test --pr=<url>` 生成 YAML
+2. 需要执行时再 `aafe test --pr=<url> --run`
+3. 报告只读 `.aafe/e2e/reports/`
+
+**禁止**安装或调用 `uitest` / `@aafe/ai-test`。不要把 `ai-ui-test` / `uitest-from-pr` 写回 `.cursor/`。

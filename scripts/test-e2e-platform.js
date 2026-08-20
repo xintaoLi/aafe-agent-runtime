@@ -25,6 +25,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parsePlatformArgs } from '../src/cli/platform.js';
+import {
+  AAFE_TEST_FROM_PR_DESCRIPTION,
+  aafeTestFromPrCursorSkill,
+  aafeTestFromPrPointerRuleMdc,
+  aafeTestFromPrSkillContent
+} from '../src/cli/e2eFromPrRules.js';
+import { collectUitestAdapterChanges, runMigrations } from '../src/cli/migrate.js';
 import { buildPlaywrightInstallCommand, inspectPlaywrightSetup, parseE2eSetupArgs, patchE2eConfig } from '../src/cli/e2eSetup.js';
 import { parseTestReport } from '../src/testing/reportParser.js';
 import { compileCaseToSpec } from '../src/testing/e2e/compile.js';
@@ -222,5 +229,33 @@ const e2eStatus = spawnSync(process.execPath, [aafeBin, 'e2e', 'status'], {
 });
 assert.equal(e2eStatus.status, 0);
 assert.match(e2eStatus.stdout, /"enabled": false/);
+
+assert.match(AAFE_TEST_FROM_PR_DESCRIPTION, /分析此PR/);
+assert.match(AAFE_TEST_FROM_PR_DESCRIPTION, /aafe test --pr/);
+assert.match(AAFE_TEST_FROM_PR_DESCRIPTION, /禁止安装或调用 uitest/);
+const fromPrSkill = aafeTestFromPrSkillContent('.ai-agent');
+assert.match(fromPrSkill, /aafe test --pr=<url>/);
+assert.match(fromPrSkill, /禁止/);
+assert.doesNotMatch(fromPrSkill, /npm i(?:nstall)?[^\n]*uitest|请安装 uitest/);
+assert.match(aafeTestFromPrCursorSkill(), /name: aafe-test-from-pr/);
+assert.match(aafeTestFromPrCursorSkill(), /禁止安装或调用 uitest/);
+assert.match(aafeTestFromPrPointerRuleMdc(), /alwaysApply: false/);
+assert.doesNotMatch(aafeTestFromPrPointerRuleMdc(), /请安装 uitest|npm i(?:nstall)?[^\n]*uitest/);
+
+const leftoverRoot = await mkdtemp(path.join(os.tmpdir(), 'aafe-uitest-'));
+try {
+  const { mkdir, writeFile } = await import('node:fs/promises');
+  await mkdir(path.join(leftoverRoot, '.cursor/skills/bklog-web/ai-ui-test'), { recursive: true });
+  await writeFile(path.join(leftoverRoot, '.cursor/skills/bklog-web/ai-ui-test/SKILL.md'), 'npx uitest from-pr\n');
+  await mkdir(path.join(leftoverRoot, '.cursor/rules/bklog-web'), { recursive: true });
+  await writeFile(path.join(leftoverRoot, '.cursor/rules/bklog-web/uitest-from-pr.mdc'), 'npx uitest from-pr\n');
+  const leftovers = await collectUitestAdapterChanges(leftoverRoot);
+  assert.equal(leftovers.length, 2);
+  const migrated = await runMigrations(leftoverRoot);
+  assert.ok(migrated.migrations.some((entry) => entry.id === 'retire-uitest-cursor-adapters'));
+  assert.equal((await collectUitestAdapterChanges(leftoverRoot)).length, 0);
+} finally {
+  await rm(leftoverRoot, { recursive: true, force: true });
+}
 
 console.log('e2e platform tests passed');
