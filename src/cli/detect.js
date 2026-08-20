@@ -6,6 +6,7 @@ export async function detectProject(root) {
   const deps = { ...(packageJson.dependencies ?? {}), ...(packageJson.devDependencies ?? {}) };
 
   return {
+    packageName: packageJson.name ?? path.basename(root),
     framework: detectFramework(deps, packageJson),
     editors: await detectEditors(root),
     scenarios: detectScenarios(deps, packageJson),

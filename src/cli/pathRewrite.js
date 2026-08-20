@@ -13,6 +13,7 @@ export function createMigrationRewriteContext(moduleName, moduleRelativePath) {
     agentPrefix: layered ? `${moduleRelativePath}/.ai-agent` : '.ai-agent',
     configPath: layered ? `${moduleRelativePath}/.aafe.config.json` : '.aafe.config.json',
     docsPath: layered ? `${moduleRelativePath}/.docs` : '.docs',
+    analyzeDocsPath: layered ? `${moduleRelativePath}/.ai-agent/.docs` : '.ai-agent/.docs',
     cursorRulesPrefix: `.cursor/rules/${moduleName}`,
     cursorSkillsPrefix: `.cursor/skills/${moduleName}`,
     cursorHooksPrefix: `.cursor/hooks/${moduleName}`,

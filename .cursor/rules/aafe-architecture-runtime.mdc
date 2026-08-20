@@ -12,6 +12,7 @@ For every non-trivial frontend task after the Skill Router step:
 3. Follow the selected `.ai-agent/pipelines/*.yaml`.
 4. Enforce `.ai-agent/runtime/gates.yaml` before implementation.
 5. Read `.ai-agent/skills/project-architecture-locator.md` first when locating routes, components, modules or design docs.
+5b. For deep architecture/dataflow, use `.ai-agent/skills/architecture-on-demand.md` / `dataflow-on-demand.md` against the configured analyze output (default `.aafe/`, never the full tree).
 6. Use framework, DDD, design-pattern and scenario packs when relevant.
 7. For business-heavy features, run DDD Discovery before module decomposition.
 8. For new features, run Pattern Interview before Pattern Selection.

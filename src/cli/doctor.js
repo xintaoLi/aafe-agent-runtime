@@ -29,6 +29,8 @@ const requiredFiles = [
   '.ai-agent/skills/memory-writer.md',
   '.ai-agent/skills/experience-recorder.md',
   '.ai-agent/skills/project-architecture-analyzer.md',
+  '.ai-agent/skills/architecture-on-demand.md',
+  '.ai-agent/skills/dataflow-on-demand.md',
   '.ai-agent/skills/downloadable-skills-installer.md',
   '.ai-agent/skills/architecture-impact-test-forecast.md',
   '.ai-agent/skills/minimal-convergent-self-test.md',
@@ -150,6 +152,15 @@ export async function doctorProject(root) {
   if (config && !config.includes('"memory"')) warnings.push('memory config is not enabled');
   if (projectConfig.editors?.includes('cursor') && !projectConfig.hooks?.enabled) warnings.push('Cursor hooks are not enabled in .aafe.config.json');
   if (hasProjectSkills && !skillIndex) warnings.push('project-skills/ exists but .ai-agent/skill-index.md is missing; project knowledge has no generated router');
+  const projectKnowledgeEnabled = projectConfig.projectKnowledge?.enabled !== false;
+  const projectEntry = projectConfig.projectKnowledge?.entry ?? '.ai-agent/project.md';
+  const projectSkillsPath = projectConfig.projectKnowledge?.skillsPath ?? '.ai-agent/project-skills';
+  if (projectKnowledgeEnabled && !(await exists(path.join(root, projectEntry)))) {
+    warnings.push(`${projectEntry} is missing; run aafe init or aafe update to seed project-owned knowledge entry`);
+  }
+  if (projectKnowledgeEnabled && !(await isDirectory(path.join(root, projectSkillsPath)))) {
+    warnings.push(`${projectSkillsPath}/ is missing; run aafe init or aafe update to seed project-skills`);
+  }
   if (skillIndex && !skillIndex.includes('On-demand project skill loading')) warnings.push('.ai-agent/skill-index.md does not look like the index-on-demand router');
   const cursorNativeSkill = await safeRead(cursorLayout.layered
     ? path.join(cursorLayout.paths.skillsDir, 'aafe-runtime', 'SKILL.md')
@@ -179,6 +190,12 @@ export async function doctorProject(root) {
   if (sessionStartHook && (sessionStartHook.includes('<AAFE_RUNTIME>') || sessionStartHook.includes('runtime/engine.md') || sessionStartHook.includes('runtime/router.yaml') || sessionStartHook.includes('runtime/gates.yaml'))) warnings.push('sessionStart hook still injects runtime file contents; use short AAFE_SKILL_ROUTER context instead');
   if (projectConfig.projectKnowledge && projectConfig.projectKnowledge.loadMode !== 'index-on-demand') warnings.push('projectKnowledge.loadMode should be index-on-demand');
   if ((projectConfig.editors?.length ?? 0) > 1 && projectConfig.projectKnowledge?.loadMode !== 'index-on-demand') warnings.push('multiple editors are enabled but projectKnowledge.loadMode is not index-on-demand');
+  if (config && !config.includes('"analyze"')) warnings.push('analyze config block is missing in .aafe.config.json; run aafe update to add output/llm defaults');
+  if (skillIndex && !skillIndex.includes('architecture-on-demand')) warnings.push('.ai-agent/skill-index.md does not mention architecture-on-demand loading');
+  const analyzeOutput = projectConfig.analyze?.output ?? projectConfig.analyze?.docsOut ?? '.aafe';
+  if (await exists(path.join(root, analyzeOutput)) && !(await exists(path.join(root, analyzeOutput, 'manifest.json')))) {
+    warnings.push(`${analyzeOutput} exists but manifest.json is missing; re-run aafe analyze`);
+  }
 
   return {
     status: missing.length ? 'fail' : warnings.length ? 'warn' : 'pass',

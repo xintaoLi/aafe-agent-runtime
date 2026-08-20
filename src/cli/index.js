@@ -163,7 +163,7 @@ Commands:
   detect    Detect framework, editor and scenario
   doctor    Validate installed runtime files
   sync      Refresh generated runtime files
-  analyze   Generate architecture locator, Knowledge Center memory and project architecture skills
+  analyze   Generate architecture locator, .ai-agent/.docs AST analysis and on-demand skills
   memory    Manage project self-growing memory
   license   Local fast BlueKing license check/ensure/mark (no AI; do not Read memory file)
   knowledge  Initialize or update project Knowledge views in .docs
@@ -198,11 +198,19 @@ Submit CLI:
   gtm: gtm commit / gtm pr (project GTM config required; errors not forced)
 
 Analyze options:
-  --dry-run
-  --no-write
+  --output=.aafe               Analysis knowledge output (default; also analyze.output)
+  --docs-out=<path>            Alias of --output (legacy)
+  --formats=json,jsonl,md,mmd  Output formats (default includes Mermaid .mmd)
+  --mmd                        Kept for compatibility (mmd already in default)
+  --architecture-docs=.docs    Human architecture docs for Knowledge (unchanged)
+  --max-depth=<n>              Entry import BFS depth (default 40)
   --max-files=<number>
-  --max-entries=<number>
-  --architecture-docs=<path>  Architecture docs directory, defaults to .docs
+  --force                      Overwrite AAFE-managed analyze docs
+  --skip-existing              Skip writing output when it already has content
+  --llm                        Request reserved LLM path (no-op unless configured)
+  --quiet                      Suppress human progress output
+  --dry-run                    Preview without writing
+  --no-write                   Analyze without writing artifacts
 
 Skills options:
   aafe skills list --github

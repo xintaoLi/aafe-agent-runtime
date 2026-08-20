@@ -1,0 +1,555 @@
+{
+  "generatedAt": "2026-08-19T03:22:15.545Z",
+  "visited": [
+    "bin/aafe.js",
+    "src/index.js",
+    "src/cli/index.js",
+    "src/cli/bootstrap.js",
+    "src/cli/analyze.js",
+    "src/cli/ddd.js",
+    "src/cli/detect.js",
+    "src/cli/doctor.js",
+    "src/cli/memory.js",
+    "src/cli/knowledge.js",
+    "src/cli/knowledgeWeb.js",
+    "src/cli/taskCompletion.js",
+    "src/cli/patterns.js",
+    "src/cli/skills.js",
+    "src/cli/prompts.js",
+    "src/cli/fileLicense.js",
+    "src/cli/update.js",
+    "src/runtime/configLoader.js",
+    "src/cli/workspace.js",
+    "src/templates/TemplateSystem.js",
+    "src/cli/editorLayer.js",
+    "src/cli/codebuddyLayer.js",
+    "src/cli/editorRegistry.js",
+    "src/cli/completionImpactRules.js",
+    "src/cli/requirementAnalysisRules.js",
+    "src/cli/tapdSubmitRules.js",
+    "src/cli/fileLicenseRules.js",
+    "src/cli/submitConfig.js",
+    "src/analyze/entryDiscover.js",
+    "src/analyze/routes/resolveRoutes.js",
+    "src/analyze/modules/partition.js",
+    "src/analyze/architecture/buildArchitecture.js",
+    "src/analyze/dataflow/buildDataflow.js",
+    "src/analyze/llm/client.js",
+    "src/analyze/writeDocs.js",
+    "src/analyze/renderSkills.js",
+    "src/ddd/DDDAdvisor.js",
+    "src/memory/MemoryStore.js",
+    "src/memory/CodeScanner.js",
+    "src/patterns/PatternAdvisor.js",
+    "src/cli/tapdConfig.js",
+    "src/runtime/AgentRuntime.js",
+    "src/runtime/defaults.js",
+    "src/cli/pathRewrite.js",
+    "src/cli/cursorLayer.js",
+    "src/analyze/ast/parseFile.js",
+    "src/analyze/ast/extractors.js",
+    "src/runtime/SkillRegistry.js",
+    "src/runtime/PipelineExecutor.js",
+    "src/runtime/GateValidator.js",
+    "src/runtime/HookBus.js",
+    "src/memory/MemoryRuntime.js"
+  ],
+  "edges": [
+    {
+      "from": "bin/aafe.js",
+      "to": "src/cli/index.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/cli/bootstrap.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/cli/analyze.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/cli/ddd.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/cli/detect.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/cli/doctor.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/cli/memory.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/cli/knowledge.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/knowledge.js",
+      "to": "src/cli/analyze.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/cli/knowledgeWeb.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/knowledgeWeb.js",
+      "to": "src/cli/analyze.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/cli/taskCompletion.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/cli/patterns.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/cli/skills.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/cli/prompts.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/cli/fileLicense.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/cli/update.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/update.js",
+      "to": "src/cli/bootstrap.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/update.js",
+      "to": "src/cli/detect.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/update.js",
+      "to": "src/cli/doctor.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/update.js",
+      "to": "src/cli/knowledge.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/update.js",
+      "to": "src/cli/prompts.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/runtime/configLoader.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/index.js",
+      "to": "src/cli/workspace.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/bootstrap.js",
+      "to": "src/templates/TemplateSystem.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/bootstrap.js",
+      "to": "src/cli/editorLayer.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/editorLayer.js",
+      "to": "src/cli/workspace.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/bootstrap.js",
+      "to": "src/cli/codebuddyLayer.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/codebuddyLayer.js",
+      "to": "src/cli/workspace.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/bootstrap.js",
+      "to": "src/cli/editorRegistry.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/bootstrap.js",
+      "to": "src/cli/completionImpactRules.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/bootstrap.js",
+      "to": "src/cli/requirementAnalysisRules.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/bootstrap.js",
+      "to": "src/cli/tapdSubmitRules.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/bootstrap.js",
+      "to": "src/cli/fileLicenseRules.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/bootstrap.js",
+      "to": "src/cli/submitConfig.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/analyze.js",
+      "to": "src/analyze/entryDiscover.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/analyze.js",
+      "to": "src/analyze/routes/resolveRoutes.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/analyze.js",
+      "to": "src/analyze/modules/partition.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/analyze.js",
+      "to": "src/analyze/architecture/buildArchitecture.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/analyze.js",
+      "to": "src/analyze/dataflow/buildDataflow.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/analyze.js",
+      "to": "src/analyze/llm/client.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/analyze.js",
+      "to": "src/analyze/writeDocs.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/analyze.js",
+      "to": "src/analyze/renderSkills.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/ddd.js",
+      "to": "src/ddd/DDDAdvisor.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/memory.js",
+      "to": "src/memory/MemoryStore.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/memory.js",
+      "to": "src/memory/CodeScanner.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/patterns.js",
+      "to": "src/patterns/PatternAdvisor.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/prompts.js",
+      "to": "src/cli/tapdConfig.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/runtime/configLoader.js",
+      "to": "src/runtime/AgentRuntime.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/runtime/configLoader.js",
+      "to": "src/runtime/defaults.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/runtime/defaults.js",
+      "to": "src/ddd/DDDAdvisor.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/runtime/defaults.js",
+      "to": "src/patterns/PatternAdvisor.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/runtime/defaults.js",
+      "to": "src/runtime/AgentRuntime.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/editorLayer.js",
+      "to": "src/cli/pathRewrite.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/editorLayer.js",
+      "to": "src/cli/cursorLayer.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/cursorLayer.js",
+      "to": "src/cli/requirementAnalysisRules.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/cursorLayer.js",
+      "to": "src/cli/completionImpactRules.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/cursorLayer.js",
+      "to": "src/cli/tapdSubmitRules.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/cursorLayer.js",
+      "to": "src/cli/fileLicenseRules.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/cursorLayer.js",
+      "to": "src/cli/pathRewrite.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/cli/cursorLayer.js",
+      "to": "src/cli/workspace.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/analyze/routes/resolveRoutes.js",
+      "to": "src/analyze/ast/parseFile.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/analyze/routes/resolveRoutes.js",
+      "to": "src/analyze/ast/extractors.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/runtime/AgentRuntime.js",
+      "to": "src/runtime/SkillRegistry.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/runtime/AgentRuntime.js",
+      "to": "src/runtime/PipelineExecutor.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/runtime/AgentRuntime.js",
+      "to": "src/runtime/GateValidator.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/runtime/AgentRuntime.js",
+      "to": "src/runtime/HookBus.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/runtime/AgentRuntime.js",
+      "to": "src/memory/MemoryRuntime.js",
+      "kind": "import"
+    },
+    {
+      "from": "src/memory/MemoryRuntime.js",
+      "to": "src/memory/MemoryStore.js",
+      "kind": "import"
+    }
+  ],
+  "routes": [
+    {
+      "path": ".ai-agent/memory",
+      "file": "src/cli/bootstrap.js",
+      "component": "",
+      "name": "",
+      "source": "ast"
+    },
+    {
+      "path": "...",
+      "file": "src/analyze/ast/extractors.js",
+      "component": "",
+      "name": "",
+      "source": "ast"
+    }
+  ],
+  "dataflow": {
+    "generatedAt": "2026-08-19T03:22:15.545Z",
+    "modules": [
+      {
+        "id": "src-cli",
+        "dataHints": [],
+        "edges": [
+          {
+            "from": "file:src/cli/memory.js",
+            "to": "import:../memory/MemoryStore.js",
+            "kind": "file-to-import"
+          }
+        ],
+        "routes": []
+      },
+      {
+        "id": "src-runtime",
+        "dataHints": [],
+        "edges": [],
+        "routes": []
+      },
+      {
+        "id": "src-analyze",
+        "dataHints": [],
+        "edges": [],
+        "routes": []
+      },
+      {
+        "id": "src-memory",
+        "dataHints": [],
+        "edges": [
+          {
+            "from": "file:src/memory/MemoryRuntime.js",
+            "to": "import:./MemoryStore.js",
+            "kind": "file-to-import"
+          }
+        ],
+        "routes": []
+      },
+      {
+        "id": "src-analyze-ast",
+        "dataHints": [],
+        "edges": [],
+        "routes": []
+      },
+      {
+        "id": "bin-aafe-js",
+        "dataHints": [],
+        "edges": [],
+        "routes": []
+      },
+      {
+        "id": "route",
+        "dataHints": [],
+        "edges": [
+          {
+            "from": "route:...",
+            "to": "file:src/analyze/ast/extractors.js",
+            "kind": "route-to-file"
+          }
+        ],
+        "routes": [
+          "..."
+        ]
+      },
+      {
+        "id": "route-ai-agent",
+        "dataHints": [],
+        "edges": [
+          {
+            "from": "route:.ai-agent/memory",
+            "to": "file:src/cli/bootstrap.js",
+            "kind": "route-to-file"
+          }
+        ],
+        "routes": [
+          ".ai-agent/memory"
+        ]
+      },
+      {
+        "id": "src",
+        "dataHints": [],
+        "edges": [],
+        "routes": []
+      },
+      {
+        "id": "src-analyze-architecture",
+        "dataHints": [],
+        "edges": [],
+        "routes": []
+      },
+      {
+        "id": "src-analyze-dataflow",
+        "dataHints": [],
+        "edges": [],
+        "routes": []
+      },
+      {
+        "id": "src-analyze-llm",
+        "dataHints": [],
+        "edges": [],
+        "routes": []
+      },
+      {
+        "id": "src-analyze-modules",
+        "dataHints": [],
+        "edges": [],
+        "routes": []
+      },
+      {
+        "id": "src-analyze-routes",
+        "dataHints": [],
+        "edges": [],
+        "routes": []
+      },
+      {
+        "id": "src-ddd",
+        "dataHints": [],
+        "edges": [],
+        "routes": []
+      },
+      {
+        "id": "src-patterns",
+        "dataHints": [],
+        "edges": [],
+        "routes": []
+      },
+      {
+        "id": "src-templates",
+        "dataHints": [],
+        "edges": [],
+        "routes": []
+      }
+    ]
+  }
+}

@@ -351,6 +351,7 @@ function cursorRules(ctx) {
     `3. Follow the selected \`${ctx.agentPrefix}/pipelines/*.yaml\`.`,
     `4. Enforce \`${ctx.agentPrefix}/runtime/gates.yaml\` before implementation.`,
     `5. Read \`${ctx.agentPrefix}/skills/project-architecture-locator.md\` first when locating routes, components, modules or design docs.`,
+    `5b. For deep architecture/dataflow, use \`${ctx.agentPrefix}/skills/architecture-on-demand.md\` / \`dataflow-on-demand.md\` against configured analyze output (default \`.aafe/\`, never the full tree).`,
     '6. Use framework, DDD, design-pattern and scenario packs when relevant.',
     '7. For business-heavy features, run DDD Discovery before module decomposition.',
     '8. For new features, run Pattern Interview before Pattern Selection.',

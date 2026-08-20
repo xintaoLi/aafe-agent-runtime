@@ -62,6 +62,9 @@ async function writeRuntime(root, detection, options, plan) {
       { ...options, force: false }
     );
   }
+
+  // Project-owned knowledge: seed once; never overwrite on update/sync (force: false).
+  await writeProjectKnowledgeScaffold(root, detection, options);
 }
 
 async function writeConfig(root, _detection, options, plan) {
@@ -122,8 +125,48 @@ async function writeConfig(root, _detection, options, plan) {
       installCommand: 'aafe skills install <skill-name> --github',
       boundary: 'Use only for Agent SKILLS download. Use init/update/analyze/doctor for project .ai-agent runtime.'
     },
+    analyze: {
+      output: '.aafe',
+      formats: ['json', 'jsonl', 'md', 'mmd'],
+      maxDepth: 40,
+      architecture: { enabled: true },
+      dataflow: { enabled: true },
+      features: { enabled: true },
+      business: { enabled: true },
+      llm: {
+        enabled: false,
+        provider: null,
+        model: null,
+        agents: {
+          architecture: false,
+          dataflow: false,
+          feature: false,
+          business: false,
+          testing: false
+        }
+      }
+    },
     gates: ['ddd_gate', 'architecture_gate', 'pattern_gate', 'implementation_gate', 'merge_gate']
   };
+
+  if (existingConfig.analyze) {
+    config.analyze = {
+      ...config.analyze,
+      ...existingConfig.analyze,
+      architecture: { ...config.analyze.architecture, ...(existingConfig.analyze.architecture ?? {}) },
+      dataflow: { ...config.analyze.dataflow, ...(existingConfig.analyze.dataflow ?? {}) },
+      features: { ...config.analyze.features, ...(existingConfig.analyze.features ?? {}) },
+      business: { ...config.analyze.business, ...(existingConfig.analyze.business ?? {}) },
+      llm: {
+        ...config.analyze.llm,
+        ...(existingConfig.analyze.llm ?? {}),
+        agents: {
+          ...config.analyze.llm.agents,
+          ...(existingConfig.analyze.llm?.agents ?? {})
+        }
+      }
+    };
+  }
 
   if (options.tapdConfig) {
     config.tapd = options.tapdConfig;
@@ -245,6 +288,8 @@ function runtimeFiles(_detection, plan) {
     '.ai-agent/skills/memory-writer.md': memoryWriterSkill(),
     '.ai-agent/skills/experience-recorder.md': experienceRecorderSkill(),
     '.ai-agent/skills/project-architecture-analyzer.md': projectArchitectureAnalyzerSkill(),
+    '.ai-agent/skills/architecture-on-demand.md': architectureOnDemandSkillTemplate(),
+    '.ai-agent/skills/dataflow-on-demand.md': dataflowOnDemandSkillTemplate(),
     '.ai-agent/skills/downloadable-skills-installer.md': downloadableSkillsInstallerSkill(),
     '.ai-agent/memory/index.md': memoryIndex(),
     '.ai-agent/memory/project-design.md': memoryProjectDesign(),
@@ -299,6 +344,199 @@ function runtimeFiles(_detection, plan) {
   return files;
 }
 
+async function writeProjectKnowledgeScaffold(root, detection, options) {
+  const preserve = { ...options, force: false };
+  const projectName = detection?.packageName ?? path.basename(root);
+
+  await writeIfAllowed(
+    path.join(root, '.ai-agent/project.md'),
+    projectKnowledgeEntry(projectName, detection),
+    preserve
+  );
+
+  const domains = [
+    ['architecture', projectSkillArchitecture()],
+    ['components', projectSkillComponents()],
+    ['api-services', projectSkillApiServices()],
+    ['coding-patterns', projectSkillCodingPatterns()],
+    ['self-update', projectSkillSelfUpdate()]
+  ];
+
+  for (const [domain, content] of domains) {
+    await writeIfAllowed(
+      path.join(root, `.ai-agent/project-skills/${domain}/SKILL.md`),
+      content,
+      preserve
+    );
+  }
+}
+
+function projectKnowledgeEntry(projectName, detection = {}) {
+  const framework = detection.framework ?? 'generic';
+  return `# Project Knowledge · ${projectName}
+
+This file is **project-owned**. \`aafe init\` / \`aafe update\` create it only when missing and will not overwrite edits.
+
+## Quick Map
+
+- Framework: \`${framework}\`
+- Runtime: \`.ai-agent/\`
+- Analyze output: see \`.aafe.config.json\` → \`analyze.output\` (default \`.aafe/\`)
+- Human architecture docs: \`.docs/\` (Knowledge Center source)
+
+## How to Use Project Skills
+
+1. Read \`.ai-agent/skill-index.md\` first.
+2. Read this file for project-specific routing.
+3. Load only the matching \`.ai-agent/project-skills/<domain>/SKILL.md\`:
+   - architecture → routes / modules / boundaries
+   - components → UI / Vue / React components
+   - api-services → request / API / adapters
+   - coding-patterns → conventions / lint / tests
+   - self-update → how to grow project skills after changes
+4. For deep static facts after \`aafe analyze\`, use on-demand architecture/dataflow skills against the configured analyze output.
+
+## Domain Routing Hints
+
+| Task keywords | Domain skill |
+| --- | --- |
+| route, page, module, boundary, map | architecture |
+| component, UI, props, emit | components |
+| api, request, service, axios, fetch | api-services |
+| lint, convention, test pattern | coding-patterns |
+| update skill docs, refresh knowledge | self-update |
+
+## Ownership
+
+- Generated / refreshed by package: \`skill-index.md\`, \`runtime/**\`, \`pipelines/**\`, editor adapters
+- Project-owned (preserved): \`project.md\`, \`project-skills/**\`, \`rules/**\`, \`memory/**\`
+`;
+}
+
+function projectSkillArchitecture() {
+  return `---
+name: architecture
+description: Project architecture map — routes, modules, boundaries. Use WHEN locating pages, modules, or design docs.
+---
+
+# Project Skill · Architecture
+
+## When to use
+
+- Locate routes, pages, modules, or architecture boundaries
+- Before broad source search for feature ownership
+
+## Protocol
+
+1. Read \`.ai-agent/project.md\` Quick Map.
+2. Read \`.ai-agent/skills/project-architecture-locator.md\` if present.
+3. For deep facts: \`.ai-agent/skills/architecture-on-demand.md\` against analyze output (default \`.aafe/\`).
+4. Do not invent DDD layers; prefer static facts + evidence.
+
+## Maintain
+
+Update this skill after major routing or module boundary changes. Run \`aafe analyze\` to refresh machine facts.
+`;
+}
+
+function projectSkillComponents() {
+  return `---
+name: components
+description: Project UI components / Vue / React conventions. Use WHEN editing components, props, emits, or global registration.
+---
+
+# Project Skill · Components
+
+## When to use
+
+- Component props/emits contracts
+- Shared UI registration patterns
+
+## Protocol
+
+1. Prefer locator / analyze module \`components.json\` when available.
+2. Record durable conventions here (naming, folder layout, global components).
+
+## Maintain
+
+Extend this file with project-specific component rules as they stabilize.
+`;
+}
+
+function projectSkillApiServices() {
+  return `---
+name: api-services
+description: Project API / request / data-access adapters. Use WHEN changing services, clients, or request layers.
+---
+
+# Project Skill · API Services
+
+## When to use
+
+- API client / request wrapper changes
+- Service adapter boundaries
+
+## Protocol
+
+1. Document base client, error handling, and auth injection patterns here.
+2. Pair with dataflow on-demand skill for call-graph evidence after analyze.
+
+## Maintain
+
+Keep only durable API conventions; leave ephemeral endpoints out.
+`;
+}
+
+function projectSkillCodingPatterns() {
+  return `---
+name: coding-patterns
+description: Project coding conventions, lint, and test patterns. Use WHEN aligning style, tests, or shared patterns.
+---
+
+# Project Skill · Coding Patterns
+
+## When to use
+
+- Coding conventions / lint expectations
+- Preferred test layout
+
+## Protocol
+
+1. Prefer repo lint/test configs as source of truth.
+2. Capture team habits that are not obvious from configs.
+
+## Maintain
+
+Update after agreed convention changes.
+`;
+}
+
+function projectSkillSelfUpdate() {
+  return `---
+name: self-update
+description: How to grow project.md and project-skills after architecture or domain changes. Use WHEN refreshing project knowledge.
+---
+
+# Project Skill · Self Update
+
+## When to use
+
+- After major route/module/API changes
+- When project knowledge docs are stale
+
+## Protocol
+
+1. Run \`aafe analyze\` to refresh machine facts under analyze output.
+2. Update \`.ai-agent/project.md\` Quick Map if entry/domains changed.
+3. Update only the affected \`.ai-agent/project-skills/<domain>/SKILL.md\`.
+4. Do not copy knowledge into editor directories (\`.cursor\`, etc.).
+
+## Maintain
+
+\`aafe update\` refreshes runtime adapters; it must not wipe this skill.
+`;
+}
+
 async function writeIfAllowed(filePath, content, options) {
   await mkdir(path.dirname(filePath), { recursive: true });
   const previous = await safeRead(filePath);
@@ -348,7 +586,64 @@ async function makeExecutable(filePath) {
 }
 
 function skillIndex() {
-  return '# AAFE Skill Index On-Demand Router\n\nThis file is generated by @aafe/agent-runtime and is safe to refresh with `aafe update`.\nIt is the thin routing protocol for project knowledge. Project-specific knowledge remains in\n`.ai-agent/project.md` and `.ai-agent/project-skills/**`.\n\n## Default loading order for every task\n\n1. Read this file first: `.ai-agent/skill-index.md`.\n2. If present, read `.ai-agent/project.md` for the project quick map and domain routing hints.\n3. If the task is about architecture, self-update, project rules, or knowledge maintenance, load the matching\n   project skill from `.ai-agent/project-skills/<domain>/SKILL.md` when it exists.\n4. For non-trivial frontend feature/refactor/bugfix/performance work, then enter the AAFE runtime:\n   - `.ai-agent/runtime/engine.md`\n   - `.ai-agent/runtime/router.yaml`\n   - selected `.ai-agent/pipelines/*.yaml`\n   - `.ai-agent/runtime/gates.yaml`\n\n## On-demand project skill loading\n\nLoad only the domain skill that matches the current task. Common domain hints:\n\n- components / UI / Vue / React / TSX / global components / registration -> components skill\n- hooks / composables / stateful behavior / side effects -> hooks or composables skill\n- services / API / request / data access / client adapter -> api-services skill\n- routes / pages / module boundaries / architecture map -> architecture skill\n- conventions / coding patterns / lint / tests -> coding-patterns or conventions skill\n- knowledge update / project skill maintenance / self-growing docs -> self-update skill\n\nThe exact project domains are owned by the project and should be discovered from `.ai-agent/project.md`\nand `.ai-agent/project-skills/*/SKILL.md` descriptions.\n\n## Forbidden\n\n- Do not copy project knowledge into .cursor, .codebuddy, .vscode, .codex, .trace, .windsurf, or other editor directories.\n- Do not eagerly read every `.ai-agent/project-skills/*/SKILL.md` file.\n- Do not treat editor `skills/ENTRY.md` files as full knowledge; they are pointers to this index.\n- Do not inject full runtime files into session hooks; read runtime files on demand.\n\n## Ownership and update policy\n\nGenerated and refreshable by `aafe update`:\n- this file\n- `.ai-agent/runtime/**`\n- `.ai-agent/pipelines/**`\n- editor adapter pointers and rules\n\nProject-owned and preserved by `aafe update`:\n- `.ai-agent/project.md`\n- `.ai-agent/project-skills/**`\n- `.ai-agent/rules/**`\n- `.ai-agent/memory/**`\n';
+  return `# AAFE Skill Index On-Demand Router
+
+This file is generated by @aafe/agent-runtime and is safe to refresh with \`aafe update\`.
+It is the thin routing protocol for project knowledge. Project-specific knowledge remains in
+\`.ai-agent/project.md\` and \`.ai-agent/project-skills/**\`.
+
+## Default loading order for every task
+
+1. Read this file first: \`.ai-agent/skill-index.md\`.
+2. If present, read \`.ai-agent/project.md\` for the project quick map and domain routing hints.
+3. If the task is about architecture, self-update, project rules, or knowledge maintenance, load the matching
+   project skill from \`.ai-agent/project-skills/<domain>/SKILL.md\` when it exists.
+4. For non-trivial frontend feature/refactor/bugfix/performance work, then enter the AAFE runtime:
+   - \`.ai-agent/runtime/engine.md\`
+   - \`.ai-agent/runtime/router.yaml\`
+   - selected \`.ai-agent/pipelines/*.yaml\`
+   - \`.ai-agent/runtime/gates.yaml\`
+
+## On-demand project skill loading
+
+Load only the domain skill that matches the current task. Common domain hints:
+
+- components / UI / Vue / React / TSX / global components / registration -> components skill
+- hooks / composables / stateful behavior / side effects -> hooks or composables skill
+- services / API / request / data access / client adapter -> api-services skill
+- routes / pages / module boundaries / architecture map -> architecture skill or \`.ai-agent/skills/architecture-on-demand.md\`
+- entry / build tool / AST module map -> \`.ai-agent/skills/project-architecture-locator.md\` then architecture-on-demand
+- dataflow / store / API flow / impact edges -> \`.ai-agent/skills/dataflow-on-demand.md\`
+- conventions / coding patterns / lint / tests -> coding-patterns or conventions skill
+- knowledge update / project skill maintenance / self-growing docs -> self-update skill
+
+Deep analyze docs live under the configured output (default \`.aafe/\`, set \`analyze.output\` or \`--output=\`). Read \`manifest.json\` first; load only matched JSON slices. Never eagerly read entire graph JSONL.
+
+The exact project domains are owned by the project and should be discovered from \`.ai-agent/project.md\`
+and \`.ai-agent/project-skills/*/SKILL.md\` descriptions.
+
+## Forbidden
+
+- Do not copy project knowledge into .cursor, .codebuddy, .vscode, .codex, .trace, .windsurf, or other editor directories.
+- Do not eagerly read every \`.ai-agent/project-skills/*/SKILL.md\` file.
+- Do not eagerly read every analyze output module/graph file.
+- Do not treat editor \`skills/ENTRY.md\` files as full knowledge; they are pointers to this index.
+- Do not inject full runtime files into session hooks; read runtime files on demand.
+
+## Ownership and update policy
+
+Generated and refreshable by \`aafe update\`:
+- this file
+- \`.ai-agent/runtime/**\`
+- \`.ai-agent/pipelines/**\`
+- editor adapter pointers and rules
+
+Project-owned and preserved by \`aafe update\`:
+- \`.ai-agent/project.md\`
+- \`.ai-agent/project-skills/**\`
+- \`.ai-agent/rules/**\`
+- \`.ai-agent/memory/**\`
+`;
 }
 
 function engine() {
@@ -558,25 +853,84 @@ When to use:
 - The user asks where a route, page, component, module or design document is implemented.
 - The agent needs to understand a project quickly before editing.
 - The project structure has changed and the architecture index may be stale.
+- Entry / build-tool / AST-based module maps need refresh.
 
 Command:
 
 \`\`\`bash
 aafe analyze
+aafe analyze --output=.aafe
+aafe analyze --formats=json,jsonl,md,mmd
+aafe analyze --mmd
+aafe analyze --force
+aafe analyze --skip-existing
+aafe analyze --llm
 \`\`\`
 
 Generated artifacts:
+- configurable analyze output (default \`.aafe/\`, via \`analyze.output\` or \`--output=\`)
+- formats: default \`json,jsonl,md,mmd\` (Agent: json/jsonl; Human: mmd/md)
+- per-module slices under \`modules/<id>/\`
 - .ai-agent/skills/project-architecture-locator.md
+- .ai-agent/skills/architecture-on-demand.md
+- .ai-agent/skills/dataflow-on-demand.md
 - .ai-agent/memory/project-architecture.md
 
 Usage rules:
 1. Read project-architecture-locator.md first for route/component/module locating.
-2. Read only the files listed as relevant before doing wider search.
-3. For architecture or requirement questions, read listed design documents before implementation files.
-4. Re-run aafe analyze after large routing, component or module changes.
+2. Deep facts live under the configured output (default \`.aafe\`); load only one \`modules/<id>/\` slice.
+3. Agent reads JSON/JSONL; humans may open \`.mmd\` when enabled.
+4. For deep architecture, use architecture-on-demand.md.
+5. For dataflow, use dataflow-on-demand.md.
+6. For human architecture docs / Knowledge Center, still use project \`.docs\` via \`--architecture-docs\`.
+7. Re-run aafe analyze after large routing, component or module changes.
 
 Required artifacts:
 - project_architecture_index
+`;
+}
+
+function architectureOnDemandSkillTemplate() {
+  return `# Skill: Architecture On-Demand
+
+Use after \`aafe analyze\` has written the configured output directory (default \`.aafe\`).
+
+When to use:
+- Need module boundaries, owned routes, or key files for a feature area
+- Avoid loading the full architecture dump
+
+Protocol:
+1. Read \`<analyze.output>/manifest.json\` and \`architecture/index.md\`
+2. Load only matching slices from \`architecture/analysis.json\`
+3. Never eagerly read all graph JSONL
+
+Command:
+
+\`\`\`bash
+aafe analyze --output=.aafe
+\`\`\`
+`;
+}
+
+function dataflowOnDemandSkillTemplate() {
+  return `# Skill: Dataflow On-Demand
+
+Use after \`aafe analyze\` has written the configured output directory (default \`.aafe\`).
+
+When to use:
+- Tracing route → page → store/API/hooks flow for one module
+- Impact analysis that needs data edges without full-repo scan
+
+Protocol:
+1. Read \`<analyze.output>/dataflow/index.md\`
+2. Load only needed flows from \`dataflow/analysis.json\`
+3. Use evidence to jump back to source files
+
+Command:
+
+\`\`\`bash
+aafe analyze --output=.aafe
+\`\`\`
 `;
 }
 
@@ -1333,7 +1687,7 @@ function nativeEditorSkill(name) {
 }
 
 function cursorRules() {
-  return '---\ndescription: AAFE Architecture Runtime\nalwaysApply: true\n---\n\n# AAFE Architecture Runtime\n\nFor every non-trivial frontend task after the Skill Router step:\n0. After concrete requirement is obtained (TAPD pull or user spec), follow `aafe-requirement-intake-analysis.mdc` / `requirement-intake-analysis.md`: clarify ambiguities → history search → code scope & root cause → sizing gate (direct fix vs ask Plan mode).\n1. Read `.ai-agent/runtime/engine.md`.\n2. Classify the task using `.ai-agent/runtime/router.yaml`.\n3. Follow the selected `.ai-agent/pipelines/*.yaml`.\n4. Enforce `.ai-agent/runtime/gates.yaml` before implementation.\n5. Read `.ai-agent/skills/project-architecture-locator.md` first when locating routes, components, modules or design docs.\n6. Use framework, DDD, design-pattern and scenario packs when relevant.\n7. For business-heavy features, run DDD Discovery before module decomposition.\n8. For new features, run Pattern Interview before Pattern Selection.\n9. For complex frontend work, select and land patterns per module based on real business responsibility.\n10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.\n11. Before final response, follow `aafe-task-completion-impact.mdc`: task assessment — only ask impact/self-test when code changed (skip docs/requirements-only); UI sub-asks only for code + UI impact; pre-generate `ui_test_paths`.\n12. After self-test or submit intent: follow `aafe-tapd-submit-backfill.mdc` only when task has TAPD association and `tapd.enabled`; else skip TAPD backfill asks.\n13. File license: follow `aafe-new-file-license.mdc` — new files add header; edits use local `aafe license ensure <path>` (never AI-Read memory JSONL).\n';
+  return '---\ndescription: AAFE Architecture Runtime\nalwaysApply: true\n---\n\n# AAFE Architecture Runtime\n\nFor every non-trivial frontend task after the Skill Router step:\n0. After concrete requirement is obtained (TAPD pull or user spec), follow `aafe-requirement-intake-analysis.mdc` / `requirement-intake-analysis.md`: clarify ambiguities → history search → code scope & root cause → sizing gate (direct fix vs ask Plan mode).\n1. Read `.ai-agent/runtime/engine.md`.\n2. Classify the task using `.ai-agent/runtime/router.yaml`.\n3. Follow the selected `.ai-agent/pipelines/*.yaml`.\n4. Enforce `.ai-agent/runtime/gates.yaml` before implementation.\n5. Read `.ai-agent/skills/project-architecture-locator.md` first when locating routes, components, modules or design docs.\n5b. For deep architecture/dataflow, use `.ai-agent/skills/architecture-on-demand.md` / `dataflow-on-demand.md` against the configured analyze output (default `.aafe/`, never the full tree).\n6. Use framework, DDD, design-pattern and scenario packs when relevant.\n7. For business-heavy features, run DDD Discovery before module decomposition.\n8. For new features, run Pattern Interview before Pattern Selection.\n9. For complex frontend work, select and land patterns per module based on real business responsibility.\n10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.\n11. Before final response, follow `aafe-task-completion-impact.mdc`: task assessment — only ask impact/self-test when code changed (skip docs/requirements-only); UI sub-asks only for code + UI impact; pre-generate `ui_test_paths`.\n12. After self-test or submit intent: follow `aafe-tapd-submit-backfill.mdc` only when task has TAPD association and `tapd.enabled`; else skip TAPD backfill asks.\n13. File license: follow `aafe-new-file-license.mdc` — new files add header; edits use local `aafe license ensure <path>` (never AI-Read memory JSONL).\n';
 }
 
 function cursorHooks() {

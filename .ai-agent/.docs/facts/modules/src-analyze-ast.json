@@ -1,0 +1,21 @@
+{
+  "architecture": {
+    "id": "src-analyze-ast",
+    "title": "src-analyze-ast",
+    "kind": "directory",
+    "files": [
+      "src/analyze/ast/extractors.js",
+      "src/analyze/ast/parseFile.js"
+    ],
+    "routes": [],
+    "signals": [],
+    "components": [],
+    "dependsOn": []
+  },
+  "dataflow": {
+    "id": "src-analyze-ast",
+    "dataHints": [],
+    "edges": [],
+    "routes": []
+  }
+}

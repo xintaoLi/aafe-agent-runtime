@@ -101,6 +101,27 @@
     "installCommand": "aafe skills install <skill-name> --github",
     "boundary": "Use only for Agent SKILLS download. Use init/update/analyze/doctor for project .ai-agent runtime."
   },
+  "analyze": {
+    "output": ".aafe",
+    "formats": ["json", "jsonl", "md", "mmd"],
+    "maxDepth": 40,
+    "architecture": { "enabled": true },
+    "dataflow": { "enabled": true },
+    "features": { "enabled": true },
+    "business": { "enabled": true },
+    "llm": {
+      "enabled": false,
+      "provider": null,
+      "model": null,
+      "agents": {
+        "architecture": false,
+        "dataflow": false,
+        "feature": false,
+        "business": false,
+        "testing": false
+      }
+    }
+  },
   "gates": [
     "ddd_gate",
     "architecture_gate",

@@ -12,3 +12,7 @@ export { analyzeDDD, buildDDDInterview } from './ddd/DDDAdvisor.js';
 export { analyzePatternFit, buildPatternInterview, patternCatalog } from './patterns/PatternAdvisor.js';
 export { detectProject } from './cli/detect.js';
 export { bootstrapProject } from './cli/bootstrap.js';
+export { analyzeProjectArchitecture } from './cli/analyze.js';
+export { discoverProjectEntries } from './analyze/entryDiscover.js';
+export { AnalyzeOrchestrator } from './analyze/orchestrator.js';
+export { resolveAnalyzeConfig, defaultAnalyzeConfigBlock } from './analyze/types/config.js';

@@ -23,18 +23,23 @@ Load only the domain skill that matches the current task. Common domain hints:
 - components / UI / Vue / React / TSX / global components / registration -> components skill
 - hooks / composables / stateful behavior / side effects -> hooks or composables skill
 - services / API / request / data access / client adapter -> api-services skill
-- routes / pages / module boundaries / architecture map -> architecture skill
+- routes / pages / module boundaries / architecture map -> architecture skill or `.ai-agent/skills/architecture-on-demand.md`
+- entry / build tool / AST module map -> `.ai-agent/skills/project-architecture-locator.md` then architecture-on-demand
+- dataflow / store / API flow / impact edges -> `.ai-agent/skills/dataflow-on-demand.md`
 - conventions / coding patterns / lint / tests -> coding-patterns or conventions skill
 - knowledge update / project skill maintenance / self-growing docs -> self-update skill
 
-The exact project domains are owned by the project and should be discovered from `.ai-agent/project.md`
-and `.ai-agent/project-skills/*/SKILL.md` descriptions.
+Deep analyze docs live under the configured output (default \`.aafe/\`, set \`analyze.output\` or \`--output=\`). Read \`manifest.json\` first; load only matched JSON slices. Never eagerly read entire graph JSONL.
+
+The exact project domains are owned by the project and should be discovered from \`.ai-agent/project.md\`
+and \`.ai-agent/project-skills/*/SKILL.md\` descriptions.
 
 ## Forbidden
 
 - Do not copy project knowledge into .cursor, .codebuddy, .vscode, .codex, .trace, .windsurf, or other editor directories.
-- Do not eagerly read every `.ai-agent/project-skills/*/SKILL.md` file.
-- Do not treat editor `skills/ENTRY.md` files as full knowledge; they are pointers to this index.
+- Do not eagerly read every \`.ai-agent/project-skills/*/SKILL.md\` file.
+- Do not eagerly read every analyze output module/graph file.
+- Do not treat editor \`skills/ENTRY.md\` files as full knowledge; they are pointers to this index.
 - Do not inject full runtime files into session hooks; read runtime files on demand.
 
 ## Ownership and update policy

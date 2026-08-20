@@ -1,0 +1,20 @@
+{
+  "architecture": {
+    "id": "src-analyze-dataflow",
+    "title": "src-analyze-dataflow",
+    "kind": "directory",
+    "files": [
+      "src/analyze/dataflow/buildDataflow.js"
+    ],
+    "routes": [],
+    "signals": [],
+    "components": [],
+    "dependsOn": []
+  },
+  "dataflow": {
+    "id": "src-analyze-dataflow",
+    "dataHints": [],
+    "edges": [],
+    "routes": []
+  }
+}
