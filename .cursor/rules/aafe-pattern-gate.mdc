@@ -1,0 +1,25 @@
+---
+description: 前端设计模式是显式启用能力；只有用户明确表达设计模式诉求时才加载模式规则与技能，代码里出现 factory/adapter/observer/strategy 等一律不算触发。
+alwaysApply: true
+---
+
+# AAFE 前端设计模式门禁（Pointer）
+
+Source of truth:
+
+1. Gate rule: `.ai-agent/frontend-engineering/rules/pattern-gate.md`
+2. Composition rule: `.ai-agent/frontend-engineering/rules/pattern-composition.md`
+3. Pack entry: `.ai-agent/frontend-engineering/SKILL.md`
+
+**Design patterns are opt-in.** 在用户明确表达设计模式意图之前，不要读取
+`.ai-agent/frontend-engineering/` 下的任何其他文件。
+
+- 判定：`aafe pattern gate "<request>"` → enabled / disabled / ambiguous
+- disabled → 按普通任务处理，不做模式识别、选型与组合
+- ambiguous → 先问用户是否要按设计模式做，不要静默启用
+- enabled → 先 `aafe pattern discover` 识别问题，再 `aafe pattern select` 出组合
+
+最高优先级：**PATTERN-SYSTEM-001**，一个项目不是"选一个设计模式"，而是针对问题选出
+最小充分的模式组合；**PATTERN-SYSTEM-002**，不用设计模式不是缺陷。
+
+Do not duplicate project knowledge here.

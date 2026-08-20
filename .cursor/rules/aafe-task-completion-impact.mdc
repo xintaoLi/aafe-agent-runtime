@@ -1,0 +1,17 @@
+---
+description: AAFE Task Completion Impact and Test Analysis
+alwaysApply: true
+---
+
+# AAFE 任务完成影响分析与测试（Pointer）
+
+Source of truth:
+
+1. Rule: `.ai-agent/rules/task-completion-impact.mdc`
+2. Skills:
+   - `.ai-agent/skills/architecture-impact-test-forecast.md`
+   - `.ai-agent/skills/minimal-convergent-self-test.md`
+   - 自测后衔接：`.ai-agent/skills/tapd-submit-backfill.md`
+
+Follow the Rule for task assessment gates and hard constraints; load Skills only after user confirms code-change impact analysis.
+UI/路由自测走 `aafe test --diff`；浏览器 MCP 仅当 E2E blocked。MCP 兜底须先预生成 `ui_test_paths`。无代码变更或无 UI 影响时不询问浏览器。Do not duplicate project knowledge here.

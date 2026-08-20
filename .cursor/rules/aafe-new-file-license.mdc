@@ -1,0 +1,12 @@
+---
+description: AAFE File License Header
+alwaysApply: true
+---
+
+# AAFE 文件 License（Pointer）
+
+Source of truth:
+
+1. Rule: `.ai-agent/rules/new-file-license.mdc`
+
+**新增文件**加头；**修改且已有 License** 时用本地 CLI 校验/更新（禁止 AI 读 memory 文件）。Do not duplicate project knowledge here.

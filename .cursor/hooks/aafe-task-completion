@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -u
+
+if [ "${AAFE_TASK_STATUS:-success}" != "success" ]; then
+  exit 0
+fi
+
+resolve_aafe() {
+  dir="$PWD"
+  while [ -n "$dir" ] && [ "$dir" != "/" ]; do
+    if [ -x "$dir/node_modules/.bin/aafe" ]; then
+      printf '%s' "$dir/node_modules/.bin/aafe"
+      return 0
+    fi
+    dir="$(dirname "$dir")"
+  done
+  if command -v aafe >/dev/null 2>&1; then
+    printf 'aafe'
+    return 0
+  fi
+  return 1
+}
+
+AAFE="$(resolve_aafe)" || exit 0
+"$AAFE" task-completion || true

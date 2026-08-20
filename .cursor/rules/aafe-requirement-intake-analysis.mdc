@@ -1,0 +1,15 @@
+---
+description: AAFE Requirement Intake & Analysis
+alwaysApply: true
+---
+
+# AAFE 需求分析阶段（Pointer）
+
+Source of truth:
+
+1. Rule: `.ai-agent/rules/requirement-intake-analysis.mdc`
+2. Skill: `.ai-agent/skills/requirement-intake-analysis.md`
+
+在**拿到具体需求之后、写代码之前**执行；任务完成后的自测 / TAPD 回填 / Commit / PR 流程不变。
+
+Do not duplicate project knowledge here.
