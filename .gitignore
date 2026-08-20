@@ -8,3 +8,7 @@ output/
 .session_tmps/
 .aafe/runs/
 .aafe/
+.ai-agent
+.docs
+.cursor
+.thumbs
