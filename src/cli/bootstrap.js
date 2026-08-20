@@ -157,8 +157,26 @@ async function writeConfig(root, _detection, options, plan) {
         }
       }
     },
-    gates: ['ddd_enablement_gate', 'ddd_gate', 'architecture_gate', 'pattern_enablement_gate', 'pattern_gate', 'implementation_gate', 'merge_gate']
+    gates: ['ddd_enablement_gate', 'ddd_gate', 'architecture_gate', 'pattern_enablement_gate', 'pattern_gate', 'implementation_gate', 'merge_gate'],
+    e2e: {
+      casesDir: 'tests/ui-ai/cases',
+      reportDir: '.aafe/e2e/reports',
+      specsDir: '.aafe/e2e/specs',
+      impactDir: '.aafe/e2e/impact',
+      baseUrlEnv: 'AAFE_E2E_BASE_URL',
+      baseUrl: null,
+      enabled: false,
+      githubAccessToken: null,
+      gongfengAccessToken: null
+    }
   };
+
+  if (existingConfig.e2e) {
+    config.e2e = { ...config.e2e, ...existingConfig.e2e };
+  }
+  if (options.e2eConfig) {
+    config.e2e = { ...config.e2e, ...options.e2eConfig };
+  }
 
   if (existingConfig.analyze) {
     config.analyze = {
@@ -683,7 +701,10 @@ not on \`PATH\`; if neither resolves, fall back to reading files and say so.
 | Reporting blast radius after a change | \`aafe impact --diff\` or \`aafe impact --requirement="<text>"\` |
 | Deciding whether DDD applies | \`aafe ddd gate "<request>"\`, then \`aafe ddd scope\` |
 | Deciding whether design patterns apply | \`aafe pattern gate "<request>"\`, then \`aafe pattern discover\` |
-| Planning tests for a change | \`aafe test --requirement="<text>"\` |
+| Planning tests for a change | \`aafe test --diff\` or \`aafe test --requirement="<text>"\` |
+| Full functional coverage from analyze | \`aafe test --coverage\` |
+| Generate cases from a PR vs its target branch | \`aafe test --pr=<url>\` |
+| Enable Playwright E2E after init | \`aafe e2e enable\` |
 | A test run failed and the cause is unclear | \`aafe diagnose --failure=<report>\` |
 | Runtime files look stale or inconsistent | \`aafe doctor\`, then \`aafe migrate --dry-run\` |
 
@@ -691,9 +712,7 @@ Prefer \`aafe knowledge search\` over a blind repository grep: it ranks across m
 components, features and symbols, and normalizes \`userPhoneSearch\`, \`user-phone-search.js\` and
 the equivalent Chinese phrase onto the same tokens.
 
-These commands only read and report. The two that write are \`aafe analyze\` (refreshes the
-analyze output) and \`aafe migrate\` (moves legacy files); everything else leaves the project
-untouched, so running one to check an assumption is cheap.
+These commands mostly read and report. Writers: \`aafe analyze\` (refreshes analyze output), \`aafe migrate\` (moves legacy files), and \`aafe test --write/--run\` (YAML cases + \`.aafe/e2e/reports\`). Everything else leaves the project untouched, so running one to check an assumption is cheap.
 
 ## Forbidden
 

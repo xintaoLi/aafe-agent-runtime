@@ -143,5 +143,16 @@
   ],
   "submit": {
     "cli": "git"
+  },
+  "e2e": {
+    "casesDir": "tests/ui-ai/cases",
+    "reportDir": ".aafe/e2e/reports",
+    "specsDir": ".aafe/e2e/specs",
+    "impactDir": ".aafe/e2e/impact",
+    "baseUrlEnv": "AAFE_E2E_BASE_URL",
+    "baseUrl": null,
+    "enabled": false,
+    "githubAccessToken": null,
+    "gongfengAccessToken": null
   }
 }

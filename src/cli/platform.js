@@ -25,6 +25,7 @@ import { createTask } from '../agent-platform/protocol/request.js';
 import { CONTEXT_FORMATS, renderContextPackage } from '../ide-bridge/context/render.js';
 import { renderImpactMarkdown } from '../knowledge/report/impactMarkdown.js';
 import { listRuns, replayRun } from '../agent-platform/state/RunStore.js';
+import { loadE2eConfig } from '../testing/e2e/config.js';
 
 /**
  * CLI surface for the agent platform (RFC §25).
@@ -246,11 +247,39 @@ async function replayStoredRun(root, options) {
  */
 export async function runTestCommand(root, args = []) {
   const options = parsePlatformArgs(args);
+  if (options.inlineToken !== undefined) {
+    console.error('拒绝从命令行读取令牌：不要使用 --token <值>。请写到 `.aafe.config.json` 的 e2e.githubAccessToken / e2e.gongfengAccessToken，或环境变量 GITHUB_TOKEN / GIT_PRIVATE_TOKEN。');
+    process.exitCode = 3;
+    return null;
+  }
+  if (options.prPending || options.prUrl === '') {
+    console.error('缺少 PR 链接。请提供 GitHub pull 或工蜂 merge_requests 完整 URL。');
+    process.exitCode = 3;
+    return null;
+  }
+
+  const e2e = await loadE2eConfig(root);
+  if (!e2e.enabled && (options.run || options.coverage || options.prUrl)) {
+    console.error('E2E 未启用。运行 `aafe e2e enable`，或在 `aafe init` / `aafe update --interactive` 时选择启用。');
+    process.exitCode = 3;
+    return null;
+  }
+
+  const scenario = options.coverage ? 'coverage' : (options.prUrl ? 'pr' : 'changes');
   const task = createTask({
     kind: 'test',
-    goal: options.goal || options.requirement || options.positional || 'verify the current change',
-    requirement: options.requirement || options.positional || null,
-    diffRef: options.diff || null
+    goal: options.goal
+      || options.requirement
+      || options.positional
+      || (scenario === 'coverage' ? 'full functional coverage from analyze' : 'verify the current change'),
+    requirement: options.requirement || options.positional || (scenario === 'coverage' ? 'full coverage from analyze' : null),
+    diffRef: options.diff !== undefined ? (options.diff || null) : (scenario === 'changes' ? null : undefined),
+    scenario,
+    prUrl: options.prUrl || null,
+    e2eWrite: options.writeCases,
+    e2eUpdate: options.update === true,
+    e2eForce: options.force === true,
+    dryRun: options.dryRun === true
   });
 
   const { result, warnings } = await executeTask(root, task, options, {
@@ -264,9 +293,10 @@ export async function runTestCommand(root, args = []) {
   const payload = {
     status: result.status === 'complete' ? 'pass' : result.status,
     command: 'aafe test',
+    scenario,
     runId: result.runId,
     plan: plan
-      ? { id: plan.id, risk: plan.risk, scenarios: plan.scenarios?.length ?? 0, preconditions: plan.preconditions }
+      ? { id: plan.id, risk: plan.risk, scenarios: plan.scenarios?.length ?? 0, layers: plan.layers ?? null, e2eApplicable: plan.e2eApplicable ?? null }
       : null,
     scenarios: plan?.scenarios ?? [],
     generated: generation?.files?.map((file) => file.path) ?? [],
@@ -274,16 +304,27 @@ export async function runTestCommand(root, args = []) {
     execution: execution
       ? { status: execution.status, reason: execution.reason ?? null, ...(execution.result ?? {}) }
       : null,
+    reportDir: execution?.result?.reportDir ?? null,
+    htmlPath: execution?.result?.htmlPath ?? null,
+    verdict: execution?.result?.verdict ?? (plan?.blocked ? 'blocked' : null),
     nodes: result.nodes.map(compactNode),
     runRef: result.runRef,
     warnings
   };
 
-  // A failing run is the entry point to the other half of the loop.
   if (execution?.result?.status === 'failed') {
-    payload.nextCommand = 'aafe diagnose --failure=<report>  (or rerun: the report is saved under the run dir)';
+    payload.nextCommand = execution.result.jsonPath
+      ? `aafe diagnose --failure=${execution.result.jsonPath}`
+      : 'aafe diagnose --failure=<report>  (or rerun: the report is saved under .aafe/e2e/reports)';
   }
   console.log(JSON.stringify(payload, null, 2));
+  if (plan?.blocked) {
+    process.exitCode = 3;
+    return payload;
+  }
+  if (execution?.result?.verdict && execution.result.verdict !== 'passed') {
+    process.exitCode = execution.result.verdict === 'blocked' ? 3 : execution.result.verdict === 'uncertain' ? 4 : 2;
+  }
   return payload;
 }
 
@@ -409,6 +450,16 @@ export function parsePlatformArgs(args = []) {
     if (arg === '--no-write') { options.write = false; continue; }
     if (arg === '--no-ide-agent') { options.ideAgent = false; continue; }
     if (arg === '--run') { options.run = true; continue; }
+    if (arg === '--coverage') { options.coverage = true; continue; }
+    if (arg === '--update') { options.update = true; continue; }
+    if (arg === '--force') { options.force = true; continue; }
+    if (arg === '--write') { options.writeCases = true; continue; }
+    if (arg === '--no-write-cases') { options.writeCases = false; continue; }
+    if (arg === '--token-stdin') { options.tokenStdin = true; continue; }
+    if (arg === '--token' || arg.startsWith('--token=')) { options.inlineToken = arg === '--token' ? '' : arg.slice('--token='.length); continue; }
+    if (arg.startsWith('--pr=')) { options.prUrl = arg.slice('--pr='.length); continue; }
+    if (arg === '--pr') { options.prPending = true; continue; }
+    if (options.prPending && !arg.startsWith('--')) { options.prUrl = arg; options.prPending = false; continue; }
     if (arg === '--json') { options.format = 'json'; continue; }
     if (arg === '--list') { options.list = true; continue; }
     if (arg.startsWith('--replay=')) { options.replay = arg.slice('--replay='.length); continue; }

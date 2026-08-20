@@ -18,73 +18,71 @@
  * IN THE SOFTWARE.
  */
 
+import { renderFeatureCase, renderSmokeCase, isRealRoute, normalizeEntry } from '../../testing/e2e/yaml.js';
+import { compileCaseToSpec } from '../../testing/e2e/compile.js';
+import { parseCaseYaml } from '../../testing/e2e/yaml.js';
+
 /**
- * Render runnable test skeletons from a test plan.
+ * Render runnable test artifacts from a test plan.
  *
- * The generated files intentionally stop at the assertion boundary: steps and
- * expectations become comments and a failing `TODO` marker rather than invented
- * selectors. A skeleton that silently passes is worse than no test at all.
+ * E2E scenarios become AITest-compatible YAML (source of truth) plus compiled
+ * Playwright specs under .aafe/e2e/specs. Unit/integration stay as skeletons.
  */
-export function generateTests(plan, { e2eRunner = null, unitRunner = null } = {}) {
+export function generateTests(plan, { e2eRunner = null, unitRunner = null, casesDir = 'tests/ui-ai/cases' } = {}) {
   const files = [];
   const e2eScenarios = plan.scenarios.filter((scenario) => scenario.kind === 'e2e');
   const otherScenarios = plan.scenarios.filter((scenario) => scenario.kind !== 'e2e');
+  const usedIds = [];
 
-  if (e2eScenarios.length > 0) {
-    const runner = e2eRunner ?? 'playwright';
+  e2eScenarios.forEach((scenario, index) => {
+    const entry = scenario.source?.path;
+    if (!isRealRoute(entry)) return;
+    const prefix = plan.scenario === 'coverage' && scenario.source?.type === 'feature' ? 'FEAT' : plan.pr ? 'PR' : 'CHG';
+    const id = scenario.caseId && /^[A-Z][A-Z0-9_-]*-[0-9]{3}$/.test(scenario.caseId)
+      ? scenario.caseId
+      : `${prefix}-${String(index + 1).padStart(3, '0')}`;
+    if (usedIds.includes(id)) return;
+    usedIds.push(id);
+    scenario.caseId = id;
+    const yaml = scenario.source?.type === 'feature'
+      ? renderFeatureCase(id, {
+        title: scenario.title,
+        entry,
+        featureId: scenario.relatedFeature,
+        sourcePath: scenario.source?.file
+      })
+      : renderSmokeCase(id, entry, {
+        sourcePath: scenario.source?.file,
+        sourceKind: plan.pr ? 'requirement' : 'quality-gate',
+        sourceRef: plan.pr?.url ?? (plan.scenario === 'coverage' ? 'inventory-smoke' : 'change-smoke')
+      });
     files.push({
-      path: `tests/aafe/${fileStem(plan)}.e2e.spec.js`,
-      runner,
-      content: runner === 'cypress'
-        ? renderCypress(e2eScenarios, plan)
-        : renderPlaywright(e2eScenarios, plan)
+      path: `${casesDir}/${id}.yaml`,
+      runner: e2eRunner ?? 'playwright',
+      kind: 'yaml',
+      content: yaml
     });
-  }
+    const compiled = compileCaseToSpec(parseCaseYaml(yaml));
+    files.push({
+      path: `.aafe/e2e/specs/${id}.spec.js`,
+      runner: 'playwright',
+      kind: 'spec',
+      overwrite: true,
+      content: compiled
+    });
+  });
 
   if (otherScenarios.length > 0) {
     const runner = unitRunner ?? 'vitest';
     files.push({
       path: `tests/aafe/${fileStem(plan)}.spec.js`,
       runner,
+      kind: 'unit',
       content: renderUnit(otherScenarios, plan, runner)
     });
   }
 
   return files;
-}
-
-function renderPlaywright(scenarios, plan) {
-  const body = scenarios.map((scenario) => `
-test(${quote(scenario.title)}, async ({ page }) => {
-${steps(scenario)}
-${expectations(scenario)}
-  test.fail(true, 'AAFE generated this skeleton; replace with real assertions.');
-${navigation(scenario)}
-});`).join('\n');
-
-  return `${header(plan)}
-import { expect, test } from '@playwright/test';
-
-test.describe(${quote(describeTitle(plan))}, () => {
-${indent(body)}
-});
-`;
-}
-
-function renderCypress(scenarios, plan) {
-  const body = scenarios.map((scenario) => `
-it(${quote(scenario.title)}, () => {
-${steps(scenario)}
-${expectations(scenario)}
-  throw new Error('AAFE generated this skeleton; replace with real assertions.');
-${cypressNavigation(scenario)}
-});`).join('\n');
-
-  return `${header(plan)}
-describe(${quote(describeTitle(plan))}, () => {
-${indent(body)}
-});
-`;
 }
 
 function renderUnit(scenarios, plan, runner) {
@@ -113,18 +111,6 @@ function steps(scenario) {
 
 function expectations(scenario) {
   return scenario.expected.map((item) => `  // expect: ${item}`).join('\n');
-}
-
-function navigation(scenario) {
-  return scenario.source?.type === 'route'
-    ? `  // await page.goto(${quote(scenario.source.path)});`
-    : '';
-}
-
-function cypressNavigation(scenario) {
-  return scenario.source?.type === 'route'
-    ? `  // cy.visit(${quote(scenario.source.path)});`
-    : '';
 }
 
 function header(plan) {

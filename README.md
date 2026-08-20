@@ -232,7 +232,7 @@ git checkout -- .ai-agent .aafe.config.json
 | `aafe plan` | 查看 Planner 的决策轨迹 |
 | `aafe run` | 运行 Planner + Orchestrator 全循环 |
 | `aafe pipeline` | 运行旧的 Skill Pipeline（0.1.x 的 `aafe run` 行为） |
-| `aafe test` | 规划并生成测试；`--run` 才执行项目测试套件 |
+| `aafe test` | 规划并生成 YAML Case；`--coverage` 全量、`--diff` 任务变更、`--pr=<url>` PR 差异；`--run` 才用 Playwright 执行 |
 | `aafe diagnose` | 把失败报告定位成根因与修复方向 |
 | `aafe license` | 校验并补齐文件 License 头 |
 | `aafe skills` | 下载 GitHub Agent Skills，不用于项目初始化 |
@@ -554,7 +554,18 @@ aafe plan --requirement="..." --dry-run
 # Planner + Orchestrator 全循环，产物写入 <output>/runs/<runId>/
 aafe run "增加用户手机号搜索"
 
-# 规划测试 / 生成骨架；加 --run 才真正执行项目测试套件
+# 规划测试 / 生成 YAML Case；加 --run 才真正用 Playwright 执行
+aafe test --diff
+aafe test --coverage
+aafe test --pr=https://github.com/acme/app/pull/12
+
+# 启用 / 关闭 E2E（init 与 update 也会询问）
+aafe e2e enable
+aafe e2e status
+aafe e2e install --yes
+
+# PR 访问令牌写在 .aafe.config.json（可用 ${ENV}），不要用 --token <值>
+#   e2e.githubAccessToken / e2e.gongfengAccessToken
 aafe test --requirement="增加用户手机号搜索"
 
 # 把一次失败的测试报告定位成根因
@@ -589,7 +600,7 @@ Planner 只认 capability，不认 Agent 名字，因此换实现不需要改 Pl
 | `impact-analyzer` | `requirement-impact` / `change-impact` / `risk-analysis` | 已实现 |
 | `knowledge-validator` | `knowledge-validation` / `evidence-check` | 已实现 |
 | `context-agent` | `context-packaging` / `evidence-selection` | 已实现 |
-| `test-agent` | `test-planning` / `test-generation` / `e2e-execution` | 已实现；`e2e-execution` 需 `allowTestExecution`（或 `aafe test --run`） |
+| `test-agent` | `test-planning` / `test-generation` / `e2e-execution` | 已实现；YAML 落 `tests/ui-ai/cases/`，报告只在 `.aafe/e2e/reports/`；`e2e-execution` 需 `allowTestExecution`（或 `aafe test --run`） |
 | `failure-analyzer` | `failure-analysis` / `root-cause-analysis` / `fix-analysis` | 已实现 |
 
 `risk-analysis` 与 `evidence-check` 两个 capability 已注册但尚无本地实现分支。

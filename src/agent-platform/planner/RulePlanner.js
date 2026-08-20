@@ -178,7 +178,13 @@ export class RulePlanner {
       case 'test-planning':
       case 'test-generation':
       case 'e2e-execution':
-        return { requirement: task.requirement ?? task.goal };
+        return {
+          requirement: task.requirement ?? task.goal,
+          scenario: task.scenario ?? null,
+          write: task.e2eWrite,
+          update: task.e2eUpdate,
+          force: task.e2eForce
+        };
       default:
         return null;
     }
@@ -190,6 +196,9 @@ export class RulePlanner {
  * @returns {(string|string[])[]}
  */
 function resolvePlan(task) {
+  if (task.kind === 'test' && (task.scenario === 'coverage' || task.scenario === 'pr')) {
+    return ['test-planning', 'test-generation', 'e2e-execution', 'context-packaging'];
+  }
   const plan = CAPABILITY_PLANS[task.kind] ?? CAPABILITY_PLANS.generic;
   const impact = task.diffRef || !task.requirement ? 'change-impact' : 'requirement-impact';
   return plan.map((step) => (Array.isArray(step)

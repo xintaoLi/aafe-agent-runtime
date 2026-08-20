@@ -18,17 +18,19 @@
  * IN THE SOFTWARE.
  */
 
-import { execFile } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { promisify } from 'node:util';
 import { agentPartial, agentSkipped, agentSuccess } from '../../agent-platform/protocol/response.js';
 import { detectTestRunners } from '../../testing/runnerDetect.js';
 import { parseTestReport } from '../../testing/reportParser.js';
+import { loadE2eConfig } from '../../testing/e2e/config.js';
+import { executeE2eCases } from '../../testing/e2e/runner.js';
+import { persistImpactPack, writeInventoryCases } from '../../testing/e2e/inventory.js';
+import { fetchPullRequest, parsePrUrl, resolvePrToken } from '../../testing/e2e/pr.js';
+import { collectDiffFacts } from '../../static-analysis/git/DiffFacts.js';
+import { shouldRouteToUnitChain } from '../../testing/e2e/layers.js';
 import { buildTestPlan } from './plan.js';
 import { generateTests } from './generate.js';
-
-const execFileAsync = promisify(execFile);
 
 /**
  * A3 — Test Agent (RFC §15).
@@ -63,20 +65,36 @@ export class TestAgent {
   }
 
   async #plan(request, root, knowledge, runners) {
+    const task = request.context?.task ?? {};
+    const scenario = request.input?.scenario ?? task.scenario ?? 'changes';
     const impact = pickImpact(request);
-    if (!impact) {
+
+    if (scenario !== 'coverage' && scenario !== 'pr' && !impact) {
       return agentSkipped('no-impact-report-to-plan-tests-from', {
         nextActions: [{ capability: 'requirement-impact', reason: 'test planning is scoped by the impact report' }]
       });
     }
 
     const started = Date.now();
+    const changedFiles = await this.#changedFiles(request, root);
+    if (changedFiles?.blocked) {
+      return agentPartial(
+        { blocked: true, error: changedFiles.error, scenario },
+        changedFiles.error,
+        { metrics: { duration: Date.now() - started } }
+      );
+    }
     const plan = await buildTestPlan({
       impact,
       knowledge,
-      requirement: request.input?.requirement ?? request.context?.task?.requirement ?? '',
-      runners
+      requirement: request.input?.requirement ?? task.requirement ?? task.goal ?? '',
+      runners,
+      scenario,
+      root,
+      changedFiles: changedFiles ?? []
     });
+    plan.scenario = scenario;
+    plan.pr = task.prUrl ? { url: task.prUrl } : plan.pr ?? null;
 
     const response = {
       metrics: { duration: Date.now() - started },
@@ -95,24 +113,57 @@ export class TestAgent {
   async #generate(request, root, knowledge, runners) {
     const plan = pickPlan(request)
       ?? (await this.#plan(request, root, knowledge, runners)).result;
+    if (plan?.blocked) {
+      return agentPartial(plan, plan.error ?? 'blocked', {});
+    }
     if (!plan?.scenarios?.length) {
       return agentSkipped('no-test-plan-available', {
         nextActions: [{ capability: 'test-planning', reason: 'generation needs a plan first' }]
       });
     }
 
+    const task = request.context?.task ?? {};
+    const writeRequested = request.input?.write ?? task.e2eWrite ?? true;
+    const e2e = await loadE2eConfig(root);
+    const write = writeRequested && e2e.enabled;
     const started = Date.now();
-    const files = generateTests(plan, { e2eRunner: runners.e2e.id, unitRunner: runners.unit.id });
-    const write = request.input?.write === true;
+    const config = e2e;
     const written = [];
+    let files = [];
 
-    if (write) {
-      for (const file of files) {
-        const target = path.join(root, file.path);
-        await mkdir(path.dirname(target), { recursive: true });
-        await writeFile(target, file.content, 'utf8');
-        written.push(file.path);
+    if (plan.scenario === 'coverage' && plan.inventory && write) {
+      const coverageWrite = await writeInventoryCases(plan.inventory, {
+        casesDir: config.casesDirAbs,
+        update: task.e2eUpdate === true || request.input?.update === true,
+        force: task.e2eForce === true || request.input?.force === true
+      });
+      written.push(...coverageWrite.written.map((item) => path.relative(root, item.file)));
+      files = generateTests(plan, { e2eRunner: runners.e2e.id, unitRunner: runners.unit.id, casesDir: config.casesDir });
+    } else {
+      files = generateTests(plan, { e2eRunner: runners.e2e.id, unitRunner: runners.unit.id, casesDir: config.casesDir });
+      if (write && !shouldRouteToUnitChain(plan.layers)) {
+        for (const file of files) {
+          const target = path.join(root, file.path);
+          await mkdir(path.dirname(target), { recursive: true });
+          try {
+            await writeFile(target, file.content, { encoding: 'utf8', flag: file.overwrite ? 'w' : 'wx' });
+            written.push(file.path);
+          } catch (error) {
+            if (error?.code === 'EEXIST') continue;
+            throw error;
+          }
+        }
       }
+    }
+
+    if (plan.inventory) {
+      await persistImpactPack(config.impactDirAbs, 'inventory.json', plan.inventory);
+    } else if (write && (plan.scenario === 'changes' || plan.scenario === 'pr')) {
+      await persistImpactPack(
+        config.impactDirAbs,
+        plan.scenario === 'pr' ? 'pr-plan.json' : 'changes.json',
+        { scenario: plan.scenario, layers: plan.layers, pr: plan.pr ?? null, scenarios: plan.scenarios }
+      );
     }
 
     const result = {
@@ -134,56 +185,81 @@ export class TestAgent {
       : agentPartial(result, 'no test runner detected; defaulted to playwright/vitest templates', response);
   }
 
+  async #changedFiles(request, root) {
+    const task = request.context?.task ?? {};
+    if (task.prUrl) {
+      try {
+        if (task.inlineToken) {
+          resolvePrToken({ provider: parsePrUrl(task.prUrl).provider, inlineToken: task.inlineToken });
+        }
+        const fetched = await fetchPullRequest(task.prUrl, { root });
+        await persistImpactPack(
+          (await loadE2eConfig(root)).impactDirAbs,
+          `pr-${fetched.number}.json`,
+          fetched
+        );
+        return fetched.files.map((file) => file.path);
+      } catch (error) {
+        return { blocked: true, error: error instanceof Error ? error.message : String(error) };
+      }
+    }
+    const diff = await collectDiffFacts(root, task.diffRef ?? request.input?.diffRef ?? null);
+    return (diff.files ?? []).map((file) => file.path);
+  }
+
   async #execute(request, root, runners) {
-    const runner = runners.e2e.id ? runners.e2e : runners.unit;
-    if (!runner.id) {
-      return agentSkipped('no-test-runner-detected', {
-        result: { scripts: Object.keys(runners.scripts) }
+    const task = request.context?.task ?? {};
+    const plan = pickPlan(request);
+    if (plan?.blocked) {
+      return agentSkipped('pr-fetch-blocked', { result: plan });
+    }
+    if (shouldRouteToUnitChain(plan?.layers)) {
+      return agentSkipped('e2e-not-applicable', {
+        result: { layers: plan.layers, enableWith: 'unit tests via project runner' }
       });
     }
-    if (!runner.command) {
-      return agentSkipped(`no-npm-script-runs-${runner.id}`, {
-        result: { runner: runner.id, scripts: Object.keys(runners.scripts) }
+    const e2e = await loadE2eConfig(root);
+    if (!e2e.enabled) {
+      return agentSkipped('e2e-not-enabled', {
+        result: { enableWith: 'aafe e2e enable' }
       });
     }
     if (request.constraints?.allowTestExecution !== true) {
       return agentSkipped('test-execution-not-allowed', {
         result: {
-          runner: runner.id,
-          command: `npm run ${runner.command}`,
+          runner: 'playwright',
+          command: 'aafe test --run',
           enableWith: '.aafe.agents.json → policies.allowTestExecution = true (or aafe test --run)'
         }
       });
     }
 
     const started = Date.now();
-    try {
-      const { stdout, stderr } = await execFileAsync('npm', ['run', runner.command], {
-        cwd: root,
-        maxBuffer: 32 * 1024 * 1024,
-        timeout: request.constraints?.timeoutMs ?? 600000
-      });
-      return agentSuccess(
-        { runner: runner.id, command: runner.command, status: 'passed', report: parseTestReport(stdout || stderr) },
-        { metrics: { duration: Date.now() - started } }
-      );
-    } catch (error) {
-      const output = `${error?.stdout ?? ''}\n${error?.stderr ?? ''}`.trim();
-      return agentPartial(
-        {
-          runner: runner.id,
-          command: runner.command,
-          status: 'failed',
-          exitCode: error?.code ?? null,
-          report: parseTestReport(output)
-        },
-        'test run failed',
-        {
-          metrics: { duration: Date.now() - started },
-          nextActions: [{ capability: 'failure-analysis', reason: 'a failing run needs root-cause analysis' }]
-        }
-      );
+    const caseIds = collectCaseIds(plan, task.scenario ?? request.input?.scenario);
+    const executed = await executeE2eCases({
+      root,
+      caseIds,
+      dryRun: task.dryRun === true
+    });
+    const status = executed.report?.verdict ?? 'uncertain';
+    const result = {
+      runner: 'playwright',
+      command: 'aafe test --run',
+      status: status === 'passed' ? 'passed' : 'failed',
+      verdict: status,
+      reportDir: executed.reportDir,
+      htmlPath: executed.htmlPath,
+      jsonPath: executed.jsonPath,
+      report: parseTestReport(JSON.stringify(executed.report)),
+      detectedRunners: runners.e2e.id ?? runners.unit.id
+    };
+    if (status === 'passed') {
+      return agentSuccess(result, { metrics: { duration: Date.now() - started } });
     }
+    return agentPartial(result, executed.report?.statusReason ?? 'e2e run did not pass', {
+      metrics: { duration: Date.now() - started },
+      nextActions: [{ capability: 'failure-analysis', reason: 'a failing run needs root-cause analysis' }]
+    });
   }
 }
 
@@ -199,6 +275,14 @@ function pickImpact(request) {
 
 function pickPlan(request) {
   return request.input?.plan ?? toEntries(request.context?.priorResults).get('test-planning')?.result ?? null;
+}
+
+function collectCaseIds(plan, scenario) {
+  const fromPlan = (plan?.scenarios ?? []).map((item) => item.caseId).filter(Boolean);
+  const fromMatch = (plan?.matchedCases ?? []).map((item) => item.id);
+  const ids = [...new Set([...fromPlan, ...fromMatch])];
+  if (scenario === 'coverage') return ids.length > 0 ? ids : null;
+  return ids;
 }
 
 function toEntries(priorResults) {

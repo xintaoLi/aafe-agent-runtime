@@ -60,11 +60,35 @@ export function parseTestReport(text) {
 
   const json = tryJson(raw);
   if (json) {
+    if (json.verdict && (json.reportId || json.cases)) return parseAafeE2e(json);
     if (Array.isArray(json.suites) || json.config?.projects) return parsePlaywright(json);
     if (Array.isArray(json.testResults)) return parseJest(json);
     if (json.testResults || json.numTotalTests !== undefined) return parseJest(json);
   }
   return parseText(raw);
+}
+
+function parseAafeE2e(json) {
+  const cases = json.cases ?? [];
+  const failures = cases
+    .filter((item) => item.status === 'failed')
+    .map((item) => ({
+      title: item.title ?? item.id,
+      message: item.message ?? item.status,
+      artifacts: item.artifacts ? { screenshot: item.artifacts.find((art) => art.kind === 'screenshot')?.path } : undefined
+    }));
+  const totals = json.totals ?? {
+    total: cases.length,
+    passed: cases.filter((item) => item.status === 'passed').length,
+    failed: failures.length,
+    skipped: cases.filter((item) => item.status === 'blocked' || item.status === 'uncertain').length
+  };
+  return {
+    format: 'playwright',
+    status: json.verdict === 'passed' ? 'passed' : 'failed',
+    totals,
+    failures
+  };
 }
 
 /* ------------------------------------------------------------------ */

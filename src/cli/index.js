@@ -9,7 +9,7 @@ import { runKnowledgeWebCommand } from './knowledgeWeb.js';
 import { runTaskCompletion } from './taskCompletion.js';
 import { runPatternCommand } from './patterns.js';
 import { runSkillsCommand } from './skills.js';
-import { collectInitOptions } from './prompts.js';
+import { runE2eSetupCommand } from './e2eSetup.js';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { runFileLicenseCommand } from './fileLicense.js';
@@ -35,7 +35,7 @@ export async function runCli(argv) {
     const detection = await detectProject(installRoot);
     const layout = await resolveWorkspaceLayout(installRoot, detection.editors);
     const existingConfig = await readProjectConfig(installRoot);
-    const initOptions = await collectInitOptions(detection, { ...options, existingConfig }, layout);
+    const initOptions = await collectInitOptions(detection, { ...options, existingConfig, root: installRoot }, layout);
     await bootstrapProject(installRoot, detection, initOptions);
     if (initOptions.workspaceLayout?.layeredEditors) {
       console.log(`AAFE runtime initialized in install dir. Editor adapters were written to workspace root for module "${initOptions.workspaceLayout.moduleName}".`);
@@ -142,6 +142,11 @@ export async function runCli(argv) {
     return;
   }
 
+  if (command === 'e2e') {
+    await runE2eSetupCommand(process.cwd(), argv.slice(3));
+    return;
+  }
+
   if (command === 'diagnose') {
     await runDiagnoseCommand(process.cwd(), argv.slice(3));
     return;
@@ -198,6 +203,9 @@ function parseOptions(args) {
     if (arg === '--no-migrate-cursor') options.migrateInstallEditors = false;
     if (arg === '--no-migrate-editors') options.migrateInstallEditors = false;
     if (arg.startsWith('--submit-cli=')) options.submitCli = arg.slice('--submit-cli='.length);
+    if (arg === '--e2e') options.e2e = true;
+    if (arg === '--no-e2e') options.e2e = false;
+    if (arg === '--install-playwright') options.installPlaywright = true;
   }
   return options;
 }
@@ -224,7 +232,8 @@ Commands:
   plan      Show the planner decision trace for a task
   run       Run the Planner + Orchestrator loop for a task
   pipeline  Run the legacy skill pipeline (former "run" behaviour)
-  test      Plan and generate tests; --run also executes the project suite
+  test      Plan/generate Playwright YAML cases from analyze, diff or PR; --run executes e2e
+  e2e       Enable/disable Playwright E2E later (aafe e2e enable|disable|status|install)
   diagnose  Turn a failing test report into a located root cause
   update    Refresh installed project .ai-agent capabilities from the current aafe package
   migrate   Move files and config left by older versions to their current locations (--dry-run)
@@ -242,9 +251,16 @@ Init options:
   --no-migrate-editors     Skip editor adapter migration during init/update
   --no-migrate-cursor      Alias of --no-migrate-editors
   --submit-cli=git|gtm     Commit/PR provider written to .aafe.config.json → submit.cli (default: git)
+  --e2e                    Enable Playwright E2E in .aafe.config.json
+  --no-e2e                 Keep E2E disabled
+  --install-playwright     When enabling E2E, install playwright + @playwright/test (and Chromium)
 
 TAPD (init/update interactive):
   When prompted, answer Y/Yes/是 to configure TAPD commit/submit backfill in .aafe.config.json
+
+E2E (init/update interactive, or later):
+  When prompted, answer Y/Yes/是 to enable Playwright E2E. Missing deps will prompt to install.
+  Later: aafe e2e enable | aafe e2e disable | aafe e2e status | aafe e2e install --yes
 
 Submit CLI:
   .aafe.config.json → "submit": { "cli": "git" | "gtm" }
@@ -274,7 +290,7 @@ Agent platform (context / impact / plan / run):
   aafe run     "<task>"            Planner + Orchestrator full loop
   aafe run     --list [--limit=20] List stored runs under <output>/runs/
   aafe run     --replay=<runId>    Read-only replay of a stored run, with node payloads
-  aafe test    --requirement="..." [--run] [--diff[=<ref>]]
+  aafe test    --requirement="..." | --diff[=<ref>] | --coverage | --pr=<url>  [--run] [--update]
   aafe diagnose --failure=<report.json|log.txt> [--diff[=<ref>]]
   aafe pipeline "<task>"           Legacy skill pipeline (alias: aafe run --legacy)
   --no-write                       Do not persist the run under <output>/runs/
@@ -314,7 +330,9 @@ Update options:
   --sync-force
   --editors=cursor|codebuddy|cursor,codebuddy
   --submit-cli=git|gtm   Update .aafe.config.json submit.cli without full interactive prompts
-  --interactive          Allow interactive prompts during update (e.g. submit CLI / TAPD)
+  --interactive          Allow interactive prompts during update (e.g. submit CLI / TAPD / E2E)
+  --e2e / --no-e2e       Enable or disable Playwright E2E without full interactive prompts
+  --install-playwright   Install playwright deps when enabling E2E
 `);
 }
 

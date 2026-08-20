@@ -62,7 +62,14 @@ export function createTask(partial = {}) {
     goal: partial.goal ?? '',
     requirement: partial.requirement ?? null,
     diffRef: partial.diffRef ?? null,
-    failureRef: partial.failureRef ?? null
+    failureRef: partial.failureRef ?? null,
+    scenario: partial.scenario ?? null,
+    prUrl: partial.prUrl ?? null,
+    e2eWrite: partial.e2eWrite ?? null,
+    e2eUpdate: partial.e2eUpdate ?? false,
+    e2eForce: partial.e2eForce ?? false,
+    inlineToken: partial.inlineToken ?? null,
+    dryRun: partial.dryRun ?? false
   };
 }
 

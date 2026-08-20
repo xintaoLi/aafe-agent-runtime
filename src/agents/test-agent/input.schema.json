@@ -16,7 +16,10 @@
     "testFramework": { "type": "string" },
     "write": {
       "type": "boolean",
-      "description": "Whether generated skeletons are written to disk. Off by default: generation is analysis, writing is a side effect."
-    }
+      "description": "Whether generated YAML cases are written to disk. Defaults to true for e2e generation."
+    },
+    "scenario": { "type": ["string", "null"], "enum": ["coverage", "changes", "pr", null] },
+    "update": { "type": "boolean" },
+    "force": { "type": "boolean" }
   }
 }

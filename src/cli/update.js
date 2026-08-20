@@ -7,7 +7,7 @@ import { detectProject } from './detect.js';
 import { doctorProject } from './doctor.js';
 import { syncKnowledgeArtifacts } from './knowledge.js';
 import { runMigrations } from './migrate.js';
-import { prepareWorkspaceLayoutForCommand, prepareTapdConfigForCommand, prepareSubmitConfigForCommand } from './prompts.js';
+import { prepareWorkspaceLayoutForCommand, prepareTapdConfigForCommand, prepareSubmitConfigForCommand, prepareE2eConfigForCommand } from './prompts.js';
 import { resolveWorkspaceLayout } from './workspace.js';
 
 const execFileAsync = promisify(execFile);
@@ -56,7 +56,8 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
         preserveProjectKnowledge: true,
         preserveMemory: true,
         idempotentWrites: true,
-        submitCli: options.submitCli ?? null
+        submitCli: options.submitCli ?? null,
+        e2e: options.e2e ?? null
       },
       preserved: ['.ai-agent/project.md', '.ai-agent/project-skills/**', '.ai-agent/rules/**', '.ai-agent/memory/**'],
       summary: 'Would refresh generated .ai-agent runtime, Skill Index On-Demand router, editor adapters and projectKnowledge config from the currently installed aafe package without reinstalling the package. Project-owned knowledge would be preserved.'
@@ -80,6 +81,11 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
   );
   const tapdConfig = await prepareTapdConfigForCommand(nonInteractiveOptions, configured);
   const submitConfig = await prepareSubmitConfigForCommand(nonInteractiveOptions, configured);
+  const e2eConfig = await prepareE2eConfigForCommand({
+    ...nonInteractiveOptions,
+    promptE2e: options.interactive === true
+      || (process.stdin.isTTY && configured.e2e?.enabled == null && options.e2e == null)
+  }, configured, { root: installRoot });
   const effectiveDetection = {
     ...detection,
     editors: resolveEditors(options, configured, detection)
@@ -88,7 +94,8 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
     ...updateOptions,
     workspaceLayout,
     tapdConfig,
-    submitConfig
+    submitConfig,
+    e2eConfig
   });
   const knowledge = options.knowledge === false ? null : await syncKnowledgeArtifacts(installRoot, {
     architectureDocs: options.architectureDocs,
@@ -188,6 +195,9 @@ function parseUpdateOptions(args) {
     if (arg === '--no-migrate-cursor' || arg === '--no-migrate-editors') options.migrateInstallEditors = false;
     if (arg.startsWith('--submit-cli=')) options.submitCli = arg.slice('--submit-cli='.length);
     if (arg === '--interactive') options.interactive = true;
+    if (arg === '--e2e') options.e2e = true;
+    if (arg === '--no-e2e') options.e2e = false;
+    if (arg === '--install-playwright') options.installPlaywright = true;
   }
 
   return options;

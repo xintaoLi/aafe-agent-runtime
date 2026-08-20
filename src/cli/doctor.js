@@ -6,6 +6,8 @@ import { AGENTS_CONFIG_FILE, loadAgentsConfig } from '../agent-platform/config/a
 import { createRegistryFromConfig } from '../agent-platform/registry/AgentRegistry.js';
 import { dddRuntimePaths } from './dddRuntimeFiles.js';
 import { patternRuntimePaths } from './patternRuntimeFiles.js';
+import { inspectPlaywrightSetup } from './e2eSetup.js';
+import { isE2eEnabled } from '../testing/e2e/config.js';
 
 /** Capabilities the default planner sequences depend on. */
 const REQUIRED_CAPABILITIES = [
@@ -215,6 +217,12 @@ export async function doctorProject(root) {
   if (projectConfig.projectKnowledge && projectConfig.projectKnowledge.loadMode !== 'index-on-demand') warnings.push('projectKnowledge.loadMode should be index-on-demand');
   if ((projectConfig.editors?.length ?? 0) > 1 && projectConfig.projectKnowledge?.loadMode !== 'index-on-demand') warnings.push('multiple editors are enabled but projectKnowledge.loadMode is not index-on-demand');
   if (config && !config.includes('"analyze"')) warnings.push('analyze config block is missing in .aafe.config.json; run aafe update to add output/llm defaults');
+  if (isE2eEnabled(projectConfig.e2e)) {
+    const playwright = await inspectPlaywrightSetup(root);
+    if (playwright.missing) {
+      warnings.push('e2e.enabled is true but playwright is not installed; run `aafe e2e install --yes`');
+    }
+  }
   if (skillIndex && !skillIndex.includes('architecture-on-demand')) warnings.push('.ai-agent/skill-index.md does not mention architecture-on-demand loading');
   const analyzeOutput = projectConfig.analyze?.output ?? projectConfig.analyze?.docsOut ?? '.aafe';
   if (await exists(path.join(root, analyzeOutput)) && !(await exists(path.join(root, analyzeOutput, 'manifest.json')))) {
