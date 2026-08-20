@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/schemas/planner/input.schema.json",
+  "title": "PlannerInput",
+  "type": "object",
+  "required": ["goal", "executionState", "availableAgents"],
+  "properties": {
+    "goal": { "type": "string" },
+    "task": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kind": {
+          "type": "string",
+          "enum": ["requirement", "diff", "failure", "analysis", "test", "generic"]
+        },
+        "goal": { "type": "string" },
+        "requirement": { "type": ["string", "null"] },
+        "diffRef": { "type": ["string", "null"] },
+        "failureRef": { "type": ["string", "null"] }
+      }
+    },
+    "project": {
+      "type": "object",
+      "description": "PlannerContext.project (RFC §4.1): what the planner may assume about the repository.",
+      "properties": {
+        "name": { "type": ["string", "null"] },
+        "root": { "type": "string" },
+        "commit": { "type": ["string", "null"] },
+        "knowledgeOutput": { "type": "string" },
+        "knowledgeAvailable": { "type": "boolean" },
+        "knowledgeStale": { "type": "boolean" },
+        "stalenessReason": { "type": ["string", "null"] }
+      }
+    },
+    "executionState": {
+      "type": "object",
+      "required": ["status", "completedSteps", "failedSteps"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["initial", "running", "waiting", "failed", "completed"]
+        },
+        "step": { "type": "integer", "minimum": 0 },
+        "completedSteps": { "type": "array", "items": { "type": "string" } },
+        "failedSteps": { "type": "array", "items": { "type": "string" } },
+        "skippedSteps": { "type": "array", "items": { "type": "string" } },
+        "currentResults": { "type": "array" },
+        "diagnostics": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "availableAgents": {
+      "type": "array",
+      "description": "AgentCapability[] — one entry per registered agent, not a capability->id map.",
+      "items": {
+        "type": "object",
+        "required": ["id", "capabilities"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "enabled": { "type": "boolean" },
+          "provider": { "type": "string" },
+          "capabilities": { "type": "array", "items": { "type": "string" } },
+          "unavailableReason": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "graph": {
+      "type": "object",
+      "description": "Execution graph so far, so the planner can express dependencies against real node ids.",
+      "properties": {
+        "nodes": { "type": "array" },
+        "summary": { "type": "object" }
+      }
+    },
+    "knowledgeSummary": { "type": "object" },
+    "previousResults": { "type": "array" },
+    "constraints": { "type": "object" }
+  }
+}

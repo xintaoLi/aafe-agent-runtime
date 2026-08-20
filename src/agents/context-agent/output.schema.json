@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/schemas/context-agent/output.schema.json",
+  "title": "ContextAgentOutput",
+  "description": "AgentContextPackage (RFC §19). `truncated` is required rather than optional: a consumer must always be able to tell a complete package from a trimmed one.",
+  "type": "object",
+  "required": [
+    "task",
+    "project",
+    "affectedFiles",
+    "affectedModules",
+    "constraints",
+    "evidence",
+    "tokenEstimate",
+    "truncated"
+  ],
+  "properties": {
+    "task": {
+      "type": "object",
+      "required": ["kind", "goal"],
+      "properties": {
+        "kind": { "type": "string" },
+        "goal": { "type": "string" },
+        "requirement": { "type": ["string", "null"] },
+        "diffRef": { "type": ["string", "null"] },
+        "failureRef": { "type": ["string", "null"] }
+      }
+    },
+    "project": {
+      "type": "object",
+      "properties": {
+        "name": { "type": ["string", "null"] },
+        "commit": { "type": ["string", "null"] },
+        "knowledgeOutput": { "type": "string" }
+      }
+    },
+    "architecture": {
+      "type": "object",
+      "properties": {
+        "modules": { "type": "array" },
+        "dependencies": { "type": "array" }
+      }
+    },
+    "relations": {
+      "type": "array",
+      "description": "Relation[] lifted out of architecture.dependencies so a consumer can read edges without knowing the architecture shape.",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "type"],
+        "properties": {
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "type": { "type": "string" },
+          "why": { "type": "string" }
+        }
+      }
+    },
+    "facts": {
+      "type": "array",
+      "description": "StaticFact[] — deterministic statements the consumer may rely on without re-deriving them.",
+      "items": {
+        "type": "object",
+        "required": ["kind", "value"],
+        "properties": {
+          "kind": { "type": "string" },
+          "value": {},
+          "file": { "type": "string" },
+          "source": { "type": "string" }
+        }
+      }
+    },
+    "knowledge": {
+      "type": "array",
+      "description": "KnowledgeItem[] relevant to this goal.",
+      "items": { "type": "object" }
+    },
+    "codeSnippets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "content"],
+        "properties": {
+          "path": { "type": "string" },
+          "startLine": { "type": "integer", "minimum": 1 },
+          "endLine": { "type": "integer", "minimum": 1 },
+          "language": { "type": "string" },
+          "why": { "type": "string" },
+          "truncated": { "type": "boolean" },
+          "content": { "type": "string" }
+        }
+      }
+    },
+    "affectedFiles": { "type": "array" },
+    "affectedModules": { "type": "array" },
+    "affectedFeatures": { "type": "array" },
+    "dataFlows": { "type": "array" },
+    "businessFlows": { "type": "array" },
+    "tests": { "type": "array" },
+    "risk": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "constraints": { "type": "array", "items": { "type": "string" } },
+    "evidence": { "type": "array" },
+    "recommendedChanges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["order", "target", "action", "why"],
+        "properties": {
+          "order": { "type": "integer", "minimum": 1 },
+          "target": { "type": "string" },
+          "action": { "type": "string" },
+          "why": { "type": "string" }
+        }
+      }
+    },
+    "failure": { "type": "object" },
+    "testPlan": { "type": "object" },
+    "summary": { "type": "string" },
+    "tokenEstimate": { "type": "integer", "minimum": 0 },
+    "truncated": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "One entry per section that was cut, naming the section and the sizes."
+    }
+  }
+}

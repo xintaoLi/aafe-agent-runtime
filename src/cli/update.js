@@ -6,6 +6,7 @@ import { bootstrapProject } from './bootstrap.js';
 import { detectProject } from './detect.js';
 import { doctorProject } from './doctor.js';
 import { syncKnowledgeArtifacts } from './knowledge.js';
+import { runMigrations } from './migrate.js';
 import { prepareWorkspaceLayoutForCommand, prepareTapdConfigForCommand, prepareSubmitConfigForCommand } from './prompts.js';
 import { resolveWorkspaceLayout } from './workspace.js';
 
@@ -41,6 +42,7 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
       updated: false,
       dryRun: true,
       mode: 'project-runtime',
+      migration: await runMigrations(process.cwd(), { dryRun: true }),
       package: options.packageName,
       currentVersion: options.currentVersion,
       command: 'aafe update',
@@ -82,7 +84,7 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
     ...detection,
     editors: resolveEditors(options, configured, detection)
   };
-  await bootstrapProject(installRoot, effectiveDetection, {
+  const { migration } = await bootstrapProject(installRoot, effectiveDetection, {
     ...updateOptions,
     workspaceLayout,
     tapdConfig,
@@ -101,6 +103,7 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
     package: options.packageName,
     currentVersion: options.currentVersion,
     preserved: ['.ai-agent/project.md', '.ai-agent/project-skills/**', '.ai-agent/rules/**', '.ai-agent/memory/**'],
+    migration,
     knowledge,
     doctor,
     summary: 'Refreshed generated .ai-agent runtime, Skill Index On-Demand router, editor adapters and projectKnowledge config from the currently installed aafe package. Project-owned knowledge was preserved.'

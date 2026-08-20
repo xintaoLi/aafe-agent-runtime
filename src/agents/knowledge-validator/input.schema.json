@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/schemas/knowledge-validator/input.schema.json",
+  "title": "KnowledgeValidatorInput",
+  "description": "`source` names which prior result to validate; the payload itself is read from prior results so it is never duplicated onto the wire.",
+  "type": ["object", "null"],
+  "properties": {
+    "source": { "type": "string", "enum": ["impact", "knowledge", "inline"] },
+    "knowledge": { "type": ["array", "object"] },
+    "impact": { "type": "object" },
+    "sourceFacts": { "type": "array" },
+    "symbols": { "type": "array" },
+    "dependencies": { "type": "array" },
+    "dataFlows": { "type": "array" }
+  }
+}

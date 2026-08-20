@@ -1,108 +1,264 @@
-const patternCatalog = [
-  {
-    name: 'Strategy',
-    signals: ['multiple algorithms', '可替换算法', '多种策略', '多种', '算法', '布局', 'layout', 'format', 'sort', 'provider'],
-    fit: '同一能力存在多种可替换实现，需要运行时选择或后续扩展。',
-    tradeoff: '增加抽象层；简单 if/else 场景不应过早使用。'
-  },
-  {
-    name: 'Factory',
-    signals: ['create', 'instantiate', '创建不同类型', 'node type', 'component type'],
-    fit: '对象创建逻辑复杂，且调用方不应关心具体类型构造细节。',
-    tradeoff: '隐藏构造细节，但可能让简单对象创建变复杂。'
-  },
-  {
-    name: 'Registry',
-    signals: ['plugin', 'extension', '注册', '扩展', '扩展点', 'node runtime', 'component map'],
-    fit: '需要开放扩展点，让外部能力可注册、查找、替换。',
-    tradeoff: '可扩展性强，但需要治理 key、生命周期和冲突。'
-  },
-  {
-    name: 'State Machine',
-    signals: ['workflow', '状态流转', 'approval', 'wizard', '多步骤', 'lifecycle'],
-    fit: '状态多、流转规则明确、非法状态需要被禁止。',
-    tradeoff: '建模成本更高；简单 loading/error/success 可不用。'
-  },
-  {
-    name: 'Command',
-    signals: ['command', 'undo', 'redo', 'history', '撤销', '重做', '操作记录'],
-    fit: '用户操作需要记录、回放、撤销、重做或审计。',
-    tradeoff: '需要定义命令边界和副作用补偿。'
-  },
-  {
-    name: 'Pipeline',
-    signals: ['steps', '链路', '处理流程', '校验', 'transform', 'middleware'],
-    fit: '任务由稳定的多个阶段串联，每阶段可插拔或可观测。',
-    tradeoff: '链路过长会增加调试成本。'
-  },
-  {
-    name: 'Observer',
-    signals: ['subscribe', 'event', '监听', '通知', 'publish'],
-    fit: '一处变化需要通知多个订阅方，且发布方不应依赖订阅方。',
-    tradeoff: '易形成隐式依赖；需要事件命名和生命周期治理。'
-  },
-  {
-    name: 'Adapter',
-    signals: ['adapter', 'third-party', '第三方', '兼容', 'bridge', 'wrapper'],
-    fit: '需要隔离外部 API 或兼容不同实现。',
-    tradeoff: '多一层包装，但能降低外部变化影响。'
-  },
-  {
-    name: 'Composition',
-    signals: ['component', '组合', 'slot', 'children', 'headless'],
-    fit: 'UI 能力需要通过组合而不是继承扩展。',
-    tradeoff: '灵活但需要清晰的 props/slot 契约。'
-  }
-];
+/**
+ * The entry point agents and the CLI call for design-pattern work.
+ *
+ * The previous version answered "which pattern?" with a single name. That is
+ * the exact shape PATTERN-SYSTEM-001 rules out — a frontend is not designed by
+ * choosing one pattern and applying it globally — so the result is now a
+ * composition: several patterns, each tied to a problem and a responsibility,
+ * wired into a graph, with the rejected candidates and the reasons kept.
+ *
+ * Evidence comes from the analyzed project when a KnowledgeStore is available.
+ * Without it the advisor still works, but every finding is marked as inferred
+ * from the request so nobody mistakes a keyword match for a codebase fact.
+ */
 
-export function analyzePatternFit(input = {}) {
-  const text = promptText(input).toLowerCase();
-  const constraints = input.constraints ?? {};
-  const scored = patternCatalog.map((pattern) => {
-    let score = 0;
-    const matchedSignals = [];
-    for (const signal of pattern.signals) {
-      if (text.includes(signal.toLowerCase())) {
-        score += 2;
-        matchedSignals.push(signal);
-      }
-    }
-    if (constraints.extensible) score += ['Strategy', 'Registry', 'Adapter'].includes(pattern.name) ? 1 : 0;
-    if (constraints.stateful) score += pattern.name === 'State Machine' ? 2 : 0;
-    if (constraints.undoable) score += pattern.name === 'Command' ? 3 : 0;
-    if (constraints.multiStep) score += pattern.name === 'Pipeline' ? 2 : 0;
-    return { ...pattern, score, matchedSignals };
-  }).sort((a, b) => b.score - a.score);
+import { composePatterns } from './PatternComposer.js';
+import { detectProblems, assessComplexity, variationPoints } from './PatternProblems.js';
+import { detectAntiPatterns } from './AntiPatternDetector.js';
+import { PATTERN_INDEX, PATTERN_DOMAINS, PATTERN_BY_ID } from './catalog.js';
 
-  const top = scored.filter((item) => item.score > 0).slice(0, 3);
-  return {
-    status: top.length ? 'pass' : 'warn',
-    recommendation: top[0]?.name ?? 'Composition',
-    candidates: top.length ? top : scored.slice(0, 3),
-    questions: buildQuestions(text, constraints)
-  };
-}
-
-export function analyzeModulePatternFit(input = {}) {
+/**
+ * Full pattern analysis: discovery, selection, composition and anti-pattern audit.
+ *
+ * @param {object} input
+ * @param {string|object} input.prompt
+ * @param {import('../knowledge/store/KnowledgeStore.js').KnowledgeStore} [input.knowledge]
+ * @param {number} [input.declaredComplexity]
+ * @returns {Promise<object>}
+ */
+export async function analyzePatternComposition(input = {}) {
   const prompt = promptText(input);
-  const modules = detectModules(prompt);
+  const projectFacts = await collectProjectFacts(input.knowledge, prompt);
+
+  const composition = composePatterns({
+    prompt,
+    name: input.name,
+    projectFacts,
+    declaredComplexity: input.declaredComplexity
+  });
+
+  const antiPatterns = detectAntiPatterns({ prompt, projectFacts, composition });
+
   return {
-    status: 'pass',
-    modules: modules.map((module) => {
-      const fit = analyzePatternFit({ prompt: `${module.name} ${module.signals}` });
-      return {
-        module: module.name,
-        responsibility: module.responsibility,
-        pattern: fit.recommendation,
-        candidates: fit.candidates.slice(0, 2),
-        landing: landingFor(module.name, fit.recommendation)
-      };
-    })
+    status: composition.patterns.length > 0 ? 'pass' : 'warn',
+    evidenceMode: projectFacts.length > 0 ? 'project' : 'request-only',
+    composition,
+    antiPatterns,
+    questions: buildPatternInterview(prompt, composition),
+    // Everything considered and dropped, so a reviewer can check the reasoning
+    // rather than trusting the shortlist.
+    rejected: composition.rejected
   };
 }
 
-export function buildPatternInterview(prompt = '') {
-  return buildQuestions(promptText(prompt).toLowerCase(), {});
+/**
+ * Discovery only: the problems, variation points and complexity, with no
+ * pattern named. Selection before discovery is guessing, and §6 requires this
+ * step to describe problems rather than assign solutions.
+ */
+export async function analyzePatternProblems(input = {}) {
+  const prompt = promptText(input);
+  const projectFacts = await collectProjectFacts(input.knowledge, prompt);
+  const problems = detectProblems(prompt, { projectFacts });
+  const complexity = assessComplexity(problems, { declaredComplexity: input.declaredComplexity });
+
+  return {
+    status: problems.length > 0 ? 'pass' : 'warn',
+    evidenceMode: projectFacts.length > 0 ? 'project' : 'request-only',
+    problems,
+    variationPoints: variationPoints(problems),
+    complexity,
+    domains: [...new Set(problems.flatMap((problem) => problem.domains))],
+    questions: buildPatternInterview(prompt)
+  };
+}
+
+/**
+ * Anti-pattern audit against the project as it stands, independent of any
+ * proposed composition.
+ */
+export async function auditAntiPatterns(input = {}) {
+  const prompt = promptText(input);
+  const projectFacts = await collectProjectFacts(input.knowledge, prompt);
+  const result = detectAntiPatterns({ prompt, projectFacts });
+  return { ...result, evidenceMode: projectFacts.length > 0 ? 'project' : 'request-only' };
+}
+
+/**
+ * Per-module compositions, for requests that span several modules. Each module
+ * gets its own problem set, because applying one composition across all of them
+ * is the global-single-pattern mistake at a larger scale.
+ */
+export async function analyzeModulePatternFit(input = {}) {
+  const prompt = promptText(input);
+  const knowledge = input.knowledge;
+  const modules = await detectModules(prompt, knowledge);
+
+  const results = [];
+  for (const module of modules) {
+    const composition = composePatterns({
+      prompt: `${module.name} ${module.responsibility} ${module.signals ?? ''} ${prompt}`,
+      name: module.name
+    });
+    results.push({
+      module: module.name,
+      responsibility: module.responsibility,
+      source: module.source,
+      patterns: composition.patterns.map((pattern) => ({
+        id: pattern.id,
+        name: pattern.name,
+        role: pattern.role,
+        score: pattern.score
+      })),
+      relations: composition.relations,
+      complexity: composition.complexity
+    });
+  }
+
+  return { status: 'pass', modules: results };
+}
+
+/**
+ * Questions worth asking before committing to a composition.
+ *
+ * Only dimensions the request left open are asked about. Asking whether the
+ * feature needs undo when the user already said "撤销重做" wastes a turn and
+ * signals the analysis did not read the request.
+ */
+export function buildPatternInterview(prompt = '', composition = null) {
+  const text = promptText(prompt);
+  const detected = new Set(detectProblems(text).map((problem) => problem.id));
+  const questions = [];
+
+  const probes = [
+    { id: 'algorithm-variation', question: '这个能力未来是否会出现多种实现、算法或供应商，需要可插拔扩展？' },
+    { id: 'workflow-state', question: '是否存在复杂状态流转、非法状态或多步骤生命周期需要被约束？' },
+    { id: 'undo-redo', question: '用户操作是否需要撤销、重做、回放或审计？' },
+    { id: 'extension-surface', question: '是否需要开放给外部注册与替换的扩展点？' },
+    { id: 'unreliable-dependency', question: '依赖不可用时期望的降级行为是什么？' },
+    { id: 'large-list-rendering', question: '预期的数据量级是多少，是否会出现渲染或滚动压力？' },
+    { id: 'legacy-replacement', question: '这是新建还是替换既有实现？是否需要新旧共存与灰度？' }
+  ];
+
+  for (const probe of probes) {
+    if (detected.has(probe.id)) continue;
+    questions.push(probe.question);
+  }
+
+  if (composition && composition.patterns.length === 0 && detected.size === 0) {
+    questions.unshift('当前描述里没有识别到需要设计模式解决的问题，能否说明具体卡在哪里（变化频繁、耦合、性能还是可测试性）？');
+  }
+
+  return questions.slice(0, 4);
+}
+
+/**
+ * Back-compat entry point.
+ *
+ * Older pipelines call this expecting `{ recommendation, candidates }`. It now
+ * returns the composition instead, and deliberately does not synthesize a
+ * single `recommendation` field — callers that want one are asking the question
+ * the spec forbids.
+ */
+export function analyzePatternFit(input = {}) {
+  const prompt = promptText(input);
+  const composition = composePatterns({ prompt, declaredComplexity: input.declaredComplexity });
+  return {
+    status: composition.patterns.length > 0 ? 'pass' : 'warn',
+    patterns: composition.patterns,
+    composition,
+    questions: buildPatternInterview(prompt, composition)
+  };
+}
+
+/**
+ * Pulls problem evidence out of the analyzed project.
+ *
+ * Feature names, business flows and module summaries are the places where a
+ * problem is described in the project's own words. Everything returned carries
+ * its source so scoring can weight observed facts above request keywords.
+ */
+async function collectProjectFacts(knowledge, prompt) {
+  if (!knowledge) return [];
+
+  try {
+    if (!(await knowledge.exists())) return [];
+  } catch {
+    return [];
+  }
+
+  const hits = await safe(() => (prompt.trim() ? knowledge.search(prompt, { limit: 60 }) : []), []);
+  if (hits.length === 0) return [];
+
+  const [business, features] = await Promise.all([
+    safe(() => knowledge.business(), []),
+    safe(() => knowledge.features(), [])
+  ]);
+  const byId = new Map([...business, ...features].map((item) => [item.id, item]));
+
+  const facts = [];
+  const seen = new Set();
+
+  for (const hit of hits) {
+    if (hit.kind !== 'feature' && hit.kind !== 'business-flow' && hit.kind !== 'module') continue;
+    const record = byId.get(hit.id);
+    const text = [record?.name ?? hit.label, record?.description, record?.summary]
+      .filter(Boolean)
+      .join(' ');
+    if (!text || seen.has(text)) continue;
+    seen.add(text);
+    facts.push({
+      text,
+      evidence: (record?.evidence ?? []).map((item) =>
+        typeof item === 'string' ? item : `${item.type ?? 'evidence'}:${item.file ?? item.id ?? ''}`
+      ).filter(Boolean).slice(0, 3).concat(hit.file ? [`source:${hit.file}`] : [])
+    });
+  }
+
+  return facts.slice(0, 40);
+}
+
+/**
+ * Modules come from the analyzed project when it exists. The keyword fallback
+ * covers unanalyzed projects, but a folder name is a weak boundary signal, so
+ * it is marked as inferred.
+ */
+async function detectModules(prompt, knowledge) {
+  if (knowledge) {
+    const modules = await safe(async () => {
+      if (!(await knowledge.exists())) return [];
+      const hits = await knowledge.search(prompt, { limit: 40 });
+      const ids = [...new Set(hits.map((hit) => hit.module).filter(Boolean))];
+      const index = await knowledge.modulesIndex();
+      return ids.slice(0, 6).map((id) => {
+        const record = (Array.isArray(index) ? index : index?.modules ?? []).find((item) => item.id === id);
+        return {
+          name: id,
+          responsibility: record?.summary ?? record?.description ?? `${id} 模块职责待确认`,
+          source: 'observed'
+        };
+      });
+    }, []);
+    if (modules.length > 0) return modules;
+  }
+
+  const text = prompt.toLowerCase();
+  const modules = [
+    { name: 'domain', responsibility: '业务规则与不变量', signals: '状态流转 业务规则 校验', source: 'inferred' },
+    { name: 'application', responsibility: '用例编排与命令流', signals: '流程 步骤 编排 命令', source: 'inferred' },
+    { name: 'infrastructure', responsibility: '外部 API、适配与持久化', signals: '第三方 外部接口 数据访问', source: 'inferred' },
+    { name: 'presentation', responsibility: 'UI 组合、交互状态与视图契约', signals: '组件 渲染 交互状态', source: 'inferred' }
+  ];
+  if (/graph|canvas|node|edge|layout|画布|图编辑器|节点|布局/.test(text)) {
+    modules.push({ name: 'graph-runtime', responsibility: '节点、边、布局与命令运行时', signals: '插件扩展 撤销重做 大量节点渲染', source: 'inferred' });
+  }
+  if (/dashboard|chart|metric|analytics|报表|图表/.test(text)) {
+    modules.push({ name: 'analytics-view', responsibility: '指标组合、查询状态与图表适配', signals: '第三方 图表 数据源 缓存', source: 'inferred' });
+  }
+  if (/admin|permission|rbac|abac|audit|权限|审计|后台/.test(text)) {
+    modules.push({ name: 'access-control', responsibility: '权限策略、审计与受控操作', signals: '多种规则 操作记录 审计', source: 'inferred' });
+  }
+  return modules;
 }
 
 function promptText(input) {
@@ -114,49 +270,15 @@ function promptText(input) {
   return String(input ?? '');
 }
 
-function buildQuestions(text, constraints) {
-  const questions = [];
-  if (!constraints.extensible && !/扩展|plugin|strategy|provider|多种/.test(text)) {
-    questions.push('这个功能未来是否会出现多种实现、算法或供应商，需要可插拔扩展？');
+async function safe(fn, fallback) {
+  try {
+    return (await fn()) ?? fallback;
+  } catch {
+    return fallback;
   }
-  if (!constraints.stateful && !/状态|workflow|流程|lifecycle/.test(text)) {
-    questions.push('这个功能是否存在复杂状态流转、非法状态或多步骤生命周期？');
-  }
-  if (!constraints.undoable && !/undo|redo|撤销|重做|history/.test(text)) {
-    questions.push('用户操作是否需要撤销/重做/回放/审计？');
-  }
-  if (!constraints.multiStep && !/pipeline|步骤|链路|校验/.test(text)) {
-    questions.push('处理过程是否由多个固定阶段组成，且每个阶段可能插拔或复用？');
-  }
-  return questions.slice(0, 4);
 }
 
-function detectModules(prompt) {
-  const text = prompt.toLowerCase();
-  const modules = [
-    { name: 'domain', responsibility: 'business rules and invariants', signals: 'state lifecycle repository value object aggregate' },
-    { name: 'application', responsibility: 'use cases, orchestration and command flow', signals: 'pipeline command command steps validation' },
-    { name: 'infrastructure', responsibility: 'external APIs, adapters and persistence ports', signals: 'adapter third-party provider registry extension' },
-    { name: 'presentation', responsibility: 'UI composition, interaction state and view contracts', signals: 'component composition state machine observer' }
-  ];
-  if (/graph|canvas|node|edge|layout|画布|图编辑器|节点|边|布局/.test(text)) {
-    modules.push({ name: 'graph-runtime', responsibility: 'node, edge, layout and command runtime', signals: 'strategy registry command observer layout plugin' });
-  }
-  if (/dashboard|chart|metric|analytics/.test(text)) {
-    modules.push({ name: 'analytics-view', responsibility: 'metric composition, query state and chart adapters', signals: 'adapter strategy composition provider' });
-  }
-  if (/admin|permission|rbac|abac|audit|权限|审计|后台/.test(text)) {
-    modules.push({ name: 'access-control', responsibility: 'permission policy, audit and guarded actions', signals: 'strategy command observer policy audit' });
-  }
-  return modules;
-}
+/** Kept for callers that imported the old flat catalog. */
+export const patternCatalog = PATTERN_INDEX;
 
-function landingFor(moduleName, pattern) {
-  return {
-    contract: `${moduleName} owns its ${pattern} interface`,
-    implementation: `${moduleName} keeps concrete implementations behind module boundaries`,
-    verification: `${moduleName} tests cover selected pattern behavior and invalid states`
-  };
-}
-
-export { patternCatalog };
+export { PATTERN_INDEX, PATTERN_DOMAINS, PATTERN_BY_ID };

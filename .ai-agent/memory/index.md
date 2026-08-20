@@ -9,5 +9,6 @@ Memory categories:
 - conventions: naming, file layout, coding rules and review standards
 - decisions: architecture decisions and tradeoffs
 - experience: verified solution ideas for repeated problems
+- project-architecture: generated index of routes, components, modules and design documents
 - summary.md: compact project memory summary
 - learnings.jsonl: append-only structured memory log

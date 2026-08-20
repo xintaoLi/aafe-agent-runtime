@@ -1,6 +1,6 @@
 {
   "name": "@aafe/agent-runtime",
-  "version": "0.1.22",
+  "version": "0.2.0",
   "description": "Universal Frontend Architecture Runtime for architecture-aware AI coding agents.",
   "type": "module",
   "bin": {
@@ -40,7 +40,8 @@
     "ddd:analyze": "node ./bin/aafe.js ddd analyze",
     "update": "node ./bin/aafe.js update",
     "refresh": "node ./bin/aafe.js refresh",
-    "test": "node ./bin/aafe.js doctor"
+    "test": "node ./scripts/test-agent-platform.js && node ./scripts/test-submit-config.js && node ./scripts/test-file-license-rules.js && node ./scripts/test-completion-tapd-rules.js && node ./scripts/test-tapd-config.js && node ./scripts/test-workspace-cursor.js && node ./bin/aafe.js doctor",
+    "test:agent-platform": "node ./scripts/test-agent-platform.js"
   },
   "keywords": [
     "ai-agent",

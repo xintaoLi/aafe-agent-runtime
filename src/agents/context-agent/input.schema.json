@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/schemas/context-agent/input.schema.json",
+  "title": "ContextAgentInput",
+  "description": "The impact report and the diagnosis arrive through prior results. The token budget arrives through request constraints, not input.",
+  "type": ["object", "null"],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": ["requirement", "diff", "failure", "analysis", "test", "generic"]
+    },
+    "goal": { "type": "string" },
+    "knowledge": { "type": "array" },
+    "files": { "type": "array" },
+    "features": { "type": "array" },
+    "dataFlows": { "type": "array" },
+    "businessFlows": { "type": "array" },
+    "impact": { "type": "object" },
+    "includeCode": {
+      "type": "boolean",
+      "description": "Read the affected files and attach real snippets instead of paths only."
+    },
+    "tokenBudget": { "type": "integer", "minimum": 1000 }
+  }
+}

@@ -14,8 +14,17 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { runFileLicenseCommand } from './fileLicense.js';
 import { runUpdateCommand } from './update.js';
-import { createRuntimeFromProject } from '../runtime/configLoader.js';
+import { runMigrateCommand } from './migrate.js';
+import { createRuntimeFromProject } from '../agent-platform/skill-runtime/configLoader.js';
 import { resolveWorkspaceLayout } from './workspace.js';
+import {
+  runContextCommand,
+  runDiagnoseCommand,
+  runImpactCommand,
+  runPlanCommand,
+  runPlatformRunCommand,
+  runTestCommand
+} from './platform.js';
 
 export async function runCli(argv) {
   const command = argv[2] ?? 'help';
@@ -46,6 +55,11 @@ export async function runCli(argv) {
     const report = await doctorProject(process.cwd());
     console.log(JSON.stringify(report, null, 2));
     if (report.status === 'fail') process.exitCode = 1;
+    return;
+  }
+
+  if (command === 'migrate') {
+    await runMigrateCommand(process.cwd(), argv.slice(3));
     return;
   }
 
@@ -108,10 +122,43 @@ export async function runCli(argv) {
     return;
   }
 
-  if (command === 'run' || command === 'execute') {
-    const prompt = parsePrompt(argv.slice(3));
+  if (command === 'context') {
+    await runContextCommand(process.cwd(), argv.slice(3));
+    return;
+  }
+
+  if (command === 'impact') {
+    await runImpactCommand(process.cwd(), argv.slice(3));
+    return;
+  }
+
+  if (command === 'plan') {
+    await runPlanCommand(process.cwd(), argv.slice(3));
+    return;
+  }
+
+  if (command === 'test') {
+    await runTestCommand(process.cwd(), argv.slice(3));
+    return;
+  }
+
+  if (command === 'diagnose') {
+    await runDiagnoseCommand(process.cwd(), argv.slice(3));
+    return;
+  }
+
+  // `run` now drives the Planner + Orchestrator. The former skill-pipeline
+  // behaviour moved to `pipeline`, still reachable via `run --legacy`.
+  if (command === 'run' || command === 'execute' || command === 'pipeline') {
+    const args = argv.slice(3);
+    const legacy = command === 'pipeline' || args.includes('--legacy');
+    if (!legacy) {
+      await runPlatformRunCommand(process.cwd(), args);
+      return;
+    }
+    const prompt = parsePrompt(args);
     if (!prompt) {
-      throw new Error('Missing prompt. Usage: aafe run "<frontend task>"');
+      throw new Error('Missing prompt. Usage: aafe pipeline "<frontend task>"');
     }
     const runtime = await createRuntimeFromProject(process.cwd(), { memory: options.memory });
     const result = await runtime.execute({ prompt });
@@ -172,8 +219,15 @@ Commands:
   skills    List or install downloadable AAFE Agent Skills from GitHub
   pattern   Interview and select design patterns for features
   ddd       Analyze domain-driven design model for business features
-  run       Execute the architecture runtime pipeline for a task
+  context   Build the minimal traceable context package for an IDE agent
+  impact    Predict the blast radius of a requirement or a git diff
+  plan      Show the planner decision trace for a task
+  run       Run the Planner + Orchestrator loop for a task
+  pipeline  Run the legacy skill pipeline (former "run" behaviour)
+  test      Plan and generate tests; --run also executes the project suite
+  diagnose  Turn a failing test report into a located root cause
   update    Refresh installed project .ai-agent capabilities from the current aafe package
+  migrate   Move files and config left by older versions to their current locations (--dry-run)
 
 Init options:
   --yes
@@ -211,6 +265,26 @@ Analyze options:
   --quiet                      Suppress human progress output
   --dry-run                    Preview without writing
   --no-write                   Analyze without writing artifacts
+
+Agent platform (context / impact / plan / run):
+  aafe context --requirement="增加用户手机号搜索" [--format=ai|json|md] [--out=<path>]
+  aafe context --diff[=<ref>] [--format=ai|json|md]
+  aafe impact  --requirement="..." | --diff[=<ref>]  [--format=json|md]
+  aafe plan    --requirement="..." [--dry-run]
+  aafe run     "<task>"            Planner + Orchestrator full loop
+  aafe run     --list [--limit=20] List stored runs under <output>/runs/
+  aafe run     --replay=<runId>    Read-only replay of a stored run, with node payloads
+  aafe test    --requirement="..." [--run] [--diff[=<ref>]]
+  aafe diagnose --failure=<report.json|log.txt> [--diff[=<ref>]]
+  aafe pipeline "<task>"           Legacy skill pipeline (alias: aafe run --legacy)
+  --no-write                       Do not persist the run under <output>/runs/
+  Agent wiring lives in .aafe.agents.json (planner provider, per-agent contract, policies).
+  Contracts (prompt + input/output schema) default to builtin:<agent-id> and may be
+  overridden per agent; endpoint/model/prompt/schema fields expand \${ENV_VAR}.
+
+Knowledge retrieval:
+  aafe knowledge search "<query>" [--kind=module,route,symbol] [--limit=20] [--rebuild]
+  aafe knowledge index             Rebuild and persist the retrieval index
 
 Skills options:
   aafe skills list --github

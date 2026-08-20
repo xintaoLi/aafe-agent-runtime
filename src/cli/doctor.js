@@ -2,6 +2,19 @@ import { access, readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { resolveEditorPathsFromConfig } from './editorLayer.js';
 import { getEditorAdapter } from './editorRegistry.js';
+import { AGENTS_CONFIG_FILE, loadAgentsConfig } from '../agent-platform/config/agentsConfig.js';
+import { createRegistryFromConfig } from '../agent-platform/registry/AgentRegistry.js';
+import { dddRuntimePaths } from './dddRuntimeFiles.js';
+import { patternRuntimePaths } from './patternRuntimeFiles.js';
+
+/** Capabilities the default planner sequences depend on. */
+const REQUIRED_CAPABILITIES = [
+  'project-analysis',
+  'requirement-impact',
+  'change-impact',
+  'knowledge-validation',
+  'context-packaging'
+];
 
 const requiredFiles = [
   '.ai-agent/skill-index.md',
@@ -13,11 +26,8 @@ const requiredFiles = [
   '.ai-agent/pipelines/domain-feature.yaml',
   '.ai-agent/pipelines/pattern-feature.yaml',
   '.ai-agent/skills/architect.md',
-  '.ai-agent/skills/ddd-discovery.md',
-  '.ai-agent/skills/bounded-context-mapper.md',
-  '.ai-agent/skills/aggregate-designer.md',
-  '.ai-agent/skills/domain-event-designer.md',
-  '.ai-agent/skills/ddd-implementation-planner.md',
+  ...dddRuntimePaths('.ai-agent'),
+  ...patternRuntimePaths('.ai-agent'),
   '.ai-agent/skills/pattern-interviewer.md',
   '.ai-agent/skills/pattern-selector.md',
   '.ai-agent/skills/module-pattern-selector.md',
@@ -123,6 +133,7 @@ export async function doctorProject(root) {
   const router = await safeRead(path.join(root, '.ai-agent/runtime/router.yaml'));
   const featurePipeline = await safeRead(path.join(root, '.ai-agent/pipelines/feature.yaml'));
   const domainPipeline = await safeRead(path.join(root, '.ai-agent/pipelines/domain-feature.yaml'));
+  const patternPipeline = await safeRead(path.join(root, '.ai-agent/pipelines/pattern-feature.yaml'));
   const skillIndex = await safeRead(path.join(root, '.ai-agent/skill-index.md'));
   const cursorSkillRouter = await safeRead(cursorLayout.layered
     ? path.join(cursorLayout.paths.rulesDir, 'aafe-skill-router.mdc')
@@ -135,20 +146,33 @@ export async function doctorProject(root) {
 
 
   if (gates && !gates.includes('ddd_gate')) warnings.push('ddd_gate is not configured');
+  if (gates && !gates.includes('ddd_enablement_gate')) warnings.push('ddd_enablement_gate is not configured; DDD skills can run without explicit user intent');
   if (gates && !gates.includes('architecture_gate')) warnings.push('architecture_gate is not configured');
   if (gates && !gates.includes('pattern_gate')) warnings.push('pattern_gate is not configured');
+  if (gates && !gates.includes('pattern_enablement_gate')) warnings.push('pattern_enablement_gate is not configured; pattern skills can run without explicit user intent');
+  if (gates && /pattern_selection/.test(gates.split('architecture_gate')[1]?.split('gate:')[0] ?? '')) {
+    warnings.push('architecture_gate still requires pattern_selection; architecture soundness must not depend on naming a design pattern');
+  }
   if (gates && !gates.includes('merge_gate')) warnings.push('merge_gate is not configured');
   if (router && !router.includes('domainFeature')) warnings.push('domainFeature route is not configured');
-  if (featurePipeline && !featurePipeline.includes('ddd-discovery')) warnings.push('feature pipeline does not run DDD discovery');
+  // The inverse of the old check. DDD in the generic feature pipeline means
+  // every ordinary feature gets domain-modelled whether or not it was asked for.
+  if (featurePipeline && /\bddd[-_]/.test(featurePipeline)) warnings.push('feature pipeline runs DDD skills unconditionally; DDD must be opt-in via the domain-feature pipeline');
   if (featurePipeline && !featurePipeline.includes('memory-recaller')) warnings.push('feature pipeline does not recall project memory');
   if (config && !config.includes('project-architecture')) warnings.push('project architecture index is not documented in generated memory config');
   if (config && !config.includes('"skills"')) warnings.push('downloadable skills config is not documented in .aafe.config.json');
-  if (featurePipeline && !featurePipeline.includes('pattern-interviewer')) warnings.push('feature pipeline does not interview design pattern constraints');
-  if (featurePipeline && !featurePipeline.includes('pattern-selector')) warnings.push('feature pipeline does not select design patterns');
-  if (featurePipeline && !featurePipeline.includes('module-pattern-selector')) warnings.push('feature pipeline does not select patterns per module');
+  // Also inverted. Pattern skills in the generic feature pipeline mean every
+  // ordinary feature gets a design-pattern analysis nobody asked for.
+  if (featurePipeline && /\bpattern[-_]/.test(featurePipeline)) warnings.push('feature pipeline runs design-pattern skills unconditionally; patterns must be opt-in via the pattern-feature pipeline');
   if (featurePipeline && !featurePipeline.includes('memory-writer')) warnings.push('feature pipeline does not write project memory');
-  if (domainPipeline && !domainPipeline.includes('bounded-context-mapper')) warnings.push('domain pipeline does not map bounded contexts');
-  if (domainPipeline && !domainPipeline.includes('aggregate-designer')) warnings.push('domain pipeline does not design aggregates');
+  if (domainPipeline && !domainPipeline.includes('ddd-gate')) warnings.push('domain pipeline does not start with the DDD enablement gate');
+  if (domainPipeline && !domainPipeline.includes('ddd-scope')) warnings.push('domain pipeline does not resolve DDD scope; it will run every DDD skill');
+  if (domainPipeline && !domainPipeline.includes('ddd-bounded-context')) warnings.push('domain pipeline does not map bounded contexts');
+  if (domainPipeline && !domainPipeline.includes('ddd-aggregate')) warnings.push('domain pipeline does not design aggregates');
+  if (patternPipeline && !patternPipeline.includes('pattern-gate')) warnings.push('pattern pipeline does not start with the pattern enablement gate');
+  if (patternPipeline && !patternPipeline.includes('pattern-discovery')) warnings.push('pattern pipeline selects patterns without identifying problems first');
+  if (patternPipeline && !patternPipeline.includes('pattern-composer')) warnings.push('pattern pipeline does not compose patterns; it will produce single-pattern answers');
+  if (patternPipeline && !patternPipeline.includes('pattern-anti-pattern-audit')) warnings.push('pattern pipeline does not audit its own composition for anti-patterns');
   if (config && !config.includes('"memory"')) warnings.push('memory config is not enabled');
   if (projectConfig.editors?.includes('cursor') && !projectConfig.hooks?.enabled) warnings.push('Cursor hooks are not enabled in .aafe.config.json');
   if (hasProjectSkills && !skillIndex) warnings.push('project-skills/ exists but .ai-agent/skill-index.md is missing; project knowledge has no generated router');
@@ -197,11 +221,45 @@ export async function doctorProject(root) {
     warnings.push(`${analyzeOutput} exists but manifest.json is missing; re-run aafe analyze`);
   }
 
+  warnings.push(...await checkAgentPlatform(root, projectConfig));
+
   return {
     status: missing.length ? 'fail' : warnings.length ? 'warn' : 'pass',
     missing,
     warnings
   };
+}
+
+/**
+ * The agent platform is only usable when every capability the planner can ask
+ * for resolves to an enabled agent with a known provider, so check that rather
+ * than just the file's presence.
+ */
+async function checkAgentPlatform(root, projectConfig) {
+  const warnings = [];
+  if (!(await exists(path.join(root, AGENTS_CONFIG_FILE)))) {
+    warnings.push(`${AGENTS_CONFIG_FILE} is missing; run aafe init or aafe update to seed agent wiring`);
+  }
+
+  const { config, warnings: configWarnings } = await loadAgentsConfig(root, projectConfig);
+  warnings.push(...configWarnings.map((warning) => `${AGENTS_CONFIG_FILE}: ${warning}`));
+
+  const registry = createRegistryFromConfig(config.agents);
+  const knownProviders = new Set(['local', 'http', 'cli', 'ide']);
+  for (const agent of registry.list()) {
+    if (!knownProviders.has(agent.provider)) {
+      warnings.push(`agent "${agent.id}" uses unknown provider "${agent.provider}"`);
+    }
+    if (agent.provider === 'http' && !config.policies.allowNetwork) {
+      warnings.push(`agent "${agent.id}" is an http agent but policies.allowNetwork is false`);
+    }
+  }
+
+  for (const capability of REQUIRED_CAPABILITIES) {
+    const { agent, reason } = registry.resolveCapability(capability);
+    if (!agent) warnings.push(`capability "${capability}" cannot be resolved (${reason})`);
+  }
+  return warnings;
 }
 
 async function exists(filePath) {

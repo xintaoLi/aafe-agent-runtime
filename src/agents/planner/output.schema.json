@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/schemas/planner/output.schema.json",
+  "title": "PlannerOutput",
+  "type": "object",
+  "required": ["action", "reason"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "description": "invoke_agent is the AAFE wire name for the doc's `invoke`; both are accepted on input and normalized.",
+      "enum": ["invoke_agent", "invoke", "parallel", "replan", "complete", "need_user_input", "need_input", "fail"]
+    },
+    "reason": { "type": "string" },
+    "capability": {
+      "type": "string",
+      "description": "Required for invoke_agent. A capability name, never an agent id."
+    },
+    "input": {},
+    "expectedOutput": { "type": "array", "items": { "type": "string" } },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "tasks": {
+      "type": "array",
+      "description": "Required for parallel.",
+      "items": {
+        "type": "object",
+        "required": ["capability"],
+        "properties": {
+          "capability": { "type": "string" },
+          "goal": { "type": "string" },
+          "input": {},
+          "priority": { "type": "integer", "minimum": 0 },
+          "dependsOn": {
+            "type": "array",
+            "description": "Capability names or execution node ids this task must wait for.",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "completionReason": { "type": "string" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "action": { "const": "invoke_agent" } }, "required": ["action"] },
+      "then": { "required": ["capability"] }
+    },
+    {
+      "if": { "properties": { "action": { "const": "parallel" } }, "required": ["action"] },
+      "then": { "required": ["tasks"], "properties": { "tasks": { "minItems": 1 } } }
+    }
+  ]
+}

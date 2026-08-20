@@ -64,9 +64,6 @@
       "merge_gate:fail"
     ]
   },
-  "submit": {
-    "cli": "git"
-  },
   "hooks": {
     "enabled": true,
     "sessionStart": ".cursor/hooks/aafe-session-start",
@@ -103,12 +100,25 @@
   },
   "analyze": {
     "output": ".aafe",
-    "formats": ["json", "jsonl", "md", "mmd"],
+    "formats": [
+      "json",
+      "jsonl",
+      "md",
+      "mmd"
+    ],
     "maxDepth": 40,
-    "architecture": { "enabled": true },
-    "dataflow": { "enabled": true },
-    "features": { "enabled": true },
-    "business": { "enabled": true },
+    "architecture": {
+      "enabled": true
+    },
+    "dataflow": {
+      "enabled": true
+    },
+    "features": {
+      "enabled": true
+    },
+    "business": {
+      "enabled": true
+    },
     "llm": {
       "enabled": false,
       "provider": null,
@@ -123,10 +133,15 @@
     }
   },
   "gates": [
+    "ddd_enablement_gate",
     "ddd_gate",
     "architecture_gate",
+    "pattern_enablement_gate",
     "pattern_gate",
     "implementation_gate",
     "merge_gate"
-  ]
+  ],
+  "submit": {
+    "cli": "git"
+  }
 }

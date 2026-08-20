@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/schemas/knowledge-validator/output.schema.json",
+  "title": "KnowledgeValidatorOutput",
+  "description": "Rejections are reported, never silently applied: `trustedImpact` is the filtered view, while `findings` keeps the audit trail that explains it.",
+  "type": "object",
+  "required": ["checked", "summary", "rejected", "downgraded", "findings"],
+  "properties": {
+    "checked": { "type": "integer", "minimum": 0 },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "ok": { "type": "integer", "minimum": 0 },
+        "downgrade": { "type": "integer", "minimum": 0 },
+        "reject": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "rejected": { "type": "array", "items": { "type": "string" } },
+    "downgraded": { "type": "array", "items": { "type": "string" } },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["verdict", "rule", "target"],
+        "properties": {
+          "verdict": { "type": "string", "enum": ["ok", "downgrade", "reject"] },
+          "rule": { "type": "string" },
+          "target": { "type": "string" },
+          "detail": { "type": "string" },
+          "evidence": { "type": "array" },
+          "correction": { "type": "string" }
+        }
+      }
+    },
+    "results": {
+      "description": "The AGENTS.SCHEMA §7.2 per-claim shape, for external validators.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["knowledgeId", "valid", "confidence"],
+        "properties": {
+          "knowledgeId": { "type": "string" },
+          "valid": { "type": "boolean" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "reason": { "type": "string" },
+          "evidence": { "type": "array" },
+          "corrections": { "type": "array" }
+        }
+      }
+    },
+    "trustedImpact": { "type": ["object", "null"] },
+    "note": { "type": "string" }
+  }
+}

@@ -1,44 +1,18 @@
 # Skill: Dataflow On-Demand
 
-Generated: 2026-08-19T03:48:17.413Z
-Project: @aafe/agent-runtime
+Use after `aafe analyze` has written the configured output directory (default `.aafe`).
 
-## Purpose
+When to use:
+- Tracing route → page → store/API/hooks flow for one module
+- Impact analysis that needs data edges without full-repo scan
 
-Load dataflow facts **per module**.
+Protocol:
+1. Read `<analyze.output>/dataflow/index.md`
+2. Load only needed flows from `dataflow/analysis.json`
+3. Use evidence to jump back to source files
 
-## Agent loading protocol
+Command:
 
-1. `.aafe/index.json` → `.aafe/modules/index.json`
-2. `.aafe/modules/<id>/index.json`
-3. `.aafe/modules/<id>/json/dataflow.json`
-4. Cross-module: `.aafe/knowledge/relations/json/dataflow.json`
-5. Human: `.aafe/modules/<id>/mmd/dataflow.mmd`
-6. **Forbidden:** dump all flows into context
-
-## Module ids (summary)
-
-- `src-cli`
-- `src-runtime`
-- `src-analyze-analyzers`
-- `src-analyze`
-- `src-analyze-types`
-- `src-memory`
-- `src-analyze-ast`
-- `src-analyze-emit`
-- `src-analyze-modules`
-- `bin-aafe-js`
-- `route`
-- `route-ai-agent`
-- `route-package-json`
-- `src`
-- `src-analyze-routes`
-- `src-analyze-semantic`
-- `src-analyze-storage`
-- `src-ddd`
-- `src-patterns`
-- `src-templates`
-
-## Related
-
-- Architecture: `.ai-agent/skills/architecture-on-demand.md`
+```bash
+aafe analyze --output=.aafe
+```

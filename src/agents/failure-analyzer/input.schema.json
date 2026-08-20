@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/schemas/failure-analyzer/input.schema.json",
+  "title": "FailureAnalyzerInput",
+  "description": "The failure may arrive as a path to an artifact, as inline text, as an already-parsed report, or implicitly from a prior e2e-execution result.",
+  "type": ["object", "null"],
+  "properties": {
+    "failureRef": {
+      "type": ["string", "null"],
+      "description": "Path to a test report or log, relative to the project root."
+    },
+    "report": {
+      "anyOf": [
+        { "type": "string" },
+        { "type": "object", "required": ["failures"], "properties": { "failures": { "type": "array" } } }
+      ]
+    },
+    "output": { "type": "string", "description": "Raw runner output." },
+    "testResult": { "type": "object" },
+    "diffRef": { "type": ["string", "null"] },
+    "error": { "type": "string" },
+    "stack": { "type": "string" },
+    "console": { "type": "array" },
+    "network": { "type": "array" },
+    "screenshot": { "type": "string" },
+    "trace": { "type": "string" },
+    "diff": { "type": "string" },
+    "knowledge": { "type": "object" },
+    "impact": { "type": "object" }
+  }
+}

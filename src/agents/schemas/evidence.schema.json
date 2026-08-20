@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/schemas/evidence.schema.json",
+  "title": "Evidence",
+  "description": "A pointer at something that actually exists in the project. Two spellings are accepted: the flat AAFE form produced by static analysis, and the nested form used by external LLM agents.",
+  "type": "object",
+  "required": ["type"],
+  "anyOf": [
+    { "required": ["file"] },
+    { "required": ["source"] }
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "source",
+        "ast",
+        "symbol",
+        "dependency",
+        "data-flow",
+        "route",
+        "api",
+        "config",
+        "git",
+        "test",
+        "runtime",
+        "network",
+        "stack"
+      ]
+    },
+    "file": { "type": "string" },
+    "startLine": { "type": "integer", "minimum": 0 },
+    "endLine": { "type": "integer", "minimum": 0 },
+    "symbol": { "type": "string" },
+    "reason": { "type": "string" },
+    "description": { "type": "string" },
+    "source": {
+      "type": "object",
+      "required": ["file"],
+      "properties": {
+        "file": { "type": "string" },
+        "lineStart": { "type": "integer", "minimum": 0 },
+        "lineEnd": { "type": "integer", "minimum": 0 },
+        "symbol": { "type": "string" }
+      }
+    }
+  }
+}

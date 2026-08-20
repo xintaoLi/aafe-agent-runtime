@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/schemas/code-intelligence/output.schema.json",
+  "title": "CodeIntelligenceOutput",
+  "description": "A1 serves two shapes: the full analysis summary produced by `project-analysis`, and a narrow projection produced by each of the five view capabilities.",
+  "anyOf": [
+    { "$ref": "#/definitions/analysisSummary" },
+    { "$ref": "#/definitions/view" },
+    { "$ref": "#/definitions/knowledgeBundle" }
+  ],
+  "definitions": {
+    "analysisSummary": {
+      "type": "object",
+      "required": ["source", "stats", "modules"],
+      "properties": {
+        "source": { "type": "string", "enum": ["analyze", "cache"] },
+        "reason": { "type": "string" },
+        "stats": { "type": "object" },
+        "modules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "files": { "type": ["array", "integer"] }
+            }
+          }
+        },
+        "routes": { "type": "integer", "minimum": 0 },
+        "features": { "type": "integer", "minimum": 0 },
+        "risks": { "type": "array" },
+        "output": { "type": "string" },
+        "commit": { "type": ["string", "null"] },
+        "persist": { "type": ["object", "null"] }
+      }
+    },
+    "view": {
+      "type": "object",
+      "required": ["view"],
+      "properties": {
+        "view": {
+          "type": "string",
+          "enum": ["architecture", "dependency", "data-flow", "feature", "business-flow"]
+        }
+      }
+    },
+    "knowledgeBundle": {
+      "description": "The AGENTS.SCHEMA §3.2 shape, for external agents that produce knowledge directly instead of driving the AST pipeline.",
+      "type": "object",
+      "required": ["architecture", "dataFlows", "features", "businessFlows", "dependencies", "evidence"],
+      "properties": {
+        "architecture": {
+          "type": "object",
+          "required": ["modules"],
+          "properties": {
+            "modules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "name", "evidence"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "files": { "type": "array", "items": { "type": "string" } },
+                  "dependencies": { "type": "array", "items": { "type": "string" } },
+                  "evidence": { "type": "array", "items": { "$ref": "#/definitions/evidence" } }
+                }
+              }
+            }
+          }
+        },
+        "dataFlows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "steps", "evidence"],
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "steps": { "type": "array", "items": { "type": "string" } },
+              "evidence": { "type": "array", "items": { "$ref": "#/definitions/evidence" } }
+            }
+          }
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "name", "evidence"],
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "description": { "type": "string" },
+              "relatedFiles": { "type": "array", "items": { "type": "string" } },
+              "evidence": { "type": "array", "items": { "$ref": "#/definitions/evidence" } }
+            }
+          }
+        },
+        "businessFlows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "steps", "evidence"],
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "trigger": { "type": "string" },
+              "steps": { "type": "array", "items": { "type": "string" } },
+              "evidence": { "type": "array", "items": { "$ref": "#/definitions/evidence" } }
+            }
+          }
+        },
+        "dependencies": { "type": "array" },
+        "evidence": { "type": "array", "items": { "$ref": "#/definitions/evidence" } }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["type"],
+      "anyOf": [{ "required": ["file"] }, { "required": ["source"] }],
+      "properties": {
+        "type": { "type": "string" },
+        "file": { "type": "string" },
+        "startLine": { "type": "integer" },
+        "endLine": { "type": "integer" },
+        "symbol": { "type": "string" },
+        "reason": { "type": "string" },
+        "source": { "type": "object" }
+      }
+    }
+  }
+}

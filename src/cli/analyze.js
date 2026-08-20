@@ -20,13 +20,13 @@
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { resolveAnalyzeConfig } from '../analyze/types/config.js';
-import { createAnalyzeContext } from '../analyze/types/context.js';
-import { AnalyzeOrchestrator } from '../analyze/orchestrator.js';
+import { resolveAnalyzeConfig } from '../static-analysis/types/config.js';
+import { createAnalyzeContext } from '../static-analysis/types/context.js';
+import { AnalyzeOrchestrator } from '../static-analysis/orchestrator.js';
 import {
   renderArchitectureOnDemandSkill,
   renderDataflowOnDemandSkill
-} from '../analyze/renderSkills.js';
+} from '../static-analysis/renderSkills.js';
 
 /**
  * CLI shell for the static Analyze Pipeline.
@@ -90,6 +90,8 @@ export async function runAnalyzeCommand(root, args = []) {
       status: config.llm?.enabled ? 'reserved' : 'disabled'
     },
     persist: resultContext.persistResult,
+    cache: resultContext.cacheSummary ?? null,
+    searchIndex: resultContext.searchIndex ?? null,
     outputs: report.outputs
   }, null, 2));
 }

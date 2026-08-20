@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/schemas/test-agent/output.schema.json",
+  "title": "TestAgentOutput",
+  "description": "A3 serves three capabilities with three result shapes: a plan, a generation result, and an execution report.",
+  "anyOf": [
+    { "$ref": "#/definitions/testPlan" },
+    { "$ref": "#/definitions/generation" },
+    { "$ref": "#/definitions/execution" },
+    { "$ref": "#/definitions/skippedDetail" }
+  ],
+  "definitions": {
+    "testPlan": {
+      "type": "object",
+      "required": ["id", "risk", "scenarios"],
+      "properties": {
+        "id": { "type": "string" },
+        "requirement": { "type": ["string", "null"] },
+        "risk": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+        "runner": {
+          "type": "object",
+          "properties": {
+            "e2e": { "type": ["string", "null"] },
+            "unit": { "type": ["string", "null"] }
+          }
+        },
+        "scenarios": { "type": "array", "items": { "$ref": "#/definitions/scenario" } },
+        "existingTests": { "type": "array", "items": { "type": "string" } },
+        "coverageGaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["moduleId", "reason"],
+            "properties": {
+              "moduleId": { "type": "string" },
+              "reason": { "type": "string" }
+            }
+          }
+        },
+        "evidence": { "type": "array" }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "required": ["id", "title", "kind", "steps", "expected", "priority"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "kind": { "type": "string", "enum": ["e2e", "integration", "unit"] },
+        "preconditions": { "type": "array", "items": { "type": "string" } },
+        "steps": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "expected": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "priority": { "type": "string", "enum": ["critical", "high", "normal", "medium", "low"] },
+        "relatedFeature": { "type": "string" },
+        "relatedFlow": { "type": "string" },
+        "source": { "type": "object" }
+      }
+    },
+    "generation": {
+      "type": "object",
+      "required": ["planId", "files", "written"],
+      "properties": {
+        "planId": { "type": "string" },
+        "written": { "type": "array", "items": { "type": "string" } },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "content"],
+            "properties": {
+              "path": { "type": "string" },
+              "runner": { "type": ["string", "null"] },
+              "content": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "required": ["runner", "status"],
+      "properties": {
+        "runner": { "type": "string" },
+        "command": { "type": "string" },
+        "status": { "type": "string", "enum": ["passed", "failed"] },
+        "exitCode": { "type": ["integer", "null"] },
+        "report": { "type": "object" }
+      }
+    },
+    "skippedDetail": {
+      "description": "Structured explanation attached to a skipped execution, e.g. how to enable it.",
+      "type": "object",
+      "required": ["enableWith"],
+      "properties": {
+        "runner": { "type": ["string", "null"] },
+        "command": { "type": "string" },
+        "scripts": { "type": "array", "items": { "type": "string" } },
+        "enableWith": { "type": "string" }
+      }
+    }
+  }
+}

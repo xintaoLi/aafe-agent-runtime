@@ -1,5 +1,6 @@
 import { chmod, mkdir, readdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { taskCompletionHookScript } from './hookScripts.js';
 import {
   requirementIntakeProjectRuleMdc,
   requirementIntakeRuleMdc
@@ -396,10 +397,7 @@ exec bash "\${SCRIPT_DIR}/\${SCRIPT_NAME}" "$@"
 }
 
 function cursorTaskCompletionHook(ctx) {
-  const cdPart = ctx.moduleRelativePath && ctx.moduleRelativePath !== '.'
-    ? `\nMODULE_DIR="${ctx.moduleRelativePath}"\nif [ -f "\${MODULE_DIR}/.aafe.config.json" ]; then\n  cd "\${MODULE_DIR}" || exit 0\nfi\n`
-    : '';
-  return `#!/usr/bin/env bash\nset -u\n\nif [ "\${AAFE_TASK_STATUS:-success}" != "success" ]; then\n  exit 0\nfi\n${cdPart}\nif command -v aafe >/dev/null 2>&1; then\n  aafe task-completion || true\nfi\n`;
+  return taskCompletionHookScript(ctx);
 }
 
 function cursorSessionStartHook(ctx) {

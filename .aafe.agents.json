@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "planner": {
+    "provider": "rule",
+    "maxSteps": 12,
+    "llm": {
+      "endpoint": null,
+      "model": null,
+      "apiKeyEnv": "AAFE_LLM_API_KEY",
+      "temperature": 0
+    }
+  },
+  "agents": {
+    "code-intelligence": {
+      "enabled": true,
+      "provider": "local",
+      "ref": "builtin:code-intelligence",
+      "capabilities": [
+        "project-analysis",
+        "architecture-analysis",
+        "dependency-analysis",
+        "data-flow-analysis",
+        "feature-analysis",
+        "business-flow-analysis"
+      ]
+    },
+    "impact-analyzer": {
+      "enabled": true,
+      "provider": "local",
+      "ref": "builtin:impact-analyzer",
+      "capabilities": [
+        "requirement-impact",
+        "change-impact",
+        "risk-analysis"
+      ]
+    },
+    "test-agent": {
+      "enabled": true,
+      "provider": "local",
+      "ref": "builtin:test-agent",
+      "capabilities": [
+        "test-planning",
+        "test-generation",
+        "e2e-execution"
+      ]
+    },
+    "failure-analyzer": {
+      "enabled": true,
+      "provider": "local",
+      "ref": "builtin:failure-analyzer",
+      "capabilities": [
+        "failure-analysis",
+        "root-cause-analysis",
+        "fix-analysis"
+      ]
+    },
+    "knowledge-validator": {
+      "enabled": true,
+      "provider": "local",
+      "ref": "builtin:knowledge-validator",
+      "capabilities": [
+        "knowledge-validation",
+        "evidence-check"
+      ]
+    },
+    "context-agent": {
+      "enabled": true,
+      "provider": "local",
+      "ref": "builtin:context-agent",
+      "capabilities": [
+        "context-packaging",
+        "evidence-selection"
+      ]
+    }
+  },
+  "developer": {
+    "provider": "ide",
+    "mode": "current"
+  },
+  "policies": {
+    "timeoutMs": 120000,
+    "maxRetries": 1,
+    "maxParallel": 4,
+    "allowNetwork": false,
+    "allowTestExecution": false
+  }
+}

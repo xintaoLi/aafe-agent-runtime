@@ -29,17 +29,62 @@ Load only the domain skill that matches the current task. Common domain hints:
 - conventions / coding patterns / lint / tests -> coding-patterns or conventions skill
 - knowledge update / project skill maintenance / self-growing docs -> self-update skill
 
-Deep analyze docs live under the configured output (default \`.aafe/\`, set \`analyze.output\` or \`--output=\`). Read \`manifest.json\` first; load only matched JSON slices. Never eagerly read entire graph JSONL.
+## DDD is opt-in
 
-The exact project domains are owned by the project and should be discovered from \`.ai-agent/project.md\`
-and \`.ai-agent/project-skills/*/SKILL.md\` descriptions.
+Load `.ai-agent/ddd/**` **only** when the user explicitly asks for Domain-Driven Design.
+Entity, Aggregate, Repository, Service, Domain or Clean Architecture appearing in the codebase
+is never enough. Start at `.ai-agent/ddd/rules/ddd-gate.md`, or run `aafe ddd gate "<request>"`;
+if the gate says disabled, do not read any other file under `.ai-agent/ddd/`.
+
+## Frontend design patterns are opt-in
+
+Load `.ai-agent/frontend-engineering/**` **only** when the user explicitly asks for design-pattern
+work. factory, adapter, observer, strategy, singleton, store or reducer appearing in the codebase
+is never enough. Start at `.ai-agent/frontend-engineering/rules/pattern-gate.md`, or run
+`aafe pattern gate "<request>"`; if the gate says disabled, do not read any other file under
+`.ai-agent/frontend-engineering/`.
+
+When enabled, identify problems first (`aafe pattern discover`), then compose — a project gets a
+minimum sufficient *composition* of patterns, never one pattern applied globally, and "no pattern
+needed" is a valid answer.
+
+Deep analyze docs live under the configured output (default `.aafe/`, set `analyze.output` or `--output=`). Read `manifest.json` first; load only matched JSON slices. Never eagerly read entire graph JSONL.
+
+The exact project domains are owned by the project and should be discovered from `.ai-agent/project.md`
+and `.ai-agent/project-skills/*/SKILL.md` descriptions.
+
+## Commands you may run yourself
+
+Run these directly when the situation below applies. Do not wait to be asked, and do not
+ask the user to run them for you. Resolve the binary as `node_modules/.bin/aafe` when it is
+not on `PATH`; if neither resolves, fall back to reading files and say so.
+
+| Situation | Command |
+| --- | --- |
+| Locating a module, route, component, feature or symbol | `aafe knowledge search "<terms>" [--kind=...]` |
+| `knowledge search` returns nothing and `.aafe/` is missing or stale | `aafe analyze` |
+| Assembling evidence for a requirement before editing | `aafe context --requirement="<text>"` |
+| Reporting blast radius after a change | `aafe impact --diff` or `aafe impact --requirement="<text>"` |
+| Deciding whether DDD applies | `aafe ddd gate "<request>"`, then `aafe ddd scope` |
+| Deciding whether design patterns apply | `aafe pattern gate "<request>"`, then `aafe pattern discover` |
+| Planning tests for a change | `aafe test --requirement="<text>"` |
+| A test run failed and the cause is unclear | `aafe diagnose --failure=<report>` |
+| Runtime files look stale or inconsistent | `aafe doctor`, then `aafe migrate --dry-run` |
+
+Prefer `aafe knowledge search` over a blind repository grep: it ranks across modules, routes,
+components, features and symbols, and normalizes `userPhoneSearch`, `user-phone-search.js` and
+the equivalent Chinese phrase onto the same tokens.
+
+These commands only read and report. The two that write are `aafe analyze` (refreshes the
+analyze output) and `aafe migrate` (moves legacy files); everything else leaves the project
+untouched, so running one to check an assumption is cheap.
 
 ## Forbidden
 
 - Do not copy project knowledge into .cursor, .codebuddy, .vscode, .codex, .trace, .windsurf, or other editor directories.
-- Do not eagerly read every \`.ai-agent/project-skills/*/SKILL.md\` file.
+- Do not eagerly read every `.ai-agent/project-skills/*/SKILL.md` file.
 - Do not eagerly read every analyze output module/graph file.
-- Do not treat editor \`skills/ENTRY.md\` files as full knowledge; they are pointers to this index.
+- Do not treat editor `skills/ENTRY.md` files as full knowledge; they are pointers to this index.
 - Do not inject full runtime files into session hooks; read runtime files on demand.
 
 ## Ownership and update policy

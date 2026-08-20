@@ -74,6 +74,7 @@ function taskCompletionImpactProjectRuleBody(agentPrefix = '.ai-agent') {
 
 ## 确认后加载顺序
 
+0. 先跑 \`aafe impact --diff --format=md\`（\`aafe\` 不在 \`PATH\` 时用 \`node_modules/.bin/aafe\`），把机器算出的影响面作为起点，自己不要从零推断；命令不可用时才退回纯人工分析并说明。
 1. \`${agentPrefix}/skills/architecture-impact-test-forecast.md\`
 2. \`${agentPrefix}/skills/minimal-convergent-self-test.md\`
 3. 自测结束后：若任务过程中**有关联 TAPD 单**且 \`tapd.enabled\`，进入 \`${agentPrefix}/skills/tapd-submit-backfill.md\`（按 \`submit.cli\` 执行 Commit/PR → 回填）；无 TAPD 关联则仅可选提交，跳过 TAPD 回填询问

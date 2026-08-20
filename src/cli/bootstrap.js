@@ -1,4 +1,6 @@
 import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { runMigrations } from './migrate.js';
+import { taskCompletionHookScript } from './hookScripts.js';
 import path from 'node:path';
 import { createTemplatePlan, packageRecommendations } from '../templates/TemplateSystem.js';
 import { writeLayeredEditorAdapters } from './editorLayer.js';
@@ -24,14 +26,23 @@ import {
   fileLicenseProjectRuleMdc,
   fileLicenseRuleMdc
 } from './fileLicenseRules.js';
+import { dddPointerRuleMdc, dddRuntimeFiles } from './dddRuntimeFiles.js';
+import { patternPointerRuleMdc, patternRuntimeFiles } from './patternRuntimeFiles.js';
 import { resolveSubmitConfig } from './submitConfig.js';
+import { AGENTS_CONFIG_FILE, defaultAgentsConfig } from '../agent-platform/config/agentsConfig.js';
 
 export async function bootstrapProject(root, detection, options = {}) {
   const plan = createTemplatePlan(detection, options);
   await writeRuntime(root, detection, options, plan);
   await writeConfig(root, detection, options, plan);
+  // Last on purpose. Migrations retire superseded files and drop legacy config
+  // keys, so they have to see the finished layout: the replacement tree must
+  // already exist before its predecessor is removed, and `writeConfig` merges
+  // the old config forward, so anything dropped earlier would just come back.
+  const migration = await runMigrations(root);
   await writeEditorAdapters(root, detection, options, plan);
   await writePackageManifest(root, options, plan);
+  return { migration };
 }
 
 async function writeRuntime(root, detection, options, plan) {
@@ -146,7 +157,7 @@ async function writeConfig(root, _detection, options, plan) {
         }
       }
     },
-    gates: ['ddd_gate', 'architecture_gate', 'pattern_gate', 'implementation_gate', 'merge_gate']
+    gates: ['ddd_enablement_gate', 'ddd_gate', 'architecture_gate', 'pattern_enablement_gate', 'pattern_gate', 'implementation_gate', 'merge_gate']
   };
 
   if (existingConfig.analyze) {
@@ -211,6 +222,18 @@ async function writeConfig(root, _detection, options, plan) {
   }
 
   await writeIfAllowed(path.join(root, '.aafe.config.json'), `${JSON.stringify(config, null, 2)}\n`, options);
+  await writeAgentsConfig(root, options);
+}
+
+/**
+ * Agent wiring lives in its own file so it can grow to dozens of agents
+ * without bloating `.aafe.config.json`. Written only when missing, since
+ * enabling or repointing an agent is a project decision.
+ */
+async function writeAgentsConfig(root, options) {
+  const file = path.join(root, AGENTS_CONFIG_FILE);
+  if (await exists(file)) return;
+  await writeIfAllowed(file, `${JSON.stringify(defaultAgentsConfig(), null, 2)}\n`, { ...options, force: false });
 }
 
 async function writeEditorAdapters(root, detection, options, plan) {
@@ -260,6 +283,8 @@ async function writeFlatCursorAdapters(root, options) {
   await writeIfAllowed(path.join(root, '.cursor/rules/aafe-requirement-intake-analysis.mdc'), requirementIntakeRuleMdc(), options);
   await writeIfAllowed(path.join(root, '.cursor/rules/aafe-tapd-submit-backfill.mdc'), tapdSubmitRuleMdc(), options);
   await writeIfAllowed(path.join(root, '.cursor/rules/aafe-new-file-license.mdc'), fileLicenseRuleMdc(), options);
+  await writeIfAllowed(path.join(root, '.cursor/rules/aafe-ddd-gate.mdc'), dddPointerRuleMdc(), options);
+  await writeIfAllowed(path.join(root, '.cursor/rules/aafe-pattern-gate.mdc'), patternPointerRuleMdc(), options);
   await writeIfAllowed(path.join(root, '.cursor/skills/aafe-runtime/SKILL.md'), nativeEditorSkill('Cursor'), options);
   await writeIfAllowed(path.join(root, '.cursor/skills/ENTRY.md'), editorSkillEntry('Cursor'), options);
   await writeIfAllowed(path.join(root, '.cursor/hooks.json'), cursorHooks(), options);
@@ -300,17 +325,20 @@ function runtimeFiles(_detection, plan) {
     '.ai-agent/memory/experience.md': memoryExperience(),
     '.ai-agent/memory/project-architecture.md': memoryProjectArchitecture(),
     '.ai-agent/memory/learnings.jsonl': '',
-    '.ai-agent/skills/ddd-discovery.md': dddDiscoverySkill(),
-    '.ai-agent/skills/bounded-context-mapper.md': boundedContextMapperSkill(),
-    '.ai-agent/skills/aggregate-designer.md': aggregateDesignerSkill(),
-    '.ai-agent/skills/domain-event-designer.md': domainEventDesignerSkill(),
-    '.ai-agent/skills/ddd-implementation-planner.md': dddImplementationPlannerSkill(),
+    ...dddRuntimeFiles('.ai-agent'),
+    ...patternRuntimeFiles('.ai-agent'),
     '.ai-agent/scenarios/ddd.md': dddPack(),
     '.ai-agent/skills/architect.md': architectSkill(),
     '.ai-agent/skills/module-decomposer.md': decomposerSkill(),
+    '.ai-agent/skills/pattern-gate.md': patternGateSkill(),
+    '.ai-agent/skills/pattern-discovery.md': patternDiscoverySkill(),
     '.ai-agent/skills/pattern-interviewer.md': patternInterviewerSkill(),
     '.ai-agent/skills/pattern-selector.md': selectorSkill(),
+    '.ai-agent/skills/pattern-composer.md': patternComposerSkill(),
     '.ai-agent/skills/module-pattern-selector.md': modulePatternSelectorSkill(),
+    '.ai-agent/skills/pattern-anti-pattern-audit.md': patternAntiPatternAuditSkill(),
+    '.ai-agent/skills/pattern-validator.md': patternValidatorSkill(),
+    '.ai-agent/skills/ddd-pattern-bridge.md': dddPatternBridgeSkill(),
     '.ai-agent/skills/pattern-implementation-planner.md': patternImplementationPlannerSkill(),
     '.ai-agent/scenarios/patterns.md': patternsPack(),
     '.ai-agent/scenarios/complex.md': complexPack(),
@@ -617,10 +645,55 @@ Load only the domain skill that matches the current task. Common domain hints:
 - conventions / coding patterns / lint / tests -> coding-patterns or conventions skill
 - knowledge update / project skill maintenance / self-growing docs -> self-update skill
 
+## DDD is opt-in
+
+Load \`.ai-agent/ddd/**\` **only** when the user explicitly asks for Domain-Driven Design.
+Entity, Aggregate, Repository, Service, Domain or Clean Architecture appearing in the codebase
+is never enough. Start at \`.ai-agent/ddd/rules/ddd-gate.md\`, or run \`aafe ddd gate "<request>"\`;
+if the gate says disabled, do not read any other file under \`.ai-agent/ddd/\`.
+
+## Frontend design patterns are opt-in
+
+Load \`.ai-agent/frontend-engineering/**\` **only** when the user explicitly asks for design-pattern
+work. factory, adapter, observer, strategy, singleton, store or reducer appearing in the codebase
+is never enough. Start at \`.ai-agent/frontend-engineering/rules/pattern-gate.md\`, or run
+\`aafe pattern gate "<request>"\`; if the gate says disabled, do not read any other file under
+\`.ai-agent/frontend-engineering/\`.
+
+When enabled, identify problems first (\`aafe pattern discover\`), then compose — a project gets a
+minimum sufficient *composition* of patterns, never one pattern applied globally, and "no pattern
+needed" is a valid answer.
+
 Deep analyze docs live under the configured output (default \`.aafe/\`, set \`analyze.output\` or \`--output=\`). Read \`manifest.json\` first; load only matched JSON slices. Never eagerly read entire graph JSONL.
 
 The exact project domains are owned by the project and should be discovered from \`.ai-agent/project.md\`
 and \`.ai-agent/project-skills/*/SKILL.md\` descriptions.
+
+## Commands you may run yourself
+
+Run these directly when the situation below applies. Do not wait to be asked, and do not
+ask the user to run them for you. Resolve the binary as \`node_modules/.bin/aafe\` when it is
+not on \`PATH\`; if neither resolves, fall back to reading files and say so.
+
+| Situation | Command |
+| --- | --- |
+| Locating a module, route, component, feature or symbol | \`aafe knowledge search "<terms>" [--kind=...]\` |
+| \`knowledge search\` returns nothing and \`.aafe/\` is missing or stale | \`aafe analyze\` |
+| Assembling evidence for a requirement before editing | \`aafe context --requirement="<text>"\` |
+| Reporting blast radius after a change | \`aafe impact --diff\` or \`aafe impact --requirement="<text>"\` |
+| Deciding whether DDD applies | \`aafe ddd gate "<request>"\`, then \`aafe ddd scope\` |
+| Deciding whether design patterns apply | \`aafe pattern gate "<request>"\`, then \`aafe pattern discover\` |
+| Planning tests for a change | \`aafe test --requirement="<text>"\` |
+| A test run failed and the cause is unclear | \`aafe diagnose --failure=<report>\` |
+| Runtime files look stale or inconsistent | \`aafe doctor\`, then \`aafe migrate --dry-run\` |
+
+Prefer \`aafe knowledge search\` over a blind repository grep: it ranks across modules, routes,
+components, features and symbols, and normalizes \`userPhoneSearch\`, \`user-phone-search.js\` and
+the equivalent Chinese phrase onto the same tokens.
+
+These commands only read and report. The two that write are \`aafe analyze\` (refreshes the
+analyze output) and \`aafe migrate\` (moves legacy files); everything else leaves the project
+untouched, so running one to check an assumption is cheap.
 
 ## Forbidden
 
@@ -688,21 +761,33 @@ function router() {
 
 function gates() {
   return `gates:
+  # Enablement is a separate question from completeness: may we do DDD at all,
+  # versus is the model finished.
+  ddd_enablement_gate:
+    requires:
+      - ddd_decision
+      - ddd_scope
   ddd_gate:
     requires:
       - ubiquitous_language
       - bounded_contexts
       - aggregates
+  # Architecture soundness does not depend on having named a design pattern,
+  # so pattern_selection is deliberately not required here.
   architecture_gate:
     requires:
       - boundaries
       - decomposition
-      - pattern_selection
+  # Same split as DDD: may we do pattern work at all, versus is the composition
+  # complete and audited.
+  pattern_enablement_gate:
+    requires:
+      - pattern_decision
   pattern_gate:
     requires:
-      - pattern_interview
-      - pattern_selection
-      - module_pattern_selection
+      - pattern_problems
+      - pattern_composition
+      - pattern_anti_patterns
   implementation_gate:
     requires:
       - risk_review
@@ -1061,97 +1146,6 @@ Run \`aafe analyze\` after major routing, module, component or design-document c
 `;
 }
 
-function dddDiscoverySkill() {
-  return `# Skill: DDD Discovery
-
-Discover domain knowledge before implementation.
-
-Output:
-- ubiquitous language
-- business subdomains
-- bounded contexts
-- core domain rules and invariants
-- candidate aggregates
-
-Required artifacts:
-- ubiquitous_language
-- bounded_contexts
-- aggregates
-`;
-}
-
-function boundedContextMapperSkill() {
-  return `# Skill: Bounded Context Mapper
-
-Map business capabilities into bounded contexts.
-
-Output:
-- context names
-- responsibilities
-- upstream/downstream relationships
-- anti-corruption boundaries
-
-Required artifacts:
-- bounded_contexts
-- context_map
-`;
-}
-
-function aggregateDesignerSkill() {
-  return `# Skill: Aggregate Designer
-
-Design aggregates around business invariants.
-
-Output:
-- aggregate roots
-- entities
-- value objects
-- invariants
-- repository boundaries
-
-Required artifacts:
-- aggregates
-- entities
-- value_objects
-- repositories
-`;
-}
-
-function domainEventDesignerSkill() {
-  return `# Skill: Domain Event Designer
-
-Identify domain events that represent meaningful business changes.
-
-Output:
-- event names
-- event payload ownership
-- event consumers
-- consistency model
-
-Required artifacts:
-- domain_events
-`;
-}
-
-function dddImplementationPlannerSkill() {
-  return `# Skill: DDD Implementation Planner
-
-Turn DDD model into frontend/application architecture.
-
-Output:
-- domain model files
-- application services/use cases
-- repositories/ports
-- infrastructure adapters
-- presentation boundaries
-- testing strategy
-
-Required artifacts:
-- ddd_implementation_plan
-- extension_points
-`;
-}
-
 function architectSkill() {
   return `# Skill: Architect
 
@@ -1187,6 +1181,128 @@ Required artifacts:
 `;
 }
 
+function patternGateSkill() {
+  return `# Skill: Pattern Gate
+
+Decide whether the frontend design-pattern system may run at all.
+
+Design-pattern skills are opt-in. The presence of factory, adapter, observer,
+strategy, singleton, store, reducer, hook or middleware in the codebase is never
+sufficient to activate them.
+
+Steps:
+1. Run \`aafe pattern gate "<request>"\`.
+2. disabled -> stop. Handle the task as ordinary development work.
+3. ambiguous -> ask the user. Do not activate silently.
+4. enabled -> continue to discovery, not to selection.
+
+Full rule: \`.ai-agent/frontend-engineering/rules/pattern-gate.md\`
+
+Required artifacts:
+- pattern_decision
+`;
+}
+
+function patternDiscoverySkill() {
+  return `# Skill: Pattern Discovery
+
+Identify the architectural and business problems before any pattern is named.
+
+Analyze module boundaries, component boundaries, state boundaries, data flow,
+event flow, async flow, dependency graph, rendering flow, API boundaries,
+business logic, UI logic, infrastructure logic, extension points, variation
+points and performance bottlenecks.
+
+Rules:
+1. Describe the actual problems. Do NOT assign design patterns here.
+2. Separate problems observed in the codebase from problems inferred from wording.
+3. Assess problem complexity; it sets the over-engineering bar for later steps.
+
+Required artifacts:
+- pattern_problems
+- pattern_variation_points
+- pattern_complexity
+`;
+}
+
+function patternComposerSkill() {
+  return `# Skill: Pattern Composer
+
+Compose the selected patterns into a coherent architecture. This is the step
+that makes the system something other than a pattern lookup table.
+
+Rules:
+1. Every pattern gets an explicit responsibility and boundary (RULE-003, RULE-007).
+2. Pull in required collaborators; a pattern missing its dependency is incomplete.
+3. Detect conflicts — two patterns claiming the same responsibility (RULE-009).
+4. Detect redundancy — interchangeable alternatives to one problem (RULE-010).
+5. Prefer the simplest sufficient composition (RULE-011).
+6. Pattern count is not a quality metric (RULE-012). Fewer may be better (RULE-013).
+
+Required artifacts:
+- pattern_composition
+- pattern_relations
+- pattern_conflicts
+`;
+}
+
+function patternAntiPatternAuditSkill() {
+  return `# Skill: Pattern Anti-Pattern Audit
+
+Audit both the project and the composition this system just proposed.
+
+Distinguish:
+- observed — the project demonstrably does this; needs evidence
+- predicted — our own recommendation would cause this
+
+Auditing our own output is the only honest way to enforce ANTI-PATTERN-003
+(cost without payoff) and ANTI-PATTERN-004 (count is not quality).
+
+Catalog: \`.ai-agent/frontend-engineering/rules/anti-pattern.md\`
+
+Required artifacts:
+- pattern_anti_patterns
+`;
+}
+
+function patternValidatorSkill() {
+  return `# Skill: Pattern Validator
+
+Check the composition against the problems it claims to solve.
+
+Rules:
+1. Every selected pattern must trace back to an identified problem.
+2. Every identified problem must be answered by a pattern or explicitly left to
+   direct implementation.
+3. Confirm the composition is the minimum sufficient one.
+
+Required artifacts:
+- pattern_validation
+`;
+}
+
+function dddPatternBridgeSkill() {
+  return `# Skill: DDD ↔ Pattern Bridge
+
+DDD decides the business model and boundaries; design patterns solve the
+variation, collaboration, state, creation, communication, data access and
+performance problems inside those boundaries.
+
+Mapping:
+- Bounded Context -> module / feature boundary (Feature Module, Public API)
+- Aggregate -> State Machine, Command, Repository
+- Domain Service -> Strategy, Specification
+- Domain Event -> Domain Event, Observer, Pub/Sub
+- Application Service -> Facade, Mediator
+
+These are candidates, not conclusions. A Domain Service becomes a Strategy only
+when something actually varies.
+
+Required artifacts:
+- ddd_pattern_bridge
+`;
+}
+
 function patternInterviewerSkill() {
   return `# Skill: Pattern Interviewer
 
@@ -1207,27 +1323,28 @@ Required artifacts:
 function selectorSkill() {
   return `# Skill: Pattern Selector
 
-Select architecture patterns only when feature constraints justify them.
+Runs only after \`pattern-gate\` enabled the system and \`pattern-discovery\`
+identified the problems. Selecting before discovery is guessing.
 
-Candidate patterns:
-- Strategy
-- Factory
-- Registry
-- State Machine
-- Command
-- Pipeline
-- Observer
-- Adapter
-- Composition
+Candidates come from the 16 pattern domains in
+\`.ai-agent/frontend-engineering/rules/<domain>-rules.md\`, not from a fixed
+shortlist.
 
 Selection rules:
-1. Prefer simple composition when no pattern is justified.
-2. Ask pattern interview questions before implementation when confidence is low.
-3. Output selected pattern, rejected alternatives, tradeoffs and landing plan.
-4. Do not use patterns only because they are familiar.
+1. Score every candidate: ProblemFit + ChangeIsolation + ComplexityReduction +
+   ReusePotential + PerformanceBenefit − ImplementationCost − CognitiveCost −
+   CouplingRisk − OverengineeringRisk.
+2. A benefit only counts when the identified problem asks for it.
+3. Select a pattern only when it answers a problem and scores positively.
+4. Selecting nothing is a valid outcome (PATTERN-SYSTEM-002).
+5. Never return a single pattern as the project's architecture
+   (PATTERN-SYSTEM-001); patterns are composed.
+6. Record rejected candidates and why.
 
 Required artifacts:
 - pattern_selection
+- pattern_candidates
+- pattern_rejected
 `;
 }
 
@@ -1243,10 +1360,11 @@ Module dimensions:
 - presentation: UI composition, interaction state and view contracts
 
 Selection rules:
-1. Each module must choose the simplest sufficient pattern for its responsibility.
+1. Each module gets its own problem set and its own minimum sufficient composition.
 2. Different modules may use different patterns when business behavior differs.
 3. Pattern landing must include contract, implementation boundary and verification.
 4. Do not leak infrastructure or presentation pattern choices into domain logic.
+5. A module with no identified problem gets no pattern.
 
 Required artifacts:
 - module_pattern_selection
@@ -1256,7 +1374,9 @@ Required artifacts:
 function patternImplementationPlannerSkill() {
   return `# Skill: Pattern Implementation Planner
 
-Turn the selected design pattern into an implementation plan.
+Turn the selected pattern composition into an implementation plan. Plan the
+composition as a whole: the relations between patterns are part of the design,
+not an afterthought.
 
 Output:
 - interfaces/contracts to introduce
@@ -1367,16 +1487,12 @@ Format:
 }
 
 function featurePipeline() {
+  // No DDD and no pattern steps. An ordinary feature must not be turned into a
+  // modelling or design-pattern exercise by the pipeline it happens to land in.
   return `pipeline:
   - skill: memory-recaller
   - skill: architect
-  - skill: ddd-discovery
-  - gate: ddd_gate
   - skill: module-decomposer
-  - skill: pattern-interviewer
-  - skill: pattern-selector
-  - skill: module-pattern-selector
-  - gate: pattern_gate
   - skill: evolution-predictor
   - gate: architecture_gate
   - skill: adr-generator
@@ -1389,20 +1505,34 @@ function featurePipeline() {
 }
 
 function domainFeaturePipeline() {
+  // Gate -> Scope -> Discovery -> Strategic -> Tactical -> Architecture ->
+  // Mapping -> Refactor -> Validation. Everything after ddd-scope self-skips
+  // when the request did not ask for it, so a narrow "设计 Aggregate" runs a
+  // handful of steps rather than the whole chain.
   return `pipeline:
+  - skill: ddd-gate
+  - skill: ddd-scope
+  - gate: ddd_enablement_gate
   - skill: memory-recaller
-  - skill: ddd-discovery
-  - skill: bounded-context-mapper
-  - skill: aggregate-designer
-  - skill: domain-event-designer
+  - skill: ddd-project-discovery
+  - skill: ddd-domain-discovery
   - gate: ddd_gate
+  - skill: ddd-strategic-design
+  - skill: ddd-bounded-context
+  - skill: ddd-context-map
+  - skill: ddd-tactical-design
+  - skill: ddd-aggregate
+  - skill: ddd-domain-event
+  - skill: ddd-application-design
+  - skill: ddd-architecture
+  - skill: ddd-code-mapping
   - skill: architect
   - skill: module-decomposer
-  - skill: pattern-interviewer
-  - skill: pattern-selector
-  - skill: module-pattern-selector
-  - gate: pattern_gate
-  - skill: ddd-implementation-planner
+  - skill: ddd-pattern-bridge
+  - skill: evolution-predictor
+  - skill: ddd-refactoring
+  - skill: ddd-validation
+  - skill: ddd-documentation
   - gate: implementation_gate
   - skill: adr-generator
   - skill: refactor-critic
@@ -1413,14 +1543,23 @@ function domainFeaturePipeline() {
 }
 
 function patternFeaturePipeline() {
+  // Gate -> Discovery -> Selection -> Composition -> Audit -> Validation.
+  // Discovery runs before anything is named, and every step after the gate
+  // self-skips when design-pattern intent was not established.
   return `pipeline:
+  - skill: pattern-gate
+  - gate: pattern_enablement_gate
   - skill: memory-recaller
   - skill: architect
   - skill: module-decomposer
+  - skill: pattern-discovery
   - skill: pattern-interviewer
   - skill: pattern-selector
+  - skill: pattern-composer
   - skill: module-pattern-selector
+  - skill: pattern-anti-pattern-audit
   - gate: pattern_gate
+  - skill: pattern-validator
   - skill: pattern-implementation-planner
   - skill: adr-generator
   - gate: implementation_gate
@@ -1461,7 +1600,7 @@ function performancePipeline() {
   return `pipeline:
   - skill: memory-recaller
   - skill: architect
-  - skill: pattern-selector
+  - skill: module-decomposer
   - skill: evolution-predictor
   - gate: architecture_gate
   - skill: refactor-critic
@@ -1479,10 +1618,6 @@ function graphFeaturePipeline() {
   - skill: layout-strategy-selector
   - skill: runtime-evolution-predictor
   - skill: module-decomposer
-  - skill: pattern-interviewer
-  - skill: pattern-selector
-  - skill: module-pattern-selector
-  - gate: pattern_gate
   - gate: architecture_gate
   - skill: adr-generator
   - skill: refactor-critic
@@ -1659,7 +1794,7 @@ Module pattern map:
 }
 
 function cursorSkillRouterRules() {
-  return '---\ndescription: AAFE Skill Index On-Demand Router\nalwaysApply: true\n---\n\n# AAFE Skill Index On-Demand Router\n\nFor every task in this repository:\n1. Read `.ai-agent/skill-index.md` first.\n2. If present, read `.ai-agent/project.md` for project-specific quick map and domain routing hints.\n3. Only when the task matches a domain, read the matching `.ai-agent/project-skills/<domain>/SKILL.md`.\n4. For non-trivial frontend work, then follow `.ai-agent/runtime/*` and `.ai-agent/pipelines/*`.\n5. Editor directories are pointers only. Do not copy, rewrite, or maintain project knowledge in `.cursor`.\n6. Do not eagerly read all project skills.\n';
+  return '---\ndescription: AAFE Skill Index On-Demand Router\nalwaysApply: true\n---\n\n# AAFE Skill Index On-Demand Router\n\nFor every task in this repository:\n1. Read `.ai-agent/skill-index.md` first.\n2. If present, read `.ai-agent/project.md` for project-specific quick map and domain routing hints.\n3. Only when the task matches a domain, read the matching `.ai-agent/project-skills/<domain>/SKILL.md`.\n4. For non-trivial frontend work, then follow `.ai-agent/runtime/*` and `.ai-agent/pipelines/*`.\n5. Editor directories are pointers only. Do not copy, rewrite, or maintain project knowledge in `.cursor`.\n6. Do not eagerly read all project skills.\n7. `aafe` is runnable from this repo (`node_modules/.bin/aafe` when not on `PATH`). See the\n   "Commands you may run yourself" table in `.ai-agent/skill-index.md` and run them yourself\n   instead of asking the user to. Prefer `aafe knowledge search` over a blind grep when locating code.\n';
 }
 
 function editorSkillEntry(name) {
@@ -1742,7 +1877,7 @@ exec bash "\${SCRIPT_DIR}/\${SCRIPT_NAME}" "$@"
 }
 
 function cursorTaskCompletionHook() {
-  return '#!/usr/bin/env bash\nset -u\n\nif [ "${AAFE_TASK_STATUS:-success}" != "success" ]; then\n  exit 0\nfi\n\nif command -v aafe >/dev/null 2>&1; then\n  aafe task-completion || true\nfi\n';
+  return taskCompletionHookScript();
 }
 
 function cursorSessionStartHook() {

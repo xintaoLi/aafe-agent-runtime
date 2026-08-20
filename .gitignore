@@ -6,3 +6,5 @@ dist/
 !.env.example
 output/
 .session_tmps/
+.aafe/runs/
+.aafe/
