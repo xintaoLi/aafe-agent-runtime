@@ -84,10 +84,10 @@ function taskCompletionImpactProjectRuleBody(agentPrefix = '.ai-agent') {
 
 - 自测必须按**本次 diff 影响范围最小收敛**，禁止无关全量回归。
 - 逻辑/数据处理变更：优先 Mock Props / 函数 I/O 单元测试，落盘到安装目录下 \`test/\`（无则创建）。
-- **E2E**：影响分类含 UI / 页面 / 路由时，在自测环节执行 \`aafe test --diff\`（生成 \`tests/ui-ai/cases/\` YAML）；有 \`AAFE_E2E_BASE_URL\` 或 \`.aafe.config.json\` \`e2e.baseUrl\` 再加 \`--run\`。报告只读 \`.aafe/e2e/reports/<runId>/\`，禁止散落到 \`test/ui/\`、\`playwright-report/\`、\`test-results/\`。
+- **E2E**：影响分类含 UI / 页面 / 路由时，在自测环节执行 \`aafe test --diff\`（生成 YAML）。要 \`--run\` 时：若用户消息里已有被测 URL 则带 \`--base-url=<url>\`（含 \`#\` 须加引号）；否则**停下来询问并等待用户输入本次测试地址**（每次可能不同，不要写进 \`e2e.baseUrl\`，禁止猜，禁止 \`http://localhost:8080\`）。地址含页面路径或查询参数时再确认 A/B/C，加 \`--url-role=target|origin|template\`。拿到后再 \`aafe test --diff --run --base-url=<url>\`。报告只读 \`.aafe/e2e/reports/<runId>/\`。
 - \`primary: unit\` 时 E2E 标 \`NOT_APPLICABLE\`，不要为凑覆盖强开浏览器。
 - **禁止猜 URL**；\`http://localhost:8080\` 占位视为未配置。
-- **UI 自测子询问**（浏览器 MCP）**仅当** E2E blocked（无 Playwright / 无 baseUrl）且用户仍要看 UI。
+- **UI 自测子询问**（浏览器 MCP）**仅当** E2E blocked（无 Playwright）且用户仍要看 UI。缺测试地址时先问 URL，不要改走 MCP。
 - MCP 兜底执行前必须产出完整 \`ui_test_paths\`；执行阶段只跟路径走。
 
 ## 自测完成后的衔接（按 TAPD 关联分流）
@@ -113,7 +113,7 @@ export function taskCompletionImpactRuleSection(ctx = {}) {
     `1. Read \`${agentPrefix}/skills/architecture-impact-test-forecast.md\` 与 \`${agentPrefix}/skills/minimal-convergent-self-test.md\`；`,
     '2. 输出影响范围报告（直接/间接/潜在影响 + 影响分类 + 架构依据）；',
     '3. 按 diff 最小收敛设计测试：逻辑优先 Mock Props/I/O，落盘到 `test/`；',
-    '4. UI/页面/路由变更：最后测试环节跑 `aafe test --diff`（有 baseUrl 再 `--run`）；报告只读 `.aafe/e2e/reports/`；',
+    '4. UI/页面/路由变更：跑 `aafe test --diff`；要执行时询问本次测试 URL，等待输入后 `--run --base-url=<url>`（不要写死 e2e.baseUrl）；',
     '5. 浏览器 MCP 仅当 E2E blocked 且用户仍要看 UI；MCP 兜底须先预生成 `ui_test_paths`；禁止猜环境地址；禁止虚假声称通过；',
     `6. 自测结束后：仅当任务过程中**有关联 TAPD 单**且 tapd.enabled → 按 submit.cli 执行 Commit/PR → 询问 TAPD 回填；无 TAPD 关联则跳过回填。`,
     ''
@@ -192,7 +192,7 @@ Read and follow \`${prefix}/skills/minimal-convergent-self-test.md\` to:
 
 1. Create/update files under install-root \`test/\` for unit cases
 2. Run unit tests with Mock
-3. UI/路由变更：执行 \`aafe test --diff\`（有 baseUrl 再 \`--run\`），报告只读 \`.aafe/e2e/reports/\`
+3. UI/路由变更：执行 \`aafe test --diff\`；要 \`--run\` 则询问并等待本次测试 URL（含 \`#\` 须加引号；有路径/参数时确认 A/B/C 并加 \`--url-role\`），再用 \`--base-url=<url>\`（不要写死配置），报告只读 \`.aafe/e2e/reports/\`
 4. 浏览器 MCP 仅当 E2E blocked 且用户仍要看 UI；禁止猜环境地址
 5. 自测结束后：若任务过程中**有关联 TAPD 单** → \`tapd-submit-backfill.md\`（按 submit.cli 执行 Commit/PR → 条件回填）；无 TAPD 关联则跳过 TAPD 回填
 
@@ -278,12 +278,13 @@ Rules:
 当 Step 0 判定为 e2e / ui 时：
 
 1. 执行 \`aafe test --diff\`（\`aafe\` 不在 PATH 时用 \`node_modules/.bin/aafe\`）。
-2. 缺 \`AAFE_E2E_BASE_URL\` / \`.aafe.config.json\` \`e2e.baseUrl\` → 问用户，**禁止**填 \`http://localhost:8080\` 占位。
-3. 地址就绪后 \`aafe test --diff --run\`。
-4. 只引用统一报告 \`.aafe/e2e/reports/<runId>/{report.json,index.html}\`。
-5. \`layers.primary: unit\` 时 E2E 标 \`NOT_APPLICABLE\`。
+2. 要 \`--run\` 但没有本次 URL：在对话里询问完整被测地址并**等待用户输入**。测试地址每次可能不同，不要写入 \`.aafe.config.json\` \`e2e.baseUrl\`，不要用环境变量凑合，**禁止**填 \`http://localhost:8080\`。
+3. 用户给出地址后：若含 \`#\` 或查询参数，先确认 A（目标页）/ B（仅 origin）/ C（提取参数拼到变更路由），再 \`aafe test --diff --run --base-url=<用户输入的 URL> --url-role=target|origin|template\`。
+4. CLI 若返回 \`needInput: "baseUrl"\` 或 \`needInput: "urlRole"\`：必须停下来问用户，禁止自行编造 URL 或改去装 uitest。
+5. 只引用统一报告 \`.aafe/e2e/reports/<runId>/{report.json,index.html}\`。
+6. \`layers.primary: unit\` 时 E2E 标 \`NOT_APPLICABLE\`。
 
-浏览器 MCP 仅当上述 E2E 为 blocked（无 Playwright / 无 baseUrl）且用户仍要看 UI。
+浏览器 MCP 仅当 E2E blocked（无 Playwright）且用户仍要看 UI。缺测试地址时先问 URL，不要改走 MCP。
 
 ## Step 1 — Ensure test directory
 
@@ -383,7 +384,7 @@ Converge:
 
 ## Step 3 — Browser MCP fallback (only when E2E blocked)
 
-**前置**：已走 Step 0.5 的 \`aafe test --diff\`，且结果为 blocked（无 Playwright / 无 baseUrl），用户仍要看 UI。纯文档/需求分析任务**不得**进入本 Step。
+**前置**：已走 Step 0.5 的 \`aafe test --diff\`，且结果为 blocked（无 Playwright），用户仍要看 UI。缺测试地址时先问 URL 再 \`--run --base-url\`，不要改走 MCP。纯文档/需求分析任务**不得**进入本 Step。
 
 When all preconditions met:
 

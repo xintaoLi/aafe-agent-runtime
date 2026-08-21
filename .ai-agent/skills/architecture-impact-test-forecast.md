@@ -68,7 +68,7 @@ Read and follow `.ai-agent/skills/minimal-convergent-self-test.md` to:
 
 1. Create/update files under install-root `test/` for unit cases
 2. Run unit tests with Mock
-3. UI/路由变更：执行 `aafe test --diff`（有 baseUrl 再 `--run`），报告只读 `.aafe/e2e/reports/`
+3. UI/路由变更：执行 `aafe test --diff`；要 `--run` 则询问并等待本次测试 URL（含 `#` 须加引号；有路径/参数时确认 A/B/C 并加 `--url-role`），再用 `--base-url=<url>`（不要写死配置），报告只读 `.aafe/e2e/reports/`
 4. 浏览器 MCP 仅当 E2E blocked 且用户仍要看 UI；禁止猜环境地址
 5. 自测结束后：若任务过程中**有关联 TAPD 单** → `tapd-submit-backfill.md`（按 submit.cli 执行 Commit/PR → 条件回填）；无 TAPD 关联则跳过 TAPD 回填
 

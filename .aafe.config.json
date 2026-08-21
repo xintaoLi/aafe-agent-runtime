@@ -148,7 +148,7 @@
     "impactDir": ".aafe/e2e/impact",
     "baseUrlEnv": "AAFE_E2E_BASE_URL",
     "baseUrl": null,
-    "enabled": false,
+    "enabled": true,
     "githubAccessToken": null,
     "gongfengAccessToken": null
   },

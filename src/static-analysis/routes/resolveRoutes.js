@@ -23,6 +23,7 @@ import path from 'node:path';
 import { parseSourceFile } from '../ast/parseFile.js';
 import { extractFromParsedFile } from '../ast/extractors.js';
 import { ModuleResolver } from '../resolve/ModuleResolver.js';
+import { joinRoutePath, looksLikeComponentFile } from './normalize.js';
 
 const IGNORE_DIRS = new Set(['node_modules', '.git', 'dist', 'build', '.next', '.nuxt', 'coverage', 'out']);
 
@@ -77,43 +78,109 @@ export async function resolveRoutesFromEntries(root, entryDiscovery, options = {
       dataHints: unique(extracted.dataHints).slice(0, 40),
       components: extracted.components.slice(0, 20),
       routePaths: unique(extracted.routePaths),
+      routeObjects: extracted.routeObjects,
+      routeTrees: extracted.routeTrees,
+      namedRouteArrays: extracted.namedRouteArrays,
+      resolvedImports: {},
       warnings: extracted.warnings
     };
     graph.visited.push(current.file);
     graph.warnings.push(...extracted.warnings);
 
-    for (const routePath of extracted.routePaths) {
-      graph.routes.push({
-        path: routePath,
-        file: current.file,
-        component: extracted.routeObjects.find((item) => item.path === routePath)?.component ?? '',
-        name: extracted.routeObjects.find((item) => item.path === routePath)?.name ?? '',
-        source: 'ast'
-      });
-    }
-
-    if (current.from) {
-      graph.edges.push({ from: current.from, to: current.file, kind: 'import' });
-    }
-
+    const follow = new Set();
     for (const item of extracted.imports) {
-      // A specifier that does not resolve inside the repository is a package;
-      // it stays recorded on the node but the BFS does not follow it.
-      const resolved = await resolver.resolve(current.file, item.source);
+      if (item.source) follow.add(item.source);
+    }
+    for (const route of extracted.routeObjects ?? []) {
+      if (route.importSource) follow.add(route.importSource);
+    }
+
+    for (const specifier of follow) {
+      const resolved = await resolver.resolve(current.file, specifier);
       if (!resolved) continue;
+      const node = graph.nodes[current.file];
+      node.resolvedImports[specifier] = resolved;
+      for (const item of extracted.imports) {
+        if (item.source !== specifier) continue;
+        for (const local of item.locals ?? []) node.resolvedImports[local] = resolved;
+      }
       if (graph.nodes[resolved]) {
         graph.edges.push({ from: current.file, to: resolved, kind: 'import' });
         continue;
       }
       queue.push({ file: resolved, depth: current.depth + 1, from: current.file });
     }
+
+    if (current.from) {
+      graph.edges.push({ from: current.from, to: current.file, kind: 'import' });
+    }
   }
+
+  stitchImportedChildren(graph);
+  await emitJoinedRoutes(graph, resolver);
 
   const fileRoutes = await collectFileBasedRoutes(root, framework);
   for (const route of fileRoutes) graph.routes.push(route);
 
   graph.routes = uniqueBy(graph.routes, (item) => `${item.path}|${item.file}|${item.component ?? ''}`);
   return graph;
+}
+
+function stitchImportedChildren(graph) {
+  const treesOf = (file) => graph.nodes[file]?.routeTrees ?? [];
+  for (const file of graph.visited ?? []) {
+    const node = graph.nodes[file];
+    if (!node) continue;
+    const resolveTree = (tree) => {
+      if (tree.childrenRef) {
+        const target = node.resolvedImports?.[tree.childrenRef];
+        if (target && treesOf(target).length) {
+          tree.children = rebaseRouteTrees(treesOf(target), tree.path || '');
+          tree.childrenRef = '';
+          if (graph.nodes[target]) graph.nodes[target].nestedRouteSource = true;
+        }
+      }
+      for (const child of tree.children ?? []) resolveTree(child);
+    };
+    for (const tree of node.routeTrees ?? []) resolveTree(tree);
+  }
+}
+
+function rebaseRouteTrees(trees, parentPath) {
+  return (trees ?? []).map((tree) => {
+    const path = joinRoutePath(parentPath, tree.rawPath || (String(tree.path || '').startsWith('/') ? '' : tree.path) || '');
+    return {
+      ...tree,
+      path,
+      children: rebaseRouteTrees(tree.children, path)
+    };
+  });
+}
+
+async function emitJoinedRoutes(graph, resolver) {
+  const emit = async (tree, file) => {
+    if (tree.path && (tree.path.startsWith('/') || /^https?:\/\//i.test(tree.path))) {
+      let component = tree.component || '';
+      const spec = tree.importSource || (looksLikeComponentFile(tree.component) ? tree.component : '');
+      if (spec && resolver) {
+        const resolved = await resolver.resolve(file, spec);
+        if (resolved) component = resolved;
+      }
+      graph.routes.push({
+        path: tree.path,
+        file,
+        component,
+        name: tree.name || '',
+        source: 'ast'
+      });
+    }
+    for (const child of tree.children ?? []) await emit(child, file);
+  };
+  for (const file of graph.visited ?? []) {
+    const node = graph.nodes[file];
+    if (node?.nestedRouteSource) continue;
+    for (const tree of node?.routeTrees ?? []) await emit(tree, file);
+  }
 }
 
 async function collectFileBasedRoutes(root, framework) {

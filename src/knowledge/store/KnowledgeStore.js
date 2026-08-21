@@ -23,6 +23,8 @@ import { access, appendFile, mkdir, readFile, writeFile } from 'node:fs/promises
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { normalizeModuleId } from '../model/index.js';
+import { EXTRACTOR_VERSION } from '../../static-analysis/ast/extractors.js';
+import { filePathCandidates, filePathMatches, normalizeRouteRecord } from '../../static-analysis/routes/normalize.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -159,7 +161,7 @@ export class KnowledgeStore {
       index,
       files: architecture?.architecture?.boundaries?.files ?? [],
       architecture: architecture?.architecture ?? null,
-      routes: routes?.routes ?? index.routes ?? [],
+      routes: (routes?.routes ?? index.routes ?? []).map((route) => normalizeRouteRecord(route)),
       components: components?.components ?? index.components ?? [],
       features: features?.features ?? [],
       dataflow: dataflow?.dataflow ?? dataflow ?? null,
@@ -189,11 +191,31 @@ export class KnowledgeStore {
 
   async findModuleByFile(file) {
     const index = await this.fileToModuleIndex();
-    if (index.has(file)) return index.get(file);
-    // Directory fallback keeps renamed/added files attributable to a module.
-    const dir = path.posix.dirname(file);
+    const candidates = filePathCandidates(file);
+    for (const candidate of candidates) {
+      if (index.has(candidate)) return index.get(candidate);
+    }
+
+    let best = null;
+    let bestLen = -1;
     for (const [known, moduleId] of index) {
-      if (path.posix.dirname(known) === dir) return moduleId;
+      for (const candidate of candidates) {
+        if (!filePathMatches(known, candidate) && known !== candidate) continue;
+        const len = Math.min(known.length, candidate.length);
+        if (len > bestLen) {
+          best = moduleId;
+          bestLen = len;
+        }
+      }
+    }
+    if (best) return best;
+
+    for (const candidate of candidates) {
+      const dir = path.posix.dirname(candidate);
+      for (const [known, moduleId] of index) {
+        const knownDir = path.posix.dirname(known);
+        if (knownDir === dir || filePathMatches(knownDir, dir)) return moduleId;
+      }
     }
     return null;
   }
@@ -207,6 +229,14 @@ export class KnowledgeStore {
     if (!manifest) return { stale: true, reason: 'unavailable' };
 
     const recorded = manifest.analysis?.commit ?? null;
+    const recordedExtractor = manifest.analysis?.extractorVersion ?? null;
+    if (recordedExtractor && recordedExtractor !== EXTRACTOR_VERSION) {
+      return {
+        stale: true,
+        reason: `extractor-changed:${recordedExtractor}->${EXTRACTOR_VERSION}`,
+        commit: recorded
+      };
+    }
     const head = await this.#gitHead();
     if (!head) {
       return { stale: false, reason: 'no-git-metadata', commit: recorded };

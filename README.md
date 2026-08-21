@@ -558,10 +558,12 @@ aafe run "增加用户手机号搜索"
 aafe test --diff
 aafe test --coverage
 # 「分析此PR … 生成测试用例」走 aafe test --pr，不要安装 uitest / @aafe/ai-test
+# 测试地址每次可能不同：缺地址时 Agent 询问用户，再 --run --base-url=<本次 URL>
 aafe test --pr=https://github.com/acme/app/pull/12
-aafe test --pr=https://github.com/acme/app/pull/12 --run
+aafe test --pr=https://github.com/acme/app/pull/12 --run --base-url=https://preview.example/app
 
-# 启用 / 关闭 E2E（init 与 update 也会询问）
+# E2E 默认开启；关闭用 --no-e2e 或：
+aafe e2e disable
 aafe e2e enable
 aafe e2e status
 aafe e2e install --yes

@@ -29,6 +29,7 @@ import {
   mermaidModuleRoutes
 } from '../emit/mermaid.js';
 import { buildModuleBundles } from '../modules/buildBundles.js';
+import { EXTRACTOR_VERSION } from '../ast/extractors.js';
 
 /**
  * Layout:
@@ -70,6 +71,12 @@ const LEGACY_MODULE_FILES = [
   'dataflow.mmd'
 ];
 
+/**
+ * Directories under analyze.output that `--force` must not wipe.
+ * E2E reports/auth and planner run history live beside analysis facts.
+ */
+export const PRESERVED_ANALYZE_OUTPUT_DIRS = ['e2e', 'runs'];
+
 export class AnalysisStorage {
   plan(context) {
     const output = context.config.output;
@@ -97,6 +104,10 @@ export class AnalysisStorage {
       console.error(`[aafe analyze] ${output} already exists; using merge. Use --force to overwrite or --skip-existing to skip.`);
     }
 
+    const forceMigration = context.config.force
+      ? await resetAnalyzeOutputForForce(outAbs)
+      : null;
+
     const files = this.buildFiles(context, output, gate);
     for (const [rel, content] of Object.entries(files)) {
       const abs = path.isAbsolute(rel) ? rel : path.join(root, rel);
@@ -118,7 +129,8 @@ export class AnalysisStorage {
       skipped: false,
       output,
       formats: gate.list,
-      writes
+      writes,
+      forceMigration
     };
   }
 
@@ -148,7 +160,8 @@ export class AnalysisStorage {
         version: '0.3.0',
         timestamp: Date.now(),
         commit: context.runtime.commit,
-        formats: gate.list
+        formats: gate.list,
+        extractorVersion: EXTRACTOR_VERSION
       },
       analyzers: Object.fromEntries(
         Object.entries(context.results ?? {}).map(([id, result]) => [id, result.version])
@@ -330,6 +343,30 @@ export class AnalysisStorage {
 
     return files;
   }
+}
+
+/**
+ * Force-refresh analyze output: drop stale facts from older layouts, then
+ * the caller rewrites the current tree. `e2e/` and `runs/` stay put.
+ *
+ * @param {string} outAbs absolute analyze.output path
+ * @returns {Promise<{ removed: string[] }>}
+ */
+export async function resetAnalyzeOutputForForce(outAbs) {
+  let entries = [];
+  try {
+    entries = await readdir(outAbs, { withFileTypes: true });
+  } catch {
+    return { removed: [] };
+  }
+
+  const removed = [];
+  for (const entry of entries) {
+    if (PRESERVED_ANALYZE_OUTPUT_DIRS.includes(entry.name)) continue;
+    await rm(path.join(outAbs, entry.name), { recursive: true, force: true });
+    removed.push(entry.name);
+  }
+  return { removed: removed.sort() };
 }
 
 async function cleanupLegacyRoot(outAbs) {

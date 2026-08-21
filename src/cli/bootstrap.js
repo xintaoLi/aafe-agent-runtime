@@ -171,9 +171,18 @@ async function writeConfig(root, _detection, options, plan) {
       impactDir: '.aafe/e2e/impact',
       baseUrlEnv: 'AAFE_E2E_BASE_URL',
       baseUrl: null,
-      enabled: false,
+      enabled: true,
       githubAccessToken: null,
-      gongfengAccessToken: null
+      gongfengAccessToken: null,
+      auth: {
+        mode: 'reuse-or-headed',
+        stateDir: '.aafe/e2e/auth',
+        env: 'default',
+        checkUrl: null,
+        readySelector: null,
+        usernameEnv: 'AAFE_E2E_USERNAME',
+        passwordEnv: 'AAFE_E2E_PASSWORD'
+      }
     }
   };
 
@@ -718,8 +727,9 @@ not on \`PATH\`; if neither resolves, fall back to reading files and say so.
 | Full functional coverage from analyze | \`aafe test --coverage\` |
 | Generate cases from a PR vs its target branch | \`aafe test --pr=<url>\` |
 | 分析此PR / 按 PR 补测试 / 贴 PR 链接生成用例 | \`aafe test --pr=<url>\` |
-| 生成用例并执行 E2E、出报告 | \`aafe test --pr=<url> --run\` |
+| 生成用例并执行 E2E、出报告 | 先 \`aafe test --pr=<url>\`；缺测试地址则询问用户并等待，再 \`--run --base-url=<url>\`（含 \`#\` 须加引号；有路径/参数时确认 A/B/C 并加 \`--url-role\`） |
 | Enable Playwright E2E after init | \`aafe e2e enable\` |
+| 采集 SSO 登录态供 E2E 复用 | \`aafe e2e auth --base-url=<url>\`；\`--run\` 先探测地址，200 且非登录跳转则跳过 SSO，否则校验/续期登录 |
 | A test run failed and the cause is unclear | \`aafe diagnose --failure=<report>\` |
 | Runtime files look stale or inconsistent | \`aafe doctor\`, then \`aafe migrate --dry-run\` |
 

@@ -673,6 +673,7 @@ try {
   assert.deepEqual((await knowledge.staleness()).stale, false);
   assert.equal(await knowledge.findModuleByFile('src/user/UserList.jsx'), 'user');
   assert.equal(await knowledge.findModuleByFile('src/user/NewFile.jsx'), 'user');
+  assert.equal(await knowledge.findModuleByFile('bklog/web/src/user/UserList.jsx'), 'user');
   assert.equal(await knowledge.findModuleByFile('nope/x.js'), null);
 
   const impact = await new ImpactAnalyzerAgent({ knowledge }).run({

@@ -33,6 +33,16 @@ import {
  * Facts are persisted under configurable `analyze.output` (default `.aafe`).
  */
 export async function runAnalyzeCommand(root, args = []) {
+  const payload = await executeAnalyze(root, args);
+  console.log(JSON.stringify(payload, null, 2));
+  return payload;
+}
+
+/**
+ * Run the analyze pipeline and return the report without printing JSON.
+ * `--force` overwrites facts and migrates leftover files from older layouts.
+ */
+export async function executeAnalyze(root, args = []) {
   const cliOptions = parseAnalyzeCliOptions(args);
   const projectConfig = await readProjectConfig(root);
   const config = resolveAnalyzeConfig(root, projectConfig, cliOptions);
@@ -76,7 +86,7 @@ export async function runAnalyzeCommand(root, args = []) {
     printHumanSummary(resultContext);
   }
 
-  console.log(JSON.stringify({
+  return {
     status: 'pass',
     command: 'aafe analyze',
     dryRun: Boolean(config.dryRun),
@@ -93,7 +103,7 @@ export async function runAnalyzeCommand(root, args = []) {
     cache: resultContext.cacheSummary ?? null,
     searchIndex: resultContext.searchIndex ?? null,
     outputs: report.outputs
-  }, null, 2));
+  };
 }
 
 /**

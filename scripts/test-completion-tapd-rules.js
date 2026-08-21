@@ -56,6 +56,9 @@ assert.match(selfTest, /Step 2\.5/);
 assert.match(selfTest, /Hand off to submit/);
 assert.match(selfTest, /user_declined_browser_mcp/);
 assert.match(selfTest, /请提供要测试的完整页面 URL/);
+assert.match(selfTest, /等待用户输入/);
+assert.match(selfTest, /needInput: "baseUrl"/);
+assert.doesNotMatch(selfTest, /无 Playwright \/ 无 baseUrl/);
 
 const layeredTapd = tapdSubmitRuleMdc({
   agentPrefix: 'bklog/web/.ai-agent',

@@ -20,11 +20,20 @@
 
 import { createRequire } from 'node:module';
 import path from 'node:path';
-import { combineEntryUrl, loadE2eConfig } from './config.js';
+import {
+  combineEntryUrl,
+  loadE2eConfig,
+  NEED_BASE_URL_CODE,
+  NEED_BASE_URL_PROMPT,
+  NEED_URL_ROLE_CODE,
+  NEED_URL_ROLE_PROMPT,
+  pathsMatch
+} from './config.js';
 import { writeCompiledSpecs } from './compile.js';
 import { buildReport, createRunId, writeUnifiedReport, EXIT_CODE } from './report.js';
 import { listCases, parseCaseYaml } from './yaml.js';
 import { readFile } from 'node:fs/promises';
+import { NEED_AUTH_CODE, NEED_AUTH_PROMPT, prepareE2eAuth } from './auth.js';
 
 const require = createRequire(import.meta.url);
 
@@ -47,9 +56,15 @@ export async function executeE2eCases({
   cases = null,
   caseIds = null,
   dryRun = false,
-  timeoutMs = 30000
+  timeoutMs = 30000,
+  baseUrl = null,
+  urlRole = null,
+  authMode = null,
+  authEnv = null,
+  storageState = null,
+  interactive = Boolean(process.stdin.isTTY)
 } = {}) {
-  const config = await loadE2eConfig(root);
+  const config = await loadE2eConfig(root, null, { baseUrl, urlRole, authMode, authEnv, storageState });
   const runId = createRunId();
   const reportDir = path.join(config.reportDirAbs, runId);
   const startedAt = new Date().toISOString();
@@ -67,8 +82,70 @@ export async function executeE2eCases({
     return { ...paths, report: { ...report, reportDir }, exitCode: EXIT_CODE.blocked, config };
   }
 
-  const loaded = cases ?? await loadSelectedCases(config.casesDirAbs, caseIds);
-  await writeCompiledSpecs(config.specsDirAbs, loaded, { baseUrlEnv: config.baseUrlEnv });
+  // One-shot URL: ask before matching cases or Playwright. Do not persist.
+  if (!config.baseUrlConfigured) {
+    const pending = cases ?? [];
+    const report = buildReport({
+      runId,
+      status: 'blocked',
+      cases: pending.map((item) => ({ id: item.id, title: item.title, status: 'blocked', message: NEED_BASE_URL_CODE })),
+      startedAt,
+      e2eExecuted: false,
+      reason: NEED_BASE_URL_PROMPT,
+      needInput: 'baseUrl',
+      askUser: true,
+      persistBaseUrl: false
+    });
+    const paths = await writeUnifiedReport(reportDir, { ...report, reportDir });
+    return {
+      ...paths,
+      report: { ...report, reportDir },
+      exitCode: EXIT_CODE.blocked,
+      config,
+      needInput: 'baseUrl',
+      askUser: true,
+      prompt: NEED_BASE_URL_PROMPT,
+      persistBaseUrl: false
+    };
+  }
+
+  if (config.parsedPageUrl?.looksLikeTarget && !config.urlRole) {
+    const pending = cases ?? [];
+    const report = buildReport({
+      runId,
+      status: 'blocked',
+      cases: pending.map((item) => ({ id: item.id, title: item.title, status: 'blocked', message: NEED_URL_ROLE_CODE })),
+      startedAt,
+      e2eExecuted: false,
+      reason: NEED_URL_ROLE_PROMPT,
+      needInput: 'urlRole',
+      askUser: true,
+      persistBaseUrl: false
+    });
+    const paths = await writeUnifiedReport(reportDir, { ...report, reportDir });
+    return {
+      ...paths,
+      report: { ...report, reportDir },
+      exitCode: EXIT_CODE.blocked,
+      config,
+      needInput: 'urlRole',
+      askUser: true,
+      prompt: NEED_URL_ROLE_PROMPT,
+      persistBaseUrl: false
+    };
+  }
+
+  const loaded = selectCasesForUrlRole(
+    cases ?? await loadSelectedCases(config.casesDirAbs, caseIds),
+    config.parsedPageUrl,
+    config.urlRole
+  );
+  await writeCompiledSpecs(config.specsDirAbs, loaded, {
+    baseUrlEnv: config.baseUrlEnv,
+    baseUrl: config.baseUrl,
+    urlRole: config.urlRole,
+    storageState: config.authStatePath
+  });
 
   if (caseIds && Array.isArray(caseIds) && loaded.length === 0) {
     const report = buildReport({
@@ -81,6 +158,17 @@ export async function executeE2eCases({
     });
     const paths = await writeUnifiedReport(reportDir, { ...report, reportDir });
     return { ...paths, report: { ...report, reportDir }, exitCode: EXIT_CODE.uncertain, config };
+  }
+
+  const authEarly = await prepareE2eAuth({ config, interactive: false, probeOnly: true });
+  if (authEarly.needInput && (config.authMode === 'reuse' || !interactive)) {
+    return writeAuthBlocked(reportDir, {
+      runId,
+      startedAt,
+      cases: loaded,
+      config,
+      prompt: authEarly.prompt
+    });
   }
 
   if (dryRun) {
@@ -96,19 +184,6 @@ export async function executeE2eCases({
     return { ...paths, report: { ...report, reportDir }, exitCode: EXIT_CODE.uncertain, config };
   }
 
-  if (!config.baseUrlConfigured) {
-    const report = buildReport({
-      runId,
-      status: 'blocked',
-      cases: loaded.map((item) => ({ id: item.id, title: item.title, status: 'blocked', message: 'baseUrl-not-configured' })),
-      startedAt,
-      e2eExecuted: false,
-      reason: `缺少被测地址。设置 ${config.baseUrlEnv} 或 .aafe.config.json e2e.baseUrl；禁止使用 http://localhost:8080 占位。`
-    });
-    const paths = await writeUnifiedReport(reportDir, { ...report, reportDir });
-    return { ...paths, report: { ...report, reportDir }, exitCode: EXIT_CODE.blocked, config };
-  }
-
   const detected = detectPlaywright(root);
   if (!detected) {
     const report = buildReport({
@@ -121,6 +196,20 @@ export async function executeE2eCases({
     });
     const paths = await writeUnifiedReport(reportDir, { ...report, reportDir });
     return { ...paths, report: { ...report, reportDir }, exitCode: EXIT_CODE.blocked, config };
+  }
+
+  if (config.authMode !== 'none') {
+    const authPrep = await prepareE2eAuth({ config, interactive });
+    if (authPrep.needInput) {
+      return writeAuthBlocked(reportDir, {
+        runId,
+        startedAt,
+        cases: loaded,
+        config,
+        prompt: authPrep.prompt
+      });
+    }
+    config.storageState = authPrep.storageState ?? null;
   }
 
   const results = [];
@@ -154,6 +243,39 @@ async function loadSelectedCases(casesDir, caseIds) {
   return loaded;
 }
 
+function selectCasesForUrlRole(cases, parsed, urlRole) {
+  if (urlRole !== 'target' || !parsed) return cases;
+  const targetPath = parsed.hashMode ? parsed.hashPath : parsed.pathname;
+  if (!targetPath || targetPath === '/') return cases;
+  const matched = cases.filter((item) => pathsMatch(item.entry?.path, targetPath));
+  return matched.length ? matched : cases;
+}
+
+async function writeAuthBlocked(reportDir, { runId, startedAt, cases, config, prompt }) {
+  const report = buildReport({
+    runId,
+    status: 'blocked',
+    cases: cases.map((item) => ({ id: item.id, title: item.title, status: 'blocked', message: NEED_AUTH_CODE })),
+    startedAt,
+    e2eExecuted: false,
+    reason: prompt ?? NEED_AUTH_PROMPT,
+    needInput: 'auth',
+    askUser: true,
+    persistBaseUrl: false
+  });
+  const paths = await writeUnifiedReport(reportDir, { ...report, reportDir });
+  return {
+    ...paths,
+    report: { ...report, reportDir },
+    exitCode: EXIT_CODE.blocked,
+    config,
+    needInput: 'auth',
+    askUser: true,
+    prompt: prompt ?? NEED_AUTH_PROMPT,
+    persistBaseUrl: false
+  };
+}
+
 async function runOneCase(testCase, { config, reportDir, timeoutMs }) {
   let playwright;
   try {
@@ -163,7 +285,9 @@ async function runOneCase(testCase, { config, reportDir, timeoutMs }) {
   }
 
   const browser = await playwright.chromium.launch({ headless: true });
-  const context = await browser.newContext();
+  const context = await browser.newContext(
+    config.storageState ? { storageState: config.storageState } : {}
+  );
   const page = await context.newPage();
   const consoleErrors = [];
   const httpErrors = [];
@@ -177,7 +301,7 @@ async function runOneCase(testCase, { config, reportDir, timeoutMs }) {
   try {
     page.setDefaultTimeout(timeoutMs);
     for (const step of testCase.steps ?? []) {
-      await runStep(page, step, testCase, config.baseUrl);
+      await runStep(page, step, testCase, config.baseUrl, config.urlRole);
     }
     const assertionResults = [];
     for (const assertion of testCase.assertions ?? []) {
@@ -219,13 +343,13 @@ async function runOneCase(testCase, { config, reportDir, timeoutMs }) {
   }
 }
 
-async function runStep(page, step, testCase, baseUrl) {
+async function runStep(page, step, testCase, baseUrl, urlRole = null) {
   if (step.action === 'navigate') {
     const target = step.target === 'entry' || !step.target
-      ? combineEntryUrl(baseUrl, testCase.entry?.path)
+      ? combineEntryUrl(baseUrl, testCase.entry?.path, { urlRole })
       : /^https?:\/\//i.test(step.target)
         ? step.target
-        : combineEntryUrl(baseUrl, step.target);
+        : combineEntryUrl(baseUrl, step.target, { urlRole });
     await page.goto(target, { waitUntil: 'load' });
     return;
   }

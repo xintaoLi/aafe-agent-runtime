@@ -19,6 +19,7 @@
  */
 
 import { complete, fail, invokeAgent, needUserInput, parallel } from './decision.js';
+import { isRealRoute } from '../../testing/e2e/yaml.js';
 
 /**
  * Placeholder resolved per task: a diff-driven run scopes by diff, a
@@ -88,6 +89,16 @@ export class RulePlanner {
           expectedOutput: ['modules', 'routes', 'features'],
           confidence: 0.9
         });
+      }
+      if (task.kind === 'test' && (task.scenario === 'pr' || task.scenario === 'coverage')) {
+        const hasRoutes = await knowledgeHasRealRoutes(knowledge);
+        if (!hasRoutes) {
+          return invokeAgent('project-analysis', 'test planning needs analyzed routes with real paths', {
+            input: { force: true, reason: 'no-real-routes' },
+            expectedOutput: ['modules', 'routes', 'features'],
+            confidence: 0.9
+          });
+        }
       }
     }
 
@@ -213,6 +224,23 @@ async function isKnowledgeStale(knowledge) {
   } catch (error) {
     return { stale: true, reason: `unreadable:${error instanceof Error ? error.message : String(error)}` };
   }
+}
+
+async function knowledgeHasRealRoutes(knowledge) {
+  if (!knowledge) return false;
+  try {
+    if (typeof knowledge.exists === 'function' && !(await knowledge.exists())) return false;
+    const modules = await knowledge.modulesIndex();
+    for (const entry of modules ?? []) {
+      for (const route of entry.routes ?? []) {
+        const path = typeof route === 'string' ? route : route?.path;
+        if (isRealRoute(path)) return true;
+      }
+    }
+  } catch {
+    return false;
+  }
+  return false;
 }
 
 export { CAPABILITY_PLANS, TERMINAL_CAPABILITY };

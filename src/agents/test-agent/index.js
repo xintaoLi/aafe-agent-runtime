@@ -239,7 +239,12 @@ export class TestAgent {
     const executed = await executeE2eCases({
       root,
       caseIds,
-      dryRun: task.dryRun === true
+      dryRun: task.dryRun === true,
+      baseUrl: task.baseUrl ?? null,
+      urlRole: task.urlRole ?? null,
+      authMode: task.authMode ?? null,
+      authEnv: task.authEnv ?? null,
+      storageState: task.storageState ?? null
     });
     const status = executed.report?.verdict ?? 'uncertain';
     const result = {
@@ -251,7 +256,11 @@ export class TestAgent {
       htmlPath: executed.htmlPath,
       jsonPath: executed.jsonPath,
       report: parseTestReport(JSON.stringify(executed.report)),
-      detectedRunners: runners.e2e.id ?? runners.unit.id
+      detectedRunners: runners.e2e.id ?? runners.unit.id,
+      needInput: executed.needInput ?? null,
+      askUser: executed.askUser ?? false,
+      prompt: executed.prompt ?? null,
+      persistBaseUrl: executed.persistBaseUrl ?? false
     };
     if (status === 'passed') {
       return agentSuccess(result, { metrics: { duration: Date.now() - started } });

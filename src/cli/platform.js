@@ -25,7 +25,8 @@ import { createTask } from '../agent-platform/protocol/request.js';
 import { CONTEXT_FORMATS, renderContextPackage } from '../ide-bridge/context/render.js';
 import { renderImpactMarkdown } from '../knowledge/report/impactMarkdown.js';
 import { listRuns, replayRun } from '../agent-platform/state/RunStore.js';
-import { loadE2eConfig } from '../testing/e2e/config.js';
+import { loadE2eConfig, NEED_BASE_URL_PROMPT, NEED_URL_ROLE_PROMPT } from '../testing/e2e/config.js';
+import { NEED_AUTH_PROMPT } from '../testing/e2e/auth.js';
 
 /**
  * CLI surface for the agent platform (RFC §25).
@@ -258,7 +259,13 @@ export async function runTestCommand(root, args = []) {
     return null;
   }
 
-  const e2e = await loadE2eConfig(root);
+  const e2e = await loadE2eConfig(root, null, {
+    baseUrl: options.baseUrl,
+    urlRole: options.urlRole,
+    authMode: options.authMode,
+    authEnv: options.authEnv,
+    storageState: options.storageState
+  });
   if (!e2e.enabled && (options.run || options.coverage || options.prUrl)) {
     console.error('E2E 未启用。运行 `aafe e2e enable`，或在 `aafe init` / `aafe update --interactive` 时选择启用。');
     process.exitCode = 3;
@@ -276,6 +283,11 @@ export async function runTestCommand(root, args = []) {
     diffRef: options.diff !== undefined ? (options.diff || null) : (scenario === 'changes' ? null : undefined),
     scenario,
     prUrl: options.prUrl || null,
+    baseUrl: e2e.baseUrl,
+    urlRole: e2e.urlRole,
+    authMode: e2e.authMode,
+    authEnv: e2e.authEnv,
+    storageState: options.storageState ?? null,
     e2eWrite: options.writeCases,
     e2eUpdate: options.update === true,
     e2eForce: options.force === true,
@@ -307,6 +319,11 @@ export async function runTestCommand(root, args = []) {
     reportDir: execution?.result?.reportDir ?? null,
     htmlPath: execution?.result?.htmlPath ?? null,
     verdict: execution?.result?.verdict ?? (plan?.blocked ? 'blocked' : null),
+    needInput: execution?.needInput ?? execution?.result?.needInput ?? null,
+    askUser: execution?.askUser ?? execution?.result?.askUser ?? false,
+    prompt: execution?.prompt ?? execution?.result?.prompt ?? null,
+    persistBaseUrl: false,
+    urlRole: e2e.urlRole ?? null,
     nodes: result.nodes.map(compactNode),
     runRef: result.runRef,
     warnings
@@ -316,6 +333,39 @@ export async function runTestCommand(root, args = []) {
     payload.nextCommand = execution.result.jsonPath
       ? `aafe diagnose --failure=${execution.result.jsonPath}`
       : 'aafe diagnose --failure=<report>  (or rerun: the report is saved under .aafe/e2e/reports)';
+  }
+  const executionSkipped = execution?.status === 'skipped';
+  const skipAskingUrl = executionSkipped && [
+    'e2e-not-applicable',
+    'e2e-not-enabled',
+    'pr-fetch-blocked'
+  ].includes(execution?.reason);
+  if (
+    options.run
+    && !e2e.baseUrlConfigured
+    && !skipAskingUrl
+    && (payload.needInput === 'baseUrl' || !executionSkipped)
+  ) {
+    payload.needInput = 'baseUrl';
+    payload.askUser = true;
+    payload.prompt = NEED_BASE_URL_PROMPT;
+    payload.nextCommand = rebuildTestCommand(options);
+    payload.persistBaseUrl = false;
+    console.error(NEED_BASE_URL_PROMPT);
+  }
+  if (options.run && payload.needInput === 'urlRole') {
+    payload.askUser = true;
+    payload.prompt = NEED_URL_ROLE_PROMPT;
+    payload.nextCommand = rebuildTestCommand(options, { urlRolePlaceholder: true });
+    payload.persistBaseUrl = false;
+    console.error(NEED_URL_ROLE_PROMPT);
+  }
+  if (options.run && payload.needInput === 'auth') {
+    payload.askUser = true;
+    payload.prompt = payload.prompt || NEED_AUTH_PROMPT;
+    payload.nextCommand = rebuildTestCommand(options, { authPlaceholder: true });
+    payload.persistBaseUrl = false;
+    console.error(payload.prompt);
   }
   console.log(JSON.stringify(payload, null, 2));
   if (plan?.blocked) {
@@ -450,6 +500,22 @@ export function parsePlatformArgs(args = []) {
     if (arg === '--no-write') { options.write = false; continue; }
     if (arg === '--no-ide-agent') { options.ideAgent = false; continue; }
     if (arg === '--run') { options.run = true; continue; }
+    if (arg.startsWith('--base-url=')) { options.baseUrl = arg.slice('--base-url='.length); continue; }
+    if (arg.startsWith('--baseUrl=')) { options.baseUrl = arg.slice('--baseUrl='.length); continue; }
+    if (arg === '--base-url' || arg === '--baseUrl') { options.baseUrlPending = true; continue; }
+    if (options.baseUrlPending && !arg.startsWith('--')) { options.baseUrl = arg; options.baseUrlPending = false; continue; }
+    if (arg.startsWith('--url-role=')) { options.urlRole = arg.slice('--url-role='.length); continue; }
+    if (arg.startsWith('--urlRole=')) { options.urlRole = arg.slice('--urlRole='.length); continue; }
+    if (arg === '--url-role' || arg === '--urlRole') { options.urlRolePending = true; continue; }
+    if (options.urlRolePending && !arg.startsWith('--')) { options.urlRole = arg; options.urlRolePending = false; continue; }
+    if (arg.startsWith('--auth-mode=')) { options.authMode = arg.slice('--auth-mode='.length); continue; }
+    if (arg.startsWith('--authMode=')) { options.authMode = arg.slice('--authMode='.length); continue; }
+    if (arg === '--auth-mode' || arg === '--authMode') { options.authModePending = true; continue; }
+    if (options.authModePending && !arg.startsWith('--')) { options.authMode = arg; options.authModePending = false; continue; }
+    if (arg.startsWith('--auth-env=')) { options.authEnv = arg.slice('--auth-env='.length); continue; }
+    if (arg.startsWith('--authEnv=')) { options.authEnv = arg.slice('--authEnv='.length); continue; }
+    if (arg.startsWith('--storage-state=')) { options.storageState = arg.slice('--storage-state='.length); continue; }
+    if (arg.startsWith('--storageState=')) { options.storageState = arg.slice('--storageState='.length); continue; }
     if (arg === '--coverage') { options.coverage = true; continue; }
     if (arg === '--update') { options.update = true; continue; }
     if (arg === '--force') { options.force = true; continue; }
@@ -478,6 +544,30 @@ export function parsePlatformArgs(args = []) {
   }
   options.positional = positional.join(' ').trim();
   return options;
+}
+
+function rebuildTestCommand(options, { urlRolePlaceholder = false, authPlaceholder = false } = {}) {
+  const parts = ['aafe test'];
+  if (options.prUrl) parts.push(`--pr=${options.prUrl}`);
+  else if (options.coverage) parts.push('--coverage');
+  else if (options.diff !== undefined) parts.push(options.diff ? `--diff=${options.diff}` : '--diff');
+  else if (options.requirement) parts.push(`--requirement=${JSON.stringify(options.requirement)}`);
+  if (options.run) parts.push('--run');
+  if (options.baseUrl) parts.push(`--base-url=${quoteCliUrl(options.baseUrl)}`);
+  else parts.push('--base-url=<本次测试地址>');
+  if (options.urlRole) parts.push(`--url-role=${options.urlRole}`);
+  else if (urlRolePlaceholder) parts.push('--url-role=<A|B|C>');
+  if (options.authMode) parts.push(`--auth-mode=${options.authMode}`);
+  else if (authPlaceholder) parts.push('--auth-mode=reuse-or-headed');
+  if (options.authEnv) parts.push(`--auth-env=${options.authEnv}`);
+  if (options.storageState) parts.push(`--storage-state=${options.storageState}`);
+  return parts.join(' ');
+}
+
+function quoteCliUrl(value) {
+  const text = String(value ?? '');
+  if (!/[#?&\s]/.test(text)) return text;
+  return JSON.stringify(text);
 }
 
 function compactDecision(decision) {

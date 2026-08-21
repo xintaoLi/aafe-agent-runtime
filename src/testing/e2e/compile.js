@@ -20,17 +20,18 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { combineEntryUrl } from './config.js';
+import { combineEntryUrl, parseTestPageUrl, normalizeUrlRole } from './config.js';
 import { normalizeEntry } from './yaml.js';
 
 /**
  * Compile an AITest-compatible YAML case into a Playwright spec string.
  * Specs are derived artifacts under .aafe/e2e/specs/ — YAML remains the source of truth.
  */
-export function compileCaseToSpec(testCase, { baseUrlEnv = 'AAFE_E2E_BASE_URL' } = {}) {
+export function compileCaseToSpec(testCase, { baseUrlEnv = 'AAFE_E2E_BASE_URL', baseUrl = null, urlRole = null } = {}) {
   const title = testCase.title || testCase.id;
   const entry = normalizeEntry(testCase.entry?.path ?? testCase.entry);
-  const steps = (testCase.steps ?? []).map((step) => renderStep(step, entry)).join('\n');
+  const role = normalizeUrlRole(urlRole);
+  const steps = (testCase.steps ?? []).map((step) => renderStep(step, entry, { baseUrl, urlRole: role })).join('\n');
   const assertions = (testCase.assertions ?? []).map((assertion) => renderAssertion(assertion)).join('\n');
 
   return `/**
@@ -52,10 +53,32 @@ ${assertions}
 });
 
 function entryUrl() {
-  const base = String(process.env[${JSON.stringify(baseUrlEnv)}] ?? '').replace(/\\/+$/, '');
+  const base = String(process.env[${JSON.stringify(baseUrlEnv)}] ?? '') || ${JSON.stringify(baseUrl ?? '')};
   const entryPath = ${JSON.stringify(entry)};
   if (/^https?:\\/\\//i.test(entryPath)) return entryPath;
-  return base + entryPath;
+  if (!base) return entryPath;
+  return joinPageUrl(base, entryPath, ${JSON.stringify(role)});
+}
+
+function joinPageUrl(base, entryPath, urlRole) {
+  let url;
+  try { url = new URL(base); } catch {
+    return String(base).replace(/\\/+$/, '') + (entryPath.startsWith('/') ? entryPath : '/' + entryPath);
+  }
+  const hashBody = url.hash.startsWith('#') ? url.hash.slice(1) : '';
+  const hashMode = url.hash === '#' || hashBody.startsWith('/');
+  const q = hashBody.indexOf('?');
+  const hashPath = (q >= 0 ? hashBody.slice(0, q) : hashBody) || '';
+  const hashQuery = q >= 0 ? hashBody.slice(q + 1) : '';
+  const query = urlRole === 'origin' ? '' : (hashQuery || url.search.replace(/^\\?/, ''));
+  const appBase = (url.origin + url.pathname).replace(/\\/+$/, '') || url.origin;
+  const suffix = entryPath.startsWith('/') ? entryPath : '/' + entryPath;
+  const normalizedHashPath = hashPath && !hashPath.startsWith('/') ? '/' + hashPath : hashPath;
+  const pagePath = hashMode ? normalizedHashPath : url.pathname;
+  if (urlRole === 'target' && pagePath && pagePath.replace(/\\/+$/, '') === suffix.replace(/\\/+$/, '')) return base;
+  const qs = query ? '?' + query : '';
+  if (hashMode) return appBase + '/#' + suffix + qs;
+  return appBase + suffix + qs;
 }
 `;
 }
@@ -71,7 +94,8 @@ export async function writeCompiledSpecs(specsDir, cases, options = {}) {
   return written;
 }
 
-export function renderPlaywrightConfig({ specsDir, reportDir, baseUrl = null }) {
+export function renderPlaywrightConfig({ specsDir, reportDir, baseUrl = null, storageState = null }) {
+  const parsed = parseTestPageUrl(baseUrl);
   const config = {
     testDir: specsDir,
     testMatch: '*.spec.js',
@@ -80,7 +104,8 @@ export function renderPlaywrightConfig({ specsDir, reportDir, baseUrl = null }) 
       ['json', { outputFile: path.join(reportDir, 'playwright.json') }]
     ],
     use: {
-      baseURL: baseUrl || undefined,
+      baseURL: parsed?.appBase || baseUrl || undefined,
+      storageState: storageState || undefined,
       screenshot: 'only-on-failure',
       trace: 'retain-on-failure',
       video: 'retain-on-failure'
@@ -91,11 +116,16 @@ export default ${JSON.stringify(config, null, 2)};
 `;
 }
 
-function renderStep(step, entry) {
+function renderStep(step, entry, { baseUrl = null, urlRole = null } = {}) {
   const action = step.action;
   if (action === 'navigate') {
-    const target = step.target === 'entry' || !step.target ? 'entryUrl()' : JSON.stringify(combineEntryUrl('', step.target) || step.target);
-    return `  await page.goto(${target === 'entryUrl()' ? 'entryUrl()' : target});`;
+    if (step.target === 'entry' || !step.target) {
+      return '  await page.goto(entryUrl());';
+    }
+    const target = /^https?:\/\//i.test(step.target)
+      ? step.target
+      : combineEntryUrl(baseUrl || '', step.target, { urlRole });
+    return `  await page.goto(${JSON.stringify(target)});`;
   }
   if (action === 'wait') {
     if (step.target === 'visible' || step.target === 'hidden') {

@@ -172,6 +172,39 @@ export async function prepareSubmitConfigForCommand(options = {}, existingConfig
   }
 }
 
+/**
+ * Decide whether `aafe update` should run `aafe analyze --force`.
+ * Default is true. Prompt only on a TTY when the caller did not pass a flag.
+ *
+ * @param {{ analyze?: boolean, yes?: boolean, dryRun?: boolean }} options
+ * @param {{ isTTY?: boolean }} [env]
+ * @returns {{ forceAnalyze: boolean, shouldPrompt: boolean }}
+ */
+export function resolveForceAnalyzeDecision(options = {}, { isTTY = Boolean(process.stdin.isTTY) } = {}) {
+  if (options.analyze === false) return { forceAnalyze: false, shouldPrompt: false };
+  if (options.analyze === true) return { forceAnalyze: true, shouldPrompt: false };
+  if (options.dryRun || options.yes || !isTTY) return { forceAnalyze: true, shouldPrompt: false };
+  return { forceAnalyze: true, shouldPrompt: true };
+}
+
+export async function prepareForceAnalyzeForCommand(options = {}, env = {}) {
+  const decision = resolveForceAnalyzeDecision(options, env);
+  if (!decision.shouldPrompt) return decision.forceAnalyze;
+
+  const rl = createInterface({ input, output });
+  try {
+    console.log('');
+    console.log('Analyze: refresh architecture facts under analyze.output (default `.aafe/`).');
+    console.log('Force overwrites existing facts and migrates leftover files from older layouts.');
+    console.log('Preserves `.aafe/e2e/` and `.aafe/runs/`.');
+    console.log('');
+    const answer = await ask(rl, 'Force execute analyze? (Y/n): ', 'Y');
+    return !isNegative(answer);
+  } finally {
+    rl.close();
+  }
+}
+
 export async function prepareE2eConfigForCommand(options = {}, existingConfig = {}, { root = process.cwd() } = {}) {
   if (options.e2eConfig) return options.e2eConfig;
   const existing = existingConfig.e2e ?? {};
@@ -223,17 +256,15 @@ export async function collectE2eConfigOptions(rl, existingE2e = null, {
   console.log('Can also be enabled later with `aafe e2e enable`.');
   console.log('');
 
-  let enabled = isE2eEnabled(existingE2e);
-  if (enabled) {
+  if (existingE2e?.enabled === true) {
     const reconfigureText = await ask(rl, 'E2E is already enabled. Reconfigure E2E settings? (y/N): ', 'N');
     if (!isAffirmative(reconfigureText)) {
       await maybeInstallPlaywright(rl, root, { packageManager, dryRun });
       return { ...existingE2e, enabled: true };
     }
   } else {
-    const enableText = await ask(rl, 'Enable Playwright E2E (`aafe test`)? (y/N): ', 'N');
+    const enableText = await ask(rl, 'Enable Playwright E2E (`aafe test`)? (Y/n): ', 'Y');
     if (!isAffirmative(enableText)) return { ...existingE2e, enabled: false };
-    enabled = true;
   }
 
   await maybeInstallPlaywright(rl, root, { packageManager, dryRun });
@@ -346,6 +377,11 @@ export async function collectTapdConfigOptions(rl, existingTapd = null) {
 function isAffirmative(text) {
   const normalized = (text ?? '').trim().toLowerCase();
   return normalized === 'y' || normalized === 'yes' || normalized === '是';
+}
+
+function isNegative(text) {
+  const normalized = (text ?? '').trim().toLowerCase();
+  return normalized === 'n' || normalized === 'no' || normalized === '否';
 }
 
 function maskSecret(value) {

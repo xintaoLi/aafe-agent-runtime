@@ -20,7 +20,8 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
+import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -35,7 +36,8 @@ import { collectUitestAdapterChanges, runMigrations } from '../src/cli/migrate.j
 import { buildPlaywrightInstallCommand, inspectPlaywrightSetup, parseE2eSetupArgs, patchE2eConfig } from '../src/cli/e2eSetup.js';
 import { parseTestReport } from '../src/testing/reportParser.js';
 import { compileCaseToSpec } from '../src/testing/e2e/compile.js';
-import { expandSecretRef, isE2eEnabled, loadE2eConfig, sanitizeBaseUrl } from '../src/testing/e2e/config.js';
+import { expandSecretRef, isE2eEnabled, loadE2eConfig, sanitizeBaseUrl, combineEntryUrl, parseTestPageUrl, normalizeUrlRole, NEED_BASE_URL_CODE, NEED_BASE_URL_PROMPT, NEED_URL_ROLE_CODE } from '../src/testing/e2e/config.js';
+import { normalizeAuthMode, resolveAuthStatePath, storageStateLooksValid, sessionLooksLoggedOut, accessAllowsSkipAuth, probeAnonymousAccess, prepareE2eAuth, NEED_AUTH_CODE } from '../src/testing/e2e/auth.js';
 import { buildInventoryPack, writeInventoryCases } from '../src/testing/e2e/inventory.js';
 import { planTestLayers, shouldRouteToUnitChain } from '../src/testing/e2e/layers.js';
 import { INLINE_TOKEN_REJECTION, parsePrUrl, resolvePrToken } from '../src/testing/e2e/pr.js';
@@ -59,6 +61,119 @@ assert.equal(sanitizeBaseUrl('https://example.test'), 'https://example.test');
 assert.equal(expandSecretRef('${MY_TOKEN}', { MY_TOKEN: 'abc' }), 'abc');
 assert.equal(expandSecretRef('${MISSING}', {}), null);
 
+const hashPageUrl = 'http://appdev.paas3-dev.bktencent.com:8001/#/manage/clean-templates/list?bizId=2&spaceUid=bkcc__2';
+assert.equal(sanitizeBaseUrl(hashPageUrl), hashPageUrl);
+assert.equal(normalizeUrlRole('A'), 'target');
+assert.equal(normalizeUrlRole('C'), 'template');
+assert.equal(normalizeUrlRole('origin'), 'origin');
+const parsedHash = parseTestPageUrl(hashPageUrl);
+assert.equal(parsedHash.hashMode, true);
+assert.equal(parsedHash.hashPath, '/manage/clean-templates/list');
+assert.equal(parsedHash.query, 'bizId=2&spaceUid=bkcc__2');
+assert.equal(parsedHash.appBase, 'http://appdev.paas3-dev.bktencent.com:8001');
+assert.equal(parsedHash.looksLikeTarget, true);
+assert.equal(
+  combineEntryUrl(hashPageUrl, '/manage/clean-templates/create', { urlRole: 'template' }),
+  'http://appdev.paas3-dev.bktencent.com:8001/#/manage/clean-templates/create?bizId=2&spaceUid=bkcc__2'
+);
+assert.equal(
+  combineEntryUrl(hashPageUrl, '/manage/clean-templates/list', { urlRole: 'target' }),
+  hashPageUrl
+);
+assert.equal(
+  combineEntryUrl(hashPageUrl, '/manage-v2/client-log/list', { urlRole: 'origin' }),
+  'http://appdev.paas3-dev.bktencent.com:8001/#/manage-v2/client-log/list'
+);
+assert.equal(
+  combineEntryUrl('https://preview.example/app', '/users'),
+  'https://preview.example/app/users'
+);
+assert.notEqual(
+  combineEntryUrl(hashPageUrl, '/manage-v2/client-log/list', { urlRole: 'template' }),
+  `${hashPageUrl}/manage-v2/client-log/list`
+);
+
+assert.equal(normalizeAuthMode('reuse-or-headed'), 'reuse-or-headed');
+assert.equal(normalizeAuthMode('local'), 'reuse-or-headed');
+assert.equal(normalizeAuthMode('headed'), 'headed');
+assert.match(resolveAuthStatePath('/tmp/app', { stateDir: '.aafe/e2e/auth', env: 'dev' }), /dev\.json$/);
+assert.equal(NEED_AUTH_CODE, 'need-auth');
+assert.equal(sessionLooksLoggedOut('https://sso.example/login', 'https://app.example'), true);
+assert.equal(sessionLooksLoggedOut('https://app.example/#/login', 'https://app.example'), true);
+assert.equal(sessionLooksLoggedOut('https://app.example/#/manage/clean-templates/list', 'https://app.example'), false);
+assert.equal(accessAllowsSkipAuth({
+  status: 200,
+  finalUrl: 'http://127.0.0.1:8001/#/manage/clean-templates/list',
+  appOrigin: 'http://127.0.0.1:8001'
+}), true);
+assert.equal(accessAllowsSkipAuth({
+  status: 200,
+  finalUrl: 'https://sso.example/login',
+  appOrigin: 'http://127.0.0.1:8001'
+}), false);
+assert.equal(accessAllowsSkipAuth({
+  status: 502,
+  finalUrl: 'http://127.0.0.1:8001/',
+  appOrigin: 'http://127.0.0.1:8001'
+}), false);
+assert.equal(accessAllowsSkipAuth({
+  status: 200,
+  finalUrl: 'http://127.0.0.1:8001/#/login',
+  appOrigin: 'http://127.0.0.1:8001'
+}), false);
+
+function listenStub(handler) {
+  return new Promise((resolve) => {
+    const server = http.createServer(handler);
+    server.listen(0, '127.0.0.1', () => {
+      const { port } = server.address();
+      resolve({ server, origin: `http://127.0.0.1:${port}` });
+    });
+  });
+}
+
+const openApp = await listenStub((_req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/html' });
+  res.end('<html><body>ok</body></html>');
+});
+try {
+  const anonymousOk = await probeAnonymousAccess({
+    baseUrl: `${openApp.origin}/#/manage/clean-templates/list`,
+    auth: { verifyTimeoutMs: 3000 }
+  });
+  assert.equal(anonymousOk.skipAuth, true);
+  assert.equal(anonymousOk.status, 200);
+  const skipped = await prepareE2eAuth({
+    config: {
+      authMode: 'reuse-or-headed',
+      baseUrl: `${openApp.origin}/#/manage/clean-templates/list`,
+      authStatePath: path.join(os.tmpdir(), 'aafe-missing-auth.json'),
+      auth: { verifyTimeoutMs: 3000 }
+    },
+    interactive: false
+  });
+  assert.equal(skipped.skipped, true);
+  assert.equal(skipped.storageState, null);
+  assert.notEqual(skipped.needInput, 'auth');
+} finally {
+  await new Promise((resolve) => openApp.server.close(resolve));
+}
+
+const ssoApp = await listenStub((_req, res) => {
+  res.writeHead(302, { Location: 'https://sso.example/login' });
+  res.end();
+});
+try {
+  const anonymousSso = await probeAnonymousAccess({
+    baseUrl: `${ssoApp.origin}/#/manage/clean-templates/list`,
+    auth: { verifyTimeoutMs: 3000 }
+  });
+  assert.equal(anonymousSso.skipAuth, false);
+  assert.equal(anonymousSso.reason, 'login-redirect');
+} finally {
+  await new Promise((resolve) => ssoApp.server.close(resolve));
+}
+
 const loadedTokens = await loadE2eConfig(process.cwd(), {
   e2e: { githubAccessToken: 'secret-token', gongfengAccessToken: '${MISSING}', baseUrl: 'https://app.example' }
 });
@@ -66,6 +181,21 @@ assert.equal(loadedTokens.githubAccessToken, undefined);
 assert.equal(loadedTokens.gongfengAccessToken, undefined);
 assert.equal(loadedTokens.githubAccessTokenConfigured, true);
 assert.equal(loadedTokens.baseUrl, 'https://app.example');
+
+const once = await loadE2eConfig(process.cwd(), { e2e: { baseUrl: null } }, { baseUrl: 'https://preview.example/app' });
+assert.equal(once.baseUrl, 'https://preview.example/app');
+assert.equal(once.baseUrlConfigured, true);
+const rejectedOnce = await loadE2eConfig(process.cwd(), { e2e: {} }, { baseUrl: 'http://localhost:8080' });
+assert.equal(rejectedOnce.baseUrlConfigured, false);
+
+const baseUrlFlag = parsePlatformArgs(['--run', '--base-url=https://once.example']);
+assert.equal(baseUrlFlag.run, true);
+assert.equal(baseUrlFlag.baseUrl, 'https://once.example');
+const urlRoleFlag = parsePlatformArgs(['--run', `--base-url=${hashPageUrl}`, '--url-role=C']);
+assert.equal(urlRoleFlag.baseUrl, hashPageUrl);
+assert.equal(urlRoleFlag.urlRole, 'C');
+const authModeFlag = parsePlatformArgs(['--run', '--auth-mode=reuse-or-headed']);
+assert.equal(authModeFlag.authMode, 'reuse-or-headed');
 
 const yaml = renderSmokeCase('SMOKE-001', '/users', { sourcePath: 'src/views/UserList.vue' });
 assert.match(yaml, /engine: playwright/);
@@ -188,8 +318,84 @@ try {
     dryRun: false
   });
   assert.equal(blockedRun.report.verdict, 'blocked');
+  assert.equal(blockedRun.needInput, 'baseUrl');
+  assert.equal(blockedRun.askUser, true);
+  assert.equal(blockedRun.persistBaseUrl, false);
+  assert.match(blockedRun.prompt, /本次被测页面/);
+
+  const blockedBeforeMatch = await executeE2eCases({
+    root: tmp,
+    caseIds: ['MISSING-001'],
+    dryRun: false
+  });
+  assert.equal(blockedBeforeMatch.needInput, 'baseUrl');
+  assert.equal(blockedBeforeMatch.askUser, true);
+  assert.notEqual(blockedBeforeMatch.report?.statusReason, 'no-matching-cases');
   assert.match(blockedRun.reportDir, /\.aafe\/e2e\/reports\//);
   assert.doesNotMatch(blockedRun.reportDir, /playwright-report|test-results|test\/ui/);
+
+  const defaultAuth = await executeE2eCases({
+    root: tmp,
+    cases: [parsed],
+    baseUrl: 'https://preview.example/app',
+    interactive: false
+  });
+  assert.notEqual(defaultAuth.needInput, 'baseUrl');
+  if (defaultAuth.needInput) assert.equal(defaultAuth.needInput, 'auth');
+
+  const withUrl = await executeE2eCases({
+    root: tmp,
+    cases: [parsed],
+    baseUrl: 'https://preview.example/app',
+    authMode: 'none'
+  });
+  assert.notEqual(withUrl.needInput, 'baseUrl');
+  assert.notEqual(withUrl.needInput, 'auth');
+
+  const hashNeedsRole = await executeE2eCases({
+    root: tmp,
+    cases: [parsed],
+    baseUrl: hashPageUrl
+  });
+  assert.equal(hashNeedsRole.needInput, 'urlRole');
+  assert.equal(hashNeedsRole.askUser, true);
+  assert.match(hashNeedsRole.prompt, /A\. 是目标页面/);
+  assert.equal(NEED_URL_ROLE_CODE, 'need-url-role');
+
+  const hashWithRole = await executeE2eCases({
+    root: tmp,
+    cases: [parsed],
+    baseUrl: hashPageUrl,
+    urlRole: 'C',
+    authMode: 'none',
+    dryRun: true
+  });
+  assert.notEqual(hashWithRole.needInput, 'urlRole');
+  assert.notEqual(hashWithRole.needInput, 'baseUrl');
+
+  const authMissing = await executeE2eCases({
+    root: tmp,
+    cases: [parsed],
+    baseUrl: 'https://preview.example/app',
+    authMode: 'reuse',
+    interactive: false
+  });
+  assert.equal(authMissing.needInput, 'auth');
+  assert.equal(authMissing.askUser, true);
+
+  const authFile = path.join(tmp, '.aafe/e2e/auth/default.json');
+  await mkdir(path.dirname(authFile), { recursive: true });
+  await writeFile(authFile, JSON.stringify({ cookies: [{ name: 'sid', value: '1', domain: 'preview.example', path: '/' }], origins: [] }));
+  assert.equal(await storageStateLooksValid(authFile), true);
+  const authReuse = await executeE2eCases({
+    root: tmp,
+    cases: [parsed],
+    baseUrl: 'https://preview.example/app',
+    authMode: 'reuse',
+    interactive: false,
+    dryRun: true
+  });
+  assert.notEqual(authReuse.needInput, 'auth');
 
   const patched = await patchE2eConfig(tmp, { enabled: true });
   assert.equal(patched.enabled, true);
@@ -215,10 +421,12 @@ assert.match(inlineToken.stderr, /不要使用 --token/);
 assert.doesNotMatch(inlineToken.stderr, /should-not-leak/);
 assert.match(inlineToken.stderr, /githubAccessToken/);
 
-assert.equal(isE2eEnabled({}), false);
+assert.equal(isE2eEnabled({}), true);
 assert.equal(isE2eEnabled({ enabled: true }), true);
+assert.equal(isE2eEnabled({ enabled: false }), false);
 assert.equal(parseE2eSetupArgs(['enable', '--yes']).subcommand, 'enable');
 assert.equal(parseE2eSetupArgs(['enable', '--yes']).options.yes, true);
+assert.equal(parseE2eSetupArgs(['auth', '--base-url=https://x.example']).subcommand, 'auth');
 assert.deepEqual(buildPlaywrightInstallCommand('npm').args.slice(0, 2), ['install', '-D']);
 const inspected = await inspectPlaywrightSetup(repoRoot);
 assert.equal(typeof inspected.missing, 'boolean');
@@ -228,14 +436,20 @@ const e2eStatus = spawnSync(process.execPath, [aafeBin, 'e2e', 'status'], {
   encoding: 'utf8'
 });
 assert.equal(e2eStatus.status, 0);
-assert.match(e2eStatus.stdout, /"enabled": false/);
+assert.match(e2eStatus.stdout, /"enabled": true/);
 
 assert.match(AAFE_TEST_FROM_PR_DESCRIPTION, /分析此PR/);
 assert.match(AAFE_TEST_FROM_PR_DESCRIPTION, /aafe test --pr/);
 assert.match(AAFE_TEST_FROM_PR_DESCRIPTION, /禁止安装或调用 uitest/);
 const fromPrSkill = aafeTestFromPrSkillContent('.ai-agent');
-assert.match(fromPrSkill, /aafe test --pr=<url>/);
-assert.match(fromPrSkill, /禁止/);
+assert.match(fromPrSkill, /等待用户输入本次测试地址/);
+assert.match(fromPrSkill, /url-role/);
+assert.match(fromPrSkill, /needInput: "urlRole"/);
+assert.match(fromPrSkill, /aafe e2e auth/);
+assert.match(fromPrSkill, /needInput: "auth"/);
+assert.match(aafeTestFromPrCursorSkill(), /wait/);
+assert.match(NEED_BASE_URL_PROMPT, /--base-url=/);
+assert.equal(NEED_BASE_URL_CODE, 'need-base-url');
 assert.doesNotMatch(fromPrSkill, /npm i(?:nstall)?[^\n]*uitest|请安装 uitest/);
 assert.match(aafeTestFromPrCursorSkill(), /name: aafe-test-from-pr/);
 assert.match(aafeTestFromPrCursorSkill(), /禁止安装或调用 uitest/);

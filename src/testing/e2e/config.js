@@ -20,6 +20,7 @@
 
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { DEFAULT_E2E_AUTH, normalizeAuthMode, resolveAuthStatePath } from './auth.js';
 
 export const PLACEHOLDER_BASE_URLS = new Set([
   '',
@@ -28,6 +29,19 @@ export const PLACEHOLDER_BASE_URLS = new Set([
   'http://127.0.0.1:8080'
 ]);
 
+export const NEED_BASE_URL_CODE = 'need-base-url';
+export const NEED_BASE_URL_PROMPT = '请提供本次被测页面的完整 URL（含协议与环境）。测试地址每次可能不同，不要写入固定 e2e.baseUrl，不要猜，不要用 http://localhost:8080。含 # 的地址必须用引号包住，避免 shell 把 hash 当注释丢掉。提供后加上 --base-url=<url> 再 --run。';
+
+export const NEED_URL_ROLE_CODE = 'need-url-role';
+export const NEED_URL_ROLE_PROMPT = [
+  '你提供的地址包含页面路径或查询参数。请确认它是不是本次目标页：',
+  'A. 是目标页面。与该路径匹配的用例打开这个完整地址；其它用例复用同一主机、hash/history 模式和查询参数。',
+  'B. 不是，只是环境根地址。丢弃 # 后的路径和业务参数（若地址里有 #/ 则仍按 hash 路由拼接各用例 path）。',
+  'C. 需要根据此地址分析变更（推荐）。提取协议/主机、是否 hash 路由、以及 bizId 等查询参数，拼到本次变更的各条路由上。',
+  '请回复 A / B / C，或加 --url-role=target|origin|template 后重跑。',
+  '完整地址请用引号包住，避免 shell 把 # 当成注释丢掉。'
+].join('\n');
+
 export const DEFAULT_E2E_CONFIG = Object.freeze({
   casesDir: 'tests/ui-ai/cases',
   reportDir: '.aafe/e2e/reports',
@@ -35,25 +49,32 @@ export const DEFAULT_E2E_CONFIG = Object.freeze({
   impactDir: '.aafe/e2e/impact',
   baseUrlEnv: 'AAFE_E2E_BASE_URL',
   baseUrl: null,
-  enabled: false,
+  enabled: true,
   githubAccessToken: null,
-  gongfengAccessToken: null
+  gongfengAccessToken: null,
+  auth: DEFAULT_E2E_AUTH
 });
 
 /**
  * @param {string} root
  * @param {object} [projectConfig]
+ * @param {{ baseUrl?: string|null, urlRole?: string|null, authMode?: string|null, authEnv?: string|null, storageState?: string|null }} [runtime] one-shot override; not persisted
  */
-export async function loadE2eConfig(root, projectConfig = null) {
+export async function loadE2eConfig(root, projectConfig = null, runtime = {}) {
   const config = projectConfig ?? (await readProjectConfig(root));
   const e2e = { ...DEFAULT_E2E_CONFIG, ...(config.e2e ?? {}) };
+  const auth = { ...DEFAULT_E2E_AUTH, ...(e2e.auth ?? {}) };
   const envName = e2e.baseUrlEnv || DEFAULT_E2E_CONFIG.baseUrlEnv;
+  const fromCli = sanitizeBaseUrl(runtime.baseUrl);
   const fromEnv = String(process.env[envName] ?? '').trim();
   const fromConfig = String(e2e.baseUrl ?? '').trim();
-  const baseUrl = sanitizeBaseUrl(fromEnv || fromConfig);
+  const baseUrl = fromCli || sanitizeBaseUrl(fromEnv || fromConfig);
+  const urlRole = normalizeUrlRole(runtime.urlRole);
+  const authMode = normalizeAuthMode(runtime.authMode ?? process.env.AAFE_E2E_AUTH_MODE ?? auth.mode) ?? 'reuse-or-headed';
   const { githubAccessToken, gongfengAccessToken, ...publicE2e } = e2e;
   return {
     ...publicE2e,
+    auth,
     root,
     casesDirAbs: path.join(root, e2e.casesDir),
     reportDirAbs: path.join(root, e2e.reportDir),
@@ -61,6 +82,11 @@ export async function loadE2eConfig(root, projectConfig = null) {
     impactDirAbs: path.join(root, e2e.impactDir),
     baseUrl,
     baseUrlConfigured: Boolean(baseUrl),
+    urlRole,
+    parsedPageUrl: parseTestPageUrl(baseUrl),
+    authMode,
+    authEnv: runtime.authEnv ?? process.env.AAFE_E2E_ENV ?? auth.env,
+    authStatePath: resolveAuthStatePath(root, auth, runtime),
     enabled: isE2eEnabled(e2e),
     githubAccessTokenConfigured: Boolean(String(githubAccessToken ?? '').trim()),
     gongfengAccessTokenConfigured: Boolean(String(gongfengAccessToken ?? '').trim())
@@ -68,21 +94,100 @@ export async function loadE2eConfig(root, projectConfig = null) {
 }
 
 export function isE2eEnabled(e2e = {}) {
-  return e2e?.enabled === true;
+  return e2e?.enabled !== false;
 }
 
 export function sanitizeBaseUrl(value) {
-  const trimmed = String(value ?? '').trim().replace(/\/+$/, '');
-  if (!trimmed || PLACEHOLDER_BASE_URLS.has(trimmed)) return null;
-  return trimmed;
+  const trimmed = String(value ?? '').trim();
+  if (!trimmed) return null;
+  const parsed = parseTestPageUrl(trimmed);
+  const comparable = parsed ? parsed.appBase : trimmed.replace(/\/+$/, '');
+  if (PLACEHOLDER_BASE_URLS.has(comparable)) return null;
+  return trimmed.replace(/\/+$/, '') === comparable && !parsed?.hashMode && !parsed?.query
+    ? comparable
+    : trimmed;
 }
 
-export function combineEntryUrl(baseUrl, entryPath) {
-  if (!entryPath) return baseUrl ?? '';
+export function normalizeUrlRole(value) {
+  const raw = String(value ?? '').trim().toLowerCase();
+  if (!raw) return null;
+  if (['a', 'target', 'page', 'yes', '是'].includes(raw)) return 'target';
+  if (['b', 'origin', 'root', 'no', '否'].includes(raw)) return 'origin';
+  if (['c', 'template', 'analyze', 'params'].includes(raw)) return 'template';
+  return null;
+}
+
+/**
+ * Split a user-supplied page URL into origin/app base, hash-router path, and query.
+ * Vue hash URLs keep biz params inside the fragment: `#/path?bizId=1`.
+ */
+export function parseTestPageUrl(value) {
+  const raw = String(value ?? '').trim();
+  if (!raw || !/^https?:\/\//i.test(raw)) return null;
+  let url;
+  try {
+    url = new URL(raw);
+  } catch {
+    return null;
+  }
+  const hashBody = url.hash.startsWith('#') ? url.hash.slice(1) : url.hash;
+  const hashMode = url.hash === '#' || hashBody.startsWith('/');
+  let hashPath = '';
+  let hashQuery = '';
+  if (hashBody) {
+    const q = hashBody.indexOf('?');
+    hashPath = q >= 0 ? hashBody.slice(0, q) : hashBody;
+    hashQuery = q >= 0 ? hashBody.slice(q + 1) : '';
+    if (hashPath && !hashPath.startsWith('/')) hashPath = `/${hashPath}`;
+  }
+  const search = url.search.replace(/^\?/, '');
+  const query = hashQuery || search;
+  const appBase = `${url.origin}${url.pathname}`.replace(/\/+$/, '') || url.origin;
+  const pathSegments = url.pathname.split('/').filter(Boolean);
+  const looksLikeTarget = (Boolean(hashPath) && hashPath !== '/') || Boolean(query) || pathSegments.length >= 2;
+  return {
+    raw,
+    origin: url.origin,
+    appBase,
+    pathname: url.pathname,
+    hashMode,
+    hashPath,
+    query,
+    looksLikeTarget
+  };
+}
+
+export function pathKey(value) {
+  const text = String(value ?? '').trim();
+  if (!text || text === '/') return '/';
+  return text.replace(/\/+$/, '') || '/';
+}
+
+export function pathsMatch(left, right) {
+  return pathKey(left) === pathKey(right);
+}
+
+export function combineEntryUrl(baseUrl, entryPath, options = {}) {
+  if (!entryPath) {
+    const parsedOnly = parseTestPageUrl(baseUrl);
+    return parsedOnly?.raw ?? String(baseUrl ?? '');
+  }
   if (/^https?:\/\//i.test(entryPath)) return entryPath;
-  const base = String(baseUrl ?? '').replace(/\/+$/, '');
   const suffix = entryPath.startsWith('/') ? entryPath : `/${entryPath}`;
-  return `${base}${suffix}`;
+  const parsed = parseTestPageUrl(baseUrl);
+  if (!parsed) {
+    const base = String(baseUrl ?? '').replace(/\/+$/, '');
+    return `${base}${suffix}`;
+  }
+  const role = normalizeUrlRole(options.urlRole) ?? 'template';
+  const pagePath = parsed.hashMode ? parsed.hashPath : parsed.pathname;
+  if (role === 'target' && pagePath && pathsMatch(pagePath, suffix)) {
+    return parsed.raw;
+  }
+  const query = role === 'origin' ? '' : parsed.query;
+  const qs = query ? `?${query}` : '';
+  if (parsed.hashMode) return `${parsed.appBase}/#${suffix}${qs}`;
+  return `${parsed.appBase}${suffix}${qs}`;
 }
 
 /**

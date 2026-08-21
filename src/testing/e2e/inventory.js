@@ -34,6 +34,7 @@ import {
   renderSmokeCase,
   writeCases
 } from './yaml.js';
+import { normalizeRouteRecord } from '../../static-analysis/routes/normalize.js';
 
 /**
  * Build a full-coverage inventory from analyze knowledge (not a repo-wide scan).
@@ -52,12 +53,13 @@ export async function buildInventoryPack({ knowledge, root, casesDir, extraFiles
   for (const entry of modules) {
     const slice = await knowledge.getModule(entry.id);
     for (const route of slice?.routes ?? []) {
-      const routePath = route.path ?? route.route ?? null;
+      const record = normalizeRouteRecord(route);
+      const routePath = record.path || route.route || null;
       if (!isRealRoute(routePath)) continue;
       routes.push({
         path: normalizeEntry(routePath),
         moduleId: slice.id,
-        file: route.file ?? slice.files?.[0] ?? null
+        file: record.file || route.file || slice.files?.[0] || null
       });
     }
     for (const feature of slice?.features ?? []) {

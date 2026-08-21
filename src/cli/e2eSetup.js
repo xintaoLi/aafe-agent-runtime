@@ -22,8 +22,10 @@ import { spawn } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { detectProject } from './detect.js';
-import { DEFAULT_E2E_CONFIG, isE2eEnabled, readProjectConfig } from '../testing/e2e/config.js';
+import { DEFAULT_E2E_CONFIG, isE2eEnabled, loadE2eConfig, readProjectConfig, NEED_BASE_URL_PROMPT } from '../testing/e2e/config.js';
 import { detectPlaywright } from '../testing/e2e/runner.js';
+import { captureAuthState, storageStateLooksValid, NEED_AUTH_PROMPT } from '../testing/e2e/auth.js';
+import { parsePlatformArgs } from './platform.js';
 
 export const PLAYWRIGHT_PACKAGES = Object.freeze(['playwright', '@playwright/test']);
 
@@ -93,11 +95,19 @@ export async function runE2eSetupCommand(root, args = []) {
   if (subcommand === 'status') {
     const config = await readProjectConfig(root);
     const setup = await inspectPlaywrightSetup(root);
+    const e2e = await loadE2eConfig(root);
+    const authValid = await storageStateLooksValid(e2e.authStatePath);
     const payload = {
       command: 'aafe e2e status',
       enabled: isE2eEnabled(config.e2e),
       playwright: setup,
-      enableWith: 'aafe e2e enable'
+      auth: {
+        mode: e2e.authMode,
+        statePath: e2e.authStatePath,
+        stateValid: authValid
+      },
+      enableWith: 'aafe e2e enable',
+      captureAuthWith: 'aafe e2e auth --base-url=<url>'
     };
     console.log(JSON.stringify(payload, null, 2));
     return payload;
@@ -121,6 +131,10 @@ export async function runE2eSetupCommand(root, args = []) {
     }
     console.log(JSON.stringify({ command: 'aafe e2e install', ...result }, null, 2));
     return result;
+  }
+
+  if (subcommand === 'auth') {
+    return runE2eAuthCommand(root, options.rest ?? []);
   }
 
   const e2e = await patchE2eConfig(root, { enabled: true });
@@ -150,7 +164,7 @@ export async function runE2eSetupCommand(root, args = []) {
 }
 
 export function parseE2eSetupArgs(args = []) {
-  const known = new Set(['enable', 'disable', 'status', 'install']);
+  const known = new Set(['enable', 'disable', 'status', 'install', 'auth']);
   const subcommand = known.has(args[0]) ? args[0] : 'status';
   const rest = known.has(args[0]) ? args.slice(1) : args;
   return {
@@ -158,9 +172,60 @@ export function parseE2eSetupArgs(args = []) {
     options: {
       yes: rest.includes('--yes') || rest.includes('-y'),
       dryRun: rest.includes('--dry-run'),
-      installPlaywright: rest.includes('--install-playwright')
+      installPlaywright: rest.includes('--install-playwright'),
+      rest
     }
   };
+}
+
+async function runE2eAuthCommand(root, args = []) {
+  const parsed = parsePlatformArgs(args);
+  const e2e = await loadE2eConfig(root, null, {
+    baseUrl: parsed.baseUrl,
+    urlRole: parsed.urlRole,
+    authMode: parsed.authMode || 'headed',
+    authEnv: parsed.authEnv,
+    storageState: parsed.storageState
+  });
+  if (!e2e.baseUrlConfigured) {
+    console.error(NEED_BASE_URL_PROMPT);
+    process.exitCode = 3;
+    return { command: 'aafe e2e auth', needInput: 'baseUrl', prompt: NEED_BASE_URL_PROMPT, persistBaseUrl: false };
+  }
+  const setup = await inspectPlaywrightSetup(root);
+  if (setup.missing) {
+    console.error('未检测到 playwright。请先 `aafe e2e install --yes`。');
+    process.exitCode = 3;
+    return { command: 'aafe e2e auth', blocked: true, reason: 'playwright-not-installed' };
+  }
+  const captureMode = e2e.authMode === 'auto' || e2e.authMode === 'reuse-or-auto' ? 'auto' : 'headed';
+  if (captureMode === 'headed' && !process.stdin.isTTY) {
+    console.error(NEED_AUTH_PROMPT);
+    process.exitCode = 3;
+    return { command: 'aafe e2e auth', needInput: 'auth', prompt: NEED_AUTH_PROMPT, persistBaseUrl: false };
+  }
+  try {
+    const captured = await captureAuthState({ config: e2e, mode: captureMode });
+    if (captured.needInput) {
+      console.error(captured.prompt);
+      process.exitCode = 3;
+      return { command: 'aafe e2e auth', needInput: 'auth', prompt: captured.prompt, persistBaseUrl: false };
+    }
+    const payload = {
+      command: 'aafe e2e auth',
+      mode: captureMode,
+      statePath: captured.storageState,
+      persistBaseUrl: false,
+      next: 'aafe test --run --base-url=<url> --auth-mode=reuse'
+    };
+    console.log(JSON.stringify(payload, null, 2));
+    return payload;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`采集认证失败：${message}`);
+    process.exitCode = 2;
+    return { command: 'aafe e2e auth', status: 'failed', reason: message };
+  }
 }
 
 function runCommand(bin, args, { cwd } = {}) {

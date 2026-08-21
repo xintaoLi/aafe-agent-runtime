@@ -18,7 +18,20 @@
  * IN THE SOFTWARE.
  */
 
-export { loadE2eConfig, sanitizeBaseUrl, combineEntryUrl, expandSecretRef, isE2eEnabled, DEFAULT_E2E_CONFIG } from './config.js';
+export { loadE2eConfig, sanitizeBaseUrl, combineEntryUrl, parseTestPageUrl, normalizeUrlRole, expandSecretRef, isE2eEnabled, DEFAULT_E2E_CONFIG, NEED_BASE_URL_CODE, NEED_BASE_URL_PROMPT, NEED_URL_ROLE_CODE, NEED_URL_ROLE_PROMPT } from './config.js';
+export {
+  DEFAULT_E2E_AUTH,
+  NEED_AUTH_CODE,
+  NEED_AUTH_PROMPT,
+  normalizeAuthMode,
+  resolveAuthStatePath,
+  storageStateLooksValid,
+  sessionLooksLoggedOut,
+  accessAllowsSkipAuth,
+  probeAnonymousAccess,
+  prepareE2eAuth,
+  captureAuthState
+} from './auth.js';
 export { planTestLayers, shouldRouteToUnitChain } from './layers.js';
 export {
   renderSmokeCase,

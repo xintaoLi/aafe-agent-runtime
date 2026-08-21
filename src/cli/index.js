@@ -233,7 +233,7 @@ Commands:
   run       Run the Planner + Orchestrator loop for a task
   pipeline  Run the legacy skill pipeline (former "run" behaviour)
   test      Plan/generate Playwright YAML cases from analyze, diff or PR; --run executes e2e
-  e2e       Enable/disable Playwright E2E later (aafe e2e enable|disable|status|install)
+  e2e       Enable/disable Playwright E2E later (aafe e2e enable|disable|status|install|auth)
   diagnose  Turn a failing test report into a located root cause
   update    Refresh installed project .ai-agent capabilities from the current aafe package
   migrate   Move files and config left by older versions to their current locations (--dry-run)
@@ -251,16 +251,16 @@ Init options:
   --no-migrate-editors     Skip editor adapter migration during init/update
   --no-migrate-cursor      Alias of --no-migrate-editors
   --submit-cli=git|gtm     Commit/PR provider written to .aafe.config.json → submit.cli (default: git)
-  --e2e                    Enable Playwright E2E in .aafe.config.json
-  --no-e2e                 Keep E2E disabled
+  --e2e                    Enable Playwright E2E in .aafe.config.json (default)
+  --no-e2e                 Disable E2E
   --install-playwright     When enabling E2E, install playwright + @playwright/test (and Chromium)
 
 TAPD (init/update interactive):
   When prompted, answer Y/Yes/是 to configure TAPD commit/submit backfill in .aafe.config.json
 
 E2E (init/update interactive, or later):
-  When prompted, answer Y/Yes/是 to enable Playwright E2E. Missing deps will prompt to install.
-  Later: aafe e2e enable | aafe e2e disable | aafe e2e status | aafe e2e install --yes
+  e2e.enabled defaults to true. Prompt default is Y; pass --no-e2e to disable. Missing Playwright may prompt to install.
+  Later: aafe e2e enable | aafe e2e disable | aafe e2e status | aafe e2e install --yes | aafe e2e auth
 
 Submit CLI:
   .aafe.config.json → "submit": { "cli": "git" | "gtm" }
@@ -275,7 +275,7 @@ Analyze options:
   --architecture-docs=.docs    Human architecture docs for Knowledge (unchanged)
   --max-depth=<n>              Entry import BFS depth (default 40)
   --max-files=<number>
-  --force                      Overwrite AAFE-managed analyze docs
+  --force                      Overwrite analyze output and migrate leftover files from older layouts (keeps e2e/ and runs/)
   --skip-existing              Skip writing output when it already has content
   --llm                        Request reserved LLM path (no-op unless configured)
   --quiet                      Suppress human progress output
@@ -290,7 +290,7 @@ Agent platform (context / impact / plan / run):
   aafe run     "<task>"            Planner + Orchestrator full loop
   aafe run     --list [--limit=20] List stored runs under <output>/runs/
   aafe run     --replay=<runId>    Read-only replay of a stored run, with node payloads
-  aafe test    --requirement="..." | --diff[=<ref>] | --coverage | --pr=<url>  [--run] [--update]
+  aafe test    --requirement="..." | --diff[=<ref>] | --coverage | --pr=<url>  [--run] [--base-url=<url>] [--url-role=A|B|C] [--auth-mode=none|reuse|headed|auto|reuse-or-headed] [--update]
   aafe diagnose --failure=<report.json|log.txt> [--diff[=<ref>]]
   aafe pipeline "<task>"           Legacy skill pipeline (alias: aafe run --legacy)
   --no-write                       Do not persist the run under <output>/runs/
@@ -333,6 +333,9 @@ Update options:
   --interactive          Allow interactive prompts during update (e.g. submit CLI / TAPD / E2E)
   --e2e / --no-e2e       Enable or disable Playwright E2E without full interactive prompts
   --install-playwright   Install playwright deps when enabling E2E
+  --analyze / --force-analyze   Force-run aafe analyze after runtime refresh (default; overwrites facts and migrates leftover output)
+  --no-analyze           Skip analyze during update
+  --yes                  Accept defaults without prompting (force analyze stays on)
 `);
 }
 

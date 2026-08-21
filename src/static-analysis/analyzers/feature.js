@@ -43,7 +43,9 @@ export class FeatureAnalyzer {
     const candidates = [];
 
     for (const route of routes) {
-      const extracted = context.cache.parsed.get(route.file)?.extracted;
+      const pageFile = route.component && route.component.includes('/') ? route.component : route.file;
+      const extracted = context.cache.parsed.get(pageFile)?.extracted
+        ?? context.cache.parsed.get(route.file)?.extracted;
       const components = (extracted?.components ?? []).map((item) => item.name);
       const apis = (extracted?.imports ?? [])
         .map((item) => item.source)
@@ -65,11 +67,11 @@ export class FeatureAnalyzer {
         stores,
         dataHints,
         evidence: [
-          createEvidence({ type: 'route', file: route.file, reason: route.path }),
-          ...apis.slice(0, 3).map((api) => createEvidence({ type: 'api', file: route.file, reason: api })),
+          createEvidence({ type: 'route', file: pageFile || route.file, reason: route.path }),
+          ...apis.slice(0, 3).map((api) => createEvidence({ type: 'api', file: pageFile || route.file, reason: api })),
           ...components.slice(0, 3).map((component) => createEvidence({
             type: 'ast',
-            file: route.file,
+            file: pageFile || route.file,
             symbol: component
           }))
         ],

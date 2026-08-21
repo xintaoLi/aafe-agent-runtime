@@ -24,6 +24,7 @@ import { buildInventoryPack } from '../../testing/e2e/inventory.js';
 import { planTestLayers, shouldRouteToUnitChain } from '../../testing/e2e/layers.js';
 import { matchExistingCases } from '../../testing/e2e/match.js';
 import { isRealRoute, normalizeEntry } from '../../testing/e2e/yaml.js';
+import { filePathMatches, normalizeRouteRecord } from '../../static-analysis/routes/normalize.js';
 
 /**
  * Build a test plan from what the platform already knows (RFC §15).
@@ -71,7 +72,7 @@ export async function buildTestPlan({
   );
 
   if (shouldRouteToUnitChain(layers)) {
-    const base = await buildImpactPlan({ impact: scopedImpact, knowledge, requirement, runners });
+    const base = await buildImpactPlan({ impact: scopedImpact, knowledge, requirement, runners, changedFiles });
     const matchedCases = await matchPlanCases(root, base, changedFiles);
     return {
       ...base,
@@ -83,7 +84,7 @@ export async function buildTestPlan({
     };
   }
 
-  const base = await buildImpactPlan({ impact: scopedImpact, knowledge, requirement, runners });
+  const base = await buildImpactPlan({ impact: scopedImpact, knowledge, requirement, runners, changedFiles });
   const matchedCases = await matchPlanCases(root, base, changedFiles);
   return {
     ...base,
@@ -158,12 +159,15 @@ async function buildCoveragePlan({ knowledge, requirement, runners, root }) {
   };
 }
 
-async function buildImpactPlan({ impact, knowledge, requirement = '', runners }) {
+async function buildImpactPlan({ impact, knowledge, requirement = '', runners, changedFiles = [] }) {
   const affectedModules = (impact?.affectedModules ?? []).slice(0, 8);
   const scenarios = [];
   const evidence = [];
 
-  const routeScenarios = await routesForModules(knowledge, affectedModules);
+  const routeScenarios = [
+    ...await routesForModules(knowledge, affectedModules),
+    ...await routesForChangedFiles(knowledge, changedFiles)
+  ];
   for (const route of routeScenarios) {
     scenarios.push({
       id: `scenario:route:${slug(route.path)}`,
@@ -180,7 +184,7 @@ async function buildImpactPlan({ impact, knowledge, requirement = '', runners })
         'No regression in the surrounding navigation'
       ],
       priority: priorityFor(route.score, impact?.risk),
-      source: { type: 'route', moduleId: route.moduleId, path: normalizeEntry(route.path) }
+      source: { type: 'route', moduleId: route.moduleId, path: normalizeEntry(route.path), file: route.file ?? null }
     });
     evidence.push({ type: 'route', file: route.file ?? route.moduleId, reason: `route ${route.path}` });
   }
@@ -251,13 +255,41 @@ async function routesForModules(knowledge, modules) {
   const routes = [];
   for (const item of modules) {
     const slice = await knowledge.getModule(normalizeModuleId(item.id));
-    for (const route of (slice?.routes ?? []).slice(0, 4)) {
-      if (!isRealRoute(route?.path)) continue;
+    for (const route of (slice?.routes ?? []).slice(0, 8)) {
+      const record = normalizeRouteRecord(route);
+      if (!isRealRoute(record.path)) continue;
       routes.push({
         moduleId: slice.id,
-        path: route.path,
-        file: route.file ?? slice.files?.[0] ?? null,
+        path: record.path,
+        file: record.file || record.component || slice.files?.[0] || null,
         score: item.score ?? 0.5
+      });
+    }
+  }
+  return routes.slice(0, 15);
+}
+
+async function routesForChangedFiles(knowledge, changedFiles) {
+  if (!knowledge || changedFiles.length === 0) return [];
+  const routes = [];
+  const modules = await knowledge.modulesIndex();
+  for (const entry of modules) {
+    const slice = await knowledge.getModule(normalizeModuleId(entry.id));
+    if (!slice) continue;
+    for (const route of slice.routes ?? []) {
+      const record = normalizeRouteRecord(route);
+      if (!isRealRoute(record.path)) continue;
+      const related = changedFiles.some((file) =>
+        filePathMatches(file, record.file)
+        || filePathMatches(file, record.component)
+        || (slice.files ?? []).some((owned) => filePathMatches(file, owned))
+      );
+      if (!related) continue;
+      routes.push({
+        moduleId: slice.id,
+        path: record.path,
+        file: record.file || record.component || null,
+        score: 0.85
       });
     }
   }

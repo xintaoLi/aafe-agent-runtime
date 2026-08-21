@@ -159,6 +159,12 @@ export class GraphAnalyzer {
       resolver
     });
 
+    for (const [file, node] of Object.entries(routeGraph.nodes ?? {})) {
+      if (!context.cache.parsed.has(file)) {
+        context.cache.parsed.set(file, { extracted: node });
+      }
+    }
+
     for (const route of routeGraph.routes ?? []) {
       const rid = `route:${route.path}:${route.file}`;
       nodes.push({
@@ -169,6 +175,11 @@ export class GraphAnalyzer {
       edges.push(edge(rid, `file:${route.file}`, 'ROUTES_TO', [
         createEvidence({ type: 'route', file: route.file, reason: route.path })
       ]));
+      if (route.component && route.component !== route.file) {
+        edges.push(edge(rid, `file:${route.component}`, 'ROUTES_TO', [
+          createEvidence({ type: 'route', file: route.component, reason: route.path })
+        ]));
+      }
       evidence.push(createEvidence({ type: 'route', file: route.file, reason: route.path }));
     }
 

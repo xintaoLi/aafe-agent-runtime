@@ -29,12 +29,13 @@ Rules:
 当 Step 0 判定为 e2e / ui 时：
 
 1. 执行 `aafe test --diff`（`aafe` 不在 PATH 时用 `node_modules/.bin/aafe`）。
-2. 缺 `AAFE_E2E_BASE_URL` / `.aafe.config.json` `e2e.baseUrl` → 问用户，**禁止**填 `http://localhost:8080` 占位。
-3. 地址就绪后 `aafe test --diff --run`。
-4. 只引用统一报告 `.aafe/e2e/reports/<runId>/{report.json,index.html}`。
-5. `layers.primary: unit` 时 E2E 标 `NOT_APPLICABLE`。
+2. 要 `--run` 但没有本次 URL：在对话里询问完整被测地址并**等待用户输入**。测试地址每次可能不同，不要写入 `.aafe.config.json` `e2e.baseUrl`，不要用环境变量凑合，**禁止**填 `http://localhost:8080`。
+3. 用户给出地址后：若含 `#` 或查询参数，先确认 A（目标页）/ B（仅 origin）/ C（提取参数拼到变更路由），再 `aafe test --diff --run --base-url=<用户输入的 URL> --url-role=target|origin|template`。
+4. CLI 若返回 `needInput: "baseUrl"` 或 `needInput: "urlRole"`：必须停下来问用户，禁止自行编造 URL 或改去装 uitest。
+5. 只引用统一报告 `.aafe/e2e/reports/<runId>/{report.json,index.html}`。
+6. `layers.primary: unit` 时 E2E 标 `NOT_APPLICABLE`。
 
-浏览器 MCP 仅当上述 E2E 为 blocked（无 Playwright / 无 baseUrl）且用户仍要看 UI。
+浏览器 MCP 仅当 E2E blocked（无 Playwright）且用户仍要看 UI。缺测试地址时先问 URL，不要改走 MCP。
 
 ## Step 1 — Ensure test directory
 
@@ -134,7 +135,7 @@ Converge:
 
 ## Step 3 — Browser MCP fallback (only when E2E blocked)
 
-**前置**：已走 Step 0.5 的 `aafe test --diff`，且结果为 blocked（无 Playwright / 无 baseUrl），用户仍要看 UI。纯文档/需求分析任务**不得**进入本 Step。
+**前置**：已走 Step 0.5 的 `aafe test --diff`，且结果为 blocked（无 Playwright），用户仍要看 UI。缺测试地址时先问 URL 再 `--run --base-url`，不要改走 MCP。纯文档/需求分析任务**不得**进入本 Step。
 
 When all preconditions met:
 

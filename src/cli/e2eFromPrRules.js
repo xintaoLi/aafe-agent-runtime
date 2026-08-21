@@ -53,9 +53,17 @@ Companion CLI: \`aafe test --pr=<url>\`（本包能力，不是 \`uitest\`）。
 
 1. 从用户消息取出 PR/MR URL（GitHub \`/pull/\` 或工蜂 \`/merge_requests/\`）。没有链接就问一句，不要编。
 2. 生成用例：\`aafe test --pr=<url>\`。YAML 落 \`tests/ui-ai/cases/\`。
-3. 用户还要求执行 e2e / 出报告：再跑 \`aafe test --pr=<url> --run\`。
-   - 需要 \`AAFE_E2E_BASE_URL\` 或 \`.aafe.config.json\` \`e2e.baseUrl\`。
-   - **禁止**填 \`http://localhost:8080\` 占位。
+3. 用户还要求执行 e2e / 出报告：尽量带 \`--run\`。
+   - 用户消息里已有被测页面 URL（不是 PR 链接）→ 先确认该地址角色，再 \`aafe test --pr=<url> --run --base-url=<该地址> --url-role=...\`。含 \`#\` 的地址必须用引号，禁止把 hash 丢掉后只拿 origin。
+   - 否则**必须停下来询问并等待用户输入本次测试地址**。地址每次可能不同，不要写进 \`e2e.baseUrl\` / 环境变量，不要猜，不要用 \`http://localhost:8080\`。
+   - 用户给出地址后，若包含页面路径（\`#/...\`）或查询参数，**必须再确认并等待**：
+     - **A** 是目标页面：匹配该路径的用例打开这个完整地址；其它用例复用同一主机、hash/history 模式和查询参数。
+     - **B** 不是，只是环境根地址：丢弃 \`#\` 后的路径和业务参数。
+     - **C** 需要根据此地址分析变更（推荐）：提取协议/主机、是否 hash 路由、以及 bizId 等参数，拼到本次变更的各条路由上。
+     然后 \`--run --base-url=<用户输入> --url-role=target|origin|template\`（A/B/C）。
+   - 没有路径/参数的纯 origin 可直接 \`--run --base-url=<用户输入>\`。
+   - CLI 返回 \`needInput: "baseUrl"\` 或 \`needInput: "urlRole"\` 时同样：问用户，等待，再带齐参数重跑。
+   - 业务需登录 / SSO：每次 \`--run\` **先匿名探测用户地址**（HTTP 200 且未跳转登录则跳过 SSO，适合 Dev 本地代理）；否则再校验登录态，未登录或过期则重新登录并更新 \`.aafe/e2e/auth\`。无认证且非交互环境会返回 \`needInput: "auth"\`，引导 \`aafe e2e auth --base-url=<url>\`。不要把密码写入配置。
 4. 只读统一报告 \`.aafe/e2e/reports/<runId>/{report.json,index.html}\`，不要散落到 \`test/ui/\`、\`playwright-report/\`、\`test-results/\`。
 5. 命令提示 \`e2e.enabled !== true\` → 告诉用户 \`aafe e2e enable\`，仍然不要装 uitest。
 6. Playwright 缺失时报告为 blocked；不要改口去装 uitest。
@@ -80,7 +88,7 @@ export function aafeTestFromPrCursorSkill(ctx = {}) {
     '',
     '1. Extract the PR/MR URL.',
     '2. Run `aafe test --pr=<url>` (`node_modules/.bin/aafe` when not on PATH).',
-    '3. If the user asked to execute e2e or emit a report, add `--run` after a real `e2e.baseUrl` / `AAFE_E2E_BASE_URL` (never `http://localhost:8080`).',
+    '3. If the user asked to execute e2e: ask and **wait** for this run\'s page URL. If the URL has `#` or query, ask A/B/C (target page / origin only / template+params) and wait, then `aafe test --pr=<url> --run --base-url=<quoted url> --url-role=target|origin|template`. Quote hash URLs. Each `--run` first probes the URL anonymously (HTTP 200 and no login redirect skips SSO, e.g. Dev local proxy); otherwise it verifies login and re-auths if missing/expired (`aafe e2e auth` when headed SSO is needed). Do not persist to e2e.baseUrl. Never guess or use `http://localhost:8080`.',
     '4. Read only `.aafe/e2e/reports/<runId>/`.',
     '5. Do **not** install or run `uitest` / `@aafe/ai-test` / `npx uitest`.',
     ''
@@ -101,7 +109,7 @@ Source of truth: \`${agentPrefix}/skills/aafe-test-from-pr.md\`
 用户要「分析此PR」「按 PR 补测试」「生成测试用例并执行e2e」或直接贴 PR/MR 链接时：
 
 1. \`aafe test --pr=<url>\` 生成 YAML
-2. 需要执行时再 \`aafe test --pr=<url> --run\`
+2. 需要执行时：询问并**等待**用户输入本次测试 URL。若地址含 \`#\` 或查询参数，再确认 A（目标页）/ B（仅环境根）/ C（按此地址提取参数拼到变更路由），然后 \`aafe test --pr=<url> --run --base-url=<url> --url-role=target|origin|template\`（不要写死配置；hash 地址用引号）
 3. 报告只读 \`.aafe/e2e/reports/\`
 
 **禁止**安装或调用 \`uitest\` / \`@aafe/ai-test\`。不要把 \`ai-ui-test\` / \`uitest-from-pr\` 写回 \`.cursor/\`。

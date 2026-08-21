@@ -7,7 +7,8 @@ import { detectProject } from './detect.js';
 import { doctorProject } from './doctor.js';
 import { syncKnowledgeArtifacts } from './knowledge.js';
 import { runMigrations } from './migrate.js';
-import { prepareWorkspaceLayoutForCommand, prepareTapdConfigForCommand, prepareSubmitConfigForCommand, prepareE2eConfigForCommand } from './prompts.js';
+import { executeAnalyze } from './analyze.js';
+import { prepareWorkspaceLayoutForCommand, prepareTapdConfigForCommand, prepareSubmitConfigForCommand, prepareE2eConfigForCommand, prepareForceAnalyzeForCommand } from './prompts.js';
 import { resolveWorkspaceLayout } from './workspace.js';
 
 const execFileAsync = promisify(execFile);
@@ -35,6 +36,11 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
     preserveMemory: true,
     editors: options.editors
   };
+  const forceAnalyze = await prepareForceAnalyzeForCommand({
+    analyze: options.analyze,
+    yes: options.yes,
+    dryRun: options.dryRun
+  });
 
   if (options.dryRun) {
     console.log(JSON.stringify({
@@ -57,10 +63,13 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
         preserveMemory: true,
         idempotentWrites: true,
         submitCli: options.submitCli ?? null,
-        e2e: options.e2e ?? null
+        e2e: options.e2e ?? null,
+        forceAnalyze
       },
       preserved: ['.ai-agent/project.md', '.ai-agent/project-skills/**', '.ai-agent/rules/**', '.ai-agent/memory/**'],
-      summary: 'Would refresh generated .ai-agent runtime, Skill Index On-Demand router, editor adapters and projectKnowledge config from the currently installed aafe package without reinstalling the package. Project-owned knowledge would be preserved.'
+      summary: forceAnalyze
+        ? 'Would refresh generated .ai-agent runtime, migrate leftover files, and force-run analyze (overwrite facts and migrate older analyze output). Project-owned knowledge would be preserved.'
+        : 'Would refresh generated .ai-agent runtime, Skill Index On-Demand router, editor adapters and projectKnowledge config from the currently installed aafe package without reinstalling the package. Project-owned knowledge would be preserved.'
     }, null, 2));
     return;
   }
@@ -97,6 +106,9 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
     submitConfig,
     e2eConfig
   });
+  const analyze = forceAnalyze
+    ? await executeAnalyze(installRoot, ['--force'])
+    : { ran: false, force: false };
   const knowledge = options.knowledge === false ? null : await syncKnowledgeArtifacts(installRoot, {
     architectureDocs: options.architectureDocs,
     knowledgeDocs: options.knowledgeDocs
@@ -111,9 +123,20 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
     currentVersion: options.currentVersion,
     preserved: ['.ai-agent/project.md', '.ai-agent/project-skills/**', '.ai-agent/rules/**', '.ai-agent/memory/**'],
     migration,
+    analyze: forceAnalyze
+      ? {
+        ran: true,
+        force: true,
+        output: analyze.output,
+        persist: summarizeAnalyzePersist(analyze.persist),
+        summary: analyze.summary
+      }
+      : analyze,
     knowledge,
     doctor,
-    summary: 'Refreshed generated .ai-agent runtime, Skill Index On-Demand router, editor adapters and projectKnowledge config from the currently installed aafe package. Project-owned knowledge was preserved.'
+    summary: forceAnalyze
+      ? 'Refreshed generated .ai-agent runtime, force-ran analyze (overwrite facts and migrate older analyze output), and preserved project-owned knowledge.'
+      : 'Refreshed generated .ai-agent runtime, Skill Index On-Demand router, editor adapters and projectKnowledge config from the currently installed aafe package. Project-owned knowledge was preserved.'
   }, null, 2));
 
   if (doctor.status === 'fail') process.exitCode = 1;
@@ -171,11 +194,12 @@ async function runPackageUpgradeUpdate(options) {
   }, null, 2));
 }
 
-function parseUpdateOptions(args) {
+export function parseUpdateOptions(args) {
   const options = {
     packageManager: 'npm',
     force: args.includes('--force'),
     dryRun: args.includes('--dry-run'),
+    yes: args.includes('--yes') || args.includes('-y'),
     sync: !args.includes('--no-sync'),
     syncForce: args.includes('--sync-force'),
     upgradePackage: args.includes('--upgrade-package') || args.includes('--global')
@@ -198,9 +222,20 @@ function parseUpdateOptions(args) {
     if (arg === '--e2e') options.e2e = true;
     if (arg === '--no-e2e') options.e2e = false;
     if (arg === '--install-playwright') options.installPlaywright = true;
+    if (arg === '--analyze' || arg === '--force-analyze') options.analyze = true;
+    if (arg === '--no-analyze') options.analyze = false;
   }
 
   return options;
+}
+
+function summarizeAnalyzePersist(persist) {
+  if (!persist || persist.skipped) return persist ?? null;
+  return {
+    mode: persist.mode,
+    output: persist.output,
+    forceMigration: persist.forceMigration ?? null
+  };
 }
 
 async function readProjectConfig(root) {
@@ -221,6 +256,9 @@ async function syncCurrentProject(options, syncOptions = {}) {
   if (!options.sync) return false;
   if (syncOptions.useInstalledCli) {
     const args = ['update'];
+    if (options.analyze === false) args.push('--no-analyze');
+    if (options.analyze === true) args.push('--analyze');
+    if (options.yes) args.push('--yes');
     await runCommand(process.platform === 'win32' ? 'aafe.cmd' : 'aafe', args);
     return true;
   }

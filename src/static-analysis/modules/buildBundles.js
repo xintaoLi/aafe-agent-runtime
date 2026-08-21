@@ -19,6 +19,7 @@
  */
 
 import { createEvidence } from '../types/evidence.js';
+import { normalizeRouteRecord } from '../routes/normalize.js';
 
 /**
  * Build per-module analysis bundles:
@@ -33,14 +34,17 @@ export function buildModuleBundles(context) {
   const bundles = modules.map((mod) => {
     const fileSet = new Set(mod.filePaths ?? []);
     const components = collectComponents(mod, context);
-    const routes = (mod.routes ?? []).map((route) => ({
-      path: route.path,
-      name: route.name || '',
-      file: route.file,
-      component: route.component || '',
-      source: route.source || 'unknown',
-      evidence: [createEvidence({ type: 'route', file: route.file, reason: route.path })]
-    }));
+    const routes = (mod.routes ?? []).map((route) => {
+      const record = normalizeRouteRecord(route);
+      return {
+        path: record.path,
+        name: record.name,
+        file: record.file,
+        component: record.component,
+        source: record.source,
+        evidence: [createEvidence({ type: 'route', file: record.file, reason: record.path })]
+      };
+    });
 
     const moduleFeatures = features.filter((feature) =>
       feature.entrypoints?.some((entry) => routes.some((route) => route.path === entry || route.file === entry))

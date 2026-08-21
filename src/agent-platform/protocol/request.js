@@ -69,7 +69,12 @@ export function createTask(partial = {}) {
     e2eUpdate: partial.e2eUpdate ?? false,
     e2eForce: partial.e2eForce ?? false,
     inlineToken: partial.inlineToken ?? null,
-    dryRun: partial.dryRun ?? false
+    dryRun: partial.dryRun ?? false,
+    baseUrl: partial.baseUrl ?? null,
+    urlRole: partial.urlRole ?? null,
+    authMode: partial.authMode ?? null,
+    authEnv: partial.authEnv ?? null,
+    storageState: partial.storageState ?? null
   };
 }
 

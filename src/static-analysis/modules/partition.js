@@ -18,6 +18,8 @@
  * IN THE SOFTWARE.
  */
 
+import { looksLikeComponentFile } from '../routes/normalize.js';
+
 /**
  * Partition visited graph files into modules by route ownership + directory heuristics.
  */
@@ -33,8 +35,14 @@ export function partitionModules(routeGraph, options = {}) {
       routes: []
     });
     mod.routes.push(route);
-    if (route.file) mod.files.add(route.file);
-    if (route.component && route.component.includes('/')) mod.files.add(route.component);
+    if (route.file) {
+      mod.files.add(route.file);
+      attachNodeSignals(mod, routeGraph.nodes?.[route.file]);
+    }
+    if (looksLikeComponentFile(route.component)) {
+      mod.files.add(route.component);
+      attachNodeSignals(mod, routeGraph.nodes?.[route.component]);
+    }
   }
 
   for (const file of routeGraph.visited ?? []) {
@@ -45,12 +53,7 @@ export function partitionModules(routeGraph, options = {}) {
       routes: []
     });
     mod.files.add(file);
-    const node = routeGraph.nodes?.[file];
-    if (node) {
-      for (const signal of node.frameworkSignals ?? []) mod.signals.add(signal);
-      for (const hint of node.dataHints ?? []) mod.dataHints.add(hint);
-      for (const component of node.components ?? []) mod.components.add(component.name);
-    }
+    attachNodeSignals(mod, routeGraph.nodes?.[file]);
   }
 
   // Attach dependency edges between modules
@@ -79,6 +82,13 @@ export function partitionModules(routeGraph, options = {}) {
     .slice(0, maxModules);
 
   return list;
+}
+
+function attachNodeSignals(mod, node) {
+  if (!node) return;
+  for (const signal of node.frameworkSignals ?? []) mod.signals.add(signal);
+  for (const hint of node.dataHints ?? []) mod.dataHints.add(hint);
+  for (const component of node.components ?? []) mod.components.add(component.name);
 }
 
 function ensureModule(map, id, defaults) {

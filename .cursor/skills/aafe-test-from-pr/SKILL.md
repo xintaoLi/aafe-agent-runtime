@@ -9,6 +9,6 @@ Source of truth: `.ai-agent/skills/aafe-test-from-pr.md`.
 
 1. Extract the PR/MR URL.
 2. Run `aafe test --pr=<url>` (`node_modules/.bin/aafe` when not on PATH).
-3. If the user asked to execute e2e or emit a report, add `--run` after a real `e2e.baseUrl` / `AAFE_E2E_BASE_URL` (never `http://localhost:8080`).
+3. If the user asked to execute e2e: ask and **wait** for this run's page URL. If the URL has `#` or query, ask A/B/C (target page / origin only / template+params) and wait, then `aafe test --pr=<url> --run --base-url=<quoted url> --url-role=target|origin|template`. Quote hash URLs. Each `--run` first probes the URL anonymously (HTTP 200 and no login redirect skips SSO, e.g. Dev local proxy); otherwise it verifies login and re-auths if missing/expired (`aafe e2e auth` when headed SSO is needed). Do not persist to e2e.baseUrl. Never guess or use `http://localhost:8080`.
 4. Read only `.aafe/e2e/reports/<runId>/`.
 5. Do **not** install or run `uitest` / `@aafe/ai-test` / `npx uitest`.

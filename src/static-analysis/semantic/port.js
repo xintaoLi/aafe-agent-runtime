@@ -130,7 +130,7 @@ function summarizeFacts(input = {}) {
     id: mod.id,
     name: mod.name,
     files: (mod.filePaths ?? []).slice(0, 8),
-    routes: (mod.routes ?? []).map((route) => route.path).slice(0, 8),
+    routes: (mod.routes ?? []).map((route) => (typeof route === 'string' ? route : route.path)).filter(Boolean).slice(0, 8),
     dependsOn: (mod.dependencies ?? []).slice(0, 8)
   }));
   const features = [...(input.features ?? []), ...(input.candidates ?? [])]

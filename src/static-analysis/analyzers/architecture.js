@@ -44,7 +44,13 @@ export class ArchitectureAnalyzer {
       files: mod.fileCount,
       filePaths: mod.files,
       dependencies: mod.dependsOn.map((id) => `module:${id}`),
-      routes: mod.routes.map((route) => route.path),
+      routes: mod.routes.map((route) => ({
+        path: route.path,
+        file: route.file,
+        component: route.component,
+        name: route.name,
+        source: route.source
+      })),
       signals: mod.signals,
       evidence: mod.files.slice(0, 8).map((file) => createEvidence({
         type: 'source',
