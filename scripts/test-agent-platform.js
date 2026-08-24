@@ -40,6 +40,9 @@ import { planMigrations, relocate, runMigrations } from '../src/cli/migrate.js';
 import { taskCompletionHookScript } from '../src/cli/hookScripts.js';
 import { createDefaultRuntime, defaultGates, defaultPipelines, defaultSkills } from '../src/agent-platform/skill-runtime/defaults.js';
 import { dddRuntimeFiles } from '../src/cli/dddRuntimeFiles.js';
+import { evaluateMemoryOOMGate } from '../src/memory-diagnosis/MemoryOOMGate.js';
+import { resolveMemoryScope } from '../src/memory-diagnosis/MemoryScope.js';
+import { memoryDiagnosisRuntimeFiles } from '../src/cli/memoryDiagnosisRuntimeFiles.js';
 import { validateSchema, formatSchemaErrors } from '../src/agent-platform/schema/validate.js';
 import { coerceAndValidate } from '../src/agent-platform/schema/repair.js';
 import { ContractLoader } from '../src/agent-platform/schema/loader.js';
@@ -985,7 +988,36 @@ try {
   assert.ok(replayed.contextPackage.tokenEstimate > 0);
   assert.equal(await replayRun(fixture, '.aafe', 'no-such-run'), null);
 
-  // --- DDD enablement gate -------------------------------------------------
+  // --- memory OOM conditional gate -------------------------------------------
+{
+  const ordinary = evaluateMemoryOOMGate('优化 memory cache 命中率');
+  assert.equal(ordinary.activated, false, 'a bare memory mention must not activate diagnosis');
+
+  const explicit = evaluateMemoryOOMGate('Chrome 页面 Out of Memory 了，帮我分析');
+  assert.equal(explicit.activated, true);
+  assert.equal(explicit.source, 'USER_EXPLICIT');
+
+  const fromFinding = evaluateMemoryOOMGate({ findings: [{ category: 'MEMORY_PEAK', severity: 'HIGH', confidence: 0.91, summary: 'large JSON peak', activation: true }] });
+  assert.equal(fromFinding.source, 'OTHER_AGENT_FINDING');
+  assert.equal(fromFinding.confidence, 'HIGH');
+
+  const custom = evaluateMemoryOOMGate({ customAgentRequested: true, agent: { mode: 'custom', id: 'log-memory-agent' } });
+  assert.equal(custom.source, 'USER_CONFIGURED_AGENT');
+  assert.equal(custom.agent.id, 'log-memory-agent');
+
+  const peakScope = resolveMemoryScope({ prompt: 'JSON.parse 200MB 数据导致 OOM' });
+  assert.ok(peakScope.rules.includes('memory-data-pipeline'));
+  assert.ok(!peakScope.rules.includes('memory-worker'));
+  const leakScope = resolveMemoryScope({ prompt: '页面切换后内存泄漏，detached DOM 增长' });
+  assert.ok(leakScope.rules.includes('memory-leak'));
+  assert.ok(!leakScope.rules.includes('memory-data-pipeline'));
+
+  const memoryFiles = memoryDiagnosisRuntimeFiles('.ai-agent');
+  assert.ok(memoryFiles['.ai-agent/frontend-memory/rules/memory-gate.md']);
+  assert.ok(memoryFiles['.ai-agent/frontend-memory/agents/memory-agent.schema.json']);
+}
+
+// --- DDD enablement gate -------------------------------------------------
   // The property under test is that DDD stays off by default. Every string
   // below is either a DDD.md activation example or one of its explicit
   // non-activation signals.

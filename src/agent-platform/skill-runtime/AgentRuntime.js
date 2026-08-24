@@ -6,6 +6,7 @@ import { MemoryRuntime } from '../../memory/MemoryRuntime.js';
 import { KnowledgeStore } from '../../knowledge/store/KnowledgeStore.js';
 import { evaluateDDDGate } from '../../ddd/DDDGate.js';
 import { evaluatePatternGate } from '../../patterns/PatternGate.js';
+import { evaluateMemoryOOMGate } from '../../memory-diagnosis/MemoryOOMGate.js';
 
 export class AgentRuntime {
   constructor({ router, pipelines, gates, skills, hooks, memory, knowledge, root = process.cwd(), maxReruns = 1 }) {
@@ -37,6 +38,9 @@ export class AgentRuntime {
     // matched bare `strategy`, `factory`, `adapter`, `command` and `observer`,
     // so touching any of those turned the task into pattern analysis.
     if (routes.patternFeature && evaluatePatternGate(text).enabled) return 'patternFeature';
+    // Memory diagnosis is opt-in through its own gate. It must outrank generic
+    // bug/performance routing so explicit OOM requests never run a normal scan.
+    if (routes.memoryDiagnosis && evaluateMemoryOOMGate(request).activated) return 'memoryDiagnosis';
     if (/bug|fix|error|crash|修复|报错|问题/.test(text) && routes.bugfix) return 'bugfix';
     if (/perf|performance|slow|optimi[sz]e|性能|优化|卡顿/.test(text) && routes.performance) return 'performance';
     if (/refactor|重构|腐化|拆分/.test(text) && routes.refactor) return 'refactor';

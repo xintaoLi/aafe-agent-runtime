@@ -1,6 +1,8 @@
 import { analyzeDDD, conceptNames } from '../../ddd/DDDAdvisor.js';
 import { evaluateDDDGate } from '../../ddd/DDDGate.js';
 import { resolveDDDScope } from '../../ddd/DDDScope.js';
+import { evaluateMemoryOOMGate } from '../../memory-diagnosis/MemoryOOMGate.js';
+import { resolveMemoryScope } from '../../memory-diagnosis/MemoryScope.js';
 import {
   analyzeModulePatternFit,
   analyzePatternComposition,
@@ -19,7 +21,8 @@ export const defaultRouter = {
     bugfix: { pipeline: 'bugfix' },
     performance: { pipeline: 'performance' },
     graphFeature: { pipeline: 'graph-feature' },
-    patternFeature: { pipeline: 'pattern-feature' }
+    patternFeature: { pipeline: 'pattern-feature' },
+    memoryDiagnosis: { pipeline: 'memory-diagnosis' }
   }
 };
 
@@ -27,6 +30,7 @@ export const defaultGates = {
   // Enablement comes first and is separate from modelling completeness: one
   // asks "may we do DDD at all", the other "is the model finished".
   ddd_enablement_gate: { requires: ['ddd_decision', 'ddd_scope'] },
+  memory_oom_gate: { requires: ['memory_decision', 'memory_scope'] },
   ddd_gate: { requires: ['ubiquitous_language', 'bounded_contexts', 'aggregates'] },
   // `pattern_selection` used to be required here, which meant every refactor
   // and performance run had to produce a pattern choice before it could pass.
@@ -59,6 +63,7 @@ export const defaultPipelines = {
   // Discovery runs before anything is named, and the anti-pattern audit runs
   // against the composition this system itself proposed.
   'pattern-feature': { steps: [{ skill: 'pattern-gate' }, { gate: 'pattern_enablement_gate' }, { skill: 'memory-recaller' }, { skill: 'architect' }, { skill: 'module-decomposer' }, { skill: 'pattern-discovery' }, { skill: 'pattern-interviewer' }, { skill: 'pattern-selector' }, { skill: 'pattern-composer' }, { skill: 'module-pattern-selector' }, { skill: 'pattern-anti-pattern-audit' }, { gate: 'pattern_gate' }, { skill: 'pattern-validator' }, { skill: 'pattern-implementation-planner' }, { skill: 'adr-generator' }, { gate: 'implementation_gate' }, { skill: 'refactor-critic' }, { skill: 'memory-writer' }, { gate: 'merge_gate' }] },
+  'memory-diagnosis': { steps: [{ skill: 'memory-oom-gate' }, { skill: 'memory-scope' }, { gate: 'memory_oom_gate' }, { skill: 'memory-diagnosis' }, { skill: 'memory-agent-selector' }, { skill: 'memory-writer' }] },
   refactor: { steps: [{ skill: 'memory-recaller' }, { skill: 'architect' }, { skill: 'module-decomposer' }, { skill: 'refactor-critic' }, { gate: 'architecture_gate' }, { skill: 'adr-generator' }, { skill: 'memory-writer' }, { gate: 'merge_gate' }] },
   bugfix: { steps: [{ skill: 'memory-recaller' }, { skill: 'architect' }, { skill: 'module-decomposer' }, { skill: 'refactor-critic' }, { skill: 'memory-writer' }, { gate: 'merge_gate' }] },
   performance: { steps: [{ skill: 'memory-recaller' }, { skill: 'architect' }, { skill: 'module-decomposer' }, { skill: 'evolution-predictor' }, { gate: 'architecture_gate' }, { skill: 'refactor-critic' }, { skill: 'memory-writer' }, { gate: 'merge_gate' }] },
@@ -69,6 +74,50 @@ export const defaultSkills = {
   'memory-recaller': {
     async run(context) {
       return { status: 'pass', summary: 'Project memory recalled', artifacts: { memory_context: context.input?.memoryContext ?? '' }, risks: [], nextHints: [] };
+    }
+  },
+  // --- Memory OOM conditional skill system ----------------------------------
+  'memory-oom-gate': {
+    async run(context) {
+      const decision = evaluateMemoryOOMGate(memoryGateInput(context));
+      return {
+        status: decision.activated ? 'pass' : 'fail',
+        summary: decision.activated ? `Memory diagnosis enabled: ${decision.reason}` : `Memory diagnosis not enabled: ${decision.reason}`,
+        artifacts: { memory_decision: decision },
+        risks: decision.activated ? [] : ['Memory rules were not loaded because no activation signal was established'],
+        nextHints: decision.activated ? [] : ['Continue with the normal analysis pipeline; do not scan memory-specific patterns']
+      };
+    }
+  },
+  'memory-scope': {
+    async run(context) {
+      const decision = context.results?.['memory-oom-gate']?.artifacts?.memory_decision;
+      const scope = resolveMemoryScope(memoryGateInput(context), { gate: decision });
+      return {
+        status: scope.enabled ? 'pass' : 'fail',
+        summary: `Memory scope: ${scope.categories.join(', ')}; rules: ${scope.rules.join(', ') || 'none'}`,
+        artifacts: { memory_scope: scope, memory_rules: scope.rules },
+        risks: [], nextHints: scope.skipped.length ? [`Not loaded: ${scope.skipped.join(', ')}`] : []
+      };
+    }
+  },
+  'memory-diagnosis': {
+    async run(context) {
+      const scope = context.results?.['memory-scope']?.artifacts?.memory_scope;
+      if (!scope?.enabled) return { status: 'pass', summary: 'Memory diagnosis skipped: gate is not enabled', artifacts: { skipped: 'memory' }, risks: [], nextHints: [] };
+      return {
+        status: 'pass',
+        summary: `Memory diagnosis prepared for ${scope.categories.join(', ')}`,
+        artifacts: { memory_diagnosis: { categories: scope.categories, rules: scope.rules, requireRetentionPath: true, requirePeakAnalysis: true, requireVerification: true } },
+        risks: [], nextHints: ['Collect heap/retention or allocation evidence before asserting a root cause']
+      };
+    }
+  },
+  'memory-agent-selector': {
+    async run(context) {
+      const decision = context.results?.['memory-oom-gate']?.artifacts?.memory_decision;
+      const selected = decision?.source === 'USER_CONFIGURED_AGENT' && decision.agent ? { mode: 'custom', agent: decision.agent } : { mode: 'default', agent: 'builtin-memory-diagnosis' };
+      return { status: 'pass', summary: `Memory agent selected: ${selected.mode}`, artifacts: { memory_agent: selected }, risks: [], nextHints: [] };
     }
   },
   // --- DDD skill system (DDD.md) --------------------------------------------
@@ -486,6 +535,19 @@ export function createDefaultRuntime(overrides = {}) {
 function promptOf(context) {
   const request = context?.input?.request;
   return String(request?.prompt ?? request ?? '');
+}
+
+function memoryGateInput(context) {
+  const request = context?.input?.request ?? {};
+  const findings = request?.findings ?? context?.input?.findings ?? [];
+  const currentAnalysis = request?.currentAnalysis ?? context?.input?.currentAnalysis ?? '';
+  return {
+    prompt: promptOf(context),
+    findings,
+    currentAnalysis,
+    customAgentRequested: request?.customAgentRequested ?? context?.input?.customAgentRequested ?? false,
+    agent: request?.memoryAgent ?? context?.input?.memoryAgent ?? null
+  };
 }
 
 /**

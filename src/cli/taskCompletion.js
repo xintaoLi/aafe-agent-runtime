@@ -1,6 +1,7 @@
 import { appendFile, mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import { loadMemoryConfig } from '../memory/config.js';
 
 export async function runTaskCompletion(root, options = {}) {
   const steps = [
@@ -36,7 +37,7 @@ function runAafe(root, command, args) {
 }
 
 async function writeCompletionLog(root, results) {
-  const directory = path.join(root, '.ai-agent', 'memory');
+  const { memoryDir: directory } = await loadMemoryConfig(root);
   await mkdir(directory, { recursive: true });
   const entry = JSON.stringify({ type: 'task-completion-sync', generatedAt: new Date().toISOString(), results });
   await appendFile(path.join(directory, 'knowledge-sync.jsonl'), `${entry}\n`);

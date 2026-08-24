@@ -3,7 +3,14 @@
   "template": "complex",
   "memory": {
     "enabled": true,
-    "path": ".ai-agent/memory",
+    "path": ".aafe-memory",
+    "remote": {
+      "enabled": false,
+      "url": null,
+      "projectId": null,
+      "tokenEnv": "AAFE_MEMORY_TOKEN",
+      "timeoutMs": 15000
+    },
     "categories": [
       "design",
       "component",
@@ -80,7 +87,7 @@
       "aafe doctor"
     ],
     "failClosed": false,
-    "log": ".ai-agent/memory/knowledge-sync.jsonl"
+    "log": ".aafe-memory/knowledge-sync.jsonl"
   },
   "projectKnowledge": {
     "enabled": true,

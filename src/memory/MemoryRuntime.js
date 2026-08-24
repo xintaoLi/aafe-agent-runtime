@@ -1,9 +1,14 @@
 import { MemoryStore } from './MemoryStore.js';
+import { resolveMemoryConfig } from './config.js';
+import { createMemoryRemoteAdapter } from './MemoryRemoteAdapter.js';
 
 export class MemoryRuntime {
   constructor(root, options = {}) {
-    this.store = options.store ?? new MemoryStore(root, options);
-    this.enabled = options.enabled ?? true;
+    const config = resolveMemoryConfig(root, options.config ?? options);
+    this.store = options.store ?? new MemoryStore(root, { ...options, memoryDir: config.memoryDir });
+    this.enabled = options.enabled ?? config.enabled;
+    this.remote = config.remote;
+    this.remoteAdapter = options.remoteAdapter ?? null;
   }
 
   async init() {
@@ -22,6 +27,22 @@ export class MemoryRuntime {
     const context = await this.store.context(query, options.limit ?? 8);
     if (context || options.strict) return context;
     return this.store.context('', options.limit ?? 8);
+  }
+
+  async remoteStatus() {
+    if (!this.remote.enabled) return { enabled: false, configured: false, reason: 'memory-remote-disabled' };
+    const adapter = createMemoryRemoteAdapter(this.remote, { adapter: this.remoteAdapter });
+    return { enabled: true, configured: true, remote: this.remote, health: await adapter.health() };
+  }
+
+  async sync({ direction = 'push', cursor = null } = {}) {
+    if (!this.remote.enabled) throw new Error('Memory remote sync is disabled; configure memory.remote.enabled and memory.remote.url first');
+    const adapter = createMemoryRemoteAdapter(this.remote, { adapter: this.remoteAdapter });
+    if (direction === 'pull') return adapter.pull(cursor);
+    if (direction !== 'push') throw new Error(`Unsupported memory sync direction: ${direction}`);
+    await this.init();
+    const records = await this.store.readRecords();
+    return adapter.push({ records }, { projectId: this.remote.projectId, cursor, source: 'aafe-memory' });
   }
 
   async recordExecution(context) {

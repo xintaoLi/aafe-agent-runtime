@@ -27,7 +27,7 @@ export async function createRuntimeFromProject(root, options = {}) {
     root,
     skills: { ...defaultSkills, ...(options.skills ?? {}) },
     hooks: options.hooks,
-    memory: options.memory,
+    memory: options.memory === false ? false : (options.memory ?? { config: await loadProjectConfig(path.join(root, '.aafe.config.json')) }),
     maxReruns: options.maxReruns ?? config.maxReruns
   });
 }

@@ -7,6 +7,8 @@ export { createDefaultRuntime, defaultGates, defaultPipelines, defaultRouter, de
 export { createRuntimeFromProject, loadRuntimeConfig } from './agent-platform/skill-runtime/configLoader.js';
 export { MemoryRuntime } from './memory/MemoryRuntime.js';
 export { MemoryStore } from './memory/MemoryStore.js';
+export { loadMemoryConfig, resolveMemoryConfig, DEFAULT_MEMORY_PATH } from './memory/config.js';
+export { MemoryRemoteAdapter, createMemoryRemoteAdapter } from './memory/MemoryRemoteAdapter.js';
 export { scanProjectMemory } from './memory/CodeScanner.js';
 export { analyzeDDD, buildDDDInterview, conceptNames } from './ddd/DDDAdvisor.js';
 export { evaluateDDDGate, isDDDEnabled, GATE_AMBIGUOUS, GATE_DISABLED, GATE_ENABLED } from './ddd/DDDGate.js';
@@ -21,6 +23,9 @@ export {
   patternCatalog
 } from './patterns/PatternAdvisor.js';
 export { evaluatePatternGate, isPatternEnabled } from './patterns/PatternGate.js';
+export { evaluateMemoryOOMGate, isMemoryOOMEnabled, MEMORY_GATE_SOURCES } from './memory-diagnosis/MemoryOOMGate.js';
+export { resolveMemoryScope, MEMORY_RULE_ORDER } from './memory-diagnosis/MemoryScope.js';
+export { AGENT_FINDING_SCHEMA, MEMORY_DIAGNOSIS_SCHEMA } from './memory-diagnosis/schemas.js';
 export { composePatterns } from './patterns/PatternComposer.js';
 export { scorePattern, scoreAll, isJustified } from './patterns/PatternScore.js';
 export { detectProblems, assessComplexity, variationPoints, PROBLEM_SIGNATURES } from './patterns/PatternProblems.js';

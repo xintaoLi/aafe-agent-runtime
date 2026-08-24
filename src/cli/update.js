@@ -66,7 +66,7 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
         e2e: options.e2e ?? null,
         forceAnalyze
       },
-      preserved: ['.ai-agent/project.md', '.ai-agent/project-skills/**', '.ai-agent/rules/**', '.ai-agent/memory/**'],
+      preserved: ['.ai-agent/project.md', '.ai-agent/project-skills/**', '.ai-agent/rules/**', '.aafe-memory/**'],
       summary: forceAnalyze
         ? 'Would refresh generated .ai-agent runtime, migrate leftover files, and force-run analyze (overwrite facts and migrate older analyze output). Project-owned knowledge would be preserved.'
         : 'Would refresh generated .ai-agent runtime, Skill Index On-Demand router, editor adapters and projectKnowledge config from the currently installed aafe package without reinstalling the package. Project-owned knowledge would be preserved.'
@@ -121,7 +121,7 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
     mode: 'project-runtime',
     package: options.packageName,
     currentVersion: options.currentVersion,
-    preserved: ['.ai-agent/project.md', '.ai-agent/project-skills/**', '.ai-agent/rules/**', '.ai-agent/memory/**'],
+    preserved: ['.ai-agent/project.md', '.ai-agent/project-skills/**', '.ai-agent/rules/**', '.aafe-memory/**'],
     migration,
     analyze: forceAnalyze
       ? {

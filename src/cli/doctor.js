@@ -6,6 +6,7 @@ import { AGENTS_CONFIG_FILE, loadAgentsConfig } from '../agent-platform/config/a
 import { createRegistryFromConfig } from '../agent-platform/registry/AgentRegistry.js';
 import { dddRuntimePaths } from './dddRuntimeFiles.js';
 import { patternRuntimePaths } from './patternRuntimeFiles.js';
+import { memoryDiagnosisRuntimePaths } from './memoryDiagnosisRuntimeFiles.js';
 import { inspectPlaywrightSetup } from './e2eSetup.js';
 import { isE2eEnabled } from '../testing/e2e/config.js';
 import { collectUitestAdapterChanges } from './migrate.js';
@@ -28,9 +29,11 @@ const requiredFiles = [
   '.ai-agent/pipelines/feature.yaml',
   '.ai-agent/pipelines/domain-feature.yaml',
   '.ai-agent/pipelines/pattern-feature.yaml',
+  '.ai-agent/pipelines/memory-diagnosis.yaml',
   '.ai-agent/skills/architect.md',
   ...dddRuntimePaths('.ai-agent'),
   ...patternRuntimePaths('.ai-agent'),
+  ...memoryDiagnosisRuntimePaths('.ai-agent'),
   '.ai-agent/skills/pattern-interviewer.md',
   '.ai-agent/skills/pattern-selector.md',
   '.ai-agent/skills/module-pattern-selector.md',
@@ -55,10 +58,6 @@ const requiredFiles = [
   '.ai-agent/rules/tapd-submit-backfill.mdc',
   '.ai-agent/rules/new-file-license.mdc',
   '.ai-agent/skills/knowledge-center-updater.md',
-  '.ai-agent/memory/index.md',
-  '.ai-agent/memory/experience.md',
-  '.ai-agent/memory/project-architecture.md',
-  '.ai-agent/memory/learnings.jsonl',
   '.aafe.config.json'
 ];
 

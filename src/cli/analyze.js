@@ -27,6 +27,7 @@ import {
   renderArchitectureOnDemandSkill,
   renderDataflowOnDemandSkill
 } from '../static-analysis/renderSkills.js';
+import { resolveMemoryConfig } from '../memory/config.js';
 
 /**
  * CLI shell for the static Analyze Pipeline.
@@ -184,7 +185,7 @@ function toCompatReport(context, packageInfo) {
       skill: '.ai-agent/skills/project-architecture-locator.md',
       architectureOnDemand: '.ai-agent/skills/architecture-on-demand.md',
       dataflowOnDemand: '.ai-agent/skills/dataflow-on-demand.md',
-      memory: '.ai-agent/memory/project-architecture.md'
+      memory: '.aafe-memory/project-architecture.md'
     },
     packageInfo
   };
@@ -282,7 +283,7 @@ Use on-demand skills; load one module slice only.
     [path.join(root, skillsOut, 'project-architecture-locator.md'), locator],
     [path.join(root, skillsOut, 'architecture-on-demand.md'), archSkill],
     [path.join(root, skillsOut, 'dataflow-on-demand.md'), dataflowSkill],
-    [path.join(root, '.ai-agent/memory/project-architecture.md'), memory]
+    [path.join(resolveMemoryConfig(root, await readProjectConfig(root)).memoryDir, 'project-architecture.md'), memory]
   ];
 
   for (const [filePath, content] of targets) {

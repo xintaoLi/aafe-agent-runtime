@@ -28,6 +28,7 @@ import {
 } from './fileLicenseRules.js';
 import { dddPointerRuleMdc, dddRuntimeFiles } from './dddRuntimeFiles.js';
 import { patternPointerRuleMdc, patternRuntimeFiles } from './patternRuntimeFiles.js';
+import { memoryDiagnosisRuntimeFiles } from './memoryDiagnosisRuntimeFiles.js';
 import {
   aafeTestFromPrCursorSkill,
   aafeTestFromPrPointerRuleMdc,
@@ -91,7 +92,14 @@ async function writeConfig(root, _detection, options, plan) {
     template: options.template ?? 'complex',
     memory: {
       enabled: plan.memory,
-      path: '.ai-agent/memory',
+      path: '.aafe-memory',
+      remote: {
+        enabled: false,
+        url: null,
+        projectId: null,
+        tokenEnv: 'AAFE_MEMORY_TOKEN',
+        timeoutMs: 15000
+      },
       categories: ['design', 'component', 'habit', 'convention', 'decision', 'experience', 'project-architecture', 'learning'],
       dedupe: true,
       summary: true,
@@ -124,7 +132,7 @@ async function writeConfig(root, _detection, options, plan) {
       command: 'aafe task-completion',
       steps: ['aafe knowledge update', 'aafe knowledge-web', 'aafe update', 'aafe doctor'],
       failClosed: false,
-      log: '.ai-agent/memory/knowledge-sync.jsonl'
+      log: '.aafe-memory/knowledge-sync.jsonl'
     },
     projectKnowledge: {
       enabled: true,
@@ -355,17 +363,18 @@ function runtimeFiles(_detection, plan) {
     '.ai-agent/skills/architecture-on-demand.md': architectureOnDemandSkillTemplate(),
     '.ai-agent/skills/dataflow-on-demand.md': dataflowOnDemandSkillTemplate(),
     '.ai-agent/skills/downloadable-skills-installer.md': downloadableSkillsInstallerSkill(),
-    '.ai-agent/memory/index.md': memoryIndex(),
-    '.ai-agent/memory/project-design.md': memoryProjectDesign(),
-    '.ai-agent/memory/components.md': memoryComponents(),
-    '.ai-agent/memory/development-habits.md': memoryDevelopmentHabits(),
-    '.ai-agent/memory/conventions.md': memoryConventions(),
-    '.ai-agent/memory/decisions.md': memoryDecisions(),
-    '.ai-agent/memory/experience.md': memoryExperience(),
-    '.ai-agent/memory/project-architecture.md': memoryProjectArchitecture(),
-    '.ai-agent/memory/learnings.jsonl': '',
+    '.aafe-memory/index.md': memoryIndex(),
+    '.aafe-memory/project-design.md': memoryProjectDesign(),
+    '.aafe-memory/components.md': memoryComponents(),
+    '.aafe-memory/development-habits.md': memoryDevelopmentHabits(),
+    '.aafe-memory/conventions.md': memoryConventions(),
+    '.aafe-memory/decisions.md': memoryDecisions(),
+    '.aafe-memory/experience.md': memoryExperience(),
+    '.aafe-memory/project-architecture.md': memoryProjectArchitecture(),
+    '.aafe-memory/learnings.jsonl': '',
     ...dddRuntimeFiles('.ai-agent'),
     ...patternRuntimeFiles('.ai-agent'),
+    ...memoryDiagnosisRuntimeFiles('.ai-agent'),
     '.ai-agent/scenarios/ddd.md': dddPack(),
     '.ai-agent/skills/architect.md': architectSkill(),
     '.ai-agent/skills/module-decomposer.md': decomposerSkill(),
@@ -393,6 +402,7 @@ function runtimeFiles(_detection, plan) {
     '.ai-agent/pipelines/feature.yaml': featurePipeline(),
     '.ai-agent/pipelines/domain-feature.yaml': domainFeaturePipeline(),
     '.ai-agent/pipelines/pattern-feature.yaml': patternFeaturePipeline(),
+    '.ai-agent/pipelines/memory-diagnosis.yaml': memoryDiagnosisPipeline(),
     '.ai-agent/pipelines/refactor.yaml': refactorPipeline(),
     '.ai-agent/pipelines/bugfix.yaml': bugfixPipeline(),
     '.ai-agent/pipelines/performance.yaml': performancePipeline(),
@@ -760,7 +770,7 @@ Project-owned and preserved by \`aafe update\`:
 - \`.ai-agent/project.md\`
 - \`.ai-agent/project-skills/**\`
 - \`.ai-agent/rules/**\`
-- \`.ai-agent/memory/**\`
+- \`.aafe-memory/**\`
 `;
 }
 
@@ -801,6 +811,8 @@ function router() {
     pipeline: graph-feature
   patternFeature:
     pipeline: pattern-feature
+  memoryDiagnosis:
+    pipeline: memory-diagnosis
 `;
 }
 
@@ -812,6 +824,10 @@ function gates() {
     requires:
       - ddd_decision
       - ddd_scope
+  memory_oom_gate:
+    requires:
+      - memory_decision
+      - memory_scope
   ddd_gate:
     requires:
       - ubiquitous_language
@@ -898,7 +914,7 @@ Experience sedimentation rule:
 function memoryRecallerSkill() {
   return `# Skill: Memory Recaller
 
-Before architecture analysis, retrieve relevant project memory from .ai-agent/memory.
+Before architecture analysis, retrieve relevant project memory from .aafe-memory.
 
 Use memory to understand:
 - project design
@@ -923,7 +939,7 @@ Required artifacts:
 function memoryWriterSkill() {
   return `# Skill: Memory Writer
 
-After implementation or critique, write durable learnings into .ai-agent/memory.
+After implementation or critique, write durable learnings into .aafe-memory.
 
 Capture only stable project knowledge:
 - project design rules
@@ -955,7 +971,7 @@ Trigger condition:
 - The same problem has been handled three times and still exists or regresses.
 - A final solution has been verified as successful.
 
-Write to .ai-agent/memory/experience.md and learnings.jsonl with type=experience.
+Write to .aafe-memory/experience.md and learnings.jsonl with type=experience.
 
 Capture only:
 - problem signature
@@ -1004,7 +1020,7 @@ Generated artifacts:
 - .ai-agent/skills/project-architecture-locator.md
 - .ai-agent/skills/architecture-on-demand.md
 - .ai-agent/skills/dataflow-on-demand.md
-- .ai-agent/memory/project-architecture.md
+- .aafe-memory/project-architecture.md
 
 Usage rules:
 1. Read project-architecture-locator.md first for route/component/module locating.
@@ -1615,6 +1631,17 @@ function patternFeaturePipeline() {
 `;
 }
 
+function memoryDiagnosisPipeline() {
+  return `pipeline:
+  - skill: memory-oom-gate
+  - skill: memory-scope
+  - gate: memory_oom_gate
+  - skill: memory-diagnosis
+  - skill: memory-agent-selector
+  - skill: memory-writer
+`;
+}
+
 function refactorPipeline() {
   return `pipeline:
   - skill: memory-recaller
@@ -1859,7 +1886,7 @@ function nativeEditorSkill(name) {
     '2. Read `.ai-agent/project.md` when present.',
     '3. Load only the matching `.ai-agent/project-skills/<domain>/SKILL.md`.',
     '4. For non-trivial work, follow `.ai-agent/runtime/engine.md`, `.ai-agent/runtime/router.yaml` and the selected pipeline.',
-    '5. Preserve successful decisions and reusable solutions in `.ai-agent/memory/`.',
+    '5. Preserve successful decisions and reusable solutions in `.aafe-memory/`.',
     '',
     'The project `.ai-agent/` directory is the single source of truth; this file is only the editor discovery entry.',
     ''
