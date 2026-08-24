@@ -44,6 +44,8 @@ AAFE 自己不改代码。它负责让 IDE Agent 在动手之前，先拿到这�
 - [开发与验证](#开发与验证)
 - [设计边界](#设计边界)
 
+
+
 ## 快速开始
 
 在目标前端项目根目录执行：
@@ -71,7 +73,7 @@ DDD 与设计模式的知识包始终会安装，但**默认不激活**——是
 
 ## 从 0.1.x 升级到 0.2.0
 
-线上已发布的最新版本是 `0.1.22`，`0.2.0` 是一次包含破坏性变更的升级。**升级 npm 包之后必须执行 `aafe update`**：`.ai-agent/` 下的 Pipeline 和 Gate 是随包生成、留在项目里的文件，光升级包不会刷新它们。
+线上已发布的最新版本是 `0.1.22`，`0.2.0` 是一次包含破坏性变更的升级。**升级 npm 包之后必须执行** `aafe update`：`.ai-agent/` 下的 Pipeline 和 Gate 是随包生成、留在项目里的文件，光升级包不会刷新它们。
 
 ### 一条命令完成迁移
 
@@ -100,16 +102,20 @@ npx aafe update --dry-run
 
 ### 破坏性变更清单
 
-| 变更 | 影响 | 迁移动作 |
-| --- | --- | --- |
-| `aafe run` 语义变更为 Planner + Orchestrator 全循环 | 依赖旧行为的脚本 | 改用 `aafe pipeline`，过渡期可用 `aafe run --legacy` |
-| 包内目录调整 | 深链导入的代码 | 见「包内目录调整」 |
-| DDD 改为显式开启 | 通用需求不再自动做领域建模 | `aafe update`，无需改代码 |
-| 设计模式改为显式开启 | `feature` 管线不再无条件跑模式步骤 | `aafe update`，无需改代码 |
-| `architecture_gate` 不再要求 `pattern_selection` | 自定义 `gates.yaml` | 见「自定义 Pipeline / Gate」 |
-| `analyzeDDD` 变为 async | 直接调用 API 的代码 | 加 `await` |
-| `analyzePatternFit` 不再返回 `recommendation` | 直接调用 API 的代码 | 改读 `composition.patterns` |
-| `.aafe.config.json` 的 `analyze.llm.agents` 废弃 | Agent 接线配置 | 迁到 `.aafe.agents.json` |
+
+| 变更                                            | 影响                     | 迁移动作                                         |
+| --------------------------------------------- | ---------------------- | -------------------------------------------- |
+| `aafe run` 语义变更为 Planner + Orchestrator 全循环   | 依赖旧行为的脚本               | 改用 `aafe pipeline`，过渡期可用 `aafe run --legacy` |
+| 包内目录调整                                        | 深链导入的代码                | 见「包内目录调整」                                    |
+| DDD 改为显式开启                                    | 通用需求不再自动做领域建模          | `aafe update`，无需改代码                          |
+| 设计模式改为显式开启                                    | `feature` 管线不再无条件跑模式步骤 | `aafe update`，无需改代码                          |
+| `architecture_gate` 不再要求 `pattern_selection`  | 自定义 `gates.yaml`       | 见「自定义 Pipeline / Gate」                       |
+| `analyzeDDD` 变为 async                         | 直接调用 API 的代码           | 加 `await`                                    |
+| `analyzePatternFit` 不再返回 `recommendation`     | 直接调用 API 的代码           | 改读 `composition.patterns`                    |
+| `.aafe.config.json` 的 `analyze.llm.agents` 废弃 | Agent 接线配置             | 迁到 `.aafe.agents.json`                       |
+
+
+
 
 ### 包内目录调整
 
@@ -123,6 +129,8 @@ src/runtime/   →  src/agent-platform/skill-runtime/
 ```js
 import { AgentRuntime, analyzePatternComposition } from '@aafe/agent-runtime';
 ```
+
+
 
 ### DDD 与设计模式改为显式开启
 
@@ -149,6 +157,8 @@ $ aafe ddd gate "用 DDD 重构订单模块"
 2. 写入新的 `domain-feature.yaml`（Gate → Scope → Discovery → Strategic → Tactical → Architecture → Validation）和 `pattern-feature.yaml`（Gate → Discovery → Selection → Composition → Audit → Validation）；
 3. 生成 `.ai-agent/ddd/`（39 个文件）与 `.ai-agent/frontend-engineering/`（61 个文件）两棵知识树，并写入 `aafe-ddd-gate.mdc`、`aafe-pattern-gate.mdc` 两条编辑器指针规则。
 
+
+
 ### 自动迁移历史文件与配置
 
 `.ai-agent/`、`.aafe.config.json` 和 `.aafe.agents.json` 都在你的仓库里，升级 npm 包搬不动它们；只重新生成也不够，因为新版本只会写自己知道的路径，不会去动一个它已经不认识的旧文件。所以 `aafe init` / `aafe update` / `aafe sync` 都会在写完新布局之后自动跑一遍迁移。
@@ -162,21 +172,24 @@ npx aafe migrate
 
 当前包含四项：
 
-| 迁移 | 从 | 到 |
-| --- | --- | --- |
-| `superseded-flat-ddd-skills` | `.ai-agent/skills/` 下 5 个扁平 DDD 技能文件 | 已由 `.ai-agent/ddd/skills/` 取代，删除 |
-| `file-license-memory-jsonl` | `.ai-agent/memory/file-license-ok.json` | `.ai-agent/memory/file-license-ok.jsonl` |
-| `analyze-output-key` | `.aafe.config.json → analyze.docsOut` + 旧产物目录 | `analyze.output` + 现产物目录 |
-| `analyze-llm-agents` | `.aafe.config.json → analyze.llm.agents` | `.aafe.agents.json` |
+
+| 迁移                           | 从                                             | 到                                        |
+| ---------------------------- | --------------------------------------------- | ---------------------------------------- |
+| `superseded-flat-ddd-skills` | `.ai-agent/skills/` 下 5 个扁平 DDD 技能文件          | 已由 `.ai-agent/ddd/skills/` 取代，删除         |
+| `file-license-memory-jsonl`  | `.ai-agent/memory/file-license-ok.json`       | `.ai-agent/memory/file-license-ok.jsonl` |
+| `analyze-output-key`         | `.aafe.config.json → analyze.docsOut` + 旧产物目录 | `analyze.output` + 现产物目录                 |
+| `analyze-llm-agents`         | `.aafe.config.json → analyze.llm.agents`      | `.aafe.agents.json`                      |
+
 
 几点值得说明：
 
 - **扁平 DDD 技能文件必须清掉。** 留着不只是多余——Skill Index 路由仍会读到它们，一个残留的 `ddd-discovery.md` 足以让 Agent 对一个从没要求过领域建模的需求做起限界上下文分析，正好绕开新门禁。这些文件每次 `update` 本来就会被整体覆盖，删除不会丢掉任何你该保留的东西。
 - **license 记忆是真实数据，做的是格式转换而非删除。** 旧的单体 `.json` 会被逐条转成追加式 `.jsonl`，只搬运 `ok: true` 的记录，并保留旧文件自己的 fingerprint——如果 License 模板后来变过，这些记录就应该继续判定为不匹配。重新校验一个文件很便宜，错误地信任一个过期的头部不便宜。
-- **`analyze` 产物目录会合并，而不是二选一。** `analyze.docsOut` 和 `analyze.output` 同时存在时，配置值只能取其一：读取优先级本来就是 `output ?? docsOut`，而配置模板一直无条件写入 `output`，所以任何生成过的项目里 `docsOut` 其实从未生效——改用它会把分析悄悄指向一个项目可能从没用过的目录。磁盘上的产物则不同：当旧目录有产物、而 `output` 指向的目录还不存在时，产物会一并迁过去，让配置和磁盘重新对上；两个目录都有产物时不合并，因为那会把一次更旧的分析混进当前产物里且无从分辨新旧——分析产物随时可以用 `aafe analyze` 重建，此时只报告旧目录位置，由你确认后删除。指向项目外的旧路径只报告、不搬运。
-
+- `analyze` **产物目录会合并，而不是二选一。** `analyze.docsOut` 和 `analyze.output` 同时存在时，配置值只能取其一：读取优先级本来就是 `output ?? docsOut`，而配置模板一直无条件写入 `output`，所以任何生成过的项目里 `docsOut` 其实从未生效——改用它会把分析悄悄指向一个项目可能从没用过的目录。磁盘上的产物则不同：当旧目录有产物、而 `output` 指向的目录还不存在时，产物会一并迁过去，让配置和磁盘重新对上；两个目录都有产物时不合并，因为那会把一次更旧的分析混进当前产物里且无从分辨新旧——分析产物随时可以用 `aafe analyze` 重建，此时只报告旧目录位置，由你确认后删除。指向项目外的旧路径只报告、不搬运。
 - **迁移按「磁盘现状」判断，不看版本号。** 跳过了好几个版本的项目、已经手工迁移过的项目、和完全最新的项目，跑完结果一致；重复执行是 no-op，中途失败也不需要回滚。
 - **前置条件不满足时会推迟而不是硬来。** 例如 `.ai-agent/ddd/` 尚未安装时不会删旧技能文件，`.aafe.agents.json` 尚未生成时不会去写它——否则会写出一个残缺的 agents 配置，让项目永久失去 planner 和内置 Agent。这类情况下旧内容原地保留，下次再迁移。
+
+
 
 ### 自定义 Pipeline / Gate
 
@@ -186,7 +199,7 @@ npx aafe migrate
 - `pattern_gate` 的 `requires` 改为 `pattern_problems` / `pattern_composition` / `pattern_anti_patterns`。
 - 新增 `ddd_enablement_gate` 与 `pattern_enablement_gate`。
 
-**未执行 `aafe update` 时不会崩**：模式技能在被门禁跳过时，仍会发布 `pattern_interview`、`pattern_selection`、`module_pattern_selection` 等旧 artifact 键（值为空），所以留在磁盘上的旧 `pattern_gate` 不会把管线卡死。但这只是兼容垫片，行为已经是新的——请尽快执行 `update`。
+**未执行** `aafe update` **时不会崩**：模式技能在被门禁跳过时，仍会发布 `pattern_interview`、`pattern_selection`、`module_pattern_selection` 等旧 artifact 键（值为空），所以留在磁盘上的旧 `pattern_gate` 不会把管线卡死。但这只是兼容垫片，行为已经是新的——请尽快执行 `update`。
 
 ### 升级后验证
 
@@ -208,37 +221,41 @@ npm install --save-dev @aafe/agent-runtime@0.1.22
 git checkout -- .ai-agent .aafe.config.json
 ```
 
+
+
 ## CLI 命令
 
-| 命令 | 用途 |
-| --- | --- |
-| `aafe init` | 初始化项目 Runtime、Memory 和编辑器入口 |
-| `aafe detect` | 识别项目框架、编辑器和场景 |
-| `aafe doctor` | 检查 Runtime 文件和配置完整性 |
-| `aafe sync` | 同步生成的 Runtime 文件 |
-| `aafe update` | 更新已接入项目的 Runtime、Skills、Hooks 和 Knowledge |
-| `aafe migrate` | 把旧版本遗留的文件和配置迁移到当前位置；`--dry-run` 预览 |
-| `aafe analyze` | 生成项目架构定位 Skill、AST 分析产物和检索索引 |
-| `aafe knowledge init` | 初始化 Knowledge 关系视图 |
-| `aafe knowledge update` | 更新 `.docs` 下的 Knowledge 视图 |
-| `aafe knowledge sync` | `knowledge update` 的别名 |
-| `aafe knowledge search` | 在 analyze 产物里做排序检索（模块/文件/路由/组件/特性/符号） |
-| `aafe knowledge index` | 重建并落盘检索索引 |
-| `aafe knowledge-web` | 生成 Knowledge Web 可视化页面；加 `--serve` 启动本地服务 |
-| `aafe task-completion` | 执行任务完成后的自动同步链路 |
-| `aafe memory` | 管理项目 Memory（读写 `memory.path`，默认 `.aafe-memory/`） |
-| `aafe e2e` | 启用/关闭 Playwright E2E、安装依赖、采集登录态（产物只写配置里的目录） |
-| `aafe ddd` | DDD 门禁、范围、发现与领域模型分析 |
-| `aafe pattern` | 设计模式门禁、问题识别、选型与组合 |
-| `aafe context` | 为 IDE Agent 生成最小可追溯上下文包 |
-| `aafe impact` | 预测需求或 git diff 的影响范围 |
-| `aafe plan` | 查看 Planner 的决策轨迹 |
-| `aafe run` | 运行 Planner + Orchestrator 全循环 |
-| `aafe pipeline` | 运行旧的 Skill Pipeline（0.1.x 的 `aafe run` 行为） |
-| `aafe test` | 规划并生成 YAML Case；`--coverage` 全量、`--diff` 任务变更、`--pr=<url>` PR 差异；`--run` 才用 Playwright 执行 |
-| `aafe diagnose` | 把失败报告定位成根因与修复方向 |
-| `aafe license` | 校验并补齐文件 License 头 |
-| `aafe skills` | 下载 GitHub Agent Skills，不用于项目初始化 |
+
+| 命令                      | 用途                                                                                        |
+| ----------------------- | ----------------------------------------------------------------------------------------- |
+| `aafe init`             | 初始化项目 Runtime、Memory 和编辑器入口                                                               |
+| `aafe detect`           | 识别项目框架、编辑器和场景                                                                             |
+| `aafe doctor`           | 检查 Runtime 文件和配置完整性                                                                       |
+| `aafe sync`             | 同步生成的 Runtime 文件                                                                          |
+| `aafe update`           | 更新已接入项目的 Runtime、Skills、Hooks 和 Knowledge                                                 |
+| `aafe migrate`          | 把旧版本遗留的文件和配置迁移到当前位置；`--dry-run` 预览                                                        |
+| `aafe analyze`          | 生成项目架构定位 Skill、AST 分析产物和检索索引                                                              |
+| `aafe knowledge init`   | 初始化 Knowledge 关系视图                                                                        |
+| `aafe knowledge update` | 更新 `.docs` 下的 Knowledge 视图                                                                |
+| `aafe knowledge sync`   | `knowledge update` 的别名                                                                    |
+| `aafe knowledge search` | 在 analyze 产物里做排序检索（模块/文件/路由/组件/特性/符号）                                                     |
+| `aafe knowledge index`  | 重建并落盘检索索引                                                                                 |
+| `aafe knowledge-web`    | 生成 Knowledge Web 可视化页面；加 `--serve` 启动本地服务                                                 |
+| `aafe task-completion`  | 执行任务完成后的自动同步链路                                                                            |
+| `aafe memory`           | 管理项目 Memory（读写 `memory.path`，默认 `.aafe-memory/`）                                          |
+| `aafe e2e`              | 启用/关闭 Playwright E2E、安装依赖、采集登录态（产物只写配置里的目录）                                               |
+| `aafe ddd`              | DDD 门禁、范围、发现与领域模型分析                                                                       |
+| `aafe pattern`          | 设计模式门禁、问题识别、选型与组合                                                                         |
+| `aafe context`          | 为 IDE Agent 生成最小可追溯上下文包                                                                   |
+| `aafe impact`           | 预测需求或 git diff 的影响范围                                                                      |
+| `aafe plan`             | 查看 Planner 的决策轨迹                                                                          |
+| `aafe run`              | 运行 Planner + Orchestrator 全循环                                                             |
+| `aafe pipeline`         | 运行旧的 Skill Pipeline（0.1.x 的 `aafe run` 行为）                                                |
+| `aafe test`             | 规划并生成 YAML Case；`--coverage` 全量、`--diff` 任务变更、`--pr=<url>` PR 差异；`--run` 才用 Playwright 执行 |
+| `aafe diagnose`         | 把失败报告定位成根因与修复方向                                                                           |
+| `aafe license`          | 校验并补齐文件 License 头                                                                         |
+| `aafe skills`           | 下载 GitHub Agent Skills，不用于项目初始化                                                           |
+
 
 查看帮助：
 
@@ -246,7 +263,11 @@ git checkout -- .ai-agent .aafe.config.json
 aafe --help
 ```
 
+
+
 ## 项目初始化
+
+
 
 ### 初始化 Runtime
 
@@ -291,6 +312,8 @@ aafe doctor
 }
 ```
 
+
+
 ## Workspace Root 与编辑器分层配置
 
 当 AAFE 安装在 **Git 仓库的子目录**（例如 monorepo 中的 `bklog/web`）时，编辑器适配器必须写入 **Workspace Root** 才能生效；`.ai-agent`、`.docs`、`.aafe.config.json` 仍保留在安装目录，避免污染仓库根目录。
@@ -310,13 +333,15 @@ aafe doctor
 
 ### 迁移策略
 
-| 资源 | 位置 | 说明 |
-| --- | --- | --- |
-| `.cursor` / `.codebuddy` / `.codex` 等 | Workspace Root | 仅编辑器适配器迁移/合并到 Root |
-| `.ai-agent` | 安装目录 | Runtime、Skills、Pipelines |
-| `.aafe-memory` | 安装目录 | 项目 Memory（`memory.path`，update 不覆盖） |
-| `.docs` | 安装目录 | 架构文档与 Knowledge 视图 |
-| `.aafe.config.json` | 安装目录 | 项目配置，含 `workspace` 元数据 |
+
+| 资源                                    | 位置             | 说明                                  |
+| ------------------------------------- | -------------- | ----------------------------------- |
+| `.cursor` / `.codebuddy` / `.codex` 等 | Workspace Root | 仅编辑器适配器迁移/合并到 Root                  |
+| `.ai-agent`                           | 安装目录           | Runtime、Skills、Pipelines            |
+| `.aafe-memory`                        | 安装目录           | 项目 Memory（`memory.path`，update 不覆盖） |
+| `.docs`                               | 安装目录           | 架构文档与 Knowledge 视图                  |
+| `.aafe.config.json`                   | 安装目录           | 项目配置，含 `workspace` 元数据              |
+
 
 迁移时，编辑器文件内的路径引用会自动重写为安装目录实际路径，例如：
 
@@ -330,15 +355,17 @@ aafe doctor
 
 ### 支持的编辑器与分层结构
 
-| 编辑器 | 安装目录标记 | Workspace Root 分层结构 |
-| --- | --- | --- |
-| Cursor | `.cursor/` | `.cursor/{rules,skills,hooks,context}/{module}/` |
-| CodeBuddy | `.codebuddy/` | `.codebuddy/{module}/` + `skills/` |
-| Claude | `CLAUDE.md` | 合并到 Root 的 `CLAUDE.md`（按模块块） |
-| Codex | `.codex/` | `.codex/{module}/aafe.md` |
-| Trace | `.trace/` | `.trace/{module}/aafe.md` |
-| Windsurf | `.windsurfrules` | 合并到 Root 文件（按模块块） |
-| VS Code | `.vscode/` | `.vscode/{module}/aafe.instructions.md` |
+
+| 编辑器       | 安装目录标记           | Workspace Root 分层结构                              |
+| --------- | ---------------- | ------------------------------------------------ |
+| Cursor    | `.cursor/`       | `.cursor/{rules,skills,hooks,context}/{module}/` |
+| CodeBuddy | `.codebuddy/`    | `.codebuddy/{module}/` + `skills/`               |
+| Claude    | `CLAUDE.md`      | 合并到 Root 的 `CLAUDE.md`（按模块块）                     |
+| Codex     | `.codex/`        | `.codex/{module}/aafe.md`                        |
+| Trace     | `.trace/`        | `.trace/{module}/aafe.md`                        |
+| Windsurf  | `.windsurfrules` | 合并到 Root 文件（按模块块）                                |
+| VS Code   | `.vscode/`       | `.vscode/{module}/aafe.instructions.md`          |
+
 
 只对 `--editors` 中启用的编辑器生成分层配置。
 
@@ -362,15 +389,21 @@ npx aafe init --yes \
   --migrate-editors
 ```
 
+
+
 ### 相关 CLI 参数
 
-| 参数 | 说明 |
-| --- | --- |
-| `--module-name=<name>` | 分层配置的模块名，默认取安装目录名（如 `web`） |
-| `--migrate-editors` | 将安装目录下的编辑器适配器迁移/合并到 Workspace Root |
-| `--migrate-cursor` | `--migrate-editors` 的别名 |
-| `--no-migrate-editors` | 跳过编辑器适配器迁移 |
-| `--no-migrate-cursor` | `--no-migrate-editors` 的别名 |
+
+| 参数                     | 说明                                 |
+| ---------------------- | ---------------------------------- |
+| `--module-name=<name>` | 分层配置的模块名，默认取安装目录名（如 `web`）         |
+| `--migrate-editors`    | 将安装目录下的编辑器适配器迁移/合并到 Workspace Root |
+| `--migrate-cursor`     | `--migrate-editors` 的别名            |
+| `--no-migrate-editors` | 跳过编辑器适配器迁移                         |
+| `--no-migrate-cursor`  | `--no-migrate-editors` 的别名         |
+
+
+
 
 ### `.aafe.config.json` 中的 workspace 配置
 
@@ -430,6 +463,8 @@ aafe update --no-analyze           # 本次不跑 analyze
 aafe update --yes --module-name=web --migrate-editors   # 子目录安装迁移编辑器配置
 ```
 
+
+
 ## Memory
 
 项目记忆已从 `.ai-agent/memory/` 迁出。`aafe init` / `aafe update` 之后，**必须先指定 Memory 目录**，所有读写都走这个目录，不要再往 `.ai-agent/memory/` 写学习记录。
@@ -452,13 +487,15 @@ aafe update --yes --module-name=web --migrate-editors   # 子目录安装迁移�
 }
 ```
 
-| 路径 | 用途 |
-| --- | --- |
-| `.aafe-memory/index.md` | 目录入口 |
-| `.aafe-memory/learnings.jsonl` | 追加式结构化记忆 |
-| `.aafe-memory/summary.md` | 压缩摘要 |
-| `.aafe-memory/{project-design,components,conventions,decisions,experience,project-architecture}.md` | 分类主题 |
-| `.aafe-memory/knowledge-sync.jsonl` | 任务完成同步日志 |
+
+| 路径                                                                                                  | 用途       |
+| --------------------------------------------------------------------------------------------------- | -------- |
+| `.aafe-memory/index.md`                                                                             | 目录入口     |
+| `.aafe-memory/learnings.jsonl`                                                                      | 追加式结构化记忆 |
+| `.aafe-memory/summary.md`                                                                           | 压缩摘要     |
+| `.aafe-memory/{project-design,components,conventions,decisions,experience,project-architecture}.md` | 分类主题     |
+| `.aafe-memory/knowledge-sync.jsonl`                                                                 | 任务完成同步日志 |
+
 
 ```bash
 aafe memory init
@@ -509,6 +546,8 @@ aafe ddd analyze "..." --force         # 门禁判定未启用时仍强制执行
 ubiquitousLanguage  boundedContexts  aggregates  entities  valueObjects
 domainEvents        repositories     domainServices        questions
 ```
+
+
 
 ### 管线
 
@@ -590,6 +629,8 @@ Gate → Discovery → Selection → Composition → Anti-Pattern Audit → Vali
 CLI → Planner → Orchestrator → AgentProvider → Agent → Knowledge → Context Package → IDE Agent
 ```
 
+
+
 ### 命令
 
 ```bash
@@ -644,14 +685,16 @@ aafe knowledge index --rebuild
 
 Planner 只认 capability，不认 Agent 名字，因此换实现不需要改 Planner。
 
-| Agent | Capability | 状态 |
-| --- | --- | --- |
-| `code-intelligence` | `project-analysis` / `architecture-analysis` / `dependency-analysis` / `data-flow-analysis` / `feature-analysis` / `business-flow-analysis` | 已实现 |
-| `impact-analyzer` | `requirement-impact` / `change-impact` / `risk-analysis` | 已实现 |
-| `knowledge-validator` | `knowledge-validation` / `evidence-check` | 已实现 |
-| `context-agent` | `context-packaging` / `evidence-selection` | 已实现 |
-| `test-agent` | `test-planning` / `test-generation` / `e2e-execution` | 已实现；YAML / 报告只写 `e2e.casesDir` / `e2e.reportDir`（见 [E2E](#e2e)）；`e2e-execution` 需 `allowTestExecution`（或 `aafe test --run`） |
-| `failure-analyzer` | `failure-analysis` / `root-cause-analysis` / `fix-analysis` | 已实现 |
+
+| Agent                 | Capability                                                                                                                                  | 状态                                                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `code-intelligence`   | `project-analysis` / `architecture-analysis` / `dependency-analysis` / `data-flow-analysis` / `feature-analysis` / `business-flow-analysis` | 已实现                                                                                                                         |
+| `impact-analyzer`     | `requirement-impact` / `change-impact` / `risk-analysis`                                                                                    | 已实现                                                                                                                         |
+| `knowledge-validator` | `knowledge-validation` / `evidence-check`                                                                                                   | 已实现                                                                                                                         |
+| `context-agent`       | `context-packaging` / `evidence-selection`                                                                                                  | 已实现                                                                                                                         |
+| `test-agent`          | `test-planning` / `test-generation` / `e2e-execution`                                                                                       | 已实现；YAML / 报告只写 `e2e.casesDir` / `e2e.reportDir`（见 [E2E](#e2e)）；`e2e-execution` 需 `allowTestExecution`（或 `aafe test --run`） |
+| `failure-analyzer`    | `failure-analysis` / `root-cause-analysis` / `fix-analysis`                                                                                 | 已实现                                                                                                                         |
+
 
 `risk-analysis` 与 `evidence-check` 两个 capability 已注册但尚无本地实现分支。
 
@@ -690,11 +733,13 @@ CI 里建议关掉：没有交互式 IDE Agent 能接手，handoff 只会变成�
 
 `schemaMode` 控制违约后果，默认按 provider 区分：
 
-| 模式 | 行为 | 默认适用 |
-| --- | --- | --- |
-| `enforce` | 违约即 `failed` | `http` / `cli` / `mcp` / `ide` 等远程实现 |
-| `warn` | 保留结果但降级为 `partial`，绝不报成 `success` | `local` 内置 Agent |
-| `off` | 不校验 | 需要显式配置 |
+
+| 模式        | 行为                                | 默认适用                                 |
+| --------- | --------------------------------- | ------------------------------------ |
+| `enforce` | 违约即 `failed`                      | `http` / `cli` / `mcp` / `ide` 等远程实现 |
+| `warn`    | 保留结果但降级为 `partial`，绝不报成 `success` | `local` 内置 Agent                     |
+| `off`     | 不校验                               | 需要显式配置                               |
+
 
 指向不存在文件的 evidence 会被丢弃并计数——一条指不到任何地方的证据，比没有证据更糟。
 
@@ -728,7 +773,7 @@ Agent 接线独立成文件，避免把 `.aafe.config.json` 撑爆。`aafe init`
 }
 ```
 
-字段逐条说明、五种 provider 的配置示例和自定义 Agent 的写法见 **[Agent 作用与配置指南](./AGENTS.CONFIG.md)**；协议层面的请求/响应结构见 [`AGENTS.SCHEMA.md`](./AGENTS.SCHEMA.md)。
+字段逐条说明、五种 provider 的配置示例和自定义 Agent 的写法见 **[Agent 作用与配置指南](./AGENTS.CONFIG.md)**；协议层面的请求/响应结构见 `[AGENTS.SCHEMA.md](./AGENTS.SCHEMA.md)`。
 
 Planner 默认是确定性的 `RulePlanner`，无需 API Key 即可离线运行。把 `planner.provider` 改成 `"llm"` 并填好 `endpoint` / `model` 即可启用 OpenAI 兼容的 `LlmPlanner`；它在网络异常、返回非 JSON 或请求了不存在的 capability 时会**自动回退到 RulePlanner**，所以开启 LLM 只会变慢，不会让流程中断。
 
@@ -742,13 +787,15 @@ Playwright E2E 与 Runtime 分开配置。`aafe init` / `aafe update` 之后，*
 
 目录写在 `.aafe.config.json` → `e2e`，相对**安装目录**：
 
-| 配置 | 默认 | 必须指定 | 用途 |
-| --- | --- | --- | --- |
-| `e2e.casesDir` | `tests/ui-ai/cases` | 是 | YAML 用例（源） |
-| `e2e.reportDir` | `.aafe/e2e/reports` | 是 | 统一报告 `report.json` / `index.html` |
-| `e2e.specsDir` | `.aafe/e2e/specs` | 是 | 由 YAML 编译出的 Playwright spec |
-| `e2e.impactDir` | `.aafe/e2e/impact` | 是 | 影响面 / inventory 中间产物 |
-| `e2e.auth.stateDir` | `.aafe/e2e/auth` | 是 | SSO / storageState |
+
+| 配置                  | 默认                  | 必须指定 | 用途                                |
+| ------------------- | ------------------- | ---- | --------------------------------- |
+| `e2e.casesDir`      | `tests/ui-ai/cases` | 是    | YAML 用例（源）                        |
+| `e2e.reportDir`     | `.aafe/e2e/reports` | 是    | 统一报告 `report.json` / `index.html` |
+| `e2e.specsDir`      | `.aafe/e2e/specs`   | 是    | 由 YAML 编译出的 Playwright spec       |
+| `e2e.impactDir`     | `.aafe/e2e/impact`  | 是    | 影响面 / inventory 中间产物              |
+| `e2e.auth.stateDir` | `.aafe/e2e/auth`    | 是    | SSO / storageState                |
+
 
 ```json
 {
@@ -838,14 +885,18 @@ npx aafe knowledge-web --serve --port=4173     # 生成并启动本地服务
 
 ### 常用参数
 
-| 参数 | 说明 |
-| --- | --- |
-| `--serve` | 生成后启动内置 HTTP 服务 |
-| `--port=<number>` | 服务端口，默认 `4173` |
-| `--host=<host>` | 服务主机，默认 `127.0.0.1` |
-| `--dry-run` | 预览将生成的文件，不写入磁盘 |
-| `--architecture-docs=<path>` | 架构文档目录，默认 `.docs` |
-| `--output=<path>` | 输出目录，默认 `.docs/aafe-generated/knowledge-web` |
+
+| 参数                           | 说明                                           |
+| ---------------------------- | -------------------------------------------- |
+| `--serve`                    | 生成后启动内置 HTTP 服务                              |
+| `--port=<number>`            | 服务端口，默认 `4173`                               |
+| `--host=<host>`              | 服务主机，默认 `127.0.0.1`                          |
+| `--dry-run`                  | 预览将生成的文件，不写入磁盘                               |
+| `--architecture-docs=<path>` | 架构文档目录，默认 `.docs`                            |
+| `--output=<path>`            | 输出目录，默认 `.docs/aafe-generated/knowledge-web` |
+
+
+
 
 ### 默认输出目录
 
@@ -871,16 +922,18 @@ npx aafe knowledge-web --serve --port=4173     # 生成并启动本地服务
 
 **2. always-apply 规则替 Agent 做判定。** `aafe-ddd-gate.mdc` 和 `aafe-pattern-gate.mdc` 要求 Agent 在动手前自己跑 `aafe ddd gate` / `aafe pattern gate`；`aafe-new-file-license.mdc` 要求跑 `aafe license ensure`；影响分析规则要求先跑 `aafe impact --diff` 拿机器结果，而不是从零推断。
 
-**3. `skill-index.md` 里的命令表。** Agent 每个任务都先读这个文件，其中「Commands you may run yourself」列出了什么情况该跑什么：
+**3.** `skill-index.md` **里的命令表。** Agent 每个任务都先读这个文件，其中「Commands you may run yourself」列出了什么情况该跑什么：
 
-| 情况 | 命令 |
-| --- | --- |
-| 定位模块 / 路由 / 组件 / 特性 / 符号 | `aafe knowledge search "<terms>"` |
-| 检索无结果且 `.aafe/` 缺失或过期 | `aafe analyze` |
-| 改动前收集需求证据 | `aafe context --requirement="..."` |
-| 改动后报告影响面 | `aafe impact --diff` |
-| 规划测试 / 定位失败根因 | `aafe test`、`aafe diagnose` |
-| Runtime 文件看起来不一致 | `aafe doctor`、`aafe migrate --dry-run` |
+
+| 情况                       | 命令                                     |
+| ------------------------ | -------------------------------------- |
+| 定位模块 / 路由 / 组件 / 特性 / 符号 | `aafe knowledge search "<terms>"`      |
+| 检索无结果且 `.aafe/` 缺失或过期    | `aafe analyze`                         |
+| 改动前收集需求证据                | `aafe context --requirement="..."`     |
+| 改动后报告影响面                 | `aafe impact --diff`                   |
+| 规划测试 / 定位失败根因            | `aafe test`、`aafe diagnose`            |
+| Runtime 文件看起来不一致         | `aafe doctor`、`aafe migrate --dry-run` |
+
 
 这些命令除 `analyze` 和 `migrate` 外都只读，Agent 拿来验证假设的成本很低。定位代码时应优先用 `aafe knowledge search` 而不是盲目 grep——它跨模块、路由、组件、特性和符号排序，并把 `userPhoneSearch`、`user-phone-search.js` 和「用户手机号搜索」归一到同一组词元。
 
@@ -913,6 +966,8 @@ aafe task-completion --dry-run
 }
 ```
 
+
+
 ## 架构文档接入
 
 如果项目存在 `.docs` 或其他架构文档目录，`aafe analyze` 会读取 Markdown / MDX 架构说明、Mermaid `.mmd` 图表，以及路由、模块、Store、API 和数据流说明。
@@ -937,6 +992,8 @@ aafe analyze --architecture-docs=.docs
 4. 需求、修复、重构完成后重新计算影响范围和测试范围；
 5. 不把项目强行转换成不存在的业务领域模型。
 
+
+
 ## AI Runtime 执行
 
 ```bash
@@ -956,6 +1013,8 @@ memory-recaller → architect → module-decomposer → evolution-predictor
 任务结束前，必须基于 `.docs` 和相关模块关系输出：直接/间接/潜在影响范围、架构证据、P0/P1/P2 测试预测、已执行与未覆盖的测试，以及未验证风险和人工确认项。
 
 ## 项目目录结构
+
+
 
 ### 标准安装（项目根目录即 Workspace Root）
 
@@ -1013,14 +1072,18 @@ CLAUDE.md                  # 含 <!-- AAFE:module:web --> 模块块
 package.json
 ```
 
+
+
 ## Agent Skills 分发
 
 AAFE 提供两条互不替代的链路：
 
-| 场景 | 命令 | 写入位置 |
-| --- | --- | --- |
-| 下载 Agent Skill | `aafe skills install ... --github` | Agent Skills 目录 |
-| 接入业务项目 Runtime | `aafe init/update/analyze/doctor` | 业务项目 `.ai-agent/` |
+
+| 场景             | 命令                                 | 写入位置              |
+| -------------- | ---------------------------------- | ----------------- |
+| 下载 Agent Skill | `aafe skills install ... --github` | Agent Skills 目录   |
+| 接入业务项目 Runtime | `aafe init/update/analyze/doctor`  | 业务项目 `.ai-agent/` |
+
 
 ```bash
 npx --yes @aafe/agent-runtime@latest skills list --github
@@ -1048,6 +1111,8 @@ node ./bin/aafe.js knowledge-web --dry-run
 git diff --check
 ```
 
+
+
 ## 设计边界
 
 - Runtime 核心提供通用编排能力，不承载具体业务 CMS 数据模型；
@@ -1061,3 +1126,4 @@ git diff --check
 - 自动生成内容必须保留来源、版本、置信度和审核状态；
 - 不上传源码、密钥、Token、Cookie 或未脱敏业务数据；
 - 自动更新不应覆盖人工维护的原始架构文档。
+
