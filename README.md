@@ -27,9 +27,11 @@ AAFE 自己不改代码。它负责让 IDE Agent 在动手之前，先拿到这�
 - [项目初始化](#项目初始化)
 - [Workspace Root 与编辑器分层配置](#workspace-root-与编辑器分层配置)
 - [项目更新与诊断](#项目更新与诊断)
+- [Memory](#memory)
 - [DDD（显式开启）](#ddd显式开启)
 - [前端设计模式（显式开启）](#前端设计模式显式开启)
 - [Agent Platform](#agent-platform)
+- [E2E](#e2e)
 - [Agent 作用与配置指南](./AGENTS.CONFIG.md)
 - [Agent 内自主命中](#agent-内自主命中)
 - [Knowledge Center](#knowledge-center)
@@ -94,7 +96,7 @@ npx aafe doctor
 npx aafe update --dry-run
 ```
 
-`aafe update` 会刷新生成物，并保留项目自有知识：`.ai-agent/project.md`、`.ai-agent/project-skills/**`、`.ai-agent/rules/**`、`.ai-agent/memory/**`。
+`aafe update` 会刷新生成物，并保留项目自有知识：`.ai-agent/project.md`、`.ai-agent/project-skills/**`、`.ai-agent/rules/**`、`.aafe-memory/**`（由 `memory.path` 指定）。
 
 ### 破坏性变更清单
 
@@ -224,7 +226,8 @@ git checkout -- .ai-agent .aafe.config.json
 | `aafe knowledge index` | 重建并落盘检索索引 |
 | `aafe knowledge-web` | 生成 Knowledge Web 可视化页面；加 `--serve` 启动本地服务 |
 | `aafe task-completion` | 执行任务完成后的自动同步链路 |
-| `aafe memory` | 管理项目 Memory |
+| `aafe memory` | 管理项目 Memory（读写 `memory.path`，默认 `.aafe-memory/`） |
+| `aafe e2e` | 启用/关闭 Playwright E2E、安装依赖、采集登录态（产物只写配置里的目录） |
 | `aafe ddd` | DDD 门禁、范围、发现与领域模型分析 |
 | `aafe pattern` | 设计模式门禁、问题识别、选型与组合 |
 | `aafe context` | 为 IDE Agent 生成最小可追溯上下文包 |
@@ -310,7 +313,8 @@ aafe doctor
 | 资源 | 位置 | 说明 |
 | --- | --- | --- |
 | `.cursor` / `.codebuddy` / `.codex` 等 | Workspace Root | 仅编辑器适配器迁移/合并到 Root |
-| `.ai-agent` | 安装目录 | Runtime、Skills、Pipelines、Memory |
+| `.ai-agent` | 安装目录 | Runtime、Skills、Pipelines |
+| `.aafe-memory` | 安装目录 | 项目 Memory（`memory.path`，update 不覆盖） |
 | `.docs` | 安装目录 | 架构文档与 Knowledge 视图 |
 | `.aafe.config.json` | 安装目录 | 项目配置，含 `workspace` 元数据 |
 
@@ -410,7 +414,8 @@ npx --yes @aafe/agent-runtime@latest doctor
 - 刷新 `.ai-agent` Runtime、Skills、Pipelines 和 Gates；
 - 刷新编辑器入口和 Hooks（含 Workspace Root 分层编辑器配置）；
 - 迁移旧版本遗留的文件和配置（见 [自动迁移历史文件与配置](#自动迁移历史文件与配置)），结果在输出的 `migration` 字段；
-- 保留 `.ai-agent/project.md`、`.ai-agent/project-skills/**`、`.ai-agent/rules/**` 和 `.ai-agent/memory/**`；
+- 保留 `.ai-agent/project.md`、`.ai-agent/project-skills/**`、`.ai-agent/rules/**` 和 `memory.path` 指向的 Memory 目录（默认 `.aafe-memory/**`）；
+- TTY 下询问是否强制执行 `aafe analyze`（默认 Yes）；强制时覆盖 analyze 产物并迁移旧布局，保留 `.aafe/e2e/` 与 `.aafe/runs/`；
 - 自动刷新 Knowledge 关系视图；
 - 执行 `doctor` 校验。
 
@@ -420,8 +425,56 @@ npx --yes @aafe/agent-runtime@latest doctor
 aafe update --dry-run              # 预览
 aafe update --upgrade-package      # 只升级全局 npm 包
 aafe update --no-knowledge         # 关闭本次 Knowledge 自动更新
+aafe update --analyze              # 强制 analyze（默认；TTY 会询问）
+aafe update --no-analyze           # 本次不跑 analyze
 aafe update --yes --module-name=web --migrate-editors   # 子目录安装迁移编辑器配置
 ```
+
+## Memory
+
+项目记忆已从 `.ai-agent/memory/` 迁出。`aafe init` / `aafe update` 之后，**必须先指定 Memory 目录**，所有读写都走这个目录，不要再往 `.ai-agent/memory/` 写学习记录。
+
+目录由 `.aafe.config.json` → `memory.path` 指定，相对**安装目录**（子目录安装时是模块目录，不是仓库 Root）。默认 `.aafe-memory/`。`aafe update` 不会覆盖该目录。
+
+```json
+{
+  "memory": {
+    "enabled": true,
+    "path": ".aafe-memory",
+    "remote": {
+      "enabled": false,
+      "url": null,
+      "projectId": null,
+      "tokenEnv": "AAFE_MEMORY_TOKEN",
+      "timeoutMs": 15000
+    }
+  }
+}
+```
+
+| 路径 | 用途 |
+| --- | --- |
+| `.aafe-memory/index.md` | 目录入口 |
+| `.aafe-memory/learnings.jsonl` | 追加式结构化记忆 |
+| `.aafe-memory/summary.md` | 压缩摘要 |
+| `.aafe-memory/{project-design,components,conventions,decisions,experience,project-architecture}.md` | 分类主题 |
+| `.aafe-memory/knowledge-sync.jsonl` | 任务完成同步日志 |
+
+```bash
+aafe memory init
+aafe memory add "列表筛选默认记住上次条件" --type=experience --tags=list,filter
+aafe memory search "筛选"
+aafe memory context "日志检索"
+aafe memory summary
+aafe memory compact
+aafe memory scan --target=src
+aafe memory remote-status
+aafe memory sync --push
+```
+
+远程同步需要先打开 `memory.remote.enabled` 并注册 MCP adapter；未配置时 `sync` / `upload` 会失败。License 校验缓存仍在 `.ai-agent/memory/file-license-ok.jsonl`，那是 Runtime 内部文件，不是项目 Memory。
+
+前端 OOM / 泄漏诊断是另一套 opt-in 能力（`.ai-agent/frontend-memory/`），与这里的项目记忆目录无关。
 
 ## DDD（显式开启）
 
@@ -561,16 +614,9 @@ aafe test --coverage
 # 测试地址每次可能不同：缺地址时 Agent 询问用户，再 --run --base-url=<本次 URL>
 aafe test --pr=https://github.com/acme/app/pull/12
 aafe test --pr=https://github.com/acme/app/pull/12 --run --base-url=https://preview.example/app
-
-# E2E 默认开启；关闭用 --no-e2e 或：
-aafe e2e disable
-aafe e2e enable
-aafe e2e status
-aafe e2e install --yes
-
-# PR 访问令牌写在 .aafe.config.json（可用 ${ENV}），不要用 --token <值>
-#   e2e.githubAccessToken / e2e.gongfengAccessToken
 aafe test --requirement="增加用户手机号搜索"
+
+# E2E 启用、目录与登录态见「E2E」一节，不要把报告写到 playwright-report/
 
 # 把一次失败的测试报告定位成根因
 aafe diagnose --failure=<report.json|log.txt>
@@ -604,7 +650,7 @@ Planner 只认 capability，不认 Agent 名字，因此换实现不需要改 Pl
 | `impact-analyzer` | `requirement-impact` / `change-impact` / `risk-analysis` | 已实现 |
 | `knowledge-validator` | `knowledge-validation` / `evidence-check` | 已实现 |
 | `context-agent` | `context-packaging` / `evidence-selection` | 已实现 |
-| `test-agent` | `test-planning` / `test-generation` / `e2e-execution` | 已实现；YAML 落 `tests/ui-ai/cases/`，报告只在 `.aafe/e2e/reports/`；`e2e-execution` 需 `allowTestExecution`（或 `aafe test --run`） |
+| `test-agent` | `test-planning` / `test-generation` / `e2e-execution` | 已实现；YAML / 报告只写 `e2e.casesDir` / `e2e.reportDir`（见 [E2E](#e2e)）；`e2e-execution` 需 `allowTestExecution`（或 `aafe test --run`） |
 | `failure-analyzer` | `failure-analysis` / `root-cause-analysis` / `fix-analysis` | 已实现 |
 
 `risk-analysis` 与 `evidence-check` 两个 capability 已注册但尚无本地实现分支。
@@ -689,6 +735,60 @@ Planner 默认是确定性的 `RulePlanner`，无需 API Key 即可离线运行�
 `provider` 支持 `local` / `http` / `cli` / `mcp` / `ide` 五种传输方式。`http` 类型的 Agent 需要显式打开 `policies.allowNetwork`。`endpoint` / `model` / `prompt` / `inputSchema` / `outputSchema` 支持 `${ENV_VAR}` 展开，密钥和内网地址不必进版本库；变量未设置时该字段置空并在 `aafe doctor` 报警，而不是把字面量 `${...}` 当成地址去请求。
 
 `policies` 里两种预算是不同的东西：`tokenBudget` 限制单个 Agent 的上下文包大小，`maxTokens` / `maxCost` 是整个 run 的花费上限，在步与步之间检查（调用中途中止并不会退还已花的 token）。`cli` 类型 Agent 的命令和 `tools` 会先过危险操作 denylist——`rm -rf`、`git reset --hard`、`git push`、`sudo` 之类在 spawn 前就被拒绝。
+
+## E2E
+
+Playwright E2E 与 Runtime 分开配置。`aafe init` / `aafe update` 之后，**必须先指定用例和产物目录**；执行、报告和登录态只认这些路径，不要散落到 `test/ui/`、`playwright-report/`、`test-results/`。
+
+目录写在 `.aafe.config.json` → `e2e`，相对**安装目录**：
+
+| 配置 | 默认 | 必须指定 | 用途 |
+| --- | --- | --- | --- |
+| `e2e.casesDir` | `tests/ui-ai/cases` | 是 | YAML 用例（源） |
+| `e2e.reportDir` | `.aafe/e2e/reports` | 是 | 统一报告 `report.json` / `index.html` |
+| `e2e.specsDir` | `.aafe/e2e/specs` | 是 | 由 YAML 编译出的 Playwright spec |
+| `e2e.impactDir` | `.aafe/e2e/impact` | 是 | 影响面 / inventory 中间产物 |
+| `e2e.auth.stateDir` | `.aafe/e2e/auth` | 是 | SSO / storageState |
+
+```json
+{
+  "e2e": {
+    "enabled": true,
+    "casesDir": "tests/ui-ai/cases",
+    "reportDir": ".aafe/e2e/reports",
+    "specsDir": ".aafe/e2e/specs",
+    "impactDir": ".aafe/e2e/impact",
+    "baseUrl": null,
+    "baseUrlEnv": "AAFE_E2E_BASE_URL",
+    "githubAccessToken": "${GITHUB_TOKEN}",
+    "gongfengAccessToken": null,
+    "auth": {
+      "mode": "reuse-or-headed",
+      "stateDir": ".aafe/e2e/auth"
+    }
+  }
+}
+```
+
+默认开启。关闭用 `--no-e2e` 或 `aafe e2e disable`。缺 Playwright 时再装：
+
+```bash
+aafe e2e enable
+aafe e2e status
+aafe e2e install --yes
+aafe e2e auth --base-url='https://preview.example/app/#/list'
+```
+
+`--run` 必须带**本次**被测地址（`--base-url=`）。地址每次可能不同，不要写死 `e2e.baseUrl`，不要猜 `http://localhost:8080`。含 `#` 须加引号；有路径/查询参数时确认 A/B/C 并加 `--url-role=target|origin|template`。
+
+```bash
+aafe test --diff
+aafe test --coverage
+aafe test --pr=https://github.com/acme/app/pull/12
+aafe test --pr=https://github.com/acme/app/pull/12 --run --base-url='https://preview.example/app/#/list' --url-role=template
+```
+
+报告只读 `<e2e.reportDir>/<runId>/{report.json,index.html}`。PR 令牌写在配置里（可用 `${ENV}`），不要用 `--token <值>`。`aafe update` 强制 analyze 时会保留 `.aafe/e2e/`，不会清掉报告和登录态。
 
 ## Knowledge Center
 
@@ -799,7 +899,7 @@ aafe task-completion
 aafe task-completion --dry-run
 ```
 
-执行结果记录到 `.ai-agent/memory/knowledge-sync.jsonl`。默认策略：任务失败时不写入 Knowledge；同步失败不阻断原任务，只记录日志。需要严格阻断时把 `.aafe.config.json` 的 `taskCompletion.failClosed` 改为 `true`。
+执行结果记录到 `memory.path` 下的 `knowledge-sync.jsonl`（默认 `.aafe-memory/knowledge-sync.jsonl`）。默认策略：任务失败时不写入 Knowledge；同步失败不阻断原任务，只记录日志。需要严格阻断时把 `.aafe.config.json` 的 `taskCompletion.failClosed` 改为 `true`。
 
 ```json
 {
@@ -808,7 +908,7 @@ aafe task-completion --dry-run
     "command": "aafe task-completion",
     "steps": ["aafe knowledge update", "aafe update", "aafe doctor"],
     "failClosed": false,
-    "log": ".ai-agent/memory/knowledge-sync.jsonl"
+    "log": ".aafe-memory/knowledge-sync.jsonl"
   }
 }
 ```
@@ -825,9 +925,8 @@ aafe analyze --architecture-docs=.docs
 
 ```text
 .ai-agent/skills/project-architecture-locator.md
-.ai-agent/memory/project-architecture.md
+.aafe-memory/project-architecture.md
 .ai-agent/skills/knowledge-center-architecture.md
-.ai-agent/memory/knowledge-center-architecture.md
 ```
 
 使用原则：
@@ -866,25 +965,25 @@ memory-recaller → architect → module-decomposer → evolution-predictor
 ├── skills/                     # 通用技能
 ├── pipelines/                  # feature / domain-feature / pattern-feature / refactor / performance …
 ├── scenarios/
-├── ddd/                        # DDD 知识包（opt-in，39 个文件）
-│   ├── SKILL.md
-│   ├── rules/                  # 8 条，含 ddd-gate.md / ddd-scope.md
-│   ├── skills/                 # 15 个
-│   └── schemas/                # 15 个
-├── frontend-engineering/       # 设计模式知识包（opt-in，61 个文件）
-│   ├── SKILL.md
-│   ├── rules/                  # 22 条，含 pattern-gate.md / pattern-composition.md
-│   ├── skills/                 # 23 个
-│   ├── schemas/                # 11 个
-│   └── references/             # 4 个
+├── ddd/                        # DDD 知识包（opt-in）
+├── frontend-engineering/       # 设计模式知识包（opt-in）
+├── frontend-memory/            # 前端 OOM 诊断包（opt-in，不是项目 Memory）
 ├── project.md                  # 项目自有，update 不覆盖
 ├── project-skills/             # 项目自有，update 不覆盖
-├── rules/                      # 项目自有，update 不覆盖
-└── memory/                     # 项目自有，update 不覆盖
+└── rules/                      # 项目自有，update 不覆盖
+
+.aafe-memory/                   # 项目 Memory（memory.path，必须指定目录；update 不覆盖）
+├── index.md
+├── learnings.jsonl
+└── summary.md
+
+.aafe/                          # analyze 产物（analyze.output）
+└── e2e/                        # E2E 报告 / spec / auth（见 e2e.*Dir）
+
+tests/ui-ai/cases/              # E2E YAML 用例（e2e.casesDir）
 
 .cursor/                        # --editors=cursor 时，仅指针，不复制项目知识
-├── rules/                      # aafe-skill-router / aafe-architecture-runtime
-│                               # aafe-ddd-gate / aafe-pattern-gate …
+├── rules/
 ├── skills/
 └── hooks/
 
@@ -892,7 +991,7 @@ memory-recaller → architect → module-decomposer → evolution-predictor
 └── aafe-generated/
 ```
 
-`.ai-agent/` 是项目 AI Runtime 和 Memory 的单一知识入口；`.docs/` 保留项目原始架构说明及 Knowledge 生成视图；编辑器目录只是指向 `.ai-agent` 的薄适配层。
+`.ai-agent/` 是项目 AI Runtime 入口；项目 Memory 在 `memory.path`（默认 `.aafe-memory/`）；E2E 用例和报告只写 `e2e.casesDir` / `e2e.reportDir`。`.docs/` 保留原始架构说明及 Knowledge 生成视图；编辑器目录只是指向 `.ai-agent` 的薄适配层。
 
 ### 子目录安装（Monorepo / 多模块）
 
@@ -908,8 +1007,9 @@ CLAUDE.md                  # 含 <!-- AAFE:module:web --> 模块块
 
 # 安装目录 bklog/web/
 .ai-agent/
+.aafe-memory/              # memory.path，相对安装目录
+.aafe.config.json          # 含 workspace / memory.path / e2e.*Dir
 .docs/
-.aafe.config.json          # 含 workspace 元数据
 package.json
 ```
 
@@ -956,7 +1056,8 @@ git diff --check
 - 领域模型区分 `observed` 与 `inferred`，没有证据的推断不伪装成事实；
 - Knowledge Center 使用项目代码、`.docs`、Mermaid 图和 Memory；
 - Knowledge Web 是本地可视化索引，不是独立深度文档站点；
-- 子目录安装时，仅编辑器适配器写入 Workspace Root；`.ai-agent` / `.docs` 保留在安装目录；
+- 子目录安装时，仅编辑器适配器写入 Workspace Root；`.ai-agent` / `.aafe-memory` / `.docs` 保留在安装目录；
+- Memory 与 E2E 都必须先指定目录（`memory.path`、`e2e.casesDir` / `e2e.reportDir` 等），不要写到未配置路径；
 - 自动生成内容必须保留来源、版本、置信度和审核状态；
 - 不上传源码、密钥、Token、Cookie 或未脱敏业务数据；
 - 自动更新不应覆盖人工维护的原始架构文档。
