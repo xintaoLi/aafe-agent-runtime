@@ -12,3 +12,6 @@ For every task in this repository:
 4. For non-trivial frontend work, then follow `.ai-agent/runtime/*` and `.ai-agent/pipelines/*`.
 5. Editor directories are pointers only. Do not copy, rewrite, or maintain project knowledge in `.cursor`.
 6. Do not eagerly read all project skills.
+7. `aafe` is runnable from this repo (`node_modules/.bin/aafe` when not on `PATH`). See the
+   "Commands you may run yourself" table in `.ai-agent/skill-index.md` and run them yourself
+   instead of asking the user to. Prefer `aafe knowledge search` over a blind grep when locating code.

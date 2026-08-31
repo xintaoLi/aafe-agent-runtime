@@ -20,19 +20,30 @@
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { resolveAnalyzeConfig } from '../analyze/types/config.js';
-import { createAnalyzeContext } from '../analyze/types/context.js';
-import { AnalyzeOrchestrator } from '../analyze/orchestrator.js';
+import { resolveAnalyzeConfig } from '../static-analysis/types/config.js';
+import { createAnalyzeContext } from '../static-analysis/types/context.js';
+import { AnalyzeOrchestrator } from '../static-analysis/orchestrator.js';
 import {
   renderArchitectureOnDemandSkill,
   renderDataflowOnDemandSkill
-} from '../analyze/renderSkills.js';
+} from '../static-analysis/renderSkills.js';
+import { resolveMemoryConfig } from '../memory/config.js';
 
 /**
  * CLI shell for the static Analyze Pipeline.
  * Facts are persisted under configurable `analyze.output` (default `.aafe`).
  */
 export async function runAnalyzeCommand(root, args = []) {
+  const payload = await executeAnalyze(root, args);
+  console.log(JSON.stringify(payload, null, 2));
+  return payload;
+}
+
+/**
+ * Run the analyze pipeline and return the report without printing JSON.
+ * `--force` overwrites facts and migrates leftover files from older layouts.
+ */
+export async function executeAnalyze(root, args = []) {
   const cliOptions = parseAnalyzeCliOptions(args);
   const projectConfig = await readProjectConfig(root);
   const config = resolveAnalyzeConfig(root, projectConfig, cliOptions);
@@ -76,7 +87,7 @@ export async function runAnalyzeCommand(root, args = []) {
     printHumanSummary(resultContext);
   }
 
-  console.log(JSON.stringify({
+  return {
     status: 'pass',
     command: 'aafe analyze',
     dryRun: Boolean(config.dryRun),
@@ -90,8 +101,10 @@ export async function runAnalyzeCommand(root, args = []) {
       status: config.llm?.enabled ? 'reserved' : 'disabled'
     },
     persist: resultContext.persistResult,
+    cache: resultContext.cacheSummary ?? null,
+    searchIndex: resultContext.searchIndex ?? null,
     outputs: report.outputs
-  }, null, 2));
+  };
 }
 
 /**
@@ -172,7 +185,7 @@ function toCompatReport(context, packageInfo) {
       skill: '.ai-agent/skills/project-architecture-locator.md',
       architectureOnDemand: '.ai-agent/skills/architecture-on-demand.md',
       dataflowOnDemand: '.ai-agent/skills/dataflow-on-demand.md',
-      memory: '.ai-agent/memory/project-architecture.md'
+      memory: '.aafe-memory/project-architecture.md'
     },
     packageInfo
   };
@@ -270,7 +283,7 @@ Use on-demand skills; load one module slice only.
     [path.join(root, skillsOut, 'project-architecture-locator.md'), locator],
     [path.join(root, skillsOut, 'architecture-on-demand.md'), archSkill],
     [path.join(root, skillsOut, 'dataflow-on-demand.md'), dataflowSkill],
-    [path.join(root, '.ai-agent/memory/project-architecture.md'), memory]
+    [path.join(resolveMemoryConfig(root, await readProjectConfig(root)).memoryDir, 'project-architecture.md'), memory]
   ];
 
   for (const [filePath, content] of targets) {

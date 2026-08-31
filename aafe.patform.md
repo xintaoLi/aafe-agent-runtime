@@ -21,8 +21,8 @@
 │    ┌─────┼─────┬─────┬─────┐             │
 │    ▼     ▼     ▼     ▼     ▼             │
 │   A1    A2    A3    A4    ...            │
-│    │     │     │     │                    │
-│    └─────┴─────┴─────┴────────┐           │
+│    │     │     │     │                   │
+│    └─────┴─────┴─────┴────────┐          │
 │                              ▼           │
 │                    Project Knowledge     │
 └──────────────────────────────────────────┘
@@ -42,6 +42,8 @@
 
 ---
 
+
+
 # 1. 总体设计目标
 
 AAFE Agent Platform 解决四类问题：
@@ -59,6 +61,8 @@ Feature
 Business Flow
 Dependency
 ```
+
+
 
 ### ② 理解变化
 
@@ -85,6 +89,8 @@ Impact Analysis
 Actual Impact
 ```
 
+
+
 ### ③ 验证变化
 
 ```text
@@ -100,6 +106,8 @@ E2E
         ↓
 Execution
 ```
+
+
 
 ### ④ 分析失败
 
@@ -118,6 +126,8 @@ Regression Test
 ```
 
 ---
+
+
 
 # 2. AAFE Agent Platform 总体架构
 
@@ -183,6 +193,8 @@ Regression Test
 
 ---
 
+
+
 # 3. 最核心的架构原则
 
 必须严格区分以下几个概念：
@@ -217,6 +229,8 @@ IDE Agent
 
 ---
 
+
+
 # 4. Planner / Router Agent
 
 Planner 是 AAFE 的“大脑”。
@@ -226,6 +240,8 @@ Planner 是 AAFE 的“大脑”。
 它只能做决策。
 
 ---
+
+
 
 ## 4.1 Planner 输入
 
@@ -248,6 +264,8 @@ interface PlannerContext {
 ```
 
 ---
+
+
 
 ## 4.2 Planner 输出
 
@@ -291,6 +309,8 @@ interface PlannerDecision {
 ```
 
 ---
+
+
 
 # 5. Planner 必须是循环，而不是一次性生成 Workflow
 
@@ -340,16 +360,18 @@ Act
 
 这样才能支持：
 
-* Agent 交叉调用
-* Agent 重复调用
-* 条件分支
-* Agent 回退
-* Agent 并行
-* 局部 Agent
-* 中途停止
-* 根据结果追加分析
+- Agent 交叉调用
+- Agent 重复调用
+- 条件分支
+- Agent 回退
+- Agent 并行
+- 局部 Agent
+- 中途停止
+- 根据结果追加分析
 
 ---
+
+
 
 # 6. Agent Orchestrator
 
@@ -376,6 +398,8 @@ interface AgentOrchestrator {
 ```
 
 ---
+
+
 
 # 7. Orchestrator 必须管理 Execution Graph
 
@@ -432,6 +456,8 @@ N1 A2
 
 ---
 
+
+
 # 8. Agent Registry
 
 所有 Agent 不应该硬编码。
@@ -464,6 +490,8 @@ interface AgentDefinition {
 
 ---
 
+
+
 # 9. `.aafe.agents.json`
 
 你的这个设计是正确的。
@@ -495,6 +523,8 @@ interface AgentDefinition {
 我更推荐后者作为第一阶段，简单明确。
 
 ---
+
+
 
 # 10. `.aafe.agents.json` 推荐结构
 
@@ -557,6 +587,8 @@ interface AgentDefinition {
 
 ---
 
+
+
 # 11. 为什么配置 Capability，而不是只配置 Agent 名称？
 
 因为 Planner 不应该知道：
@@ -590,6 +622,8 @@ impact-analyzer-v2
 可以直接替换。
 
 ---
+
+
 
 # 12. Agent 1：Code Intelligence Agent
 
@@ -632,6 +666,8 @@ Dependency Knowledge
 
 ---
 
+
+
 # 13. Agent 1 不应该自己做 AST
 
 架构应该：
@@ -660,6 +696,8 @@ Static Analyzer 负责：
 
 ---
 
+
+
 # 14. Agent 2：Impact Analyzer
 
 支持两个入口：
@@ -679,6 +717,8 @@ Code
  ↓
 Prediction
 ```
+
+
 
 ### Diff → Impact
 
@@ -715,6 +755,8 @@ interface ImpactReport {
 ```
 
 ---
+
+
 
 # 15. Agent 3：Test Agent
 
@@ -761,6 +803,8 @@ Test Result
 
 ---
 
+
+
 # 16. Agent 4：Failure Analyzer
 
 输入：
@@ -795,6 +839,8 @@ Regression Test
 
 ---
 
+
+
 # 17. 还需要其他 Agent 吗？
 
 需要。
@@ -804,6 +850,8 @@ Regression Test
 真正应该补充的是两个基础能力 Agent。
 
 ---
+
+
 
 # 18. Agent 5：Knowledge Validator Agent
 
@@ -853,6 +901,8 @@ Business Flow 是否有证据
 它可以大量使用确定性规则，不需要完全依赖 LLM。
 
 ---
+
+
 
 # 19. Agent 6：Evidence / Context Agent
 
@@ -912,7 +962,10 @@ interface AgentContextPackage {
 
 ---
 
+
+
 # 20. 因此最终 Agent Matrix
+
 
 | Agent               | 职责          | 推荐         |
 | ------------------- | ----------- | ---------- |
@@ -928,7 +981,10 @@ interface AgentContextPackage {
 | Security Agent      | 安全分析        | 后续         |
 | Performance Agent   | 性能分析        | 后续         |
 
+
 ---
+
+
 
 # 21. 为什么 Developer Agent 不应该成为 AAFE 固定 Agent？
 
@@ -972,6 +1028,8 @@ Current IDE Agent
 
 ---
 
+
+
 # 22. Developer Agent Provider
 
 设计：
@@ -1010,6 +1068,8 @@ Developer Provider
 ```
 
 ---
+
+
 
 # 23. AAFE 与 IDE Agent 的关系
 
@@ -1071,6 +1131,8 @@ user-list-search.spec.ts
 全部塞给 IDE Agent。
 
 ---
+
+
 
 # 24. AAFE CLI 成为 Agent Bridge
 
@@ -1138,6 +1200,8 @@ IDE Agent 只需要读取这个结果。
 
 ---
 
+
+
 # 25. CLI 应该提供一套 AI Bridge 命令
 
 建议：
@@ -1185,6 +1249,8 @@ npx aafe run
 运行 Planner + Orchestrator。
 
 ---
+
+
 
 # 26. 最重要的是增加 `aafe context`
 
@@ -1237,6 +1303,8 @@ IDE Agent 拿这个上下文执行开发。
 
 ---
 
+
+
 # 27. 开发实现后的闭环
 
 假设 IDE Agent 修改了代码。
@@ -1286,6 +1354,8 @@ PASS
 ```
 
 ---
+
+
 
 # 28. 完整的 AI Development Loop
 
@@ -1351,6 +1421,8 @@ PASS
 ```
 
 ---
+
+
 
 # 29. AAFE Platform 最终模块划分
 
@@ -1424,7 +1496,11 @@ aafe/
 
 ---
 
+
+
 # 30. `.aafe.config.json` 与 `.aafe.agents.json` 职责严格分离
+
+
 
 ### `.aafe.config.json`
 
@@ -1448,6 +1524,8 @@ aafe/
 }
 ```
 
+
+
 ### `.aafe.agents.json`
 
 只负责：
@@ -1469,6 +1547,8 @@ aafe/
 这样以后 Agent 增加到 20 个，也不会污染主配置。
 
 ---
+
+
 
 # 31. Agent 调用方式也应该抽象
 
@@ -1503,6 +1583,8 @@ Builtin Agent
 都可以成为 Provider。
 
 ---
+
+
 
 # 32. Agent 调用协议
 
@@ -1550,6 +1632,8 @@ interface AgentResponse {
 
 ---
 
+
+
 # 33. Agent 可以建议下一步，但不能直接决定
 
 例如 Agent 4：
@@ -1585,6 +1669,8 @@ Planner
 
 ---
 
+
+
 # 34. Planner 也需要安全边界
 
 Planner 可以：
@@ -1609,6 +1695,8 @@ git push
 代码修改能力必须由 Developer Provider / IDE Agent 控制。
 
 ---
+
+
 
 # 35. 多 Agent 并行
 
@@ -1655,6 +1743,8 @@ Planner
 
 ---
 
+
+
 # 36. 最终 AAFE Agent Platform 的核心数据流
 
 ```text
@@ -1693,6 +1783,8 @@ Planner
 ```
 
 ---
+
+
 
 # 37. 最终推荐的 Agent 清单
 
@@ -1742,6 +1834,8 @@ Developer Provider
 
 ---
 
+
+
 # 38. 最终形成三层 Agent 架构
 
 这是整个方案最重要的抽象。
@@ -1784,6 +1878,8 @@ IDE Layer
 共同提供底层能力。
 
 ---
+
+
 
 # 39. 最终的 AAFE 定位
 

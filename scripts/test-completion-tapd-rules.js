@@ -29,6 +29,7 @@ assert.match(flatImpact, /Pointer/);
 assert.match(flatImpact, /\.ai-agent\/rules\/task-completion-impact\.mdc/);
 
 const projectImpact = taskCompletionImpactProjectRuleMdc({ agentPrefix: '.ai-agent' });
+assert.match(projectImpact, /aafe test --diff/);
 assert.match(projectImpact, /ui_test_paths/);
 assert.match(projectImpact, /询问是否 Commit/);
 assert.match(projectImpact, /submit\.cli/);
@@ -36,6 +37,7 @@ assert.match(projectImpact, /仅当任务过程中有关联 TAPD 单/);
 assert.match(projectImpact, /任务评估/);
 
 const impactSection = taskCompletionImpactRuleSection({ agentPrefix: '.ai-agent' });
+assert.match(impactSection, /aafe test --diff/);
 assert.match(impactSection, /ui_test_paths/);
 assert.match(impactSection, /submit\.cli/);
 
@@ -47,12 +49,16 @@ assert.match(forecast, /tapd-submit-backfill\.md/);
 assert.match(forecast, /本 Skill 不自动开浏览器/);
 
 const selfTest = minimalConvergentSelfTestSkillContent('.ai-agent');
+assert.match(selfTest, /aafe test --diff/);
 assert.match(selfTest, /test\//);
 assert.match(selfTest, /ui_test_paths/);
 assert.match(selfTest, /Step 2\.5/);
 assert.match(selfTest, /Hand off to submit/);
 assert.match(selfTest, /user_declined_browser_mcp/);
 assert.match(selfTest, /请提供要测试的完整页面 URL/);
+assert.match(selfTest, /等待用户输入/);
+assert.match(selfTest, /needInput: "baseUrl"/);
+assert.doesNotMatch(selfTest, /无 Playwright \/ 无 baseUrl/);
 
 const layeredTapd = tapdSubmitRuleMdc({
   agentPrefix: 'bklog/web/.ai-agent',

@@ -1,10 +1,13 @@
 import { MemoryStore } from '../memory/MemoryStore.js';
+import { MemoryRuntime } from '../memory/MemoryRuntime.js';
+import { loadMemoryConfig } from '../memory/config.js';
 import { scanProjectMemory } from '../memory/CodeScanner.js';
 
 export async function runMemoryCommand(root, args) {
   const action = args[0] ?? 'help';
   const options = parseMemoryOptions(args.slice(1));
-  const store = new MemoryStore(root);
+  const config = await loadMemoryConfig(root);
+  const store = new MemoryStore(root, { memoryDir: config.memoryDir });
 
   if (action === 'init') {
     await store.init();
@@ -55,6 +58,19 @@ export async function runMemoryCommand(root, args) {
     return;
   }
 
+  if (action === 'remote-status') {
+    const runtime = new MemoryRuntime(root, { config });
+    console.log(JSON.stringify(await runtime.remoteStatus(), null, 2));
+    return;
+  }
+
+  if (action === 'sync' || action === 'upload') {
+    const runtime = new MemoryRuntime(root, { config });
+    const direction = action === 'upload' || options.push ? 'push' : 'pull';
+    console.log(JSON.stringify(await runtime.sync({ direction, cursor: options.cursor }), null, 2));
+    return;
+  }
+
   if (action === 'scan') {
     const memories = await scanProjectMemory(root, { target: options.target, limit: Number(options.limit ?? 300) });
     const written = [];
@@ -77,6 +93,9 @@ function parseMemoryOptions(args) {
     else if (arg.startsWith('--content=')) options.content = arg.slice('--content='.length);
     else if (arg.startsWith('--limit=')) options.limit = arg.slice('--limit='.length);
     else if (arg.startsWith('--target=')) options.target = arg.slice('--target='.length);
+    else if (arg.startsWith('--cursor=')) options.cursor = arg.slice('--cursor='.length);
+    else if (arg === '--push') options.push = true;
+    else if (arg === '--pull') options.pull = true;
     else options.rest.push(arg);
   }
   return options;
@@ -94,6 +113,9 @@ Commands:
   summary                      Regenerate and print memory summary
   compact                      Remove duplicate memories and rebuild topics
   scan [--target=src]          Learn components and conventions from code
+  remote-status                 Show configured Memory remote status
+  sync --push|--pull            Sync memory through a configured future MCP adapter
+  upload                        Alias for sync --push
 
 Types:
   design | component | habit | convention | decision | experience | project-architecture | learning

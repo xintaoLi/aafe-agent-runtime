@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/schemas/impact-analyzer/output.schema.json",
+  "title": "ImpactAnalyzerOutput",
+  "description": "ImpactReport. Every affected list uses the same scored, evidence-carrying item so a consumer can rank and verify without knowing which list it came from.",
+  "type": "object",
+  "required": [
+    "source",
+    "affectedFiles",
+    "affectedModules",
+    "affectedFeatures",
+    "affectedDataFlows",
+    "affectedTests",
+    "risk",
+    "confidence"
+  ],
+  "properties": {
+    "source": { "type": "string", "enum": ["requirement", "diff"] },
+    "affectedFiles": { "type": "array", "items": { "$ref": "#/definitions/impactItem" } },
+    "affectedModules": { "type": "array", "items": { "$ref": "#/definitions/impactItem" } },
+    "affectedFeatures": { "type": "array", "items": { "$ref": "#/definitions/impactItem" } },
+    "affectedDataFlows": { "type": "array", "items": { "$ref": "#/definitions/impactItem" } },
+    "affectedBusinessFlows": { "type": "array", "items": { "$ref": "#/definitions/impactItem" } },
+    "affectedTests": { "type": "array", "items": { "type": "string" } },
+    "changePlan": { "type": "array" },
+    "risk": { "$ref": "#/definitions/risk" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "evidence": { "type": "array", "items": { "$ref": "#/definitions/evidence" } }
+  },
+  "definitions": {
+    "impactItem": {
+      "type": "object",
+      "required": ["id", "score", "why", "evidence"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "File path, module id, feature id or flow id, depending on the list."
+        },
+        "label": { "type": "string" },
+        "path": { "type": "string", "description": "Alias of id for file items." },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Evidence strength, not importance. 1 means the diff touched it directly."
+        },
+        "impact": { "type": "string", "enum": ["direct", "indirect", "potential"] },
+        "why": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "evidence": { "type": "array", "items": { "$ref": "#/definitions/evidence" } }
+      }
+    },
+    "risk": {
+      "anyOf": [
+        { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+        {
+          "type": "object",
+          "required": ["level"],
+          "properties": {
+            "level": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+            "reason": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["type"],
+      "anyOf": [{ "required": ["file"] }, { "required": ["source"] }],
+      "properties": {
+        "type": { "type": "string" },
+        "file": { "type": "string" },
+        "startLine": { "type": "integer" },
+        "endLine": { "type": "integer" },
+        "symbol": { "type": "string" },
+        "reason": { "type": "string" },
+        "source": { "type": "object" }
+      }
+    }
+  }
+}

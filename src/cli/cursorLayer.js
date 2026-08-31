@@ -1,5 +1,6 @@
 import { chmod, mkdir, readdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { taskCompletionHookScript } from './hookScripts.js';
 import {
   requirementIntakeProjectRuleMdc,
   requirementIntakeRuleMdc
@@ -16,6 +17,11 @@ import {
   fileLicenseProjectRuleMdc,
   fileLicenseRuleMdc
 } from './fileLicenseRules.js';
+import {
+  aafeTestFromPrCursorSkill,
+  aafeTestFromPrPointerRuleMdc,
+  AAFE_TEST_FROM_PR_SKILL_DIR
+} from './e2eFromPrRules.js';
 import {
   createCursorPathContext,
   rewriteCursorContent
@@ -86,7 +92,13 @@ export async function writeLayeredCursorAdapters({
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-requirement-intake-analysis.mdc'), requirementIntakeRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-tapd-submit-backfill.mdc'), tapdSubmitRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-new-file-license.mdc'), fileLicenseRuleMdc(ctx), options);
+  await writeIfAllowed(path.join(paths.rulesDir, 'aafe-test-from-pr.mdc'), aafeTestFromPrPointerRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.skillsDir, 'aafe-runtime', 'SKILL.md'), nativeEditorSkill('Cursor', ctx), options);
+  await writeIfAllowed(
+    path.join(paths.skillsDir, AAFE_TEST_FROM_PR_SKILL_DIR, 'SKILL.md'),
+    aafeTestFromPrCursorSkill(ctx),
+    options
+  );
   await writeIfAllowed(path.join(paths.skillsDir, 'ENTRY.md'), editorSkillEntry('Cursor', ctx), options);
   await writeIfAllowed(path.join(paths.hooksDir, 'run-hook.cmd'), cursorHookRunner(), options);
   await writeIfAllowed(path.join(paths.hooksDir, 'aafe-session-start'), cursorSessionStartHook(ctx), options);
@@ -396,10 +408,7 @@ exec bash "\${SCRIPT_DIR}/\${SCRIPT_NAME}" "$@"
 }
 
 function cursorTaskCompletionHook(ctx) {
-  const cdPart = ctx.moduleRelativePath && ctx.moduleRelativePath !== '.'
-    ? `\nMODULE_DIR="${ctx.moduleRelativePath}"\nif [ -f "\${MODULE_DIR}/.aafe.config.json" ]; then\n  cd "\${MODULE_DIR}" || exit 0\nfi\n`
-    : '';
-  return `#!/usr/bin/env bash\nset -u\n\nif [ "\${AAFE_TASK_STATUS:-success}" != "success" ]; then\n  exit 0\nfi\n${cdPart}\nif command -v aafe >/dev/null 2>&1; then\n  aafe task-completion || true\nfi\n`;
+  return taskCompletionHookScript(ctx);
 }
 
 function cursorSessionStartHook(ctx) {

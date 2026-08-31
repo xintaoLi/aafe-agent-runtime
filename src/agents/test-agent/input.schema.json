@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/schemas/test-agent/input.schema.json",
+  "title": "TestAgentInput",
+  "description": "Shared by test-planning, test-generation and e2e-execution. The impact report and the plan normally arrive through prior results rather than through input.",
+  "type": ["object", "null"],
+  "properties": {
+    "requirement": { "type": ["string", "null"] },
+    "goal": { "type": "string" },
+    "impact": { "type": "object" },
+    "plan": { "type": "object" },
+    "feature": { "type": "object" },
+    "businessFlows": { "type": "array" },
+    "dataFlows": { "type": "array" },
+    "existingTests": { "type": "array", "items": { "type": "string" } },
+    "testFramework": { "type": "string" },
+    "write": {
+      "type": "boolean",
+      "description": "Whether generated YAML cases are written to disk. Defaults to true for e2e generation."
+    },
+    "scenario": { "type": ["string", "null"], "enum": ["coverage", "changes", "pr", null] },
+    "update": { "type": "boolean" },
+    "force": { "type": "boolean" }
+  }
+}

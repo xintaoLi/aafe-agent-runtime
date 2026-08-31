@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/schemas/failure-analyzer/output.schema.json",
+  "title": "FailureAnalyzerOutput",
+  "description": "A report with no failures is a valid answer and carries no diagnosis; anything else must name a classification and a root cause.",
+  "type": "object",
+  "required": ["status", "failures"],
+  "anyOf": [
+    {
+      "properties": { "failures": { "maxItems": 0 } }
+    },
+    {
+      "required": ["classification", "rootCause", "relatedFiles"]
+    }
+  ],
+  "properties": {
+    "status": { "type": "string" },
+    "format": { "type": "string" },
+    "source": { "type": "string" },
+    "totals": { "type": "object" },
+    "classification": {
+      "type": "string",
+      "enum": ["product_bug", "test_bug", "environment", "data", "network", "unknown"]
+    },
+    "symptom": { "type": "string" },
+    "immediateCause": { "type": "string" },
+    "rootCause": {
+      "description": "A sentence that names where and why. The object form is accepted from external agents.",
+      "anyOf": [
+        { "type": "string", "minLength": 1 },
+        {
+          "type": "object",
+          "required": ["description"],
+          "properties": {
+            "description": { "type": "string" },
+            "files": { "type": "array", "items": { "type": "string" } },
+            "symbols": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      ]
+    },
+    "relatedFiles": { "type": "array", "items": { "type": "string" } },
+    "relatedModules": { "type": "array", "items": { "type": "string" } },
+    "relatedDataFlows": { "type": "array" },
+    "affectedFlows": { "type": "array", "items": { "type": "string" } },
+    "risk": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+    "fixSuggestions": { "type": "array", "items": { "type": "string" } },
+    "fixSuggestion": { "type": "object" },
+    "regressionTests": { "type": "array", "items": { "type": "string" } },
+    "diff": {
+      "type": "object",
+      "properties": {
+        "ref": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "changedFiles": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "failures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "classification"],
+        "properties": {
+          "title": { "type": "string" },
+          "classification": {
+            "type": "string",
+            "enum": ["product_bug", "test_bug", "environment", "data", "network", "unknown"]
+          },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "reason": { "type": "string" },
+          "message": { "type": "string" },
+          "testFile": { "type": ["string", "null"] },
+          "suspect": {
+            "type": ["object", "null"],
+            "properties": {
+              "file": { "type": "string" },
+              "line": { "type": ["integer", "null"] },
+              "inDiff": { "type": "boolean" }
+            }
+          },
+          "relatedFiles": { "type": "array", "items": { "type": "string" } },
+          "modules": { "type": "array", "items": { "type": "string" } },
+          "artifacts": { "type": ["object", "null"] }
+        }
+      }
+    },
+    "evidence": { "type": "array" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+  }
+}

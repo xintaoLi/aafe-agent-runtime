@@ -11,6 +11,9 @@ import {
   defaultSubmitConfig,
   resolveSubmitConfig
 } from './submitConfig.js';
+import { detectProject } from './detect.js';
+import { inspectPlaywrightSetup, installPlaywrightDeps } from './e2eSetup.js';
+import { isE2eEnabled } from '../testing/e2e/config.js';
 
 export async function collectInitOptions(detection, options, workspaceLayout = null) {
   if (options.yes || options.nonInteractive) {
@@ -28,11 +31,17 @@ export async function collectInitOptions(detection, options, workspaceLayout = n
     const submitConfig = resolveSubmitConfig(options.existingConfig ?? {}, {
       cli: options.submitCli ?? options.submitConfig?.cli
     });
+    const e2eConfig = resolveNonInteractiveE2eConfig(options, options.existingConfig?.e2e);
+    if (e2eConfig.enabled && options.installPlaywright) {
+      const root = options.root ?? process.cwd();
+      await ensurePlaywrightForPrompt(root, { yes: true, dryRun: options.dryRun });
+    }
     return {
       ...options,
       workspaceLayout: enrichedLayout ?? workspaceLayout,
       tapdConfig: options.tapdConfig ?? null,
-      submitConfig
+      submitConfig,
+      e2eConfig
     };
   }
 
@@ -48,6 +57,11 @@ export async function collectInitOptions(detection, options, workspaceLayout = n
       : workspaceLayout;
     const submitConfig = await collectSubmitConfigOptions(rl, options.existingConfig?.submit, options);
     const tapdConfig = await collectTapdConfigOptions(rl, options.existingConfig?.tapd);
+    const e2eConfig = await collectE2eConfigOptions(rl, options.existingConfig?.e2e, {
+      root: options.root ?? process.cwd(),
+      dryRun: options.dryRun,
+      packageManager: detection.packageManager
+    });
 
     return {
       ...options,
@@ -58,7 +72,8 @@ export async function collectInitOptions(detection, options, workspaceLayout = n
       force: /^y/i.test(forceText),
       workspaceLayout: workspaceOptions,
       submitConfig,
-      tapdConfig
+      tapdConfig,
+      e2eConfig
     };
   } finally {
     rl.close();
@@ -157,6 +172,136 @@ export async function prepareSubmitConfigForCommand(options = {}, existingConfig
   }
 }
 
+/**
+ * Decide whether `aafe update` should run `aafe analyze --force`.
+ * Default is true. Prompt only on a TTY when the caller did not pass a flag.
+ *
+ * @param {{ analyze?: boolean, yes?: boolean, dryRun?: boolean }} options
+ * @param {{ isTTY?: boolean }} [env]
+ * @returns {{ forceAnalyze: boolean, shouldPrompt: boolean }}
+ */
+export function resolveForceAnalyzeDecision(options = {}, { isTTY = Boolean(process.stdin.isTTY) } = {}) {
+  if (options.analyze === false) return { forceAnalyze: false, shouldPrompt: false };
+  if (options.analyze === true) return { forceAnalyze: true, shouldPrompt: false };
+  if (options.dryRun || options.yes || !isTTY) return { forceAnalyze: true, shouldPrompt: false };
+  return { forceAnalyze: true, shouldPrompt: true };
+}
+
+export async function prepareForceAnalyzeForCommand(options = {}, env = {}) {
+  const decision = resolveForceAnalyzeDecision(options, env);
+  if (!decision.shouldPrompt) return decision.forceAnalyze;
+
+  const rl = createInterface({ input, output });
+  try {
+    console.log('');
+    console.log('Analyze: refresh architecture facts under analyze.output (default `.aafe/`).');
+    console.log('Force overwrites existing facts and migrates leftover files from older layouts.');
+    console.log('Preserves `.aafe/e2e/` and `.aafe/runs/`.');
+    console.log('');
+    const answer = await ask(rl, 'Force execute analyze? (Y/n): ', 'Y');
+    return !isNegative(answer);
+  } finally {
+    rl.close();
+  }
+}
+
+export async function prepareE2eConfigForCommand(options = {}, existingConfig = {}, { root = process.cwd() } = {}) {
+  if (options.e2eConfig) return options.e2eConfig;
+  const existing = existingConfig.e2e ?? {};
+  if (options.e2e === false) return { ...existing, enabled: false };
+  if (options.e2e === true) {
+    if (options.installPlaywright || options.yes) {
+      await ensurePlaywrightForPrompt(root, {
+        yes: options.installPlaywright === true || options.yes === true,
+        dryRun: options.dryRun
+      });
+    } else if (process.stdin.isTTY) {
+      const rl = createInterface({ input, output });
+      try {
+        const detection = await detectProject(root);
+        await maybeInstallPlaywright(rl, root, { packageManager: detection.packageManager, dryRun: options.dryRun });
+      } finally {
+        rl.close();
+      }
+    }
+    return { ...existing, enabled: true };
+  }
+
+  const shouldPrompt = options.promptE2e === true
+    || (!(options.yes || options.nonInteractive) && options.promptE2e !== false);
+  if (!shouldPrompt) {
+    return { ...existing, enabled: isE2eEnabled(existing) };
+  }
+
+  const rl = createInterface({ input, output });
+  try {
+    const detection = await detectProject(root);
+    return await collectE2eConfigOptions(rl, existing, {
+      root,
+      dryRun: options.dryRun,
+      packageManager: detection.packageManager
+    });
+  } finally {
+    rl.close();
+  }
+}
+
+export async function collectE2eConfigOptions(rl, existingE2e = null, {
+  root = process.cwd(),
+  dryRun = false,
+  packageManager = 'npm'
+} = {}) {
+  console.log('');
+  console.log('E2E: generate Playwright YAML cases (`aafe test --diff|--coverage|--pr`) and write reports to `.aafe/e2e/reports/`.');
+  console.log('Can also be enabled later with `aafe e2e enable`.');
+  console.log('');
+
+  if (existingE2e?.enabled === true) {
+    const reconfigureText = await ask(rl, 'E2E is already enabled. Reconfigure E2E settings? (y/N): ', 'N');
+    if (!isAffirmative(reconfigureText)) {
+      await maybeInstallPlaywright(rl, root, { packageManager, dryRun });
+      return { ...existingE2e, enabled: true };
+    }
+  } else {
+    const enableText = await ask(rl, 'Enable Playwright E2E (`aafe test`)? (Y/n): ', 'Y');
+    if (!isAffirmative(enableText)) return { ...existingE2e, enabled: false };
+  }
+
+  await maybeInstallPlaywright(rl, root, { packageManager, dryRun });
+  return { ...existingE2e, enabled: true };
+}
+
+function resolveNonInteractiveE2eConfig(options = {}, existingE2e = {}) {
+  if (options.e2e === false) return { ...existingE2e, enabled: false };
+  if (options.e2e === true) return { ...existingE2e, enabled: true };
+  return { ...existingE2e, enabled: isE2eEnabled(existingE2e) };
+}
+
+async function maybeInstallPlaywright(rl, root, { packageManager, dryRun }) {
+  const setup = await inspectPlaywrightSetup(root);
+  if (!setup.missing) {
+    console.log(`Playwright already available (${setup.resolved ?? setup.declared.join(', ')}).`);
+    return;
+  }
+  const installText = await ask(
+    rl,
+    'Playwright is not installed. Install playwright + @playwright/test and Chromium? (Y/n): ',
+    'Y'
+  );
+  if (/^n/i.test(installText.trim())) {
+    console.log('Skipped. Later: `aafe e2e install --yes` or `npm install -D playwright @playwright/test`.');
+    return;
+  }
+  await installPlaywrightDeps(root, { packageManager, dryRun, browsers: true });
+}
+
+async function ensurePlaywrightForPrompt(root, { yes, dryRun }) {
+  const setup = await inspectPlaywrightSetup(root);
+  if (!setup.missing || !yes) return setup;
+  const detection = await detectProject(root);
+  return installPlaywrightDeps(root, { packageManager: detection.packageManager, dryRun, browsers: true });
+}
+
 export async function collectSubmitConfigOptions(rl, existingSubmit = null, options = {}) {
   const current = resolveSubmitConfig({ submit: existingSubmit }, { cli: options.submitCli });
   console.log('');
@@ -232,6 +377,11 @@ export async function collectTapdConfigOptions(rl, existingTapd = null) {
 function isAffirmative(text) {
   const normalized = (text ?? '').trim().toLowerCase();
   return normalized === 'y' || normalized === 'yes' || normalized === '是';
+}
+
+function isNegative(text) {
+  const normalized = (text ?? '').trim().toLowerCase();
+  return normalized === 'n' || normalized === 'no' || normalized === '否';
 }
 
 function maskSecret(value) {

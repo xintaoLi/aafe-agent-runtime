@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/schemas/impact-analyzer/input.schema.json",
+  "title": "ImpactAnalyzerInput",
+  "type": ["object", "null"],
+  "description": "The capability decides the mode: `requirement-impact` reads `requirement`, `change-impact` reads `diffRef`. Either may be null, in which case the agent falls back to the task.",
+  "anyOf": [
+    { "type": "null" },
+    { "required": ["requirement"] },
+    { "required": ["diffRef"] },
+    { "required": ["mode"] },
+    { "required": ["request"] }
+  ],
+  "properties": {
+    "mode": { "type": "string", "enum": ["requirement", "diff"] },
+    "requirement": { "type": ["string", "null"] },
+    "diffRef": {
+      "type": ["string", "null"],
+      "description": "A git ref or range. null means the working tree."
+    },
+    "request": {
+      "type": "object",
+      "properties": {
+        "requirement": { "type": "string" },
+        "diff": { "type": "string" }
+      }
+    },
+    "knowledge": { "type": ["object", "array"] },
+    "evidence": { "type": "array" }
+  }
+}

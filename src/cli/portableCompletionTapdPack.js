@@ -79,8 +79,8 @@ alwaysApply: true
 
 - 自测按**本次 diff**最小收敛，禁止无关全量回归。
 - 逻辑变更：Mock Props / 函数 I/O，测试落盘到**当前任务工作区根目录** \`test/\`（无则创建）。
-- **UI 自测子询问**仅当：代码变更 + 已进入自测 + 影响含 **UI 渲染/交互**。
-- UI：先问浏览器 MCP → 再问用户指定 URL → 执行前产出 \`ui_test_paths\`；禁止猜环境地址。
+- UI/页面/路由：最后测试环节执行 \`aafe test --diff\`；要 \`--run\` 则询问并等待本次测试 URL，再用 \`--base-url=<url>\`。报告只读 \`.aafe/e2e/reports/\`。
+- 浏览器 MCP 仅当 E2E blocked 且用户仍要看 UI；禁止猜环境地址。
 - 禁止未实际执行却声称 pass。
 
 ## 自测完成后的衔接
@@ -188,7 +188,7 @@ Artifacts: \`impact_scope\`, \`architecture_evidence\`, \`impact_class\`
 
 ## Step 3 — Hand off
 
-Follow \`${SKILL_SELF_TEST}\` → 测试落盘 \`test/\`（工作区根目录）→ 有关联 TAPD 时 \`${SKILL_TAPD}\`
+Follow \`${SKILL_SELF_TEST}\`：unit 落盘 \`test/\`；UI/路由执行 \`aafe test --diff\`（缺地址则询问等待，再 \`--run --base-url=<url>\`）。有关联 TAPD 时 \`${SKILL_TAPD}\`
 
 ## Output template
 
@@ -221,7 +221,11 @@ Chain: \`${SKILL_IMPACT}\` → this → \`${SKILL_TAPD}\`（仅 TAPD 关联时�
 | 纯逻辑 / 数据处理 | unit | \`test/\` @ workspace root |
 | 组件 props/emit | unit/component | \`test/\` |
 | Store 契约 | unit | \`test/\` |
-| 可见 UI | ui-optional | 条件询问浏览器 MCP |
+| 可见 UI | e2e | \`aafe test --diff\` → \`tests/ui-ai/cases/\` + \`.aafe/e2e/reports/\` |
+
+## Step 0.5 — E2E
+
+UI/路由：\`aafe test --diff\`；要执行则询问本次 URL 并 \`--run --base-url=<url>\`。报告只读 \`.aafe/e2e/reports/\`。禁止任务收尾默认 \`--coverage\`。
 
 ## Step 1 — Test directory
 
@@ -243,13 +247,13 @@ Runner: vitest / jest / \`npm test\` / \`node:test\`。
 
 Actions: navigate | click | switch | fill | hover | assert | screenshot
 
-## Step 3 — UI tests（条件询问）
+## Step 3 — Browser MCP fallback
 
-前置：代码变更 + 影响含 UI。**禁止**对纯文档任务询问。
+仅当 E2E blocked（无 Playwright）且用户仍要看 UI。缺测试地址时先问 URL 再 \`--run --base-url\`，不要改走 MCP：
 
 1. 问是否启用 browser MCP
 2. 问用户指定完整 URL
-3. 生成/补全 \`ui_test_paths\` → 按路径执行
+3. 生成/补全 \`ui_test_paths\` → 按路径执行；截图进 \`.aafe/e2e/reports/\`
 
 ## Step 4 — Results
 

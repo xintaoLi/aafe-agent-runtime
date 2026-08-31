@@ -6,3 +6,9 @@ dist/
 !.env.example
 output/
 .session_tmps/
+# Generated runtime, analysis, knowledge views and local Memory are never committed.
+.aafe/
+.ai-agent/
+.docs/
+.aafe-memory/
+.thumbs/

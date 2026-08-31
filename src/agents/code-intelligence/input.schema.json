@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/schemas/code-intelligence/input.schema.json",
+  "title": "CodeIntelligenceInput",
+  "description": "Accepts both the analysis trigger form used by the builtin agent and the fact-bundle form an external LLM agent needs.",
+  "type": ["object", "null"],
+  "properties": {
+    "force": {
+      "type": "boolean",
+      "description": "Re-run the AST pipeline even when persisted knowledge is fresh."
+    },
+    "reason": { "type": "string" },
+    "project": {
+      "type": "object",
+      "properties": {
+        "language": { "type": "string" },
+        "framework": { "type": "string" },
+        "packageManager": { "type": "string" }
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path"],
+        "properties": {
+          "path": { "type": "string" },
+          "content": { "type": "string" },
+          "summary": { "type": "string" }
+        }
+      }
+    },
+    "symbols": { "type": "array" },
+    "dependencies": { "type": "array" },
+    "astFacts": { "type": "array" },
+    "dataFlows": { "type": "array" },
+    "existingKnowledge": { "type": "array" }
+  }
+}

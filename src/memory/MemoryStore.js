@@ -4,7 +4,7 @@ import path from 'node:path';
 export class MemoryStore {
   constructor(root, options = {}) {
     this.root = root;
-    this.memoryDir = options.memoryDir ?? path.join(root, '.ai-agent/memory');
+    this.memoryDir = options.memoryDir ?? path.join(root, '.aafe-memory');
     this.recordsFile = path.join(this.memoryDir, 'learnings.jsonl');
     this.summaryFile = path.join(this.memoryDir, 'summary.md');
   }

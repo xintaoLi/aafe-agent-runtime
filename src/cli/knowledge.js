@@ -1,10 +1,13 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { analyzeProjectArchitecture } from './analyze.js';
+import { KnowledgeStore } from '../knowledge/store/KnowledgeStore.js';
 
 export async function runKnowledgeCommand(root, args = []) {
   const subCommand = args[0] ?? 'help';
   const options = parseKnowledgeOptions(args.slice(1));
+  if (subCommand === 'search' || subCommand === 'find') return runKnowledgeSearch(root, args.slice(1));
+  if (subCommand === 'index') return runKnowledgeIndex(root, args.slice(1));
   if (!['init', 'update', 'sync'].includes(subCommand)) {
     printKnowledgeHelp();
     return;
@@ -19,6 +22,76 @@ export async function runKnowledgeCommand(root, args = []) {
     generated,
     summary: options.dryRun ? 'Knowledge artifacts would be refreshed from current code and architecture sources.' : 'Knowledge artifacts refreshed from current code and architecture sources.'
   }, null, 2));
+}
+
+/**
+ * `aafe knowledge search <query>` — ranked lookup over the analyze output.
+ *
+ * The point is to answer "where does X live" without an LLM call and without
+ * reading the whole knowledge base, which is what both the impact analyzer and
+ * an IDE agent need before they can do anything useful.
+ */
+async function runKnowledgeSearch(root, args) {
+  const options = parseSearchOptions(args);
+  if (!options.query) {
+    console.error('Usage: aafe knowledge search "<query>" [--kind=module,route,symbol] [--limit=20] [--output=.aafe]');
+    process.exitCode = 1;
+    return null;
+  }
+
+  const store = new KnowledgeStore({ root, output: options.output });
+  if (!(await store.exists())) {
+    console.error(`No analyze output under ${options.output}. Run: aafe analyze`);
+    process.exitCode = 1;
+    return null;
+  }
+
+  const index = await store.searchIndex({ rebuild: options.rebuild });
+  const results = index.search(options.query, { limit: options.limit, kinds: options.kinds });
+  const payload = {
+    status: results.length > 0 ? 'pass' : 'empty',
+    command: 'aafe knowledge search',
+    query: options.query,
+    indexed: index.size,
+    count: results.length,
+    results
+  };
+  console.log(JSON.stringify(payload, null, 2));
+  return payload;
+}
+
+async function runKnowledgeIndex(root, args) {
+  const options = parseSearchOptions(args);
+  const store = new KnowledgeStore({ root, output: options.output });
+  if (!(await store.exists())) {
+    console.error(`No analyze output under ${options.output}. Run: aafe analyze`);
+    process.exitCode = 1;
+    return null;
+  }
+
+  const index = await store.searchIndex({ rebuild: true });
+  const ref = await index.save();
+  const payload = { status: 'pass', command: 'aafe knowledge index', entries: index.size, ref };
+  console.log(JSON.stringify(payload, null, 2));
+  return payload;
+}
+
+function parseSearchOptions(args) {
+  const options = { limit: 20, kinds: null, output: '.aafe', rebuild: false };
+  const words = [];
+  for (const arg of args) {
+    if (arg === '--rebuild') { options.rebuild = true; continue; }
+    if (arg.startsWith('--kind=')) {
+      options.kinds = arg.slice('--kind='.length).split(',').map((value) => value.trim()).filter(Boolean);
+      continue;
+    }
+    if (arg.startsWith('--limit=')) { options.limit = Number.parseInt(arg.slice('--limit='.length), 10) || 20; continue; }
+    if (arg.startsWith('--output=')) { options.output = arg.slice('--output='.length); continue; }
+    if (arg.startsWith('--')) continue;
+    words.push(arg);
+  }
+  options.query = words.join(' ').trim();
+  return options;
 }
 
 export async function syncKnowledgeArtifacts(root, options = {}) {
@@ -76,5 +149,5 @@ async function safeRead(filePath) {
 }
 
 function printKnowledgeHelp() {
-  console.log('aafe knowledge <command>\n\nCommands:\n  init       Initialize and publish Knowledge views into .docs\n  update     Refresh Knowledge views after a feature or fix\n  sync       Alias of update\n\nOptions:\n  --architecture-docs=<path>  Architecture source directory, defaults to .docs\n  --knowledge-docs=<path>     Generated output directory, defaults to .docs/aafe-generated\n  --dry-run                   Preview without writing\n');
+  console.log('aafe knowledge <command>\n\nCommands:\n  init       Initialize and publish Knowledge views into .docs\n  update     Refresh Knowledge views after a feature or fix\n  sync       Alias of update\n  search     Ranked lookup over the analyze output (symbols, files, modules, routes, components, features)\n  index      Rebuild and persist the retrieval index\n\nOptions:\n  --architecture-docs=<path>  Architecture source directory, defaults to .docs\n  --knowledge-docs=<path>     Generated output directory, defaults to .docs/aafe-generated\n  --dry-run                   Preview without writing\n\nSearch options:\n  --kind=module,route,symbol  Restrict to entry kinds\n  --limit=<n>                 Max results, defaults to 20\n  --output=<path>             Analyze output directory, defaults to .aafe\n  --rebuild                   Ignore the persisted index and rebuild it\n');
 }
