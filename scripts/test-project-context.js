@@ -6,10 +6,22 @@ import { AgentRuntime } from '../src/agent-platform/skill-runtime/AgentRuntime.j
 import { discoverProjectContext } from '../src/project/projectContext.js';
 
 const runtimeRoot = path.resolve(import.meta.dirname, '..');
-const context = await discoverProjectContext('/root/workspace/github/bk-monitor/bklog/web');
+const context = await discoverProjectContext('/root/workspace/github/bk-monitor/bklog/web', { host: 'cli' });
 
 assert.equal(context.root, '/root/workspace/github/bk-monitor/bklog/web');
 assert.equal(context.projectName, 'blueking-log');
+assert.equal(context.host, 'cli');
+assert.equal(context.activationMode, 'runtime-managed');
+assert.ok(context.instructions.length > 0);
+const cursorContext = await discoverProjectContext('/root/workspace/github/bk-monitor/bklog/web', { host: 'cursor' });
+assert.equal(cursorContext.host, 'cursor');
+assert.equal(cursorContext.activationMode, 'editor-managed');
+assert.deepEqual(cursorContext.instructions, []);
+const codebuddyContext = await discoverProjectContext('/root/workspace/github/bk-monitor/bklog/web', { host: 'codebuddy' });
+assert.equal(codebuddyContext.activationMode, 'editor-managed');
+const openclawContext = await discoverProjectContext('/root/workspace/github/bk-monitor/bklog/web', { host: 'openclaw' });
+assert.equal(openclawContext.activationMode, 'runtime-managed');
+assert.ok(openclawContext.instructions.length > 0);
 assert.ok(context.rules.some((entry) => entry.source.endsWith('.aafe/rules/git-workflow.md')));
 assert.ok(context.skills.some((entry) => entry.source.endsWith('.aafe/skills/tapd-git-pr/SKILL.md')));
 assert.ok(context.layers.some((layer) => layer.scope === 'workspace'));

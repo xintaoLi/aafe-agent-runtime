@@ -23,7 +23,10 @@ export async function loadRuntimeConfig(root, options = {}) {
 
 export async function createRuntimeFromProject(root, options = {}) {
   const config = await loadRuntimeConfig(root, options);
-  const projectContext = options.projectContext ?? await discoverProjectContext(root);
+  const projectContext = options.projectContext ?? await discoverProjectContext(root, {
+    host: options.host,
+    workspaceRoot: options.workspaceRoot
+  });
   return new AgentRuntime({
     ...config,
     root,

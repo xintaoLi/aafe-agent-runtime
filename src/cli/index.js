@@ -55,7 +55,10 @@ export async function runCli(argv) {
   if (command === 'project' || command === 'projects') {
     const subcommand = argv[3] ?? 'context';
     if (subcommand !== 'context') throw new Error(`Unknown project command: ${subcommand}`);
-    console.log(JSON.stringify(await discoverProjectContext(process.cwd()), null, 2));
+    console.log(JSON.stringify(await discoverProjectContext(options.projectRoot ?? process.cwd(), {
+      host: options.host,
+      workspaceRoot: options.workspaceRoot
+    }), null, 2));
     return;
   }
 
@@ -173,7 +176,11 @@ export async function runCli(argv) {
     if (!prompt) {
       throw new Error('Missing prompt. Usage: aafe pipeline "<frontend task>"');
     }
-    const runtime = await createRuntimeFromProject(process.cwd(), { memory: options.memory });
+    const runtime = await createRuntimeFromProject(options.projectRoot ?? process.cwd(), {
+      memory: options.memory,
+      host: options.host,
+      workspaceRoot: options.workspaceRoot
+    });
     const result = await runtime.execute({ prompt });
     console.log(JSON.stringify(result, null, 2));
     return;
@@ -206,6 +213,9 @@ function parseOptions(args) {
     if (arg.startsWith('--architecture-docs=')) options.architectureDocs = arg.slice('--architecture-docs='.length);
     if (arg.startsWith('--knowledge-docs=')) options.knowledgeDocs = arg.slice('--knowledge-docs='.length);
     if (arg.startsWith('--module-name=')) options.moduleName = arg.slice('--module-name='.length);
+    if (arg.startsWith('--host=')) options.host = arg.slice('--host='.length).toLowerCase();
+    if (arg.startsWith('--project-root=')) options.projectRoot = arg.slice('--project-root='.length);
+    if (arg.startsWith('--workspace-root=')) options.workspaceRoot = arg.slice('--workspace-root='.length);
     if (arg === '--migrate-cursor') options.migrateInstallEditors = true;
     if (arg === '--migrate-editors') options.migrateInstallEditors = true;
     if (arg === '--no-migrate-cursor') options.migrateInstallEditors = false;
@@ -225,6 +235,9 @@ Commands:
   init      Initialize .ai-agent runtime, memory and editor rules
   detect    Detect framework, editor and scenario
   project   Resolve current project directory and enumerate local Rules/Skills
+            --host=cursor|codebuddy delegates activation to the editor
+            --host=openclaw|hermes loads bounded project instructions in Runtime
+            --project-root=<path> supports hosts whose process cwd is elsewhere
   doctor    Validate installed runtime files
   sync      Refresh generated runtime files
   analyze   Generate architecture locator, .ai-agent/.docs AST analysis and on-demand skills

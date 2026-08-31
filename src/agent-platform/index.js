@@ -57,7 +57,10 @@ export async function createAgentPlatform(root, options = {}) {
 
   const output = options.output ?? projectConfig.analyze?.output ?? '.aafe';
   const knowledge = options.knowledge ?? new KnowledgeStore({ root, output });
-  const projectContext = options.projectContext ?? await discoverProjectContext(root);
+  const projectContext = options.projectContext ?? await discoverProjectContext(root, {
+    host: options.host,
+    workspaceRoot: options.workspaceRoot
+  });
 
   // `--no-ide-agent` is a per-invocation override on top of the resolved config.
   const ideAgent = options.ideAgent === false

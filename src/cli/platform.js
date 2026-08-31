@@ -450,10 +450,13 @@ async function tracePlan(platform, task) {
 }
 
 async function executeTask(root, task, options, constraints = {}) {
-  const platform = await createAgentPlatform(root, {
+  const effectiveRoot = options.projectRoot ? path.resolve(options.projectRoot) : root;
+  const platform = await createAgentPlatform(effectiveRoot, {
     write: options.write !== false,
     constraints,
-    ideAgent: options.ideAgent
+    ideAgent: options.ideAgent,
+    host: options.host,
+    workspaceRoot: options.workspaceRoot
   });
   const result = await platform.orchestrator.execute(task);
   return { result, warnings: platform.warnings, platform };
@@ -499,6 +502,9 @@ export function parsePlatformArgs(args = []) {
     if (arg === '--dry-run') { options.dryRun = true; continue; }
     if (arg === '--no-write') { options.write = false; continue; }
     if (arg === '--no-ide-agent') { options.ideAgent = false; continue; }
+    if (arg.startsWith('--host=')) { options.host = arg.slice('--host='.length).toLowerCase(); continue; }
+    if (arg.startsWith('--project-root=')) { options.projectRoot = arg.slice('--project-root='.length); continue; }
+    if (arg.startsWith('--workspace-root=')) { options.workspaceRoot = arg.slice('--workspace-root='.length); continue; }
     if (arg === '--run') { options.run = true; continue; }
     if (arg.startsWith('--base-url=')) { options.baseUrl = arg.slice('--base-url='.length); continue; }
     if (arg.startsWith('--baseUrl=')) { options.baseUrl = arg.slice('--baseUrl='.length); continue; }
