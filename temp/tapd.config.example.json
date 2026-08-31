@@ -7,7 +7,7 @@
     "username": "",
     "api_password": "",
     "workspace_id": "",
-    "milestone_id": "",
+    "_comment": "workspace_id optional — auto-extracted from TAPD URL at backfill time",
     "default_entry_type": "story",
     "pr_field": "",
     "tapd_story": {

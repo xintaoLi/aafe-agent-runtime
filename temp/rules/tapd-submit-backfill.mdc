@@ -17,7 +17,7 @@ alwaysApply: true
 - 用户在本任务中引用/绑定 TAPD 单号
 - 会话记录 `tapd_entry_id` / `tapd_entry_type`
 
-**无关联** → 跳过回填询问、新建单、`workspace_id` / `milestone_id` 索取；可常规 Commit/PR。
+**无关联** → 跳过回填询问、新建单、`workspace_id` 索取；可常规 Commit/PR。`workspace_id` 回填时从 TAPD 链接动态提取，不需配置。
 
 ## 触发
 

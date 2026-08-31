@@ -54,7 +54,7 @@ function tapdSubmitProjectRuleBody(agentPrefix = '.ai-agent') {
 **无 TAPD 关联** → **跳过**：
 
 - 「是否回填 TAPD 单子？」及 Phase F 全部步骤
-- 新建单、\`workspace_id\` / \`milestone_id\` 索取、PR 字段探测等**回填专用**条件询问
+- 新建单、\`workspace_id\` 索取、PR 字段探测等**回填专用**条件询问
 - 仍可走常规 Commit/PR（无 \`--bug=\` / \`--story=\` 强制格式）
 
 ## 触发
@@ -119,7 +119,7 @@ function tapdSubmitProjectRuleBody(agentPrefix = '.ai-agent') {
 - 禁止跳过中间状态（如 backlog → doing）
 - 提交回填状态流转目标为 \`doing\`，禁止自动流转到 \`for_test\` / \`status_done\`
 - 禁止伪造 MCP / 测试结果；禁止未拿到用户指定 URL 时自动探测环境
-- **禁止**在无 TAPD 关联时主动询问回填、新建 TAPD 单或索取 \`workspace_id\` / \`milestone_id\`
+- **禁止**在无 TAPD 关联时主动询问回填、新建 TAPD 单或索取 \`workspace_id\`
 
 ## 与自测的衔接
 
@@ -330,8 +330,10 @@ Common tools: \`stories_get\`, \`stories_create\`, \`stories_update\`, \`bugs_*\
 
 ### \`tapd\`
 
-Use \`workspace_id\`, \`milestone_id\`, \`tapd_story.*\`, \`tapd_bug.*\` status values.
+Use \`tapd_story.*\`, \`tapd_bug.*\` status values.
 Submit-backfill story target is \`status_doing\` (first token if comma-separated); do **not** auto-advance to \`status_done\`.
+
+\`workspace_id\` **不在配置中硬编码**；回填时从 TAPD 链接或 MCP 查询动态提取（见 F1）。
 
 Optional PR field keys（任一存在且非空即用）:
 
@@ -379,10 +381,10 @@ Ensure before Commit/回填询问：
 
 | Source | Action |
 | --- | --- |
-| TAPD-origin task | Use known \`entry_type\`, \`entry_id\`, \`workspace_id\`, title |
+| TAPD-origin task | Use known \`entry_type\`, \`entry_id\`, title; \`workspace_id\` 从 TAPD 链接提取 |
 | User provides ID | Short ID → \`tapd_id_get\`；确认 story vs bug；\`stories_get\` / \`bugs_get\` 取标题 |
 
-**无 TAPD 关联**：不询问新建/关联单、不索取 \`workspace_id\` / \`milestone_id\`。
+**无 TAPD 关联**：不询问新建/关联单、不索取 \`workspace_id\`（回填时从 TAPD 链接动态提取）。
 
 **禁止**在无 TAPD 关联时瞎编 \`--bug=\` / \`--story=\` ID。
 
@@ -455,8 +457,9 @@ gtm pr
 
 ### F1 Resolve entry
 
-使用任务过程中已关联的 \`entry_type\` / \`entry_id\` / \`workspace_id\`。  
-**禁止**在无 TAPD 关联时进入 F1–F6 或询问新建单 / \`workspace_id\` / \`milestone_id\`。
+使用任务过程中已关联的 \`entry_type\` / \`entry_id\`。  
+\`workspace_id\` 从 TAPD 链接或 MCP 查询动态获取（不在配置中硬编码）：\`https://tapd.woa.com/tapd_fe/{workspace_id}/story|bug/detail/{full_id}\` → 提取 \`workspace_id\`；或 \`tapd_id_get\` / \`stories_get\` / \`bugs_get\` 返回值获取。  
+**禁止**在无 TAPD 关联时进入 F1–F6 或询问新建单 / \`workspace_id\`。
 
 ### F2 Upload UI screenshots（optional）
 
@@ -566,7 +569,7 @@ Algorithm:
 If \`tapd\` absent, \`enabled: false\`, or **任务无 TAPD 关联**：
 
 - 仍可按 \`submit.cli\` 走 Commit/PR（\`git\` 默认 / \`gtm\`）
-- **不询问** TAPD 回填、新建单、\`workspace_id\` / \`milestone_id\`
+- **不询问** TAPD 回填、新建单、\`workspace_id\`
 - 用户**主动**要求关联 TAPD 时，可单独走本 Skill 并先确认 entry
 `;
 }

@@ -21,8 +21,8 @@ export function defaultTapdConfigTemplate() {
     enabled: true,
     username: '',
     api_password: '',
+    // workspace_id optional — auto-extracted from TAPD URL at backfill time
     workspace_id: '',
-    milestone_id: '',
     default_entry_type: 'story',
     tapd_story: defaultTapdStoryStatus(),
     tapd_bug: defaultTapdBugStatus()
@@ -35,7 +35,6 @@ export function buildTapdConfigFromAnswers(answers = {}) {
   if (answers.username) config.username = answers.username;
   if (answers.api_password) config.api_password = answers.api_password;
   if (answers.workspace_id) config.workspace_id = String(answers.workspace_id);
-  if (answers.milestone_id) config.milestone_id = String(answers.milestone_id);
 
   if (answers.story_status_done) config.tapd_story.status_done = answers.story_status_done;
   if (answers.story_status_release) config.tapd_story.status_release = answers.story_status_release;

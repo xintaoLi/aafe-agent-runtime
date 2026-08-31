@@ -341,8 +341,7 @@ export async function collectTapdConfigOptions(rl, existingTapd = null) {
 
   const username = await ask(rl, `TAPD username (${existingTapd?.username ?? ''}): `, existingTapd?.username ?? '');
   const apiPassword = await ask(rl, `TAPD api_password (${maskSecret(existingTapd?.api_password)}): `, existingTapd?.api_password ?? '');
-  const workspaceId = await ask(rl, `TAPD workspace_id (${existingTapd?.workspace_id ?? ''}): `, existingTapd?.workspace_id ?? '');
-  const milestoneId = await ask(rl, `TAPD milestone_id / iteration_id (${existingTapd?.milestone_id ?? ''}): `, existingTapd?.milestone_id ?? '');
+  const workspaceId = await ask(rl, `TAPD workspace_id (optional, auto-extracted from TAPD URL if empty) (${existingTapd?.workspace_id ?? ''}): `, existingTapd?.workspace_id ?? '');
 
   console.log('');
   console.log('Story status mapping (comma-separated chains for status_doing):');
@@ -362,7 +361,6 @@ export async function collectTapdConfigOptions(rl, existingTapd = null) {
     username,
     api_password: apiPassword,
     workspace_id: workspaceId,
-    milestone_id: milestoneId,
     story_status_backlog: storyStatusBacklog,
     story_status_todo: storyStatusTodo,
     story_status_doing: storyStatusDoing,

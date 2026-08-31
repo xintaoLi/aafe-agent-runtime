@@ -12,7 +12,7 @@ Tools: `stories_*`, `bugs_*`, `comments_create`, `tapd_id_get`, `tapd_file_uploa
 
 ## Config
 
-Read `tapd.config.json` → `tapd` object: `enabled`, `workspace_id`, `milestone_id`, `tapd_story.*`, `tapd_bug.*`, optional `pr_field`.
+Read `tapd.config.json` → `tapd` object: `enabled`, `tapd_story.*`, `tapd_bug.*`, optional `pr_field`. `workspace_id` 不在配置中硬编码，回填时从 TAPD 链接动态提取。
 
 Submit-backfill status: backlog → todo → doing（已是 doing 则跳过；不自动到 for_test）。
 

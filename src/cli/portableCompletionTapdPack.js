@@ -115,7 +115,7 @@ alwaysApply: true
 - 用户在本任务中引用/绑定 TAPD 单号
 - 会话记录 \`tapd_entry_id\` / \`tapd_entry_type\`
 
-**无关联** → 跳过回填询问、新建单、\`workspace_id\` / \`milestone_id\` 索取；可常规 Commit/PR。
+**无关联** → 跳过回填询问、新建单、\`workspace_id\` 索取；可常规 Commit/PR。\`workspace_id\` 回填时从 TAPD 链接动态提取，不需配置。
 
 ## 触发
 
@@ -287,7 +287,7 @@ Tools: \`stories_*\`, \`bugs_*\`, \`comments_create\`, \`tapd_id_get\`, \`tapd_f
 
 ## Config
 
-Read \`${CONFIG_TAPD}\` → \`tapd\` object: \`enabled\`, \`workspace_id\`, \`milestone_id\`, \`tapd_story.*\`, \`tapd_bug.*\`, optional \`pr_field\`.
+Read \`${CONFIG_TAPD}\` → \`tapd\` object: \`enabled\`, \`tapd_story.*\`, \`tapd_bug.*\`, optional \`pr_field\`. \`workspace_id\` 不在配置中硬编码，回填时从 TAPD 链接动态提取。
 
 Submit-backfill status: backlog → todo → doing（已是 doing 则跳过；不自动到 for_test）。
 
@@ -368,8 +368,7 @@ export function portableTapdConfigExample() {
       enabled: true,
       username: '',
       api_password: '',
-      workspace_id: '',
-      milestone_id: '',
+      workspace_id: '',  // optional — if empty, auto-extracted from TAPD URL at backfill time
       default_entry_type: 'story',
       pr_field: '',
       tapd_story: {
