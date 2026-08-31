@@ -6,6 +6,7 @@ import {
   isGtmSubmitCli,
   defaultSubmitConfig,
   parseGtmBranchName,
+  parseTapdBranchName,
   tapdShortIdFromFullId,
   extractTapdIdFromUrl
 } from '../src/cli/submitConfig.js';
@@ -28,20 +29,30 @@ assert.equal(isGtmSubmitCli({ cli: 'git' }), false);
 
 assert.deepEqual(buildSubmitConfigFromAnswers({ cli: 'gtm' }), { cli: 'gtm' });
 
-const parsed = parseGtmBranchName('feat/search-tag/#1010158081136674445');
+// Branch name uses short_id (last 9 digits) in the # segment
+const parsed = parseTapdBranchName('feat/search-tag/#137629063');
 assert.equal(parsed.associated, true);
 assert.equal(parsed.entryType, 'story');
 assert.equal(parsed.slug, 'search-tag');
-assert.equal(parsed.entryId, '1010158081136674445');
-assert.equal(parsed.shortId, '136674445');
-assert.equal(parseGtmBranchName('master'), null);
+assert.equal(parsed.entryId, '137629063');
+assert.equal(parsed.shortId, '137629063');
+assert.equal(parseTapdBranchName('master'), null);
+
+// Backward-compatible alias still works
+assert.equal(parseGtmBranchName('feat/search-tag/#137629063').shortId, '137629063');
+
+// Bug branch
+const bugParsed = parseTapdBranchName('bug/login-fix/#137629063');
+assert.equal(bugParsed.entryType, 'bug');
+assert.equal(bugParsed.prefix, 'bug');
+
 assert.equal(
-  tapdShortIdFromFullId('https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081136674445'),
-  '136674445'
+  tapdShortIdFromFullId('https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081137629063'),
+  '137629063'
 );
 assert.equal(
-  extractTapdIdFromUrl('https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081136674445'),
-  '1010158081136674445'
+  extractTapdIdFromUrl('https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081137629063'),
+  '1010158081137629063'
 );
 
 console.log('submit config tests passed');

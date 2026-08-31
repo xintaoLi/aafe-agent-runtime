@@ -49,7 +49,7 @@ function tapdSubmitProjectRuleBody(agentPrefix = '.ai-agent') {
 - 任务来自 TAPD（story/bug/task ID、链接、TAPD MCP 已用于本任务）
 - 用户在本任务中明确引用/绑定 TAPD 单号
 - 会话或元数据记录 \`tapd_entry_id\` / \`tapd_entry_type\`
-- \`submit.cli=gtm\` 且当前分支名为 \`feat|bug/<slug>/#<tapd_full_id>\`（GTM 已关联）
+- 当前分支名为 \`feat|bug/<slug>/#<tapd_short_id>\`（已关联，git 和 gtm 均适用）
 
 **无 TAPD 关联** → **跳过**：
 
@@ -88,9 +88,10 @@ function tapdSubmitProjectRuleBody(agentPrefix = '.ai-agent') {
 | \`gtm\` | \`gtm commit\` | \`gtm pr\` |
 
 - \`aafe init\` / \`aafe update --submit-cli=git|gtm\` 可写入/更新该配置
-- \`gtm\`：项目 GTM 已配置完毕；抛错由项目侧处理，**不强制**重试或降级
-- \`gtm\` 新任务开始：先检查分支是否含 \`#<tapd_id>\`；未关联则 \`gtm create issue\` → 关联已有单据（短 ID=链接最后 9 位）→ 目标分支 \`master\` → 按 TAPD 标题取英文短名建开发分支（详见 Skill「GTM Task Start」）
-- 有关联 TAPD 时，尽量保证 commit message 含 \`--bug=\` / \`--story=\`
+- **分支关联（git 和 gtm 均适用）**：新任务开始时先检查当前分支是否含 \`#<tapd_short_id>\`；未关联则从远程主干创建开发分支（详见 Skill「TAPD Branch Association」）
+  - \`git\`：\`git checkout -b feat|bug/<slug>/#<short_id> upstream/master\`
+  - \`gtm\`：\`gtm create issue\` → 关联已有单据（短 ID = URL 最后 9 位）→ 目标分支 \`master\` → 按 TAPD 标题取英文短名建开发分支
+- 有关联 TAPD 时，commit message 必须含 \`--bug=\` / \`--story=\`
 
 ### 回填询问（仅有关联 TAPD 时）
 
@@ -139,7 +140,7 @@ export function tapdSubmitRuleSection(ctx = {}) {
     '**前置**：任务过程中须**已关联 TAPD 单**；无关联则跳过回填及新建单/workspace_id 等条件询问。',
     '',
     '有关联且 tapd.enabled 时，自测完成后或用户说 commit/push/submit/提测：',
-    '1. \`submit.cli=gtm\` 时新任务先检查分支 \`feat|bug/<slug>/#<id>\`；未关联则 \`gtm create issue\` 关联短 ID（TAPD 链接最后 9 位）并建开发分支。',
+    '1. 新任务时先检查当前分支 `feat|bug/<slug>/#<short_id>` 是否已关联 TAPD（git 和 gtm 均适用）；未关联则从远程主干创建开发分支（详见 Skill「TAPD Branch Association」）。',
     '2. 询问 Commit → 同意则按 \`submit.cli\`（\`git\` 默认 / \`gtm\`）执行 Commit/PR → **询问是否回填 TAPD**（无关联则整段跳过）。',
     '3. 回填内容 **只通过 `comments_create` 追加**；禁止改写 description/test_focus。',
     '4. 评论回填后按当前状态流转：backlog→todo→doing；已是 todo 则直接 →doing；已是 doing 则跳过。',
@@ -196,45 +197,83 @@ Read \`.aafe.config.json\` → \`submit.cli\`:
 
 ---
 
-## GTM Task Start — 分支与 TAPD 关联（仅 \`submit.cli=gtm\`）
+## TAPD Branch Association — 分支关联与 TAPD 详情核对（git 和 gtm 均适用）
 
-**触发**：新任务开始（已拿到具体 TAPD 单 / 需求，准备改代码前）。\`submit.cli=git\` 时跳过本节。
+**触发**：新任务开始（已拿到具体 TAPD 单 / 需求，准备改代码前），无论 \`submit.cli\` 是 \`git\` 还是 \`gtm\`。
 
-### G0 检查当前分支是否已关联 TAPD
+### T0 拉取 TAPD 需求详情
+
+通过 TAPD MCP 拉取单据详情，确认任务内容：
+
+\`\`\`text
+1. 从用户提供的 TAPD URL 提取 ID（URL 最后一段数字的末 9 位 = short_id）
+2. tapd_id_get → 确认 story / bug 类型和完整信息
+3. stories_get / bugs_get → 拉取标题、描述、验收标准、当前状态
+4. 记录 tapd_entry_type / tapd_entry_id / tapd_short_id / tapd_title
+\`\`\`
+
+TAPD URL 与 ID 示例：
+
+\`\`\`text
+https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081137629063
+→ URL 最后一段 = 1010158081137629063
+→ short_id = 末 9 位 = 137629063
+→ entry_type = story
+\`\`\`
+
+### T1 检查当前分支是否已关联该 TAPD 单
 
 \`\`\`bash
 git branch --show-current
 \`\`\`
 
-GTM 关联分支命名约定：
+分支命名约定（git 和 gtm 统一）：
 
 \`\`\`text
-{type}/{feature-slug}/#{tapd_full_id}
+{type}/{feature-slug}/#{tapd_short_id}
 \`\`\`
 
-示例：\`feat/search-tag/#1010158081136674445\`
+示例：\`feat/search-tag/#137629063\`
 
 | 段 | 含义 |
 | --- | --- |
 | \`feat\` / \`feature\` | 需求（story） |
 | \`bug\` / \`fix\` | 缺陷（bug） |
-| \`search-tag\` | 当前分支功能短名（可读英文） |
-| \`#1010158081136674445\` | TAPD 链接最后一段数字 ID |
-
-TAPD 链接示例：
-
-\`\`\`text
-https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081136674445
-→ full id = 1010158081136674445
-→ GTM 单据短 ID = 最后 9 位 = 136674445
-\`\`\`
+| \`search-tag\` | 当前分支功能短名（可读英文，kebab-case） |
+| \`#137629063\` | TAPD URL 最后一段数字的**末 9 位** |
 
 **判定**：
 
-- 当前分支匹配 \`{type}/{slug}/#{digits}\` → **已关联**，记录 \`tapd_entry_type\` / \`tapd_entry_id\` / \`tapd_short_id\`，进入需求分析/开发
-- 不匹配（如 \`master\` / \`main\` / 无 \`#id\` 后缀）→ **未关联**，执行 G1
+- 当前分支匹配 \`{type}/{slug}/#{short_id}\` 且 \`short_id\` **与 T0 拉取的 TAPD 单一致** → **已正确关联**，进入需求分析/开发
+- 当前分支匹配 \`{type}/{slug}/#{digits}\` 但 \`digits\` **与 TAPD 单不一致** → **关联了错误的单**，需执行 T2 创建新分支
+- 不匹配（如 \`master\` / \`main\` / 无 \`#id\` 后缀）→ **未关联**，执行 T2
 
-### G1 未关联时：\`gtm create issue\` 关联已有单据并建开发分支
+### T2 未关联或关联错误时：从远程主干创建开发分支
+
+#### T2a \`submit.cli=git\`（默认）
+
+从远程 \`upstream/master\` 创建新分支：
+
+\`\`\`bash
+# 1. 确保远程主干为最新
+git fetch upstream master
+
+# 2. 基于 upstream/master 创建开发分支
+git checkout -b {type}/{slug}/#{short_id} upstream/master
+\`\`\`
+
+- \`{type}\`：story → \`feat\`；bug → \`bug\`
+- \`{slug}\`：根据 TAPD 标题生成可读英文短名（kebab-case，如 \`search-tag\`）
+- \`{short_id}\`：T0 提取的 TAPD short_id（末 9 位）
+
+示例：
+
+\`\`\`bash
+git fetch upstream master
+git checkout -b feat/search-tag/#137629063 upstream/master
+\`\`\`
+
+#### T2b \`submit.cli=gtm\`
 
 \`\`\`bash
 gtm create issue
@@ -243,16 +282,17 @@ gtm create issue
 按交互提示依次操作：
 
 1. 选择 **关联已有单据**
-2. **输入单据 ID**：TAPD 地址最后一段数字的**最后 9 位**  
-   - 例：\`.../detail/1010158081136674445\` → 输入 \`136674445\`
+2. **输入单据 ID**：TAPD short_id（URL 最后一段数字的末 9 位）  
+   - 例：\`.../detail/1010158081137629063\` → 输入 \`137629063\`
 3. **请输入目标分支**：\`master\`（或项目约定的主干名）
 4. **请输入新的开发分支名称**：根据 TAPD 单据标题生成**可读英文短名**（kebab-case，如 \`search-tag\`）  
-   - 只需输入功能短名；**系统会自动补充前缀（feat/bug）与后缀（\`#fullId\`）**
-   - 不要手写完整 \`feat/.../#...\`，避免与 GTM 自动规则冲突
+   - 只需输入功能短名；**系统会自动补充前缀（feat/bug）与后缀（\`#short_id\`）**
 
-完成后再次 \`git branch --show-current\`，确认已变为 \`feat|bug/<slug>/#<fullId>\`，再继续写代码。
+### T3 确认关联成功
 
-**失败/异常**：简要报告；由项目 GTM 侧处理，本 Skill 不强制降级；未关联成功时提醒用户手动完成后继续。
+完成后再次 \`git branch --show-current\`，确认已变为 \`feat|bug/<slug>/#<short_id>\`，再继续写代码。
+
+**失败/异常**：简要报告；由项目侧处理，本 Skill 不强制降级；未关联成功时提醒用户手动完成后继续。
 
 ---
 
@@ -350,11 +390,13 @@ Ensure before Commit/回填询问：
 
 \`\`\`text
 # bug
-bug: {TAPD标题} --bug={bug_id}
+bug: {功能或缺陷描述} --bug={tapd_short_id}
 
 # story / 需求
-feat: {TAPD标题} --story={story_id}
+feat: {功能描述} --story={tapd_short_id}
 \`\`\`
+
+其中 \`{tapd_short_id}\` 为 TAPD URL 最后一段数字的末 9 位（如 \`137629063\`）。
 
 若 \`submit.cli=gtm\` 且项目 GTM 已自动注入 TAPD ID，可直接执行。
 

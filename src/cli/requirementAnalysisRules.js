@@ -52,13 +52,16 @@ function requirementIntakeProjectRuleBody(agentPrefix = '.ai-agent') {
 
 详细步骤：\`${agentPrefix}/skills/requirement-intake-analysis.md\`
 
-## GTM 分支关联（仅 \`submit.cli=gtm\`）
+## TAPD 分支关联（git 和 gtm 均适用）
 
 新任务且有 TAPD 单时，写代码前：
 
-1. 检查当前分支是否 \`feat|bug/<slug>/#<tapd_full_id>\`
-2. 未关联 → \`gtm create issue\` → 关联已有单据（短 ID = TAPD 链接最后 9 位）→ 目标分支 \`master\` → 按 TAPD 标题生成英文短名
-3. 详见 \`${agentPrefix}/skills/tapd-submit-backfill.md\`「GTM Task Start」
+1. 通过 TAPD MCP 拉取需求详情，提取 \`tapd_short_id\`（URL 最后一段数字的末 9 位）
+2. 检查当前分支是否 \`feat|bug/<slug>/#<tapd_short_id>\` 且 short_id 与 TAPD 单一致
+3. 未关联或关联错误 → 从远程主干创建开发分支：
+   - \`git\`：\`git checkout -b feat|bug/<slug>/#<short_id> upstream/master\`
+   - \`gtm\`：\`gtm create issue\` → 关联已有单据 → 目标分支 \`master\` → 按 TAPD 标题生成英文短名
+4. 详见 \`${agentPrefix}/skills/tapd-submit-backfill.md\`「TAPD Branch Association」
 
 ## 阶段 A — 需求分析与澄清
 
@@ -153,7 +156,7 @@ export function requirementIntakeRuleSection(ctx = {}) {
     '## AAFE 需求分析阶段（Requirement Intake）',
     '',
     '拿到具体需求后（TAPD 拉取或用户描述）、写代码前：',
-    '0. 若 `.aafe.config.json` → `submit.cli=gtm`：检查当前分支是否 `feat|bug/<slug>/#<tapd_id>`；未关联则按 `tapd-submit-backfill`「GTM Task Start」执行 `gtm create issue`。',
+    '0. TAPD MCP 拉取需求详情并核对分支关联（git 和 gtm 均适用）：检查当前分支 `feat|bug/<slug>/#<short_id>` 是否与 TAPD 单一致；未关联或错误则从远程主干创建开发分支（见 `tapd-submit-backfill`「TAPD Branch Association」）。',
     `1. 澄清不明确项（方案选择 / 追问 / 要详细答复）；未明确禁止写代码。`,
     `2. 需求明确后查历史：\`${agentPrefix}/skills/memory-recaller.md\` + experience/learnings。`,
     '3. 分析代码范围与根因，再定实施策略。',
@@ -185,16 +188,18 @@ Post-implementation (unchanged): \`${prefix}/rules/task-completion-impact.mdc\` 
 
 Record: \`requirement_source\`, \`requirement_summary\`, \`tapd_entry_id\`（若有）
 
-### Phase 0.5 — GTM branch association（仅 \`submit.cli=gtm\`）
+### Phase 0.5 — TAPD branch association（git 和 gtm 均适用）
 
-若 \`.aafe.config.json\` → \`submit.cli=gtm\` 且本任务有 TAPD 单：
+若本任务有 TAPD 单：
 
-1. \`git branch --show-current\`：是否匹配 \`feat|bug/<slug>/#<fullId>\`
-2. **已匹配** → 记录 \`tapd_entry_id\` / 短 ID（fullId 最后 9 位），继续 Phase 1
-3. **未匹配** → 按 \`${prefix}/skills/tapd-submit-backfill.md\`「GTM Task Start」执行：  
-   \`gtm create issue\` → 关联已有单据 → 短 ID（TAPD URL 最后 9 位）→ 目标分支 \`master\` → 按 TAPD 标题生成英文短名建开发分支
+1. 通过 TAPD MCP 拉取需求详情（\`tapd_id_get\` → \`stories_get\` / \`bugs_get\`），提取 \`tapd_short_id\`（URL 最后一段数字的末 9 位）
+2. \`git branch --show-current\`：是否匹配 \`feat|bug/<slug>/#<short_id>\` 且 \`short_id\` 与 TAPD 单一致
+3. **已匹配且一致** → 记录 \`tapd_entry_type\` / \`tapd_entry_id\` / \`tapd_short_id\`，继续 Phase 1
+4. **未匹配或不一致** → 按 \`${prefix}/skills/tapd-submit-backfill.md\`「TAPD Branch Association」执行：
+   - \`submit.cli=git\`：\`git fetch upstream master\` → \`git checkout -b feat|bug/<slug>/#<short_id> upstream/master\`
+   - \`submit.cli=gtm\`：\`gtm create issue\` → 关联已有单据 → 短 ID → 目标分支 \`master\` → 按 TAPD 标题生成英文短名建开发分支
 
-\`submit.cli=git\` 或无 TAPD 单时跳过本小节。
+无 TAPD 单时跳过本小节。
 
 ---
 

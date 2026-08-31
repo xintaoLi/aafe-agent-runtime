@@ -31,9 +31,9 @@ Submit-backfill status: backlog → todo → doing（已是 doing 则跳过；�
 先读 `submit.cli`：`git`（默认，Git+`gh`）或 `gtm`（`gtm commit`/`gtm pr`）。  
 有关联 TAPD 时使用已关联 `entry_type` / `entry_id`；禁止无关联时编造 ID。
 
-### GTM Task Start（`submit.cli=gtm`）
+### TAPD Branch Association（git 和 gtm 均适用）
 
-新任务：检查分支 `feat|bug/<slug>/#<fullId>`。未关联则 `gtm create issue` → 关联已有单据（短 ID=URL 最后 9 位）→ 目标 `master` → 按 TAPD 标题取英文短名建分支。
+新任务：TAPD MCP 拉取需求详情 → 提取 short_id（URL 末 9 位）→ 检查分支 `feat|bug/<slug>/#<short_id>` 是否一致。未关联/错误则从远程主干创建分支：`git` → `git checkout -b feat|bug/<slug>/#<short_id> upstream/master`；`gtm` → `gtm create issue` 关联已有单据 → 目标 `master` → 按 TAPD 标题取英文短名建分支。
 
 ## Phase E — Ask backfill
 
