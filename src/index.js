@@ -38,6 +38,7 @@ export { discoverProjectEntries } from './static-analysis/entryDiscover.js';
 export { AnalyzeOrchestrator } from './static-analysis/orchestrator.js';
 export { resolveAnalyzeConfig, defaultAnalyzeConfigBlock } from './static-analysis/types/config.js';
 export { collectDiffFacts } from './static-analysis/git/DiffFacts.js';
+export { discoverProjectContext, findProjectRoot } from './project/projectContext.js';
 
 export {
   createAgentPlatform,

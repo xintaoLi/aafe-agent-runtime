@@ -47,6 +47,7 @@ export class AgentOrchestrator {
     output = '.aafe',
     write = true,
     knowledge = null,
+    projectContext = null,
     onEvent = () => {}
   }) {
     this.registry = registry;
@@ -57,6 +58,7 @@ export class AgentOrchestrator {
     this.output = output;
     this.write = write;
     this.knowledge = knowledge;
+    this.projectContext = projectContext;
     this.onEvent = onEvent;
     this.runtime = runtime ?? new AgentRuntime({ providers, root, onEvent });
     /** @type {Map<string, AbortController>} */
@@ -330,6 +332,7 @@ export class AgentOrchestrator {
         root: this.root,
         output: this.output,
         knowledge: this.knowledge,
+        projectContext: this.projectContext,
         task: ctx.task,
         priorResults: Object.fromEntries(ctx.state.resultsByCapability)
       },

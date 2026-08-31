@@ -2,6 +2,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { AgentRuntime } from './AgentRuntime.js';
 import { defaultGates, defaultPipelines, defaultRouter, defaultSkills } from './defaults.js';
+import { discoverProjectContext } from '../../project/projectContext.js';
 
 export async function loadRuntimeConfig(root, options = {}) {
   const runtimeDir = options.runtimeDir ?? path.join(root, '.ai-agent');
@@ -22,9 +23,11 @@ export async function loadRuntimeConfig(root, options = {}) {
 
 export async function createRuntimeFromProject(root, options = {}) {
   const config = await loadRuntimeConfig(root, options);
+  const projectContext = options.projectContext ?? await discoverProjectContext(root);
   return new AgentRuntime({
     ...config,
     root,
+    projectContext,
     skills: { ...defaultSkills, ...(options.skills ?? {}) },
     hooks: options.hooks,
     memory: options.memory === false ? false : (options.memory ?? { config: await loadProjectConfig(path.join(root, '.aafe.config.json')) }),

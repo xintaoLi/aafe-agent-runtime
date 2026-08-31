@@ -17,6 +17,7 @@ import { runUpdateCommand } from './update.js';
 import { runMigrateCommand } from './migrate.js';
 import { createRuntimeFromProject } from '../agent-platform/skill-runtime/configLoader.js';
 import { resolveWorkspaceLayout } from './workspace.js';
+import { discoverProjectContext } from '../project/projectContext.js';
 import {
   runContextCommand,
   runDiagnoseCommand,
@@ -48,6 +49,13 @@ export async function runCli(argv) {
 
   if (command === 'detect') {
     console.log(JSON.stringify(await detectProject(process.cwd()), null, 2));
+    return;
+  }
+
+  if (command === 'project' || command === 'projects') {
+    const subcommand = argv[3] ?? 'context';
+    if (subcommand !== 'context') throw new Error(`Unknown project command: ${subcommand}`);
+    console.log(JSON.stringify(await discoverProjectContext(process.cwd()), null, 2));
     return;
   }
 
@@ -216,6 +224,7 @@ function printHelp() {
 Commands:
   init      Initialize .ai-agent runtime, memory and editor rules
   detect    Detect framework, editor and scenario
+  project   Resolve current project directory and enumerate local Rules/Skills
   doctor    Validate installed runtime files
   sync      Refresh generated runtime files
   analyze   Generate architecture locator, .ai-agent/.docs AST analysis and on-demand skills

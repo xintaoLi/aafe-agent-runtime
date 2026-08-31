@@ -29,6 +29,7 @@ import { ContractLoader } from './schema/loader.js';
 import { AgentOrchestrator } from './orchestrator/AgentOrchestrator.js';
 import { createBuiltinAgents } from '../agents/index.js';
 import { KnowledgeStore } from '../knowledge/store/KnowledgeStore.js';
+import { discoverProjectContext } from '../project/projectContext.js';
 
 export { AgentRegistry, createRegistryFromConfig } from './registry/AgentRegistry.js';
 export { AgentOrchestrator } from './orchestrator/AgentOrchestrator.js';
@@ -56,6 +57,7 @@ export async function createAgentPlatform(root, options = {}) {
 
   const output = options.output ?? projectConfig.analyze?.output ?? '.aafe';
   const knowledge = options.knowledge ?? new KnowledgeStore({ root, output });
+  const projectContext = options.projectContext ?? await discoverProjectContext(root);
 
   // `--no-ide-agent` is a per-invocation override on top of the resolved config.
   const ideAgent = options.ideAgent === false
@@ -78,6 +80,7 @@ export async function createAgentPlatform(root, options = {}) {
     providers,
     contracts,
     root,
+    projectContext,
     onEvent: options.onEvent ?? (() => {})
   });
 
@@ -93,6 +96,7 @@ export async function createAgentPlatform(root, options = {}) {
     output,
     write: options.write !== false,
     knowledge,
+    projectContext,
     onEvent: options.onEvent
   });
 
@@ -109,7 +113,8 @@ export async function createAgentPlatform(root, options = {}) {
     get warnings() {
       return [...warnings, ...contracts.warnings];
     },
-    output
+    output,
+    projectContext
   };
 }
 

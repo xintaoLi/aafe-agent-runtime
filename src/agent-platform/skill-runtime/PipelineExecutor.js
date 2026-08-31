@@ -25,7 +25,8 @@ export class PipelineExecutor {
       input,
       attempt,
       results: {},
-      trace: []
+      trace: [],
+      projectContext: input.projectContext ?? null
     };
 
     for (const step of pipeline.steps) {
