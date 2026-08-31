@@ -1,0 +1,61 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_runtime_providers_LocalA["src/agent-platform/runtime/providers/LocalAgentProvider.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_runtime_providers_LocalA
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_runtime_AgentRuntime_js
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agent_platform_runtime_providers_index_["src/agent-platform/runtime/providers/index.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agent_platform_runtime_providers_index_
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agent_platform_runtime_AgentRuntime_js
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|IMPORTS| n_file_src_agent_platform_runtime_AgentRuntime_js
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_schema_loader_js["src/agent-platform/schema/loader.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js -->|IMPORTS| n_file_src_agent_platform_schema_loader_js
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_schema_repair_js["src/agent-platform/schema/repair.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js -->|IMPORTS| n_file_src_agent_platform_schema_repair_js
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_schema_validate_js["src/agent-platform/schema/validate.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js -->|IMPORTS| n_file_src_agent_platform_schema_validate_js
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js -->|IMPORTS| n_file_src_agent_platform_policy_ExecutionPolicy_j
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_runtime_evidenceSchema_j["src/agent-platform/runtime/evidenceSchema.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js -->|IMPORTS| n_file_src_agent_platform_runtime_evidenceSchema_j
+  n_file_src_agent_platform_runtime_evidenceSchema_j["src/agent-platform/runtime/evidenceSchema.js"]
+  n_import_node_fs["node:fs"]
+  n_file_src_agent_platform_runtime_evidenceSchema_j -->|IMPORTS| n_import_node_fs
+  n_file_src_agent_platform_runtime_evidenceSchema_j["src/agent-platform/runtime/evidenceSchema.js"]
+  n_import_node_path["node:path"]
+  n_file_src_agent_platform_runtime_evidenceSchema_j -->|IMPORTS| n_import_node_path
+  n_file_src_agent_platform_runtime_evidenceSchema_j["src/agent-platform/runtime/evidenceSchema.js"]
+  n_import_node_url["node:url"]
+  n_file_src_agent_platform_runtime_evidenceSchema_j -->|IMPORTS| n_import_node_url
+  n_file_src_agent_platform_runtime_providers_CliAge["src/agent-platform/runtime/providers/CliAgentProvider.js"]
+  n_import_node_child_process["node:child_process"]
+  n_file_src_agent_platform_runtime_providers_CliAge -->|IMPORTS| n_import_node_child_process
+  n_file_src_agent_platform_runtime_providers_CliAge["src/agent-platform/runtime/providers/CliAgentProvider.js"]
+  n_file_src_agent_platform_runtime_providers_AgentP["src/agent-platform/runtime/providers/AgentProvider.js"]
+  n_file_src_agent_platform_runtime_providers_CliAge -->|IMPORTS| n_file_src_agent_platform_runtime_providers_AgentP
+  n_file_src_agent_platform_runtime_providers_CliAge["src/agent-platform/runtime/providers/CliAgentProvider.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agent_platform_runtime_providers_CliAge -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agent_platform_runtime_providers_HttpAg["src/agent-platform/runtime/providers/HttpAgentProvider.js"]
+  n_file_src_agent_platform_runtime_providers_AgentP["src/agent-platform/runtime/providers/AgentProvider.js"]
+  n_file_src_agent_platform_runtime_providers_HttpAg -->|IMPORTS| n_file_src_agent_platform_runtime_providers_AgentP
+  n_file_src_agent_platform_runtime_providers_HttpAg["src/agent-platform/runtime/providers/HttpAgentProvider.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agent_platform_runtime_providers_HttpAg -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agent_platform_runtime_providers_IdeAge["src/agent-platform/runtime/providers/IdeAgentProvider.js"]
+  n_file_src_agent_platform_runtime_providers_AgentP["src/agent-platform/runtime/providers/AgentProvider.js"]
+  n_file_src_agent_platform_runtime_providers_IdeAge -->|IMPORTS| n_file_src_agent_platform_runtime_providers_AgentP

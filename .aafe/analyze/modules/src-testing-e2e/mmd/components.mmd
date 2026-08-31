@@ -1,0 +1,20 @@
+flowchart LR
+  n_compile["compile"]
+  n_DEFAULT_E2E_CONFIG["DEFAULT_E2E_CONFIG"]
+  n_compile -->|IMPORTS| n_DEFAULT_E2E_CONFIG
+  n_yaml["yaml"]
+  n_compile -->|IMPORTS| n_yaml
+  n_inventory["inventory"]
+  n_inventory -->|IMPORTS| n_DEFAULT_E2E_CONFIG
+  n_match["match"]
+  n_inventory -->|IMPORTS| n_match
+  n_inventory -->|IMPORTS| n_yaml
+  n_match -->|IMPORTS| n_yaml
+  n_INLINE_TOKEN_REJECTION["INLINE_TOKEN_REJECTION"]
+  n_INLINE_TOKEN_REJECTION -->|IMPORTS| n_DEFAULT_E2E_CONFIG
+  n_runner["runner"]
+  n_runner -->|IMPORTS| n_DEFAULT_E2E_CONFIG
+  n_runner -->|IMPORTS| n_compile
+  n_EXIT_CODE["EXIT_CODE"]
+  n_runner -->|IMPORTS| n_EXIT_CODE
+  n_runner -->|IMPORTS| n_yaml

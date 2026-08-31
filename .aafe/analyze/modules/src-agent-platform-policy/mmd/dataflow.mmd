@@ -1,0 +1,61 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_policy_ExecutionPolicy_j
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|IMPORTS| n_file_src_agent_platform_policy_ExecutionPolicy_j
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_file_src_agent_platform_protocol_request_js["src/agent-platform/protocol/request.js"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|IMPORTS| n_file_src_agent_platform_protocol_request_js
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js -->|IMPORTS| n_file_src_agent_platform_policy_ExecutionPolicy_j
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_Object_freeze["Object.freeze"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_Object_freeze
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_defaultConstraints["defaultConstraints"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_defaultConstraints
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_positiveOrNull["positiveOrNull"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_positiveOrNull
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_positiveOrNull["positiveOrNull"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_positiveOrNull
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_clampPositive["clampPositive"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_clampPositive
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_clampNonNegative["clampNonNegative"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_clampNonNegative
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_Math_max["Math.max"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_Math_max
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_Number_isFinite["Number.isFinite"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_Number_isFinite
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_assertNotDestructive["assertNotDestructive"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_assertNotDestructive
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_filter["filter"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_filter
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_FORBIDDEN_COMMAND_PATTERNS_find["FORBIDDEN_COMMAND_PATTERNS.find"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_FORBIDDEN_COMMAND_PATTERNS_find
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_regexp_test["regexp.test"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_regexp_test
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_Number["Number"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_Number
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_Number["Number"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_Number
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_Math_round["Math.round"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_Math_round
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_call_cost_toFixed["cost.toFixed"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|CALLS| n_call_cost_toFixed

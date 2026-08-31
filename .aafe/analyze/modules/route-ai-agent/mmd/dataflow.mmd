@@ -1,0 +1,61 @@
+flowchart TD
+  n_file_scripts_test_workspace_cursor_js["scripts/test-workspace-cursor.js"]
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_scripts_test_workspace_cursor_js -->|IMPORTS| n_file_src_cli_bootstrap_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_import_node_fs_promises["node:fs/promises"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_import_node_fs_promises
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_cli_migrate_js["src/cli/migrate.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_cli_migrate_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_cli_hookScripts_js["src/cli/hookScripts.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_cli_hookScripts_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_import_node_path["node:path"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_import_node_path
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_templates_TemplateSystem_js["src/templates/TemplateSystem.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_templates_TemplateSystem_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_cli_editorLayer_js["src/cli/editorLayer.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_cli_editorLayer_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_cli_codebuddyLayer_js["src/cli/codebuddyLayer.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_cli_codebuddyLayer_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_cli_editorRegistry_js["src/cli/editorRegistry.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_cli_editorRegistry_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_cli_completionImpactRules_js["src/cli/completionImpactRules.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_cli_completionImpactRules_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_cli_requirementAnalysisRules_js["src/cli/requirementAnalysisRules.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_cli_requirementAnalysisRules_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_cli_tapdSubmitRules_js["src/cli/tapdSubmitRules.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_cli_tapdSubmitRules_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_cli_fileLicenseRules_js["src/cli/fileLicenseRules.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_cli_fileLicenseRules_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_cli_dddRuntimeFiles_js["src/cli/dddRuntimeFiles.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_cli_dddRuntimeFiles_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_cli_patternRuntimeFiles_js["src/cli/patternRuntimeFiles.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_cli_patternRuntimeFiles_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_cli_e2eFromPrRules_js["src/cli/e2eFromPrRules.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_cli_e2eFromPrRules_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_cli_submitConfig_js["src/cli/submitConfig.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_cli_submitConfig_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_agent_platform_config_agentsConfig_js
+  n_file_src_cli_index_js["src/cli/index.js"]
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_cli_index_js -->|IMPORTS| n_file_src_cli_bootstrap_js
+  n_file_src_cli_update_js["src/cli/update.js"]
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_cli_update_js -->|IMPORTS| n_file_src_cli_bootstrap_js

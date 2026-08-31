@@ -1,0 +1,172 @@
+{
+  "candidates": [
+    {
+      "id": "feature:ai-agent-memory",
+      "name": "memory",
+      "entrypoints": [
+        ".ai-agent/memory"
+      ],
+      "components": [],
+      "apis": [],
+      "stores": [],
+      "dataHints": [],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/cli/bootstrap.js",
+          "reason": ".ai-agent/memory"
+        }
+      ],
+      "confidence": 0.6,
+      "source": "static",
+      "status": "candidate"
+    },
+    {
+      "id": "feature:feature",
+      "name": "...",
+      "entrypoints": [
+        "..."
+      ],
+      "components": [],
+      "apis": [],
+      "stores": [],
+      "dataHints": [],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/static-analysis/ast/extractors.js",
+          "reason": "..."
+        }
+      ],
+      "confidence": 0.6,
+      "source": "static",
+      "status": "candidate"
+    },
+    {
+      "id": "feature:package-json",
+      "name": "package",
+      "entrypoints": [
+        "package.json"
+      ],
+      "components": [],
+      "apis": [],
+      "stores": [],
+      "dataHints": [],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/static-analysis/analyzers/repository.js",
+          "reason": "package.json"
+        }
+      ],
+      "confidence": 0.6,
+      "source": "static",
+      "status": "candidate"
+    },
+    {
+      "id": "feature:ctx-path-index",
+      "name": "${index}",
+      "entrypoints": [
+        "${ctx.path}/${index}"
+      ],
+      "components": [],
+      "apis": [],
+      "stores": [],
+      "dataHints": [],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/agent-platform/schema/repair.js",
+          "reason": "${ctx.path}/${index}"
+        }
+      ],
+      "confidence": 0.6,
+      "source": "static",
+      "status": "candidate"
+    },
+    {
+      "id": "feature:ctx-path-key",
+      "name": "${key}",
+      "entrypoints": [
+        "${ctx.path}/${key}"
+      ],
+      "components": [],
+      "apis": [],
+      "stores": [],
+      "dataHints": [],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/agent-platform/schema/repair.js",
+          "reason": "${ctx.path}/${key}"
+        }
+      ],
+      "confidence": 0.6,
+      "source": "static",
+      "status": "candidate"
+    },
+    {
+      "id": "feature:casesdir-id-yaml",
+      "name": "${id}",
+      "entrypoints": [
+        "${casesDir}/${id}.yaml"
+      ],
+      "components": [],
+      "apis": [],
+      "stores": [],
+      "dataHints": [],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "${casesDir}/${id}.yaml"
+        }
+      ],
+      "confidence": 0.6,
+      "source": "static",
+      "status": "candidate"
+    },
+    {
+      "id": "feature:aafe-e2e-specs-id-spec-js",
+      "name": "${id}.spec",
+      "entrypoints": [
+        ".aafe/e2e/specs/${id}.spec.js"
+      ],
+      "components": [],
+      "apis": [],
+      "stores": [],
+      "dataHints": [],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": ".aafe/e2e/specs/${id}.spec.js"
+        }
+      ],
+      "confidence": 0.6,
+      "source": "static",
+      "status": "candidate"
+    },
+    {
+      "id": "feature:tests-aafe-filestem-plan-spec-js",
+      "name": "${fileStem(plan)}.spec",
+      "entrypoints": [
+        "tests/aafe/${fileStem(plan)}.spec.js"
+      ],
+      "components": [],
+      "apis": [],
+      "stores": [],
+      "dataHints": [],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+        }
+      ],
+      "confidence": 0.6,
+      "source": "static",
+      "status": "candidate"
+    }
+  ]
+}

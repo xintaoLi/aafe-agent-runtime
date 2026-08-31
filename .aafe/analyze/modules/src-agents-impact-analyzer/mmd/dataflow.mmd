@@ -1,0 +1,31 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agents_impact_analyzer_index_js["src/agents/impact-analyzer/index.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agents_impact_analyzer_index_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agents_impact_analyzer_tokenize_js["src/agents/impact-analyzer/tokenize.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agents_impact_analyzer_tokenize_js
+  n_file_src_agents_impact_analyzer_index_js["src/agents/impact-analyzer/index.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agents_impact_analyzer_index_js -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agents_impact_analyzer_index_js["src/agents/impact-analyzer/index.js"]
+  n_file_src_static_analysis_git_DiffFacts_js["src/static-analysis/git/DiffFacts.js"]
+  n_file_src_agents_impact_analyzer_index_js -->|IMPORTS| n_file_src_static_analysis_git_DiffFacts_js
+  n_file_src_agents_impact_analyzer_index_js["src/agents/impact-analyzer/index.js"]
+  n_file_src_static_analysis_types_evidence_js["src/static-analysis/types/evidence.js"]
+  n_file_src_agents_impact_analyzer_index_js -->|IMPORTS| n_file_src_static_analysis_types_evidence_js
+  n_file_src_agents_impact_analyzer_index_js["src/agents/impact-analyzer/index.js"]
+  n_file_src_knowledge_graph_relations_js["src/knowledge/graph/relations.js"]
+  n_file_src_agents_impact_analyzer_index_js -->|IMPORTS| n_file_src_knowledge_graph_relations_js
+  n_file_src_agents_impact_analyzer_index_js["src/agents/impact-analyzer/index.js"]
+  n_file_src_knowledge_model_index_js["src/knowledge/model/index.js"]
+  n_file_src_agents_impact_analyzer_index_js -->|IMPORTS| n_file_src_knowledge_model_index_js
+  n_file_src_agents_impact_analyzer_index_js["src/agents/impact-analyzer/index.js"]
+  n_file_src_agents_impact_analyzer_tokenize_js["src/agents/impact-analyzer/tokenize.js"]
+  n_file_src_agents_impact_analyzer_index_js -->|IMPORTS| n_file_src_agents_impact_analyzer_tokenize_js
+  n_file_src_agents_index_js["src/agents/index.js"]
+  n_file_src_agents_impact_analyzer_index_js["src/agents/impact-analyzer/index.js"]
+  n_file_src_agents_index_js -->|IMPORTS| n_file_src_agents_impact_analyzer_index_js
+  n_file_src_knowledge_search_KnowledgeIndex_js["src/knowledge/search/KnowledgeIndex.js"]
+  n_file_src_agents_impact_analyzer_tokenize_js["src/agents/impact-analyzer/tokenize.js"]
+  n_file_src_knowledge_search_KnowledgeIndex_js -->|IMPORTS| n_file_src_agents_impact_analyzer_tokenize_js

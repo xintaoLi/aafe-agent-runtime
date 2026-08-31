@@ -1,0 +1,31 @@
+{
+  "module": "src-ide-bridge-context",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/ide-bridge/context/render.js",
+        "src/ide-bridge/context/tokens.js"
+      ],
+      "routes": [],
+      "components": [
+        "CONTEXT_FORMATS"
+      ]
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/ide-bridge/context/render.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/ide-bridge/context/tokens.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

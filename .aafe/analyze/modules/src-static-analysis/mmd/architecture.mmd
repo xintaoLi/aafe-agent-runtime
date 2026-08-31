@@ -1,0 +1,13 @@
+flowchart TB
+  subgraph n_src_static_analysis["src-static-analysis"]
+    n_src_static_analysis_entryDiscover_js["static-analysis/entryDiscover.js"]
+    n_src_static_analysis_orchestrator_js["static-analysis/orchestrator.js"]
+    n_src_static_analysis_registry_js["static-analysis/registry.js"]
+    n_src_static_analysis_renderSkills_js["static-analysis/renderSkills.js"]
+  end
+  n_src_static_analysis --> n_src_static_analysis_analyzers["src-static-analysis-analyzers"]
+  n_src_static_analysis --> n_src_static_analysis_ast["src-static-analysis-ast"]
+  n_src_static_analysis --> n_src_static_analysis_cache["src-static-analysis-cache"]
+  n_src_static_analysis --> n_src_static_analysis_modules["src-static-analysis-modules"]
+  n_src_static_analysis --> n_src_static_analysis_storage["src-static-analysis-storage"]
+  n_src_static_analysis --> n_src_static_analysis_types["src-static-analysis-types"]

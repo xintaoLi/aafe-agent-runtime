@@ -1,0 +1,16 @@
+flowchart LR
+  n_ANTI_PATTERN_RULES["ANTI_PATTERN_RULES"]
+  n_PATTERN_DOMAINS["PATTERN_DOMAINS"]
+  n_ANTI_PATTERN_RULES -->|IMPORTS| n_PATTERN_DOMAINS
+  n_PatternAdvisor["PatternAdvisor"]
+  n_PatternComposer["PatternComposer"]
+  n_PatternAdvisor -->|IMPORTS| n_PatternComposer
+  n_PatternProblems["PatternProblems"]
+  n_PatternAdvisor -->|IMPORTS| n_PatternProblems
+  n_PatternAdvisor -->|IMPORTS| n_ANTI_PATTERN_RULES
+  n_PatternAdvisor -->|IMPORTS| n_PATTERN_DOMAINS
+  n_PatternComposer -->|IMPORTS| n_PATTERN_DOMAINS
+  n_PatternScore["PatternScore"]
+  n_PatternComposer -->|IMPORTS| n_PatternScore
+  n_PatternComposer -->|IMPORTS| n_PatternProblems
+  n_PatternScore -->|IMPORTS| n_PATTERN_DOMAINS

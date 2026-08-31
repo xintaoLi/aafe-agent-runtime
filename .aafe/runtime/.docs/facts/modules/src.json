@@ -1,0 +1,20 @@
+{
+  "architecture": {
+    "id": "src",
+    "title": "src",
+    "kind": "directory",
+    "files": [
+      "src/index.js"
+    ],
+    "routes": [],
+    "signals": [],
+    "components": [],
+    "dependsOn": []
+  },
+  "dataflow": {
+    "id": "src",
+    "dataHints": [],
+    "edges": [],
+    "routes": []
+  }
+}

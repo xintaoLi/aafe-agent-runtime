@@ -1,0 +1,38 @@
+{
+  "module": "src-agent-platform-schema",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agent-platform/schema/loader.js",
+        "src/agent-platform/schema/repair.js",
+        "src/agent-platform/schema/validate.js"
+      ],
+      "routes": [],
+      "components": [
+        "BUILTIN_AGENTS_DIR",
+        "TYPE_CHECKS"
+      ]
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agent-platform/schema/loader.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/schema/repair.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/schema/validate.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

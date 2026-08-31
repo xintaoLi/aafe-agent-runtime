@@ -1,0 +1,22 @@
+flowchart TD
+  n_file_src_static_analysis_analyzers_graph_js["src/static-analysis/analyzers/graph.js"]
+  n_file_src_static_analysis_ast_parseFile_js["src/static-analysis/ast/parseFile.js"]
+  n_file_src_static_analysis_analyzers_graph_js -->|IMPORTS| n_file_src_static_analysis_ast_parseFile_js
+  n_file_src_static_analysis_analyzers_graph_js["src/static-analysis/analyzers/graph.js"]
+  n_file_src_static_analysis_ast_extractors_js["src/static-analysis/ast/extractors.js"]
+  n_file_src_static_analysis_analyzers_graph_js -->|IMPORTS| n_file_src_static_analysis_ast_extractors_js
+  n_file_src_static_analysis_ast_parseFile_js["src/static-analysis/ast/parseFile.js"]
+  n_import_babel_parser["@babel/parser"]
+  n_file_src_static_analysis_ast_parseFile_js -->|IMPORTS| n_import_babel_parser
+  n_file_src_static_analysis_ast_parseFile_js["src/static-analysis/ast/parseFile.js"]
+  n_import_node_path["node:path"]
+  n_file_src_static_analysis_ast_parseFile_js -->|IMPORTS| n_import_node_path
+  n_file_src_static_analysis_orchestrator_js["src/static-analysis/orchestrator.js"]
+  n_file_src_static_analysis_ast_extractors_js["src/static-analysis/ast/extractors.js"]
+  n_file_src_static_analysis_orchestrator_js -->|IMPORTS| n_file_src_static_analysis_ast_extractors_js
+  n_file_src_static_analysis_routes_resolveRoutes_js["src/static-analysis/routes/resolveRoutes.js"]
+  n_file_src_static_analysis_ast_parseFile_js["src/static-analysis/ast/parseFile.js"]
+  n_file_src_static_analysis_routes_resolveRoutes_js -->|IMPORTS| n_file_src_static_analysis_ast_parseFile_js
+  n_file_src_static_analysis_routes_resolveRoutes_js["src/static-analysis/routes/resolveRoutes.js"]
+  n_file_src_static_analysis_ast_extractors_js["src/static-analysis/ast/extractors.js"]
+  n_file_src_static_analysis_routes_resolveRoutes_js -->|IMPORTS| n_file_src_static_analysis_ast_extractors_js

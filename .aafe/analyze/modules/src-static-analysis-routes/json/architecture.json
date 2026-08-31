@@ -1,0 +1,27 @@
+{
+  "module": "src-static-analysis-routes",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/static-analysis/routes/resolveRoutes.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-static-analysis-ast"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/static-analysis/routes/resolveRoutes.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-static-analysis-ast"
+  ],
+  "signals": []
+}

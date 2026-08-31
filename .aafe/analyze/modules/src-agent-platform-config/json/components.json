@@ -1,0 +1,30 @@
+{
+  "module": "src-agent-platform-config",
+  "components": [
+    {
+      "name": "ENV_EXPANDED_FIELDS",
+      "kind": "variable",
+      "file": "src/agent-platform/config/agentsConfig.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/config/agentsConfig.js",
+          "symbol": "ENV_EXPANDED_FIELDS"
+        }
+      ]
+    },
+    {
+      "name": "AGENT_PROVIDERS",
+      "kind": "variable",
+      "file": "src/agent-platform/config/agentsConfig.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/config/agentsConfig.js",
+          "symbol": "AGENT_PROVIDERS"
+        }
+      ]
+    }
+  ],
+  "relations": []
+}

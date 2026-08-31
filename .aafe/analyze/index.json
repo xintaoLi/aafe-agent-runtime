@@ -1,0 +1,733 @@
+{
+  "project": "@aafe/agent-runtime",
+  "formats": [
+    "json",
+    "jsonl",
+    "md",
+    "mmd"
+  ],
+  "stats": {
+    "files": 168,
+    "modules": 53,
+    "symbols": 38,
+    "dependencies": 85,
+    "flows": 1008,
+    "features": 8,
+    "businessCandidates": 8
+  },
+  "entrypoints": [
+    "bin/aafe.js",
+    "src/index.js"
+  ],
+  "buildTool": "node-package",
+  "frameworkHint": "node",
+  "paths": {
+    "modulesIndex": "modules/index.json",
+    "knowledge": {
+      "repository": "knowledge/repository/json/",
+      "graph": "knowledge/graph/jsonl/",
+      "architecture": "knowledge/architecture/json/analysis.json",
+      "dataflow": "knowledge/dataflow/json/analysis.json",
+      "features": "knowledge/features/json/candidates.json",
+      "business": "knowledge/business/json/candidates.json",
+      "relations": "knowledge/relations/json/",
+      "evidence": "knowledge/evidence/json/index.json"
+    }
+  },
+  "modules": [
+    {
+      "id": "src-cli",
+      "entry": "modules/src-cli/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 1,
+        "features": 1,
+        "flows": 180,
+        "dependsOn": [
+          "module:src-agent-platform",
+          "module:src-agent-platform-config",
+          "module:src-agent-platform-protocol",
+          "module:src-agent-platform-registry",
+          "module:src-agent-platform-skill-runtime",
+          "module:src-agent-platform-state",
+          "module:src-ddd",
+          "module:src-ide-bridge-context",
+          "module:src-knowledge-report",
+          "module:src-knowledge-store",
+          "module:src-memory",
+          "module:src-patterns",
+          "module:src-static-analysis",
+          "module:src-static-analysis-types",
+          "module:src-templates",
+          "module:src-testing-e2e"
+        ]
+      }
+    },
+    {
+      "id": "src-agent-platform-runtime",
+      "entry": "modules/src-agent-platform-runtime/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 2,
+        "features": 0,
+        "flows": 57,
+        "dependsOn": [
+          "module:src-agent-platform-policy",
+          "module:src-agent-platform-protocol",
+          "module:src-agent-platform-schema"
+        ]
+      }
+    },
+    {
+      "id": "src-testing-e2e",
+      "entry": "modules/src-testing-e2e/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 3,
+        "features": 0,
+        "flows": 27,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-agent-platform-skill-runtime",
+      "entry": "modules/src-agent-platform-skill-runtime/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 2,
+        "features": 0,
+        "flows": 20,
+        "dependsOn": [
+          "module:src-ddd",
+          "module:src-knowledge-store",
+          "module:src-memory",
+          "module:src-patterns"
+        ]
+      }
+    },
+    {
+      "id": "src-patterns",
+      "entry": "modules/src-patterns/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 4,
+        "features": 0,
+        "flows": 23,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-static-analysis-analyzers",
+      "entry": "modules/src-static-analysis-analyzers/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 1,
+        "flows": 34,
+        "dependsOn": [
+          "module:src-static-analysis",
+          "module:src-static-analysis-ast",
+          "module:src-static-analysis-modules",
+          "module:src-static-analysis-resolve",
+          "module:src-static-analysis-routes",
+          "module:src-static-analysis-semantic",
+          "module:src-static-analysis-types"
+        ]
+      }
+    },
+    {
+      "id": "src-agent-platform-planner",
+      "entry": "modules/src-agent-platform-planner/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 2,
+        "features": 0,
+        "flows": 79,
+        "dependsOn": [
+          "module:src-llm"
+        ]
+      }
+    },
+    {
+      "id": "src-static-analysis",
+      "entry": "modules/src-static-analysis/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 18,
+        "dependsOn": [
+          "module:src-static-analysis-analyzers",
+          "module:src-static-analysis-ast",
+          "module:src-static-analysis-cache",
+          "module:src-static-analysis-modules",
+          "module:src-static-analysis-storage",
+          "module:src-static-analysis-types"
+        ]
+      }
+    },
+    {
+      "id": "src-static-analysis-types",
+      "entry": "modules/src-static-analysis-types/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 21,
+        "dependsOn": [
+          "module:src-static-analysis-emit"
+        ]
+      }
+    },
+    {
+      "id": "src-agent-platform-schema",
+      "entry": "modules/src-agent-platform-schema/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 2,
+        "features": 2,
+        "flows": 11,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-agents-test-agent",
+      "entry": "modules/src-agents-test-agent/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 3,
+        "flows": 24,
+        "dependsOn": [
+          "module:src-agent-platform-protocol",
+          "module:src-knowledge-model",
+          "module:src-testing",
+          "module:src-testing-e2e"
+        ]
+      }
+    },
+    {
+      "id": "src-ddd",
+      "entry": "modules/src-ddd/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 4,
+        "features": 0,
+        "flows": 11,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-memory",
+      "entry": "modules/src-memory/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 8,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-agent-platform-orchestrator",
+      "entry": "modules/src-agent-platform-orchestrator/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 1,
+        "features": 0,
+        "flows": 60,
+        "dependsOn": [
+          "module:src-agent-platform-protocol",
+          "module:src-agent-platform-runtime",
+          "module:src-agent-platform-state"
+        ]
+      }
+    },
+    {
+      "id": "src-agent-platform-protocol",
+      "entry": "modules/src-agent-platform-protocol/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 1,
+        "features": 0,
+        "flows": 37,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-agent-platform-registry",
+      "entry": "modules/src-agent-platform-registry/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 3,
+        "features": 0,
+        "flows": 44,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-agent-platform-state",
+      "entry": "modules/src-agent-platform-state/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 6,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-agents-code-intelligence",
+      "entry": "modules/src-agents-code-intelligence/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 1,
+        "features": 0,
+        "flows": 12,
+        "dependsOn": [
+          "module:src-agent-platform-protocol",
+          "module:src-knowledge-model",
+          "module:src-static-analysis",
+          "module:src-static-analysis-types"
+        ]
+      }
+    },
+    {
+      "id": "src-agents-failure-analyzer",
+      "entry": "modules/src-agents-failure-analyzer/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 1,
+        "features": 0,
+        "flows": 9,
+        "dependsOn": [
+          "module:src-agent-platform-protocol",
+          "module:src-knowledge-model"
+        ]
+      }
+    },
+    {
+      "id": "src-agents-impact-analyzer",
+      "entry": "modules/src-agents-impact-analyzer/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 10,
+        "dependsOn": [
+          "module:src-agent-platform-protocol",
+          "module:src-knowledge-graph",
+          "module:src-knowledge-model",
+          "module:src-static-analysis-git",
+          "module:src-static-analysis-types"
+        ]
+      }
+    },
+    {
+      "id": "src-ide-bridge-context",
+      "entry": "modules/src-ide-bridge-context/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 1,
+        "features": 0,
+        "flows": 4,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-static-analysis-ast",
+      "entry": "modules/src-static-analysis-ast/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 1,
+        "flows": 7,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-static-analysis-emit",
+      "entry": "modules/src-static-analysis-emit/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 3,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-static-analysis-modules",
+      "entry": "modules/src-static-analysis-modules/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 4,
+        "dependsOn": [
+          "module:src-static-analysis-types"
+        ]
+      }
+    },
+    {
+      "id": "src-testing",
+      "entry": "modules/src-testing/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 4,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "bin-aafe-js",
+      "entry": "modules/bin-aafe-js/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 5,
+        "dependsOn": [
+          "module:src-cli"
+        ]
+      }
+    },
+    {
+      "id": "route",
+      "entry": "modules/route/index.json",
+      "summary": {
+        "routes": 1,
+        "components": 0,
+        "features": 1,
+        "flows": 4,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "route-aafe",
+      "entry": "modules/route-aafe/index.json",
+      "summary": {
+        "routes": 1,
+        "components": 0,
+        "features": 3,
+        "flows": 7,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "route-ai-agent",
+      "entry": "modules/route-ai-agent/index.json",
+      "summary": {
+        "routes": 1,
+        "components": 0,
+        "features": 1,
+        "flows": 21,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "route-casesdir",
+      "entry": "modules/route-casesdir/index.json",
+      "summary": {
+        "routes": 1,
+        "components": 0,
+        "features": 3,
+        "flows": 7,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "route-ctx-path",
+      "entry": "modules/route-ctx-path/index.json",
+      "summary": {
+        "routes": 2,
+        "components": 0,
+        "features": 2,
+        "flows": 5,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "route-package-json",
+      "entry": "modules/route-package-json/index.json",
+      "summary": {
+        "routes": 1,
+        "components": 0,
+        "features": 1,
+        "flows": 8,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "route-tests",
+      "entry": "modules/route-tests/index.json",
+      "summary": {
+        "routes": 1,
+        "components": 0,
+        "features": 3,
+        "flows": 7,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src",
+      "entry": "modules/src/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 0,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-agent-platform",
+      "entry": "modules/src-agent-platform/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 21,
+        "dependsOn": [
+          "module:src-agent-platform-config",
+          "module:src-agent-platform-orchestrator",
+          "module:src-agent-platform-planner",
+          "module:src-agent-platform-registry",
+          "module:src-agent-platform-runtime",
+          "module:src-agent-platform-schema",
+          "module:src-agents",
+          "module:src-knowledge-store"
+        ]
+      }
+    },
+    {
+      "id": "src-agent-platform-config",
+      "entry": "modules/src-agent-platform-config/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 2,
+        "features": 0,
+        "flows": 39,
+        "dependsOn": [
+          "module:src-agent-platform-registry"
+        ]
+      }
+    },
+    {
+      "id": "src-agent-platform-policy",
+      "entry": "modules/src-agent-platform-policy/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 1,
+        "features": 0,
+        "flows": 34,
+        "dependsOn": [
+          "module:src-agent-platform-protocol"
+        ]
+      }
+    },
+    {
+      "id": "src-agents",
+      "entry": "modules/src-agents/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 7,
+        "dependsOn": [
+          "module:src-agents-code-intelligence",
+          "module:src-agents-context-agent",
+          "module:src-agents-failure-analyzer",
+          "module:src-agents-impact-analyzer",
+          "module:src-agents-knowledge-validator",
+          "module:src-agents-test-agent"
+        ]
+      }
+    },
+    {
+      "id": "src-agents-context-agent",
+      "entry": "modules/src-agents-context-agent/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 6,
+        "dependsOn": [
+          "module:src-agent-platform-protocol",
+          "module:src-ide-bridge-context"
+        ]
+      }
+    },
+    {
+      "id": "src-agents-knowledge-validator",
+      "entry": "modules/src-agents-knowledge-validator/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 5,
+        "dependsOn": [
+          "module:src-agent-platform-protocol",
+          "module:src-knowledge-model",
+          "module:src-knowledge-validator"
+        ]
+      }
+    },
+    {
+      "id": "src-knowledge-graph",
+      "entry": "modules/src-knowledge-graph/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 5,
+        "dependsOn": [
+          "module:src-knowledge-model"
+        ]
+      }
+    },
+    {
+      "id": "src-knowledge-model",
+      "entry": "modules/src-knowledge-model/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 9,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-knowledge-report",
+      "entry": "modules/src-knowledge-report/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 2,
+        "features": 0,
+        "flows": 2,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-knowledge-store",
+      "entry": "modules/src-knowledge-store/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 11,
+        "dependsOn": [
+          "module:src-knowledge-model"
+        ]
+      }
+    },
+    {
+      "id": "src-knowledge-validator",
+      "entry": "modules/src-knowledge-validator/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 5,
+        "dependsOn": [
+          "module:src-knowledge-model"
+        ]
+      }
+    },
+    {
+      "id": "src-llm",
+      "entry": "modules/src-llm/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 3,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-static-analysis-cache",
+      "entry": "modules/src-static-analysis-cache/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 4,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-static-analysis-git",
+      "entry": "modules/src-static-analysis-git/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 5,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-static-analysis-resolve",
+      "entry": "modules/src-static-analysis-resolve/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 3,
+        "features": 0,
+        "flows": 5,
+        "dependsOn": []
+      }
+    },
+    {
+      "id": "src-static-analysis-routes",
+      "entry": "modules/src-static-analysis-routes/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 6,
+        "dependsOn": [
+          "module:src-static-analysis-ast"
+        ]
+      }
+    },
+    {
+      "id": "src-static-analysis-semantic",
+      "entry": "modules/src-static-analysis-semantic/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 3,
+        "dependsOn": [
+          "module:src-llm"
+        ]
+      }
+    },
+    {
+      "id": "src-static-analysis-storage",
+      "entry": "modules/src-static-analysis-storage/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 6,
+        "dependsOn": [
+          "module:src-static-analysis-emit"
+        ]
+      }
+    },
+    {
+      "id": "src-templates",
+      "entry": "modules/src-templates/index.json",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 1,
+        "dependsOn": []
+      }
+    }
+  ]
+}

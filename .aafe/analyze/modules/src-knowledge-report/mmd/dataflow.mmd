@@ -1,0 +1,7 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_knowledge_report_impactMarkdown_js["src/knowledge/report/impactMarkdown.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_knowledge_report_impactMarkdown_js
+  n_file_src_cli_platform_js["src/cli/platform.js"]
+  n_file_src_knowledge_report_impactMarkdown_js["src/knowledge/report/impactMarkdown.js"]
+  n_file_src_cli_platform_js -->|IMPORTS| n_file_src_knowledge_report_impactMarkdown_js

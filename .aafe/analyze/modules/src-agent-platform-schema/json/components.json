@@ -1,0 +1,47 @@
+{
+  "module": "src-agent-platform-schema",
+  "components": [
+    {
+      "name": "BUILTIN_AGENTS_DIR",
+      "kind": "variable",
+      "file": "src/agent-platform/schema/loader.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/schema/loader.js",
+          "symbol": "BUILTIN_AGENTS_DIR"
+        }
+      ]
+    },
+    {
+      "name": "TYPE_CHECKS",
+      "kind": "variable",
+      "file": "src/agent-platform/schema/validate.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/schema/validate.js",
+          "symbol": "TYPE_CHECKS"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "repair",
+      "fromLabel": "repair",
+      "to": "TYPE_CHECKS",
+      "toLabel": "TYPE_CHECKS",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/schema/repair.js",
+      "toFile": "src/agent-platform/schema/validate.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/schema/repair.js",
+          "reason": "./validate.js"
+        }
+      ]
+    }
+  ]
+}

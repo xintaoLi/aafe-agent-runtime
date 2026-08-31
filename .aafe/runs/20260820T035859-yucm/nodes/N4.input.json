@@ -1,0 +1,4 @@
+{
+  "kind": "requirement",
+  "goal": "完善 agent platform 的 schema 校验"
+}

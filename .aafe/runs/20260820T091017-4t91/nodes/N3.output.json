@@ -1,0 +1,22 @@
+{
+  "status": "skipped",
+  "result": null,
+  "knowledgeUpdates": [],
+  "evidence": [],
+  "nextActions": [
+    {
+      "capability": "test-planning",
+      "reason": "generation needs a plan first"
+    }
+  ],
+  "metrics": {
+    "duration": 1
+  },
+  "reason": "no-test-plan-available",
+  "contract": {
+    "mode": "warn",
+    "repairs": [],
+    "attempts": 1,
+    "input": "/write: expected boolean, got null"
+  }
+}

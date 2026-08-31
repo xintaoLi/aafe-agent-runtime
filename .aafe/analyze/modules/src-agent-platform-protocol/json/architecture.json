@@ -1,0 +1,31 @@
+{
+  "module": "src-agent-platform-protocol",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agent-platform/protocol/request.js",
+        "src/agent-platform/protocol/response.js"
+      ],
+      "routes": [],
+      "components": [
+        "AGENT_STATUS"
+      ]
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agent-platform/protocol/request.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/protocol/response.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

@@ -1,0 +1,948 @@
+{
+  "module": "src-agent-platform-config",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:11",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/config/agentsConfig.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/config/agentsConfig.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/config/agentsConfig.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:52",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/config/agentsConfig.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/config/agentsConfig.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/config/agentsConfig.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:101",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:102",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:103",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "file:src/agent-platform/registry/definition.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "file:src/agent-platform/registry/definition.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "reason": "../registry/definition.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:106",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/index.js",
+        "nodes": [
+          "file:src/agent-platform/index.js",
+          "file:src/agent-platform/config/agentsConfig.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/index.js",
+            "to": "file:src/agent-platform/config/agentsConfig.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/index.js",
+            "reason": "./config/agentsConfig.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:269",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/agent-platform/config/agentsConfig.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/agent-platform/config/agentsConfig.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "../agent-platform/config/agentsConfig.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:298",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/doctor.js",
+        "nodes": [
+          "file:src/cli/doctor.js",
+          "file:src/agent-platform/config/agentsConfig.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/doctor.js",
+            "to": "file:src/agent-platform/config/agentsConfig.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/doctor.js",
+            "reason": "../agent-platform/config/agentsConfig.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:360",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/migrate.js",
+        "nodes": [
+          "file:src/cli/migrate.js",
+          "file:src/agent-platform/config/agentsConfig.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/migrate.js",
+            "to": "file:src/agent-platform/config/agentsConfig.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/migrate.js",
+            "reason": "../agent-platform/config/agentsConfig.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:229",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:Object.freeze"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:Object.freeze",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "Object.freeze"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:230",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:value.replace"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:value.replace",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "value.replace"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:231",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:expandEnvRefs"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:expandEnvRefs",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "expandEnvRefs"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:232",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:test"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:test",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "test"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:233",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:warnings.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:warnings.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "warnings.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:234",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:test"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:test",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "test"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:235",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:warnings.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:warnings.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "warnings.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:236",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:Object.entries"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:Object.entries",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "Object.entries"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:237",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:Object.freeze"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:Object.freeze",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "Object.freeze"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:238",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:AGENT_PROVIDERS.includes"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:AGENT_PROVIDERS.includes",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "AGENT_PROVIDERS.includes"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:239",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:warnings.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:warnings.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "warnings.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:240",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:AGENT_PROVIDERS.join"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:AGENT_PROVIDERS.join",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "AGENT_PROVIDERS.join"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:241",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:String"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:String",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "String"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:242",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:test"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:test",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "test"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:243",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:warnings.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:warnings.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "warnings.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:244",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:test"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:test",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "test"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:245",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:warnings.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:warnings.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "warnings.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:246",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:ref.trim"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:ref.trim",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "ref.trim"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:247",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:warnings.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:warnings.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "warnings.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:248",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:SCHEMA_MODES.includes"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:SCHEMA_MODES.includes",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "SCHEMA_MODES.includes"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:249",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:warnings.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:warnings.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "warnings.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:250",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:defaultSchemaMode"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:defaultSchemaMode",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "defaultSchemaMode"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:251",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:Array.isArray"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:Array.isArray",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "Array.isArray"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:252",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:warnings.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:warnings.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "warnings.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:253",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:defaultAgentsConfig"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:defaultAgentsConfig",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "defaultAgentsConfig"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:254",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:Object.entries"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:Object.entries",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "Object.entries"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:255",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:expandAgentEnv"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:expandAgentEnv",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "expandAgentEnv"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:256",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:Array.isArray"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:Array.isArray",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "Array.isArray"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:257",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:SCHEMA_MODES.includes"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:SCHEMA_MODES.includes",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "SCHEMA_MODES.includes"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:258",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "call:defaultSchemaMode"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "call:defaultSchemaMode",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "symbol": "defaultSchemaMode"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 9,
+      "call": 30
+    }
+  }
+}

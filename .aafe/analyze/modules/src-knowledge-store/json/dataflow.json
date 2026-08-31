@@ -1,0 +1,276 @@
+{
+  "module": "src-knowledge-store",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:21",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/knowledge/store/KnowledgeStore.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/knowledge/store/KnowledgeStore.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/knowledge/store/KnowledgeStore.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:114",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/index.js",
+        "nodes": [
+          "file:src/agent-platform/index.js",
+          "file:src/knowledge/store/KnowledgeStore.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/index.js",
+            "to": "file:src/knowledge/store/KnowledgeStore.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/index.js",
+            "reason": "../knowledge/store/KnowledgeStore.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:165",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/skill-runtime/AgentRuntime.js",
+        "nodes": [
+          "file:src/agent-platform/skill-runtime/AgentRuntime.js",
+          "file:src/knowledge/store/KnowledgeStore.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/skill-runtime/AgentRuntime.js",
+            "to": "file:src/knowledge/store/KnowledgeStore.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+            "reason": "../../knowledge/store/KnowledgeStore.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:291",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/ddd.js",
+        "nodes": [
+          "file:src/cli/ddd.js",
+          "file:src/knowledge/store/KnowledgeStore.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/ddd.js",
+            "to": "file:src/knowledge/store/KnowledgeStore.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/ddd.js",
+            "reason": "../knowledge/store/KnowledgeStore.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:351",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/knowledge.js",
+        "nodes": [
+          "file:src/cli/knowledge.js",
+          "file:src/knowledge/store/KnowledgeStore.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/knowledge.js",
+            "to": "file:src/knowledge/store/KnowledgeStore.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/knowledge.js",
+            "reason": "../knowledge/store/KnowledgeStore.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:367",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/patterns.js",
+        "nodes": [
+          "file:src/cli/patterns.js",
+          "file:src/knowledge/store/KnowledgeStore.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/patterns.js",
+            "to": "file:src/knowledge/store/KnowledgeStore.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/patterns.js",
+            "reason": "../knowledge/store/KnowledgeStore.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:411",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/knowledge/store/KnowledgeStore.js",
+        "nodes": [
+          "file:src/knowledge/store/KnowledgeStore.js",
+          "import:node:child_process"
+        ],
+        "edges": [
+          {
+            "from": "file:src/knowledge/store/KnowledgeStore.js",
+            "to": "import:node:child_process",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/knowledge/store/KnowledgeStore.js",
+            "reason": "node:child_process"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:412",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/knowledge/store/KnowledgeStore.js",
+        "nodes": [
+          "file:src/knowledge/store/KnowledgeStore.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/knowledge/store/KnowledgeStore.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/knowledge/store/KnowledgeStore.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:413",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/knowledge/store/KnowledgeStore.js",
+        "nodes": [
+          "file:src/knowledge/store/KnowledgeStore.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/knowledge/store/KnowledgeStore.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/knowledge/store/KnowledgeStore.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:414",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/knowledge/store/KnowledgeStore.js",
+        "nodes": [
+          "file:src/knowledge/store/KnowledgeStore.js",
+          "import:node:util"
+        ],
+        "edges": [
+          {
+            "from": "file:src/knowledge/store/KnowledgeStore.js",
+            "to": "import:node:util",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/knowledge/store/KnowledgeStore.js",
+            "reason": "node:util"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:415",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/knowledge/store/KnowledgeStore.js",
+        "nodes": [
+          "file:src/knowledge/store/KnowledgeStore.js",
+          "file:src/knowledge/model/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/knowledge/store/KnowledgeStore.js",
+            "to": "file:src/knowledge/model/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/knowledge/store/KnowledgeStore.js",
+            "reason": "../model/index.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 11,
+      "call": 0
+    }
+  }
+}

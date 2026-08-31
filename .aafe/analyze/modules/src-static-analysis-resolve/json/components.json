@@ -1,0 +1,42 @@
+{
+  "module": "src-static-analysis-resolve",
+  "components": [
+    {
+      "name": "RESOLVE_EXTENSIONS",
+      "kind": "variable",
+      "file": "src/static-analysis/resolve/ModuleResolver.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/static-analysis/resolve/ModuleResolver.js",
+          "symbol": "RESOLVE_EXTENSIONS"
+        }
+      ]
+    },
+    {
+      "name": "TS_CONFIG_FILES",
+      "kind": "variable",
+      "file": "src/static-analysis/resolve/ModuleResolver.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/static-analysis/resolve/ModuleResolver.js",
+          "symbol": "TS_CONFIG_FILES"
+        }
+      ]
+    },
+    {
+      "name": "BUNDLER_CONFIG_FILES",
+      "kind": "variable",
+      "file": "src/static-analysis/resolve/ModuleResolver.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/static-analysis/resolve/ModuleResolver.js",
+          "symbol": "BUNDLER_CONFIG_FILES"
+        }
+      ]
+    }
+  ],
+  "relations": []
+}

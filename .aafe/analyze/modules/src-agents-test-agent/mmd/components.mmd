@@ -1,0 +1,7 @@
+flowchart LR
+  n_index["index"]
+  n_plan["plan"]
+  n_index -->|IMPORTS| n_plan
+  n_generate["generate"]
+  n_index -->|IMPORTS| n_generate
+  n_plan -->|IMPORTS| n_index

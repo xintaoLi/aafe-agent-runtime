@@ -1,0 +1,16 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_schema_repair_js["src/agent-platform/schema/repair.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_schema_repair_js
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_schema_repair_js["src/agent-platform/schema/repair.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js -->|IMPORTS| n_file_src_agent_platform_schema_repair_js
+  n_file_src_agent_platform_schema_repair_js["src/agent-platform/schema/repair.js"]
+  n_file_src_agent_platform_schema_validate_js["src/agent-platform/schema/validate.js"]
+  n_file_src_agent_platform_schema_repair_js -->|IMPORTS| n_file_src_agent_platform_schema_validate_js
+  n_route_ctx_path_index["${ctx.path}/${index}"]
+  n_file_src_agent_platform_schema_repair_js["src/agent-platform/schema/repair.js"]
+  n_route_ctx_path_index -->|ROUTES_TO| n_file_src_agent_platform_schema_repair_js
+  n_route_ctx_path_key["${ctx.path}/${key}"]
+  n_file_src_agent_platform_schema_repair_js["src/agent-platform/schema/repair.js"]
+  n_route_ctx_path_key -->|ROUTES_TO| n_file_src_agent_platform_schema_repair_js

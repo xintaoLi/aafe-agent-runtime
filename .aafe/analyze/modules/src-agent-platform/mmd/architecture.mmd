@@ -1,0 +1,12 @@
+flowchart TB
+  subgraph n_src_agent_platform["src-agent-platform"]
+    n_src_agent_platform_index_js["agent-platform/index.js"]
+  end
+  n_src_agent_platform --> n_src_agent_platform_config["src-agent-platform-config"]
+  n_src_agent_platform --> n_src_agent_platform_orchestrator["src-agent-platform-orchestrator"]
+  n_src_agent_platform --> n_src_agent_platform_planner["src-agent-platform-planner"]
+  n_src_agent_platform --> n_src_agent_platform_registry["src-agent-platform-registry"]
+  n_src_agent_platform --> n_src_agent_platform_runtime["src-agent-platform-runtime"]
+  n_src_agent_platform --> n_src_agent_platform_schema["src-agent-platform-schema"]
+  n_src_agent_platform --> n_src_agents["src-agents"]
+  n_src_agent_platform --> n_src_knowledge_store["src-knowledge-store"]

@@ -1,0 +1,16 @@
+flowchart TB
+  subgraph n_src_agent_platform_runtime["src-agent-platform-runtime"]
+    n_SCHEMA_FILE["SCHEMA_FILE"]
+    n_EVIDENCE_SCHEMA["EVIDENCE_SCHEMA"]
+    n_src_agent_platform_runtime_AgentRuntime_js["runtime/AgentRuntime.js"]
+    n_src_agent_platform_runtime_providers_AgentProvid["providers/AgentProvider.js"]
+    n_src_agent_platform_runtime_providers_CliAgentPro["providers/CliAgentProvider.js"]
+    n_src_agent_platform_runtime_providers_HttpAgentPr["providers/HttpAgentProvider.js"]
+    n_src_agent_platform_runtime_providers_IdeAgentPro["providers/IdeAgentProvider.js"]
+    n_src_agent_platform_runtime_providers_LocalAgentP["providers/LocalAgentProvider.js"]
+    n_src_agent_platform_runtime_providers_McpAgentPro["providers/McpAgentProvider.js"]
+    n_src_agent_platform_runtime_providers_index_js["providers/index.js"]
+  end
+  n_src_agent_platform_runtime --> n_src_agent_platform_policy["src-agent-platform-policy"]
+  n_src_agent_platform_runtime --> n_src_agent_platform_protocol["src-agent-platform-protocol"]
+  n_src_agent_platform_runtime --> n_src_agent_platform_schema["src-agent-platform-schema"]

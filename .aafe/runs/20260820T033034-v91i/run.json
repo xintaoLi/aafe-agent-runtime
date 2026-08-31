@@ -1,0 +1,177 @@
+{
+  "runId": "20260820T033034-v91i",
+  "status": "complete",
+  "reason": "context package is ready for the IDE agent",
+  "task": {
+    "id": "task-mt0yqcvu-1",
+    "kind": "failure",
+    "goal": "diagnose failure /tmp/aafe-fix/pw.json",
+    "requirement": null,
+    "diffRef": null,
+    "failureRef": "/tmp/aafe-fix/pw.json"
+  },
+  "decisions": [
+    {
+      "action": "invoke_agent",
+      "capability": "project-analysis",
+      "reason": "project knowledge is working-tree-dirty",
+      "input": {
+        "reason": "working-tree-dirty"
+      },
+      "expectedOutput": [
+        "modules",
+        "routes",
+        "features"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "failure-analysis",
+      "reason": "task kind \"failure\" requires failure-analysis",
+      "input": {
+        "failureRef": "/tmp/aafe-fix/pw.json"
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "change-impact",
+      "reason": "task kind \"failure\" requires change-impact",
+      "input": {
+        "diffRef": null
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "context-packaging",
+      "reason": "task kind \"failure\" requires context-packaging",
+      "input": {
+        "kind": "failure",
+        "goal": "diagnose failure /tmp/aafe-fix/pw.json"
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "complete",
+      "reason": "context package is ready for the IDE agent"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "N1",
+      "agent": "code-intelligence",
+      "capability": "project-analysis",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T033034-v91i/nodes/N1.input.json",
+      "outputRef": ".aafe/runs/20260820T033034-v91i/nodes/N1.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787196634581,
+      "finishedAt": 1787196634916,
+      "reason": "semantic enrichment unavailable: static-only"
+    },
+    {
+      "id": "N2",
+      "agent": "failure-analyzer",
+      "capability": "failure-analysis",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T033034-v91i/nodes/N2.input.json",
+      "outputRef": ".aafe/runs/20260820T033034-v91i/nodes/N2.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787196634917,
+      "finishedAt": 1787196634960
+    },
+    {
+      "id": "N3",
+      "agent": "impact-analyzer",
+      "capability": "change-impact",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T033034-v91i/nodes/N3.input.json",
+      "outputRef": ".aafe/runs/20260820T033034-v91i/nodes/N3.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787196634961,
+      "finishedAt": 1787196635000
+    },
+    {
+      "id": "N4",
+      "agent": "context-agent",
+      "capability": "context-packaging",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T033034-v91i/nodes/N4.input.json",
+      "outputRef": ".aafe/runs/20260820T033034-v91i/nodes/N4.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787196635000,
+      "finishedAt": 1787196635011,
+      "reason": "trimmed to fit 12000 tokens: evidence 632->12, affectedFiles 623->20"
+    }
+  ],
+  "state": {
+    "runId": "20260820T033034-v91i",
+    "task": {
+      "id": "task-mt0yqcvu-1",
+      "kind": "failure",
+      "goal": "diagnose failure /tmp/aafe-fix/pw.json",
+      "requirement": null,
+      "diffRef": null,
+      "failureRef": "/tmp/aafe-fix/pw.json"
+    },
+    "step": 4,
+    "history": [
+      {
+        "step": 1,
+        "node": "N1",
+        "agent": "code-intelligence",
+        "capability": "project-analysis",
+        "status": "partial",
+        "reason": "semantic enrichment unavailable: static-only",
+        "durationMs": 335
+      },
+      {
+        "step": 2,
+        "node": "N2",
+        "agent": "failure-analyzer",
+        "capability": "failure-analysis",
+        "status": "success",
+        "durationMs": 43
+      },
+      {
+        "step": 3,
+        "node": "N3",
+        "agent": "impact-analyzer",
+        "capability": "change-impact",
+        "status": "success",
+        "durationMs": 39
+      },
+      {
+        "step": 4,
+        "node": "N4",
+        "agent": "context-agent",
+        "capability": "context-packaging",
+        "status": "partial",
+        "reason": "trimmed to fit 12000 tokens: evidence 632->12, affectedFiles 623->20",
+        "durationMs": 11
+      }
+    ],
+    "satisfied": [
+      "project-analysis",
+      "failure-analysis",
+      "change-impact",
+      "context-packaging"
+    ],
+    "knowledgeUpdates": [],
+    "diagnostics": [],
+    "durationMs": 456
+  },
+  "summary": {
+    "pending": 0,
+    "running": 0,
+    "success": 4,
+    "failed": 0,
+    "skipped": 0
+  }
+}

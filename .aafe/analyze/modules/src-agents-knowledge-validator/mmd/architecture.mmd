@@ -1,0 +1,7 @@
+flowchart TB
+  subgraph n_src_agents_knowledge_validator["src-agents-knowledge-validator"]
+    n_src_agents_knowledge_validator_index_js["knowledge-validator/index.js"]
+  end
+  n_src_agents_knowledge_validator --> n_src_agent_platform_protocol["src-agent-platform-protocol"]
+  n_src_agents_knowledge_validator --> n_src_knowledge_model["src-knowledge-model"]
+  n_src_agents_knowledge_validator --> n_src_knowledge_validator["src-knowledge-validator"]

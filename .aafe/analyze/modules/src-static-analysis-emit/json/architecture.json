@@ -1,0 +1,29 @@
+{
+  "module": "src-static-analysis-emit",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/static-analysis/emit/formats.js",
+        "src/static-analysis/emit/mermaid.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/static-analysis/emit/formats.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/static-analysis/emit/mermaid.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

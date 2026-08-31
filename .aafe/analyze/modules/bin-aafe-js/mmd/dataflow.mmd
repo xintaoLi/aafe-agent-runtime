@@ -1,0 +1,16 @@
+flowchart TD
+  n_file_bin_aafe_js["bin/aafe.js"]
+  n_file_src_cli_index_js["src/cli/index.js"]
+  n_file_bin_aafe_js -->|IMPORTS| n_file_src_cli_index_js
+  n_file_bin_aafe_js["bin/aafe.js"]
+  n_call_catch["catch"]
+  n_file_bin_aafe_js -->|CALLS| n_call_catch
+  n_file_bin_aafe_js["bin/aafe.js"]
+  n_call_runCli["runCli"]
+  n_file_bin_aafe_js -->|CALLS| n_call_runCli
+  n_file_bin_aafe_js["bin/aafe.js"]
+  n_call_console_error["console.error"]
+  n_file_bin_aafe_js -->|CALLS| n_call_console_error
+  n_file_bin_aafe_js["bin/aafe.js"]
+  n_call_String["String"]
+  n_file_bin_aafe_js -->|CALLS| n_call_String

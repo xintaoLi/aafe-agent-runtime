@@ -1,0 +1,37 @@
+{
+  "module": "src-agents-failure-analyzer",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agents/failure-analyzer/classify.js",
+        "src/agents/failure-analyzer/index.js"
+      ],
+      "routes": [],
+      "components": [
+        "CLASSIFICATIONS"
+      ]
+    },
+    "outboundModules": [
+      "module:src-agent-platform-protocol",
+      "module:src-knowledge-model"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agents/failure-analyzer/classify.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agents/failure-analyzer/index.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-agent-platform-protocol",
+    "module:src-knowledge-model"
+  ],
+  "signals": []
+}

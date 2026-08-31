@@ -1,0 +1,41 @@
+{
+  "module": "src-agent-platform",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agent-platform/index.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-agent-platform-config",
+      "module:src-agent-platform-orchestrator",
+      "module:src-agent-platform-planner",
+      "module:src-agent-platform-registry",
+      "module:src-agent-platform-runtime",
+      "module:src-agent-platform-schema",
+      "module:src-agents",
+      "module:src-knowledge-store"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agent-platform/index.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-agent-platform-config",
+    "module:src-agent-platform-orchestrator",
+    "module:src-agent-platform-planner",
+    "module:src-agent-platform-registry",
+    "module:src-agent-platform-runtime",
+    "module:src-agent-platform-schema",
+    "module:src-agents",
+    "module:src-knowledge-store"
+  ],
+  "signals": []
+}

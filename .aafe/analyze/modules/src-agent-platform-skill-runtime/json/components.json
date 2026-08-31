@@ -1,0 +1,143 @@
+{
+  "module": "src-agent-platform-skill-runtime",
+  "components": [
+    {
+      "name": "LEGACY_DDD_ALIASES",
+      "kind": "variable",
+      "file": "src/agent-platform/skill-runtime/defaults.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/skill-runtime/defaults.js",
+          "symbol": "LEGACY_DDD_ALIASES"
+        }
+      ]
+    },
+    {
+      "name": "DDD_PATTERN_BRIDGE",
+      "kind": "variable",
+      "file": "src/agent-platform/skill-runtime/defaults.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/skill-runtime/defaults.js",
+          "symbol": "DDD_PATTERN_BRIDGE"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "AgentRuntime",
+      "fromLabel": "AgentRuntime",
+      "to": "SkillRegistry",
+      "toLabel": "SkillRegistry",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/skill-runtime/AgentRuntime.js",
+      "toFile": "src/agent-platform/skill-runtime/SkillRegistry.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+          "reason": "./SkillRegistry.js"
+        }
+      ]
+    },
+    {
+      "from": "AgentRuntime",
+      "fromLabel": "AgentRuntime",
+      "to": "PipelineExecutor",
+      "toLabel": "PipelineExecutor",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/skill-runtime/AgentRuntime.js",
+      "toFile": "src/agent-platform/skill-runtime/PipelineExecutor.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+          "reason": "./PipelineExecutor.js"
+        }
+      ]
+    },
+    {
+      "from": "AgentRuntime",
+      "fromLabel": "AgentRuntime",
+      "to": "GateValidator",
+      "toLabel": "GateValidator",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/skill-runtime/AgentRuntime.js",
+      "toFile": "src/agent-platform/skill-runtime/GateValidator.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+          "reason": "./GateValidator.js"
+        }
+      ]
+    },
+    {
+      "from": "AgentRuntime",
+      "fromLabel": "AgentRuntime",
+      "to": "HookBus",
+      "toLabel": "HookBus",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/skill-runtime/AgentRuntime.js",
+      "toFile": "src/agent-platform/skill-runtime/HookBus.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+          "reason": "./HookBus.js"
+        }
+      ]
+    },
+    {
+      "from": "configLoader",
+      "fromLabel": "configLoader",
+      "to": "AgentRuntime",
+      "toLabel": "AgentRuntime",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/skill-runtime/configLoader.js",
+      "toFile": "src/agent-platform/skill-runtime/AgentRuntime.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/skill-runtime/configLoader.js",
+          "reason": "./AgentRuntime.js"
+        }
+      ]
+    },
+    {
+      "from": "configLoader",
+      "fromLabel": "configLoader",
+      "to": "LEGACY_DDD_ALIASES",
+      "toLabel": "LEGACY_DDD_ALIASES",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/skill-runtime/configLoader.js",
+      "toFile": "src/agent-platform/skill-runtime/defaults.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/skill-runtime/configLoader.js",
+          "reason": "./defaults.js"
+        }
+      ]
+    },
+    {
+      "from": "LEGACY_DDD_ALIASES",
+      "fromLabel": "LEGACY_DDD_ALIASES",
+      "to": "AgentRuntime",
+      "toLabel": "AgentRuntime",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/skill-runtime/defaults.js",
+      "toFile": "src/agent-platform/skill-runtime/AgentRuntime.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/skill-runtime/defaults.js",
+          "reason": "./AgentRuntime.js"
+        }
+      ]
+    }
+  ]
+}

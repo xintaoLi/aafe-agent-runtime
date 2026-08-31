@@ -1,0 +1,55 @@
+{
+  "module": "src-static-analysis",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/static-analysis/entryDiscover.js",
+        "src/static-analysis/orchestrator.js",
+        "src/static-analysis/registry.js",
+        "src/static-analysis/renderSkills.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-static-analysis-analyzers",
+      "module:src-static-analysis-ast",
+      "module:src-static-analysis-cache",
+      "module:src-static-analysis-modules",
+      "module:src-static-analysis-storage",
+      "module:src-static-analysis-types"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/static-analysis/entryDiscover.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/static-analysis/orchestrator.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/static-analysis/registry.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/static-analysis/renderSkills.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-static-analysis-analyzers",
+    "module:src-static-analysis-ast",
+    "module:src-static-analysis-cache",
+    "module:src-static-analysis-modules",
+    "module:src-static-analysis-storage",
+    "module:src-static-analysis-types"
+  ],
+  "signals": []
+}

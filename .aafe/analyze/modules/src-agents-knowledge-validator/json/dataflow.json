@@ -1,0 +1,132 @@
+{
+  "module": "src-agents-knowledge-validator",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:26",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agents/knowledge-validator/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agents/knowledge-validator/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agents/knowledge-validator/index.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:215",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/index.js",
+        "nodes": [
+          "file:src/agents/index.js",
+          "file:src/agents/knowledge-validator/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/index.js",
+            "to": "file:src/agents/knowledge-validator/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/index.js",
+            "reason": "./knowledge-validator/index.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:219",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/knowledge-validator/index.js",
+        "nodes": [
+          "file:src/agents/knowledge-validator/index.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/knowledge-validator/index.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/knowledge-validator/index.js",
+            "reason": "../../agent-platform/protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:220",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/knowledge-validator/index.js",
+        "nodes": [
+          "file:src/agents/knowledge-validator/index.js",
+          "file:src/knowledge/validator/rules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/knowledge-validator/index.js",
+            "to": "file:src/knowledge/validator/rules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/knowledge-validator/index.js",
+            "reason": "../../knowledge/validator/rules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:221",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/knowledge-validator/index.js",
+        "nodes": [
+          "file:src/agents/knowledge-validator/index.js",
+          "file:src/knowledge/model/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/knowledge-validator/index.js",
+            "to": "file:src/knowledge/model/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/knowledge-validator/index.js",
+            "reason": "../../knowledge/model/index.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 5,
+      "call": 0
+    }
+  }
+}

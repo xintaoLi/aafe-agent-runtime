@@ -1,0 +1,7 @@
+pipeline:
+  - skill: memory-oom-gate
+  - skill: memory-scope
+  - gate: memory_oom_gate
+  - skill: memory-diagnosis
+  - skill: memory-agent-selector
+  - skill: memory-writer

@@ -1,0 +1,22 @@
+flowchart TD
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agents_index_js["src/agents/index.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agents_index_js
+  n_file_src_agents_index_js["src/agents/index.js"]
+  n_file_src_agents_code_intelligence_index_js["src/agents/code-intelligence/index.js"]
+  n_file_src_agents_index_js -->|IMPORTS| n_file_src_agents_code_intelligence_index_js
+  n_file_src_agents_index_js["src/agents/index.js"]
+  n_file_src_agents_impact_analyzer_index_js["src/agents/impact-analyzer/index.js"]
+  n_file_src_agents_index_js -->|IMPORTS| n_file_src_agents_impact_analyzer_index_js
+  n_file_src_agents_index_js["src/agents/index.js"]
+  n_file_src_agents_knowledge_validator_index_js["src/agents/knowledge-validator/index.js"]
+  n_file_src_agents_index_js -->|IMPORTS| n_file_src_agents_knowledge_validator_index_js
+  n_file_src_agents_index_js["src/agents/index.js"]
+  n_file_src_agents_context_agent_index_js["src/agents/context-agent/index.js"]
+  n_file_src_agents_index_js -->|IMPORTS| n_file_src_agents_context_agent_index_js
+  n_file_src_agents_index_js["src/agents/index.js"]
+  n_file_src_agents_test_agent_index_js["src/agents/test-agent/index.js"]
+  n_file_src_agents_index_js -->|IMPORTS| n_file_src_agents_test_agent_index_js
+  n_file_src_agents_index_js["src/agents/index.js"]
+  n_file_src_agents_failure_analyzer_index_js["src/agents/failure-analyzer/index.js"]
+  n_file_src_agents_index_js -->|IMPORTS| n_file_src_agents_failure_analyzer_index_js

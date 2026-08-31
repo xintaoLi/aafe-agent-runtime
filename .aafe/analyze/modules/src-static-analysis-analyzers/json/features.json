@@ -1,0 +1,26 @@
+{
+  "module": "src-static-analysis-analyzers",
+  "features": [
+    {
+      "id": "feature:package-json",
+      "name": "package",
+      "entrypoints": [
+        "package.json"
+      ],
+      "components": [],
+      "apis": [],
+      "stores": [],
+      "dataHints": [],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/static-analysis/analyzers/repository.js",
+          "reason": "package.json"
+        }
+      ],
+      "confidence": 0.6,
+      "source": "static",
+      "status": "candidate"
+    }
+  ]
+}

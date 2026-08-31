@@ -1,0 +1,10 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_llm_LlmClient_js["src/llm/LlmClient.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_llm_LlmClient_js
+  n_file_src_agent_platform_planner_index_js["src/agent-platform/planner/index.js"]
+  n_file_src_llm_LlmClient_js["src/llm/LlmClient.js"]
+  n_file_src_agent_platform_planner_index_js -->|IMPORTS| n_file_src_llm_LlmClient_js
+  n_file_src_static_analysis_semantic_port_js["src/static-analysis/semantic/port.js"]
+  n_file_src_llm_LlmClient_js["src/llm/LlmClient.js"]
+  n_file_src_static_analysis_semantic_port_js -->|IMPORTS| n_file_src_llm_LlmClient_js

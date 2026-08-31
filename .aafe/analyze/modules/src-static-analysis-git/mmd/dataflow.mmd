@@ -1,0 +1,16 @@
+flowchart TD
+  n_file_src_agents_failure_analyzer_index_js["src/agents/failure-analyzer/index.js"]
+  n_file_src_static_analysis_git_DiffFacts_js["src/static-analysis/git/DiffFacts.js"]
+  n_file_src_agents_failure_analyzer_index_js -->|IMPORTS| n_file_src_static_analysis_git_DiffFacts_js
+  n_file_src_agents_impact_analyzer_index_js["src/agents/impact-analyzer/index.js"]
+  n_file_src_static_analysis_git_DiffFacts_js["src/static-analysis/git/DiffFacts.js"]
+  n_file_src_agents_impact_analyzer_index_js -->|IMPORTS| n_file_src_static_analysis_git_DiffFacts_js
+  n_file_src_agents_test_agent_index_js["src/agents/test-agent/index.js"]
+  n_file_src_static_analysis_git_DiffFacts_js["src/static-analysis/git/DiffFacts.js"]
+  n_file_src_agents_test_agent_index_js -->|IMPORTS| n_file_src_static_analysis_git_DiffFacts_js
+  n_file_src_static_analysis_git_DiffFacts_js["src/static-analysis/git/DiffFacts.js"]
+  n_import_node_child_process["node:child_process"]
+  n_file_src_static_analysis_git_DiffFacts_js -->|IMPORTS| n_import_node_child_process
+  n_file_src_static_analysis_git_DiffFacts_js["src/static-analysis/git/DiffFacts.js"]
+  n_import_node_util["node:util"]
+  n_file_src_static_analysis_git_DiffFacts_js -->|IMPORTS| n_import_node_util

@@ -1,0 +1,223 @@
+{
+  "module": "src-agent-platform-runtime",
+  "components": [
+    {
+      "name": "SCHEMA_FILE",
+      "kind": "variable",
+      "file": "src/agent-platform/runtime/evidenceSchema.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/runtime/evidenceSchema.js",
+          "symbol": "SCHEMA_FILE"
+        }
+      ]
+    },
+    {
+      "name": "EVIDENCE_SCHEMA",
+      "kind": "variable",
+      "file": "src/agent-platform/runtime/evidenceSchema.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/runtime/evidenceSchema.js",
+          "symbol": "EVIDENCE_SCHEMA"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "AgentRuntime",
+      "fromLabel": "AgentRuntime",
+      "to": "SCHEMA_FILE",
+      "toLabel": "SCHEMA_FILE",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/runtime/AgentRuntime.js",
+      "toFile": "src/agent-platform/runtime/evidenceSchema.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/runtime/AgentRuntime.js",
+          "reason": "./evidenceSchema.js"
+        }
+      ]
+    },
+    {
+      "from": "CliAgentProvider",
+      "fromLabel": "CliAgentProvider",
+      "to": "AgentProvider",
+      "toLabel": "AgentProvider",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/runtime/providers/CliAgentProvider.js",
+      "toFile": "src/agent-platform/runtime/providers/AgentProvider.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/runtime/providers/CliAgentProvider.js",
+          "reason": "./AgentProvider.js"
+        }
+      ]
+    },
+    {
+      "from": "HttpAgentProvider",
+      "fromLabel": "HttpAgentProvider",
+      "to": "AgentProvider",
+      "toLabel": "AgentProvider",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/runtime/providers/HttpAgentProvider.js",
+      "toFile": "src/agent-platform/runtime/providers/AgentProvider.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/runtime/providers/HttpAgentProvider.js",
+          "reason": "./AgentProvider.js"
+        }
+      ]
+    },
+    {
+      "from": "IdeAgentProvider",
+      "fromLabel": "IdeAgentProvider",
+      "to": "AgentProvider",
+      "toLabel": "AgentProvider",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/runtime/providers/IdeAgentProvider.js",
+      "toFile": "src/agent-platform/runtime/providers/AgentProvider.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/runtime/providers/IdeAgentProvider.js",
+          "reason": "./AgentProvider.js"
+        }
+      ]
+    },
+    {
+      "from": "LocalAgentProvider",
+      "fromLabel": "LocalAgentProvider",
+      "to": "AgentProvider",
+      "toLabel": "AgentProvider",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/runtime/providers/LocalAgentProvider.js",
+      "toFile": "src/agent-platform/runtime/providers/AgentProvider.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/runtime/providers/LocalAgentProvider.js",
+          "reason": "./AgentProvider.js"
+        }
+      ]
+    },
+    {
+      "from": "McpAgentProvider",
+      "fromLabel": "McpAgentProvider",
+      "to": "AgentProvider",
+      "toLabel": "AgentProvider",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/runtime/providers/McpAgentProvider.js",
+      "toFile": "src/agent-platform/runtime/providers/AgentProvider.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/runtime/providers/McpAgentProvider.js",
+          "reason": "./AgentProvider.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "AgentProvider",
+      "toLabel": "AgentProvider",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/runtime/providers/index.js",
+      "toFile": "src/agent-platform/runtime/providers/AgentProvider.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/runtime/providers/index.js",
+          "reason": "./LocalAgentProvider.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "LocalAgentProvider",
+      "toLabel": "LocalAgentProvider",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/runtime/providers/index.js",
+      "toFile": "src/agent-platform/runtime/providers/LocalAgentProvider.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/runtime/providers/index.js",
+          "reason": "./LocalAgentProvider.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "HttpAgentProvider",
+      "toLabel": "HttpAgentProvider",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/runtime/providers/index.js",
+      "toFile": "src/agent-platform/runtime/providers/HttpAgentProvider.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/runtime/providers/index.js",
+          "reason": "./HttpAgentProvider.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "CliAgentProvider",
+      "toLabel": "CliAgentProvider",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/runtime/providers/index.js",
+      "toFile": "src/agent-platform/runtime/providers/CliAgentProvider.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/runtime/providers/index.js",
+          "reason": "./CliAgentProvider.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "IdeAgentProvider",
+      "toLabel": "IdeAgentProvider",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/runtime/providers/index.js",
+      "toFile": "src/agent-platform/runtime/providers/IdeAgentProvider.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/runtime/providers/index.js",
+          "reason": "./IdeAgentProvider.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "McpAgentProvider",
+      "toLabel": "McpAgentProvider",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/runtime/providers/index.js",
+      "toFile": "src/agent-platform/runtime/providers/McpAgentProvider.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/runtime/providers/index.js",
+          "reason": "./McpAgentProvider.js"
+        }
+      ]
+    }
+  ]
+}

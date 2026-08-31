@@ -1,0 +1,841 @@
+{
+  "status": "success",
+  "result": {
+    "source": "requirement",
+    "affectedFiles": [
+      {
+        "id": "src/cli/analyze.js",
+        "label": "src/cli/analyze.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/analyze.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/bootstrap.js",
+        "label": "src/cli/bootstrap.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/bootstrap.js",
+            "reason": "requirement lexical match"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/bootstrap.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/codebuddyLayer.js",
+        "label": "src/cli/codebuddyLayer.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/codebuddyLayer.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/completionImpactRules.js",
+        "label": "src/cli/completionImpactRules.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/completionImpactRules.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/cursorLayer.js",
+        "label": "src/cli/cursorLayer.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/cursorLayer.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/ddd.js",
+        "label": "src/cli/ddd.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/ddd.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/detect.js",
+        "label": "src/cli/detect.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/detect.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/doctor.js",
+        "label": "src/cli/doctor.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/doctor.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/editorLayer.js",
+        "label": "src/cli/editorLayer.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/editorLayer.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/editorRegistry.js",
+        "label": "src/cli/editorRegistry.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/editorRegistry.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/fileLicense.js",
+        "label": "src/cli/fileLicense.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/fileLicense.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/fileLicenseRules.js",
+        "label": "src/cli/fileLicenseRules.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/fileLicenseRules.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/index.js",
+        "label": "src/cli/index.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/index.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/knowledge.js",
+        "label": "src/cli/knowledge.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/knowledge.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/knowledgeWeb.js",
+        "label": "src/cli/knowledgeWeb.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/knowledgeWeb.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/memory.js",
+        "label": "src/cli/memory.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/memory.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/pathRewrite.js",
+        "label": "src/cli/pathRewrite.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/pathRewrite.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/patterns.js",
+        "label": "src/cli/patterns.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/patterns.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/platform.js",
+        "label": "src/cli/platform.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/platform.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/prompts.js",
+        "label": "src/cli/prompts.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/prompts.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/requirementAnalysisRules.js",
+        "label": "src/cli/requirementAnalysisRules.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/requirementAnalysisRules.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/skills.js",
+        "label": "src/cli/skills.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/skills.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/submitConfig.js",
+        "label": "src/cli/submitConfig.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/submitConfig.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/tapdConfig.js",
+        "label": "src/cli/tapdConfig.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/tapdConfig.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/tapdSubmitRules.js",
+        "label": "src/cli/tapdSubmitRules.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/tapdSubmitRules.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/taskCompletion.js",
+        "label": "src/cli/taskCompletion.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/taskCompletion.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/update.js",
+        "label": "src/cli/update.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/update.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/workspace.js",
+        "label": "src/cli/workspace.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/workspace.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/agent-platform/runtime/providers/CliAgentProvider.js",
+        "label": "src/agent-platform/runtime/providers/CliAgentProvider.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/runtime/providers/CliAgentProvider.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/agent-platform/planner/LlmPlanner.js",
+        "label": "src/agent-platform/planner/LlmPlanner.js",
+        "score": 0.2,
+        "why": "path terms match requirement: plan",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/agent-platform/planner/RulePlanner.js",
+        "label": "src/agent-platform/planner/RulePlanner.js",
+        "score": 0.2,
+        "why": "path terms match requirement: plan",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/agent-platform/planner/decision.js",
+        "label": "src/agent-platform/planner/decision.js",
+        "score": 0.2,
+        "why": "path terms match requirement: plan",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/planner/decision.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/agent-platform/planner/index.js",
+        "label": "src/agent-platform/planner/index.js",
+        "score": 0.2,
+        "why": "path terms match requirement: plan",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/planner/index.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/agents/test-agent/plan.js",
+        "label": "src/agents/test-agent/plan.js",
+        "score": 0.2,
+        "why": "path terms match requirement: plan",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/test-agent/plan.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/llm/LlmClient.js",
+        "label": "src/llm/LlmClient.js",
+        "score": 0.2,
+        "why": "path terms match requirement: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/llm/LlmClient.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      }
+    ],
+    "affectedModules": [
+      {
+        "id": "src-cli",
+        "label": "src-cli",
+        "score": 0.9,
+        "why": "module routes/components match: cli",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/analyze.js",
+            "reason": "module boundary"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/bootstrap.js",
+            "reason": "module boundary"
+          },
+          {
+            "type": "route",
+            "file": "src/cli/bootstrap.js",
+            "reason": ".ai-agent/memory"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform-runtime",
+        "label": "src-agent-platform-runtime",
+        "score": 0.9,
+        "why": "module contains files whose paths match the requirement",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/runtime/providers/AgentProvider.js",
+            "reason": "module boundary"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/runtime/providers/CliAgentProvider.js",
+            "reason": "module boundary"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform-planner",
+        "label": "src-agent-platform-planner",
+        "score": 0.9,
+        "why": "module routes/components match: plan",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "reason": "module boundary"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "reason": "module boundary"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-test-agent",
+        "label": "src-agents-test-agent",
+        "score": 0.9,
+        "why": "module contains files whose paths match the requirement",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "module boundary"
+          },
+          {
+            "type": "source",
+            "file": "src/agents/test-agent/index.js",
+            "reason": "module boundary"
+          },
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "tests/aafe/${fileStem(plan)}.e2e.spec.js"
+          },
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+          }
+        ]
+      },
+      {
+        "id": "route-ai-agent",
+        "label": "route-ai-agent",
+        "score": 0.9,
+        "why": "module contains files whose paths match the requirement",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/bootstrap.js",
+            "reason": "module boundary"
+          }
+        ]
+      },
+      {
+        "id": "src-llm",
+        "label": "src-llm",
+        "score": 0.9,
+        "why": "module contains files whose paths match the requirement",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/llm/LlmClient.js",
+            "reason": "module boundary"
+          }
+        ]
+      },
+      {
+        "id": "bin-aafe-js",
+        "label": "bin-aafe-js",
+        "score": 0.55,
+        "why": "depends on src-cli (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "bin/aafe.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform",
+        "label": "src-agent-platform",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-runtime (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/index.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents",
+        "label": "src-agents",
+        "score": 0.55,
+        "why": "depends on src-agents-test-agent (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/index.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-static-analysis-semantic",
+        "label": "src-static-analysis-semantic",
+        "score": 0.55,
+        "why": "depends on src-llm (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/semantic/port.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-static-analysis-analyzers",
+        "label": "src-static-analysis-analyzers",
+        "score": 0.303,
+        "why": "depends on src-static-analysis-semantic (2 hops away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/architecture.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/business.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-static-analysis",
+        "label": "src-static-analysis",
+        "score": 0.166,
+        "why": "depends on src-static-analysis-analyzers (3 hops away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/entryDiscover.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/orchestrator.js",
+            "reason": "module membership"
+          }
+        ]
+      }
+    ],
+    "affectedFeatures": [
+      {
+        "id": "feature:ai-agent-memory",
+        "label": "memory",
+        "score": 0.12,
+        "why": "requirement terms match feature vocabulary: cli",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/cli/bootstrap.js",
+            "reason": ".ai-agent/memory"
+          }
+        ]
+      },
+      {
+        "id": "feature:tests-aafe-filestem-plan-e2e-spec-js",
+        "label": "${fileStem(plan)}.e2e.spec",
+        "score": 0.12,
+        "why": "requirement terms match feature vocabulary: plan",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "tests/aafe/${fileStem(plan)}.e2e.spec.js"
+          }
+        ]
+      },
+      {
+        "id": "feature:tests-aafe-filestem-plan-spec-js",
+        "label": "${fileStem(plan)}.spec",
+        "score": 0.12,
+        "why": "requirement terms match feature vocabulary: plan",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+          }
+        ]
+      }
+    ],
+    "affectedDataFlows": [
+      {
+        "id": "flow:app:.ai-agent/memory:src/cli/bootstrap.js",
+        "label": "route-ai-agent: 1 edge(s)",
+        "score": 0.6,
+        "why": "application flow crosses an affected module",
+        "evidence": []
+      }
+    ],
+    "affectedBusinessFlows": [
+      {
+        "id": "business:ai-agent-memory",
+        "label": "memory",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-cli",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/cli/bootstrap.js",
+            "reason": ".ai-agent/memory"
+          }
+        ]
+      },
+      {
+        "id": "business:tests-aafe-filestem-plan-e2e-spec-js",
+        "label": "${fileStem(plan)}.e2e.spec",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-agents-test-agent",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "tests/aafe/${fileStem(plan)}.e2e.spec.js"
+          }
+        ]
+      },
+      {
+        "id": "business:tests-aafe-filestem-plan-spec-js",
+        "label": "${fileStem(plan)}.spec",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-agents-test-agent",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+          }
+        ]
+      }
+    ],
+    "affectedTests": [],
+    "risk": "high",
+    "confidence": 0.2
+  },
+  "knowledgeUpdates": [],
+  "evidence": [
+    {
+      "type": "source",
+      "file": "src/cli/analyze.js",
+      "reason": "module boundary"
+    },
+    {
+      "type": "source",
+      "file": "src/agent-platform/runtime/providers/AgentProvider.js",
+      "reason": "module boundary"
+    },
+    {
+      "type": "source",
+      "file": "src/agent-platform/planner/LlmPlanner.js",
+      "reason": "module boundary"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": "module boundary"
+    },
+    {
+      "type": "source",
+      "file": "src/cli/bootstrap.js",
+      "reason": "module boundary"
+    },
+    {
+      "type": "source",
+      "file": "src/llm/LlmClient.js",
+      "reason": "module boundary"
+    },
+    {
+      "type": "source",
+      "file": "bin/aafe.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agent-platform/index.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/index.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/static-analysis/semantic/port.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/static-analysis/analyzers/architecture.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/static-analysis/entryDiscover.js",
+      "reason": "module membership"
+    }
+  ],
+  "nextActions": [
+    {
+      "capability": "knowledge-validation",
+      "reason": "impact claims should be evidence-checked before use"
+    },
+    {
+      "capability": "context-packaging",
+      "reason": "the IDE agent needs a minimal context package"
+    }
+  ],
+  "metrics": {
+    "duration": 19
+  }
+}

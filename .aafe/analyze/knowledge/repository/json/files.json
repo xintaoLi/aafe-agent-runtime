@@ -1,0 +1,1926 @@
+{
+  "files": [
+    {
+      "id": "file:.aafe.agents.json",
+      "path": ".aafe.agents.json",
+      "language": "json",
+      "size": 1901,
+      "hash": "size:1901",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:.aafe.config.json",
+      "path": ".aafe.config.json",
+      "language": "json",
+      "size": 3412,
+      "hash": "size:3412",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:.docs/aafe-generated/README.md",
+      "path": ".docs/aafe-generated/README.md",
+      "language": "markdown",
+      "size": 502,
+      "hash": "size:502",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:.docs/aafe-generated/业务关系与数据流.md",
+      "path": ".docs/aafe-generated/业务关系与数据流.md",
+      "language": "markdown",
+      "size": 1592,
+      "hash": "size:1592",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:.docs/aafe-generated/影响范围与测试预测.md",
+      "path": ".docs/aafe-generated/影响范围与测试预测.md",
+      "language": "markdown",
+      "size": 1432,
+      "hash": "size:1432",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:.docs/aafe-generated/组件关系.md",
+      "path": ".docs/aafe-generated/组件关系.md",
+      "language": "markdown",
+      "size": 2495,
+      "hash": "size:2495",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:.gitignore",
+      "path": ".gitignore",
+      "language": "unknown",
+      "size": 119,
+      "hash": "size:119",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:.session_tmps/d7cab1d6-a2be-4f0f-ba56-997fe454e78a/scan-src/DemoCard.tsx",
+      "path": ".session_tmps/d7cab1d6-a2be-4f0f-ba56-997fe454e78a/scan-src/DemoCard.tsx",
+      "language": "ts",
+      "size": 45,
+      "hash": "fd0f1397927d7357",
+      "kind": "source"
+    },
+    {
+      "id": "file:.session_tmps/fail.log",
+      "path": ".session_tmps/fail.log",
+      "language": "unknown",
+      "size": 294,
+      "hash": "size:294",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:.session_tmps/fc7662e8-7dc7-487-ab94-01720326545c/knowledge-web/knowledge-web.html",
+      "path": ".session_tmps/fc7662e8-7dc7-487-ab94-01720326545c/knowledge-web/knowledge-web.html",
+      "language": "unknown",
+      "size": 4398,
+      "hash": "size:4398",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:.session_tmps/mcp-server.mjs",
+      "path": ".session_tmps/mcp-server.mjs",
+      "language": "js",
+      "size": 908,
+      "hash": "177a2af410d17b0f",
+      "kind": "source"
+    },
+    {
+      "id": "file:.session_tmps/patch_architecture.py",
+      "path": ".session_tmps/patch_architecture.py",
+      "language": "unknown",
+      "size": 5237,
+      "hash": "size:5237",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:.session_tmps/patch_memory_doctor.py",
+      "path": ".session_tmps/patch_memory_doctor.py",
+      "language": "unknown",
+      "size": 2297,
+      "hash": "size:2297",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:.thumbs/README.md_sc.png",
+      "path": ".thumbs/README.md_sc.png",
+      "language": "unknown",
+      "size": 63958,
+      "hash": "size:63958",
+      "kind": "asset"
+    },
+    {
+      "id": "file:AGENTS.CONFIG.md",
+      "path": "AGENTS.CONFIG.md",
+      "language": "markdown",
+      "size": 14740,
+      "hash": "size:14740",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:AGENTS.SCHEMA.md",
+      "path": "AGENTS.SCHEMA.md",
+      "language": "markdown",
+      "size": 35464,
+      "hash": "size:35464",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:DDD.md",
+      "path": "DDD.md",
+      "language": "markdown",
+      "size": 27251,
+      "hash": "size:27251",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:README.md",
+      "path": "README.md",
+      "language": "markdown",
+      "size": 42463,
+      "hash": "size:42463",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:SKILLS.md",
+      "path": "SKILLS.md",
+      "language": "markdown",
+      "size": 2444,
+      "hash": "size:2444",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:aafe.patform.md",
+      "path": "aafe.patform.md",
+      "language": "markdown",
+      "size": 34288,
+      "hash": "size:34288",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:bin/aafe.js",
+      "path": "bin/aafe.js",
+      "language": "js",
+      "size": 208,
+      "hash": "4092d072968fe47a",
+      "kind": "source"
+    },
+    {
+      "id": "file:docs/.DS_Store",
+      "path": "docs/.DS_Store",
+      "language": "unknown",
+      "size": 6148,
+      "hash": "size:6148",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:docs/share/aafe-agent-runtime-sharing-case.md",
+      "path": "docs/share/aafe-agent-runtime-sharing-case.md",
+      "language": "markdown",
+      "size": 10613,
+      "hash": "size:10613",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:docs/share/aafe-agent-runtime-sharing-case.pptx",
+      "path": "docs/share/aafe-agent-runtime-sharing-case.pptx",
+      "language": "unknown",
+      "size": 27042,
+      "hash": "size:27042",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:docs/share/aafe-agent-runtime-sharing.md",
+      "path": "docs/share/aafe-agent-runtime-sharing.md",
+      "language": "markdown",
+      "size": 15862,
+      "hash": "size:15862",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:docs/share/aafe-agent-runtime-sharing.pptx",
+      "path": "docs/share/aafe-agent-runtime-sharing.pptx",
+      "language": "unknown",
+      "size": 20271,
+      "hash": "size:20271",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:docs/share/aafe-agent-runtime-slides-case.md",
+      "path": "docs/share/aafe-agent-runtime-slides-case.md",
+      "language": "markdown",
+      "size": 6390,
+      "hash": "size:6390",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:docs/share/aafe-agent-runtime-slides.md",
+      "path": "docs/share/aafe-agent-runtime-slides.md",
+      "language": "markdown",
+      "size": 6386,
+      "hash": "size:6386",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:docs/share/aafe-agent-runtime-speaker-notes-case.md",
+      "path": "docs/share/aafe-agent-runtime-speaker-notes-case.md",
+      "language": "markdown",
+      "size": 12211,
+      "hash": "size:12211",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:docs/skill-index-on-demand-optimization.md",
+      "path": "docs/skill-index-on-demand-optimization.md",
+      "language": "markdown",
+      "size": 13005,
+      "hash": "size:13005",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:package-lock.json",
+      "path": "package-lock.json",
+      "language": "json",
+      "size": 2160,
+      "hash": "size:2160",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:package.json",
+      "path": "package.json",
+      "language": "json",
+      "size": 2320,
+      "hash": "902218a82089e35a",
+      "kind": "config"
+    },
+    {
+      "id": "file:packages/README.md",
+      "path": "packages/README.md",
+      "language": "markdown",
+      "size": 623,
+      "hash": "size:623",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:packages/adapter-claude/package.json",
+      "path": "packages/adapter-claude/package.json",
+      "language": "json",
+      "size": 153,
+      "hash": "75e8c2420c584e9a",
+      "kind": "config"
+    },
+    {
+      "id": "file:packages/adapter-cursor/package.json",
+      "path": "packages/adapter-cursor/package.json",
+      "language": "json",
+      "size": 148,
+      "hash": "612df7d570d0a256",
+      "kind": "config"
+    },
+    {
+      "id": "file:packages/admin/package.json",
+      "path": "packages/admin/package.json",
+      "language": "json",
+      "size": 139,
+      "hash": "4d5182e078493d26",
+      "kind": "config"
+    },
+    {
+      "id": "file:packages/complex/package.json",
+      "path": "packages/complex/package.json",
+      "language": "json",
+      "size": 152,
+      "hash": "96991fc38b302bae",
+      "kind": "config"
+    },
+    {
+      "id": "file:packages/core/package.json",
+      "path": "packages/core/package.json",
+      "language": "json",
+      "size": 144,
+      "hash": "87ab68f7cbb69db4",
+      "kind": "config"
+    },
+    {
+      "id": "file:packages/dashboard/package.json",
+      "path": "packages/dashboard/package.json",
+      "language": "json",
+      "size": 147,
+      "hash": "6065f70cc86c1827",
+      "kind": "config"
+    },
+    {
+      "id": "file:packages/ddd/README.md",
+      "path": "packages/ddd/README.md",
+      "language": "markdown",
+      "size": 175,
+      "hash": "size:175",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:packages/ddd/package.json",
+      "path": "packages/ddd/package.json",
+      "language": "json",
+      "size": 152,
+      "hash": "6dfeb7ed8fc22c3d",
+      "kind": "config"
+    },
+    {
+      "id": "file:packages/graph/package.json",
+      "path": "packages/graph/package.json",
+      "language": "json",
+      "size": 139,
+      "hash": "13d072520de3cd08",
+      "kind": "config"
+    },
+    {
+      "id": "file:packages/next/package.json",
+      "path": "packages/next/package.json",
+      "language": "json",
+      "size": 141,
+      "hash": "5e80b3957d69f2bb",
+      "kind": "config"
+    },
+    {
+      "id": "file:packages/patterns/README.md",
+      "path": "packages/patterns/README.md",
+      "language": "markdown",
+      "size": 151,
+      "hash": "size:151",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:packages/patterns/package.json",
+      "path": "packages/patterns/package.json",
+      "language": "json",
+      "size": 152,
+      "hash": "5f204aced77e2bc9",
+      "kind": "config"
+    },
+    {
+      "id": "file:packages/react/package.json",
+      "path": "packages/react/package.json",
+      "language": "json",
+      "size": 140,
+      "hash": "dc00625f7dbe11ac",
+      "kind": "config"
+    },
+    {
+      "id": "file:packages/vue/package.json",
+      "path": "packages/vue/package.json",
+      "language": "json",
+      "size": 136,
+      "hash": "6f723529ec2935dc",
+      "kind": "config"
+    },
+    {
+      "id": "file:packages/workflow/package.json",
+      "path": "packages/workflow/package.json",
+      "language": "json",
+      "size": 145,
+      "hash": "a44d30e610e522da",
+      "kind": "config"
+    },
+    {
+      "id": "file:scripts/export-portable-completion-tapd.js",
+      "path": "scripts/export-portable-completion-tapd.js",
+      "language": "js",
+      "size": 767,
+      "hash": "7a79b466790a0e94",
+      "kind": "source"
+    },
+    {
+      "id": "file:scripts/test-agent-platform.js",
+      "path": "scripts/test-agent-platform.js",
+      "language": "js",
+      "size": 86460,
+      "hash": "18d414f3b87d1e99",
+      "kind": "source"
+    },
+    {
+      "id": "file:scripts/test-completion-tapd-rules.js",
+      "path": "scripts/test-completion-tapd-rules.js",
+      "language": "js",
+      "size": 5086,
+      "hash": "59d17b9d44263199",
+      "kind": "source"
+    },
+    {
+      "id": "file:scripts/test-e2e-platform.js",
+      "path": "scripts/test-e2e-platform.js",
+      "language": "js",
+      "size": 13506,
+      "hash": "77622cafba6201d4",
+      "kind": "source"
+    },
+    {
+      "id": "file:scripts/test-file-license-rules.js",
+      "path": "scripts/test-file-license-rules.js",
+      "language": "js",
+      "size": 4971,
+      "hash": "90909af31b0aa859",
+      "kind": "source"
+    },
+    {
+      "id": "file:scripts/test-submit-config.js",
+      "path": "scripts/test-submit-config.js",
+      "language": "js",
+      "size": 1798,
+      "hash": "6507f3b70507cc38",
+      "kind": "source"
+    },
+    {
+      "id": "file:scripts/test-tapd-config.js",
+      "path": "scripts/test-tapd-config.js",
+      "language": "js",
+      "size": 1345,
+      "hash": "2e31579d76ef15bf",
+      "kind": "source"
+    },
+    {
+      "id": "file:scripts/test-workspace-cursor.js",
+      "path": "scripts/test-workspace-cursor.js",
+      "language": "js",
+      "size": 12439,
+      "hash": "fe69f072691f03bd",
+      "kind": "source"
+    },
+    {
+      "id": "file:skills/aafe-vue-complex-runtime/SKILL.md",
+      "path": "skills/aafe-vue-complex-runtime/SKILL.md",
+      "language": "markdown",
+      "size": 11351,
+      "hash": "size:11351",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:skills/knowledge-center/.thumbs/SKILL.md_sc.png",
+      "path": "skills/knowledge-center/.thumbs/SKILL.md_sc.png",
+      "language": "unknown",
+      "size": 98244,
+      "hash": "size:98244",
+      "kind": "asset"
+    },
+    {
+      "id": "file:skills/knowledge-center/SKILL.md",
+      "path": "skills/knowledge-center/SKILL.md",
+      "language": "markdown",
+      "size": 13853,
+      "hash": "size:13853",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:skills/manifest.json",
+      "path": "skills/manifest.json",
+      "language": "json",
+      "size": 2233,
+      "hash": "size:2233",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agent-platform/config/agentsConfig.js",
+      "path": "src/agent-platform/config/agentsConfig.js",
+      "language": "js",
+      "size": 12818,
+      "hash": "5a7a5539e8ebaee3",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/index.js",
+      "path": "src/agent-platform/index.js",
+      "language": "js",
+      "size": 5773,
+      "hash": "e8886b1230068f07",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+      "path": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+      "language": "js",
+      "size": 17176,
+      "hash": "9f555831d27ec29b",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+      "path": "src/agent-platform/orchestrator/ExecutionGraph.js",
+      "language": "js",
+      "size": 4554,
+      "hash": "b4f70615c59a5570",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/planner/LlmPlanner.js",
+      "path": "src/agent-platform/planner/LlmPlanner.js",
+      "language": "js",
+      "size": 4967,
+      "hash": "cf36ead15610fe47",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/planner/RulePlanner.js",
+      "path": "src/agent-platform/planner/RulePlanner.js",
+      "language": "js",
+      "size": 8930,
+      "hash": "aa21e2fefc3e822f",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/planner/decision.js",
+      "path": "src/agent-platform/planner/decision.js",
+      "language": "js",
+      "size": 4394,
+      "hash": "b181dfe08e69cb7c",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/planner/index.js",
+      "path": "src/agent-platform/planner/index.js",
+      "language": "js",
+      "size": 2121,
+      "hash": "b7ded28c8dba57eb",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/policy/ExecutionPolicy.js",
+      "path": "src/agent-platform/policy/ExecutionPolicy.js",
+      "language": "js",
+      "size": 6566,
+      "hash": "8b1c86f0d9ae1bb9",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/protocol/request.js",
+      "path": "src/agent-platform/protocol/request.js",
+      "language": "js",
+      "size": 4154,
+      "hash": "a1d91fa031fb0bb7",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/protocol/response.js",
+      "path": "src/agent-platform/protocol/response.js",
+      "language": "js",
+      "size": 4340,
+      "hash": "608e1494de683310",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/registry/AgentRegistry.js",
+      "path": "src/agent-platform/registry/AgentRegistry.js",
+      "language": "js",
+      "size": 6413,
+      "hash": "ab706645cde9c00b",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/registry/definition.js",
+      "path": "src/agent-platform/registry/definition.js",
+      "language": "js",
+      "size": 6862,
+      "hash": "1ea1158eb8d73860",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/runtime/AgentRuntime.js",
+      "path": "src/agent-platform/runtime/AgentRuntime.js",
+      "language": "js",
+      "size": 10180,
+      "hash": "d1946a648b99a60e",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/runtime/evidenceSchema.js",
+      "path": "src/agent-platform/runtime/evidenceSchema.js",
+      "language": "js",
+      "size": 2116,
+      "hash": "e007d7de7fec2ef7",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/runtime/providers/AgentProvider.js",
+      "path": "src/agent-platform/runtime/providers/AgentProvider.js",
+      "language": "js",
+      "size": 2293,
+      "hash": "eac50159247d4fbd",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/runtime/providers/CliAgentProvider.js",
+      "path": "src/agent-platform/runtime/providers/CliAgentProvider.js",
+      "language": "js",
+      "size": 3665,
+      "hash": "e1323471e856ea71",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/runtime/providers/HttpAgentProvider.js",
+      "path": "src/agent-platform/runtime/providers/HttpAgentProvider.js",
+      "language": "js",
+      "size": 3029,
+      "hash": "2bbcc9c7e5611e1d",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/runtime/providers/IdeAgentProvider.js",
+      "path": "src/agent-platform/runtime/providers/IdeAgentProvider.js",
+      "language": "js",
+      "size": 2363,
+      "hash": "f02e535642afb046",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/runtime/providers/LocalAgentProvider.js",
+      "path": "src/agent-platform/runtime/providers/LocalAgentProvider.js",
+      "language": "js",
+      "size": 2463,
+      "hash": "40a4288596e7d743",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/runtime/providers/McpAgentProvider.js",
+      "path": "src/agent-platform/runtime/providers/McpAgentProvider.js",
+      "language": "js",
+      "size": 7702,
+      "hash": "10b25032f51dfed7",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/runtime/providers/index.js",
+      "path": "src/agent-platform/runtime/providers/index.js",
+      "language": "js",
+      "size": 2577,
+      "hash": "163af0419a79fecc",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/schema/loader.js",
+      "path": "src/agent-platform/schema/loader.js",
+      "language": "js",
+      "size": 6157,
+      "hash": "13086848d75c5b95",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/schema/repair.js",
+      "path": "src/agent-platform/schema/repair.js",
+      "language": "js",
+      "size": 9961,
+      "hash": "72ecc3e56ca59bfe",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/schema/validate.js",
+      "path": "src/agent-platform/schema/validate.js",
+      "language": "js",
+      "size": 11449,
+      "hash": "8d9c8384551d2d96",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/skill-runtime/AgentRuntime.js",
+      "path": "src/agent-platform/skill-runtime/AgentRuntime.js",
+      "language": "js",
+      "size": 3911,
+      "hash": "12a32b6bc6fc325b",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/skill-runtime/GateValidator.js",
+      "path": "src/agent-platform/skill-runtime/GateValidator.js",
+      "language": "js",
+      "size": 1277,
+      "hash": "640180e2029837e9",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/skill-runtime/HookBus.js",
+      "path": "src/agent-platform/skill-runtime/HookBus.js",
+      "language": "js",
+      "size": 1797,
+      "hash": "3f0a6845705872e6",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/skill-runtime/PipelineExecutor.js",
+      "path": "src/agent-platform/skill-runtime/PipelineExecutor.js",
+      "language": "js",
+      "size": 2981,
+      "hash": "5ce354aecf170c42",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/skill-runtime/SkillRegistry.js",
+      "path": "src/agent-platform/skill-runtime/SkillRegistry.js",
+      "language": "js",
+      "size": 992,
+      "hash": "7fe2838abd53abe6",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/skill-runtime/configLoader.js",
+      "path": "src/agent-platform/skill-runtime/configLoader.js",
+      "language": "js",
+      "size": 4062,
+      "hash": "183f517bddb3039b",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/skill-runtime/defaults.js",
+      "path": "src/agent-platform/skill-runtime/defaults.js",
+      "language": "js",
+      "size": 30753,
+      "hash": "bd3a8af718a8294a",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/state/ExecutionState.js",
+      "path": "src/agent-platform/state/ExecutionState.js",
+      "language": "js",
+      "size": 7069,
+      "hash": "e7750009f7eed7aa",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agent-platform/state/RunStore.js",
+      "path": "src/agent-platform/state/RunStore.js",
+      "language": "js",
+      "size": 6813,
+      "hash": "9d37729f1767477d",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/code-intelligence/index.js",
+      "path": "src/agents/code-intelligence/index.js",
+      "language": "js",
+      "size": 6931,
+      "hash": "b6e40c6370c7af29",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/code-intelligence/input.schema.json",
+      "path": "src/agents/code-intelligence/input.schema.json",
+      "language": "json",
+      "size": 1222,
+      "hash": "size:1222",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/code-intelligence/output.schema.json",
+      "path": "src/agents/code-intelligence/output.schema.json",
+      "language": "json",
+      "size": 4933,
+      "hash": "size:4933",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/code-intelligence/prompt.js",
+      "path": "src/agents/code-intelligence/prompt.js",
+      "language": "js",
+      "size": 3326,
+      "hash": "9abfa8103aa15d27",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/code-intelligence/views.js",
+      "path": "src/agents/code-intelligence/views.js",
+      "language": "js",
+      "size": 6291,
+      "hash": "a0470634cebb1752",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/context-agent/index.js",
+      "path": "src/agents/context-agent/index.js",
+      "language": "js",
+      "size": 18798,
+      "hash": "5dd0ce3be2a1c11b",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/context-agent/input.schema.json",
+      "path": "src/agents/context-agent/input.schema.json",
+      "language": "json",
+      "size": 954,
+      "hash": "size:954",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/context-agent/output.schema.json",
+      "path": "src/agents/context-agent/output.schema.json",
+      "language": "json",
+      "size": 4074,
+      "hash": "size:4074",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/context-agent/prompt.js",
+      "path": "src/agents/context-agent/prompt.js",
+      "language": "js",
+      "size": 3278,
+      "hash": "0e656dcc189de018",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/failure-analyzer/classify.js",
+      "path": "src/agents/failure-analyzer/classify.js",
+      "language": "js",
+      "size": 8300,
+      "hash": "a79c48f962f4b056",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/failure-analyzer/index.js",
+      "path": "src/agents/failure-analyzer/index.js",
+      "language": "js",
+      "size": 10487,
+      "hash": "6e6ed92fbbb9f10f",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/failure-analyzer/input.schema.json",
+      "path": "src/agents/failure-analyzer/input.schema.json",
+      "language": "json",
+      "size": 1195,
+      "hash": "size:1195",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/failure-analyzer/output.schema.json",
+      "path": "src/agents/failure-analyzer/output.schema.json",
+      "language": "json",
+      "size": 3405,
+      "hash": "size:3405",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/failure-analyzer/prompt.js",
+      "path": "src/agents/failure-analyzer/prompt.js",
+      "language": "js",
+      "size": 3408,
+      "hash": "c7a18028e8507458",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/impact-analyzer/index.js",
+      "path": "src/agents/impact-analyzer/index.js",
+      "language": "js",
+      "size": 16113,
+      "hash": "77d0f9b02a87c688",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/impact-analyzer/input.schema.json",
+      "path": "src/agents/impact-analyzer/input.schema.json",
+      "language": "json",
+      "size": 1081,
+      "hash": "size:1081",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/impact-analyzer/output.schema.json",
+      "path": "src/agents/impact-analyzer/output.schema.json",
+      "language": "json",
+      "size": 3245,
+      "hash": "size:3245",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/impact-analyzer/prompt.js",
+      "path": "src/agents/impact-analyzer/prompt.js",
+      "language": "js",
+      "size": 3289,
+      "hash": "a76dd78609044573",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/impact-analyzer/tokenize.js",
+      "path": "src/agents/impact-analyzer/tokenize.js",
+      "language": "js",
+      "size": 7258,
+      "hash": "ec2c5483df6ebb15",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/index.js",
+      "path": "src/agents/index.js",
+      "language": "js",
+      "size": 2557,
+      "hash": "d2f84857ec03e099",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/knowledge-validator/index.js",
+      "path": "src/agents/knowledge-validator/index.js",
+      "language": "js",
+      "size": 6183,
+      "hash": "7e5c6b823bb1f505",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/knowledge-validator/input.schema.json",
+      "path": "src/agents/knowledge-validator/input.schema.json",
+      "language": "json",
+      "size": 698,
+      "hash": "size:698",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/knowledge-validator/output.schema.json",
+      "path": "src/agents/knowledge-validator/output.schema.json",
+      "language": "json",
+      "size": 2027,
+      "hash": "size:2027",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/knowledge-validator/prompt.js",
+      "path": "src/agents/knowledge-validator/prompt.js",
+      "language": "js",
+      "size": 3126,
+      "hash": "e05d0bb354a9240e",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/planner/input.schema.json",
+      "path": "src/agents/planner/input.schema.json",
+      "language": "json",
+      "size": 2990,
+      "hash": "size:2990",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/planner/output.schema.json",
+      "path": "src/agents/planner/output.schema.json",
+      "language": "json",
+      "size": 1845,
+      "hash": "size:1845",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/planner/prompt.js",
+      "path": "src/agents/planner/prompt.js",
+      "language": "js",
+      "size": 3904,
+      "hash": "5a127560dee42000",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/prompts/base.js",
+      "path": "src/agents/prompts/base.js",
+      "language": "js",
+      "size": 4618,
+      "hash": "d6d08f76176ce375",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/schemas/evidence.schema.json",
+      "path": "src/agents/schemas/evidence.schema.json",
+      "language": "json",
+      "size": 1337,
+      "hash": "size:1337",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/schemas/knowledge-item.schema.json",
+      "path": "src/agents/schemas/knowledge-item.schema.json",
+      "language": "json",
+      "size": 1485,
+      "hash": "size:1485",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/test-agent/generate.js",
+      "path": "src/agents/test-agent/generate.js",
+      "language": "js",
+      "size": 5454,
+      "hash": "6015c95098da26b9",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/test-agent/index.js",
+      "path": "src/agents/test-agent/index.js",
+      "language": "js",
+      "size": 12130,
+      "hash": "494c33274675a5fb",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/test-agent/input.schema.json",
+      "path": "src/agents/test-agent/input.schema.json",
+      "language": "json",
+      "size": 1093,
+      "hash": "size:1093",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/test-agent/output.schema.json",
+      "path": "src/agents/test-agent/output.schema.json",
+      "language": "json",
+      "size": 3688,
+      "hash": "size:3688",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/agents/test-agent/plan.js",
+      "path": "src/agents/test-agent/plan.js",
+      "language": "js",
+      "size": 11740,
+      "hash": "a71404790bdc6494",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/agents/test-agent/prompt.js",
+      "path": "src/agents/test-agent/prompt.js",
+      "language": "js",
+      "size": 3273,
+      "hash": "986ff100e9f3e58a",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/.thumbs/knowledge.js_sc.png",
+      "path": "src/cli/.thumbs/knowledge.js_sc.png",
+      "language": "unknown",
+      "size": 82509,
+      "hash": "size:82509",
+      "kind": "asset"
+    },
+    {
+      "id": "file:src/cli/.thumbs/taskCompletion.js_sc.png",
+      "path": "src/cli/.thumbs/taskCompletion.js_sc.png",
+      "language": "unknown",
+      "size": 65019,
+      "hash": "size:65019",
+      "kind": "asset"
+    },
+    {
+      "id": "file:src/cli/analyze.js",
+      "path": "src/cli/analyze.js",
+      "language": "js",
+      "size": 14556,
+      "hash": "71fe79b28c4f49dc",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/bootstrap.js",
+      "path": "src/cli/bootstrap.js",
+      "language": "js",
+      "size": 70710,
+      "hash": "e4a02c93bbae0a46",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/codebuddyLayer.js",
+      "path": "src/cli/codebuddyLayer.js",
+      "language": "js",
+      "size": 15258,
+      "hash": "6e1a35f1ecec53ff",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/completionImpactRules.js",
+      "path": "src/cli/completionImpactRules.js",
+      "language": "js",
+      "size": 21205,
+      "hash": "3a5dcb96ed599bbe",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/cursorLayer.js",
+      "path": "src/cli/cursorLayer.js",
+      "language": "js",
+      "size": 19339,
+      "hash": "f6a58a38cbb13819",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/ddd.js",
+      "path": "src/cli/ddd.js",
+      "language": "js",
+      "size": 2960,
+      "hash": "c065b8ddd013f46a",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/dddRuntimeFiles.js",
+      "path": "src/cli/dddRuntimeFiles.js",
+      "language": "js",
+      "size": 35529,
+      "hash": "e4aa39a8beca4dfe",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/detect.js",
+      "path": "src/cli/detect.js",
+      "language": "js",
+      "size": 2254,
+      "hash": "93f0308a2e76900e",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/doctor.js",
+      "path": "src/cli/doctor.js",
+      "language": "js",
+      "size": 19968,
+      "hash": "d8a7abdf07108e5e",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/e2eFromPrRules.js",
+      "path": "src/cli/e2eFromPrRules.js",
+      "language": "js",
+      "size": 6287,
+      "hash": "6e9ea0ee3ee42cad",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/e2eSetup.js",
+      "path": "src/cli/e2eSetup.js",
+      "language": "js",
+      "size": 7736,
+      "hash": "ff25f0cbd007f19f",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/editorLayer.js",
+      "path": "src/cli/editorLayer.js",
+      "language": "js",
+      "size": 12785,
+      "hash": "7e3ba735d892e62e",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/editorRegistry.js",
+      "path": "src/cli/editorRegistry.js",
+      "language": "js",
+      "size": 2905,
+      "hash": "394ce3bf6cb21395",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/fileLicense.js",
+      "path": "src/cli/fileLicense.js",
+      "language": "js",
+      "size": 7865,
+      "hash": "9348a800e9fdacd5",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/fileLicenseRules.js",
+      "path": "src/cli/fileLicenseRules.js",
+      "language": "js",
+      "size": 23373,
+      "hash": "b3c0c7ffd8848fb1",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/hookScripts.js",
+      "path": "src/cli/hookScripts.js",
+      "language": "js",
+      "size": 2098,
+      "hash": "9bd069856536b536",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/index.js",
+      "path": "src/cli/index.js",
+      "language": "js",
+      "size": 14089,
+      "hash": "13c1ce07f371ec0c",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/knowledge.js",
+      "path": "src/cli/knowledge.js",
+      "language": "js",
+      "size": 10362,
+      "hash": "0f6a38d7d5f7b71e",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/knowledgeWeb.js",
+      "path": "src/cli/knowledgeWeb.js",
+      "language": "js",
+      "size": 11668,
+      "hash": "e5fd4af8ca4e785a",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/memory.js",
+      "path": "src/cli/memory.js",
+      "language": "js",
+      "size": 3624,
+      "hash": "18f339c7d3f14365",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/migrate.js",
+      "path": "src/cli/migrate.js",
+      "language": "js",
+      "size": 17533,
+      "hash": "1a6fedf41220b182",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/pathRewrite.js",
+      "path": "src/cli/pathRewrite.js",
+      "language": "js",
+      "size": 8118,
+      "hash": "3059f31e7e70e4b8",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/patternRuntimeFiles.js",
+      "path": "src/cli/patternRuntimeFiles.js",
+      "language": "js",
+      "size": 34242,
+      "hash": "7cd17aed7f18af4f",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/patterns.js",
+      "path": "src/cli/patterns.js",
+      "language": "js",
+      "size": 5611,
+      "hash": "f7535785e365913d",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/platform.js",
+      "path": "src/cli/platform.js",
+      "language": "js",
+      "size": 22028,
+      "hash": "6912a0e01c16d082",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/portableCompletionTapdPack.js",
+      "path": "src/cli/portableCompletionTapdPack.js",
+      "language": "js",
+      "size": 14093,
+      "hash": "72eaab038894b8dc",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/prompts.js",
+      "path": "src/cli/prompts.js",
+      "language": "js",
+      "size": 15052,
+      "hash": "3ca476598fba011f",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/requirementAnalysisRules.js",
+      "path": "src/cli/requirementAnalysisRules.js",
+      "language": "js",
+      "size": 12598,
+      "hash": "cc7b892ccf300ccd",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/skills.js",
+      "path": "src/cli/skills.js",
+      "language": "js",
+      "size": 6127,
+      "hash": "11f474a36220bd2f",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/submitConfig.js",
+      "path": "src/cli/submitConfig.js",
+      "language": "js",
+      "size": 2905,
+      "hash": "590286a72d40ee65",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/tapdConfig.js",
+      "path": "src/cli/tapdConfig.js",
+      "language": "js",
+      "size": 3738,
+      "hash": "81d7fe7da1bf720b",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/tapdSubmitRules.js",
+      "path": "src/cli/tapdSubmitRules.js",
+      "language": "js",
+      "size": 20183,
+      "hash": "6ab9fafc5d5061cb",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/taskCompletion.js",
+      "path": "src/cli/taskCompletion.js",
+      "language": "js",
+      "size": 2116,
+      "hash": "24a86ecad5a1f4f4",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/update.js",
+      "path": "src/cli/update.js",
+      "language": "js",
+      "size": 11582,
+      "hash": "c1596a58d5528e1b",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/cli/workspace.js",
+      "path": "src/cli/workspace.js",
+      "language": "js",
+      "size": 8059,
+      "hash": "be5ae0cd48238df5",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/ddd/DDDAdvisor.js",
+      "path": "src/ddd/DDDAdvisor.js",
+      "language": "js",
+      "size": 11986,
+      "hash": "111443eb4ef63b57",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/ddd/DDDGate.js",
+      "path": "src/ddd/DDDGate.js",
+      "language": "js",
+      "size": 9575,
+      "hash": "35092ae8506fb5ed",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/ddd/DDDScope.js",
+      "path": "src/ddd/DDDScope.js",
+      "language": "js",
+      "size": 8222,
+      "hash": "0f6ea8cc7b18b580",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/ide-bridge/context/render.js",
+      "path": "src/ide-bridge/context/render.js",
+      "language": "js",
+      "size": 8840,
+      "hash": "c9b57116a7e605f6",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/ide-bridge/context/tokens.js",
+      "path": "src/ide-bridge/context/tokens.js",
+      "language": "js",
+      "size": 2208,
+      "hash": "94691e929fd9d5bd",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/index.js",
+      "path": "src/index.js",
+      "language": "js",
+      "size": 3593,
+      "hash": "10559a90d25e66da",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/knowledge/graph/relations.js",
+      "path": "src/knowledge/graph/relations.js",
+      "language": "js",
+      "size": 6183,
+      "hash": "16ef9da5222e91b8",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/knowledge/model/index.js",
+      "path": "src/knowledge/model/index.js",
+      "language": "js",
+      "size": 4034,
+      "hash": "c25ecc74ba0a3644",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/knowledge/report/impactMarkdown.js",
+      "path": "src/knowledge/report/impactMarkdown.js",
+      "language": "js",
+      "size": 5729,
+      "hash": "4e31764242ea4357",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/knowledge/search/KnowledgeIndex.js",
+      "path": "src/knowledge/search/KnowledgeIndex.js",
+      "language": "js",
+      "size": 12587,
+      "hash": "42a9e0696dfddb0d",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/knowledge/store/KnowledgeStore.js",
+      "path": "src/knowledge/store/KnowledgeStore.js",
+      "language": "js",
+      "size": 14996,
+      "hash": "3ecaf5cebba74292",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/knowledge/validator/rules.js",
+      "path": "src/knowledge/validator/rules.js",
+      "language": "js",
+      "size": 5371,
+      "hash": "c9a4983a2f528701",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/llm/LlmClient.js",
+      "path": "src/llm/LlmClient.js",
+      "language": "js",
+      "size": 6029,
+      "hash": "9cb427c111bdc4ab",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/memory/CodeScanner.js",
+      "path": "src/memory/CodeScanner.js",
+      "language": "js",
+      "size": 3840,
+      "hash": "edec2d2679df621d",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/memory/MemoryRuntime.js",
+      "path": "src/memory/MemoryRuntime.js",
+      "language": "js",
+      "size": 1270,
+      "hash": "b80d046fd4a78cb2",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/memory/MemoryStore.js",
+      "path": "src/memory/MemoryStore.js",
+      "language": "js",
+      "size": 10397,
+      "hash": "e4736e01fd2b8fee",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/patterns/AntiPatternDetector.js",
+      "path": "src/patterns/AntiPatternDetector.js",
+      "language": "js",
+      "size": 14095,
+      "hash": "55ef48fe83b2b28f",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/patterns/PatternAdvisor.js",
+      "path": "src/patterns/PatternAdvisor.js",
+      "language": "js",
+      "size": 11507,
+      "hash": "5209bcd27023e546",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/patterns/PatternComposer.js",
+      "path": "src/patterns/PatternComposer.js",
+      "language": "js",
+      "size": 13473,
+      "hash": "d6813efea1a18ace",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/patterns/PatternGate.js",
+      "path": "src/patterns/PatternGate.js",
+      "language": "js",
+      "size": 7794,
+      "hash": "d0e22e3682745c51",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/patterns/PatternProblems.js",
+      "path": "src/patterns/PatternProblems.js",
+      "language": "js",
+      "size": 13969,
+      "hash": "23fe08eb2f9c1ef1",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/patterns/PatternScore.js",
+      "path": "src/patterns/PatternScore.js",
+      "language": "js",
+      "size": 9662,
+      "hash": "21c24acd28f9efce",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/patterns/catalog.js",
+      "path": "src/patterns/catalog.js",
+      "language": "js",
+      "size": 54346,
+      "hash": "bac36b36aabdc5ae",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/agents/types.js",
+      "path": "src/static-analysis/agents/types.js",
+      "language": "js",
+      "size": 2170,
+      "hash": "b4b34ead608a5ca9",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/analyzers/architecture.js",
+      "path": "src/static-analysis/analyzers/architecture.js",
+      "language": "js",
+      "size": 5732,
+      "hash": "2f0f25f8912d13a7",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/analyzers/business.js",
+      "path": "src/static-analysis/analyzers/business.js",
+      "language": "js",
+      "size": 4846,
+      "hash": "37dbbee649230cb4",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/analyzers/dataflow.js",
+      "path": "src/static-analysis/analyzers/dataflow.js",
+      "language": "js",
+      "size": 4458,
+      "hash": "3d9d50af67d70fe1",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/analyzers/feature.js",
+      "path": "src/static-analysis/analyzers/feature.js",
+      "language": "js",
+      "size": 5541,
+      "hash": "f6aa0619d989c20f",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/analyzers/graph.js",
+      "path": "src/static-analysis/analyzers/graph.js",
+      "language": "js",
+      "size": 8182,
+      "hash": "2940449880a5dba6",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/analyzers/repository.js",
+      "path": "src/static-analysis/analyzers/repository.js",
+      "language": "js",
+      "size": 6644,
+      "hash": "7cf2753cc49f761a",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/architecture/buildArchitecture.js",
+      "path": "src/static-analysis/architecture/buildArchitecture.js",
+      "language": "js",
+      "size": 4462,
+      "hash": "1f137ed7ae4eec5b",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/ast/extractors.js",
+      "path": "src/static-analysis/ast/extractors.js",
+      "language": "js",
+      "size": 9501,
+      "hash": "a40fd4e389ebcfe7",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/ast/parseFile.js",
+      "path": "src/static-analysis/ast/parseFile.js",
+      "language": "js",
+      "size": 4208,
+      "hash": "05609579e0456615",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/cache/AnalysisCache.js",
+      "path": "src/static-analysis/cache/AnalysisCache.js",
+      "language": "js",
+      "size": 5586,
+      "hash": "b6ff9cc0df995b84",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/dataflow/buildDataflow.js",
+      "path": "src/static-analysis/dataflow/buildDataflow.js",
+      "language": "js",
+      "size": 4406,
+      "hash": "e636577cbc121766",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/emit/formats.js",
+      "path": "src/static-analysis/emit/formats.js",
+      "language": "js",
+      "size": 2773,
+      "hash": "ffe7989057f8d031",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/emit/mermaid.js",
+      "path": "src/static-analysis/emit/mermaid.js",
+      "language": "js",
+      "size": 5812,
+      "hash": "25f0f90938ba12a5",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/entryDiscover.js",
+      "path": "src/static-analysis/entryDiscover.js",
+      "language": "js",
+      "size": 11080,
+      "hash": "eb5039c324e14fd8",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/git/DiffFacts.js",
+      "path": "src/static-analysis/git/DiffFacts.js",
+      "language": "js",
+      "size": 5333,
+      "hash": "629b046c2a872eb9",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/llm/client.js",
+      "path": "src/static-analysis/llm/client.js",
+      "language": "js",
+      "size": 2686,
+      "hash": "a8328c2f9b47ae9d",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/modules/buildBundles.js",
+      "path": "src/static-analysis/modules/buildBundles.js",
+      "language": "js",
+      "size": 8936,
+      "hash": "336bb2cce0b47c61",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/modules/partition.js",
+      "path": "src/static-analysis/modules/partition.js",
+      "language": "js",
+      "size": 4788,
+      "hash": "f5b3b1128923ffd3",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/orchestrator.js",
+      "path": "src/static-analysis/orchestrator.js",
+      "language": "js",
+      "size": 6136,
+      "hash": "0331b152e5bcf33a",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/registry.js",
+      "path": "src/static-analysis/registry.js",
+      "language": "js",
+      "size": 2614,
+      "hash": "63b22dce59e7fddd",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/renderSkills.js",
+      "path": "src/static-analysis/renderSkills.js",
+      "language": "js",
+      "size": 3940,
+      "hash": "ed4b96dd41768aea",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/resolve/ModuleResolver.js",
+      "path": "src/static-analysis/resolve/ModuleResolver.js",
+      "language": "js",
+      "size": 12651,
+      "hash": "4fb166d88d9cd2a6",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/routes/resolveRoutes.js",
+      "path": "src/static-analysis/routes/resolveRoutes.js",
+      "language": "js",
+      "size": 8354,
+      "hash": "6d6ca9ad71f10ab4",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/semantic/port.js",
+      "path": "src/static-analysis/semantic/port.js",
+      "language": "js",
+      "size": 6030,
+      "hash": "8a4d55850f79e934",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/storage/persist.js",
+      "path": "src/static-analysis/storage/persist.js",
+      "language": "js",
+      "size": 19777,
+      "hash": "949bbcec32f9b4a7",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/types/config.js",
+      "path": "src/static-analysis/types/config.js",
+      "language": "js",
+      "size": 4773,
+      "hash": "05c42c695318a571",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/types/context.js",
+      "path": "src/static-analysis/types/context.js",
+      "language": "js",
+      "size": 3765,
+      "hash": "90679411211f269a",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/types/evidence.js",
+      "path": "src/static-analysis/types/evidence.js",
+      "language": "js",
+      "size": 1864,
+      "hash": "87e8cfd4eae36937",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/types/result.js",
+      "path": "src/static-analysis/types/result.js",
+      "language": "js",
+      "size": 2913,
+      "hash": "25c1f4ed0d62e898",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/static-analysis/writeDocs.js",
+      "path": "src/static-analysis/writeDocs.js",
+      "language": "js",
+      "size": 7359,
+      "hash": "ee46cedabd8b6a4e",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/templates/TemplateSystem.js",
+      "path": "src/templates/TemplateSystem.js",
+      "language": "js",
+      "size": 1349,
+      "hash": "808bf07b67f98fc1",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/testing/contracts.js",
+      "path": "src/testing/contracts.js",
+      "language": "js",
+      "size": 3190,
+      "hash": "0646334806b0793e",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/testing/e2e/case.schema.json",
+      "path": "src/testing/e2e/case.schema.json",
+      "language": "json",
+      "size": 3350,
+      "hash": "size:3350",
+      "kind": "unknown"
+    },
+    {
+      "id": "file:src/testing/e2e/compile.js",
+      "path": "src/testing/e2e/compile.js",
+      "language": "js",
+      "size": 5654,
+      "hash": "954d9a2f17850659",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/testing/e2e/config.js",
+      "path": "src/testing/e2e/config.js",
+      "language": "js",
+      "size": 4973,
+      "hash": "edfcc6d0b6e2294e",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/testing/e2e/index.js",
+      "path": "src/testing/e2e/index.js",
+      "language": "js",
+      "size": 2404,
+      "hash": "af68d001585bf607",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/testing/e2e/inventory.js",
+      "path": "src/testing/e2e/inventory.js",
+      "language": "js",
+      "size": 10730,
+      "hash": "a2ae9368df1d5bcd",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/testing/e2e/layers.js",
+      "path": "src/testing/e2e/layers.js",
+      "language": "js",
+      "size": 4220,
+      "hash": "5669fff629596f17",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/testing/e2e/match.js",
+      "path": "src/testing/e2e/match.js",
+      "language": "js",
+      "size": 2594,
+      "hash": "201063ad56d02e91",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/testing/e2e/pr.js",
+      "path": "src/testing/e2e/pr.js",
+      "language": "js",
+      "size": 8412,
+      "hash": "7d195a0872b03257",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/testing/e2e/report.js",
+      "path": "src/testing/e2e/report.js",
+      "language": "js",
+      "size": 4684,
+      "hash": "e62f5308d7cfbe05",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/testing/e2e/runner.js",
+      "path": "src/testing/e2e/runner.js",
+      "language": "js",
+      "size": 11215,
+      "hash": "ddb7c927653e88b5",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/testing/e2e/yaml.js",
+      "path": "src/testing/e2e/yaml.js",
+      "language": "js",
+      "size": 9056,
+      "hash": "2a6098b7783fa7f3",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/testing/reportParser.js",
+      "path": "src/testing/reportParser.js",
+      "language": "js",
+      "size": 11484,
+      "hash": "a1b396d625096473",
+      "kind": "source"
+    },
+    {
+      "id": "file:src/testing/runnerDetect.js",
+      "path": "src/testing/runnerDetect.js",
+      "language": "js",
+      "size": 3862,
+      "hash": "76c0e78f4268a146",
+      "kind": "source"
+    },
+    {
+      "id": "file:tests/aafe/verify-the-current-change.spec.js",
+      "path": "tests/aafe/verify-the-current-change.spec.js",
+      "language": "js",
+      "size": 1911,
+      "hash": "c8ae8bc1e70b8296",
+      "kind": "test"
+    },
+    {
+      "id": "file:前端设计模式.md",
+      "path": "前端设计模式.md",
+      "language": "markdown",
+      "size": 36622,
+      "hash": "size:36622",
+      "kind": "unknown"
+    }
+  ],
+  "entrypoints": [
+    {
+      "id": "entry:bin/aafe.js",
+      "path": "bin/aafe.js",
+      "source": "package.json#bin",
+      "kind": "entry",
+      "exists": true
+    },
+    {
+      "id": "entry:src/index.js",
+      "path": "src/index.js",
+      "source": "package.json#exports.",
+      "kind": "entry",
+      "exists": true
+    }
+  ],
+  "buildTool": "node-package",
+  "frameworkHint": "node"
+}

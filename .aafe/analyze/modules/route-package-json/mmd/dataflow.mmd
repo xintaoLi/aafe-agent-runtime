@@ -1,0 +1,25 @@
+flowchart TD
+  n_file_src_static_analysis_analyzers_repository_js["src/static-analysis/analyzers/repository.js"]
+  n_import_node_crypto["node:crypto"]
+  n_file_src_static_analysis_analyzers_repository_js -->|IMPORTS| n_import_node_crypto
+  n_file_src_static_analysis_analyzers_repository_js["src/static-analysis/analyzers/repository.js"]
+  n_import_node_fs_promises["node:fs/promises"]
+  n_file_src_static_analysis_analyzers_repository_js -->|IMPORTS| n_import_node_fs_promises
+  n_file_src_static_analysis_analyzers_repository_js["src/static-analysis/analyzers/repository.js"]
+  n_import_node_path["node:path"]
+  n_file_src_static_analysis_analyzers_repository_js -->|IMPORTS| n_import_node_path
+  n_file_src_static_analysis_analyzers_repository_js["src/static-analysis/analyzers/repository.js"]
+  n_file_src_static_analysis_entryDiscover_js["src/static-analysis/entryDiscover.js"]
+  n_file_src_static_analysis_analyzers_repository_js -->|IMPORTS| n_file_src_static_analysis_entryDiscover_js
+  n_file_src_static_analysis_analyzers_repository_js["src/static-analysis/analyzers/repository.js"]
+  n_file_src_static_analysis_types_result_js["src/static-analysis/types/result.js"]
+  n_file_src_static_analysis_analyzers_repository_js -->|IMPORTS| n_file_src_static_analysis_types_result_js
+  n_file_src_static_analysis_analyzers_repository_js["src/static-analysis/analyzers/repository.js"]
+  n_file_src_static_analysis_types_evidence_js["src/static-analysis/types/evidence.js"]
+  n_file_src_static_analysis_analyzers_repository_js -->|IMPORTS| n_file_src_static_analysis_types_evidence_js
+  n_file_src_static_analysis_registry_js["src/static-analysis/registry.js"]
+  n_file_src_static_analysis_analyzers_repository_js["src/static-analysis/analyzers/repository.js"]
+  n_file_src_static_analysis_registry_js -->|IMPORTS| n_file_src_static_analysis_analyzers_repository_js
+  n_route_package_json["package.json"]
+  n_file_src_static_analysis_analyzers_repository_js["src/static-analysis/analyzers/repository.js"]
+  n_route_package_json -->|ROUTES_TO| n_file_src_static_analysis_analyzers_repository_js

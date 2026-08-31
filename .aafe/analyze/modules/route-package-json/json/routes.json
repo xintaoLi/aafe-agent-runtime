@@ -1,0 +1,17 @@
+{
+  "module": "route-package-json",
+  "routes": [
+    {
+      "name": "",
+      "component": "",
+      "source": "unknown",
+      "evidence": [
+        {
+          "type": "route",
+          "file": ""
+        }
+      ]
+    }
+  ],
+  "summary": "Module route-package-json owns 1 routes"
+}

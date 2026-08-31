@@ -1,0 +1,23 @@
+{
+  "module": "src-llm",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/llm/LlmClient.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/llm/LlmClient.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

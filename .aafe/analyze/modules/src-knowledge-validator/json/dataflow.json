@@ -1,0 +1,132 @@
+{
+  "module": "src-knowledge-validator",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:24",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/knowledge/validator/rules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/knowledge/validator/rules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/knowledge/validator/rules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:220",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/knowledge-validator/index.js",
+        "nodes": [
+          "file:src/agents/knowledge-validator/index.js",
+          "file:src/knowledge/validator/rules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/knowledge-validator/index.js",
+            "to": "file:src/knowledge/validator/rules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/knowledge-validator/index.js",
+            "reason": "../../knowledge/validator/rules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:416",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/knowledge/validator/rules.js",
+        "nodes": [
+          "file:src/knowledge/validator/rules.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/knowledge/validator/rules.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/knowledge/validator/rules.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:417",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/knowledge/validator/rules.js",
+        "nodes": [
+          "file:src/knowledge/validator/rules.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/knowledge/validator/rules.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/knowledge/validator/rules.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:418",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/knowledge/validator/rules.js",
+        "nodes": [
+          "file:src/knowledge/validator/rules.js",
+          "file:src/knowledge/model/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/knowledge/validator/rules.js",
+            "to": "file:src/knowledge/model/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/knowledge/validator/rules.js",
+            "reason": "../model/index.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 5,
+      "call": 0
+    }
+  }
+}

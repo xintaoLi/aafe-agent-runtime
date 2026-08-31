@@ -1,0 +1,7 @@
+{
+  "requirement": "full coverage from analyze",
+  "scenario": "coverage",
+  "write": null,
+  "update": false,
+  "force": false
+}

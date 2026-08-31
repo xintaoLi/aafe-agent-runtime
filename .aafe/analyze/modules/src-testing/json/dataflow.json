@@ -1,0 +1,108 @@
+{
+  "module": "src-testing",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:71",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-e2e-platform.js",
+        "nodes": [
+          "file:scripts/test-e2e-platform.js",
+          "file:src/testing/reportParser.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-e2e-platform.js",
+            "to": "file:src/testing/reportParser.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-e2e-platform.js",
+            "reason": "../src/testing/reportParser.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:200",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/failure-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/failure-analyzer/index.js",
+          "file:src/testing/reportParser.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/failure-analyzer/index.js",
+            "to": "file:src/testing/reportParser.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "../../testing/reportParser.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:230",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/index.js",
+        "nodes": [
+          "file:src/agents/test-agent/index.js",
+          "file:src/testing/runnerDetect.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/index.js",
+            "to": "file:src/testing/runnerDetect.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/index.js",
+            "reason": "../../testing/runnerDetect.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:231",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/index.js",
+        "nodes": [
+          "file:src/agents/test-agent/index.js",
+          "file:src/testing/reportParser.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/index.js",
+            "to": "file:src/testing/reportParser.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/index.js",
+            "reason": "../../testing/reportParser.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 4,
+      "call": 0
+    }
+  }
+}

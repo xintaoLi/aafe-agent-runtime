@@ -1,0 +1,10 @@
+flowchart TB
+  subgraph n_src_agents_test_agent["src-agents-test-agent"]
+    n_src_agents_test_agent_generate_js["test-agent/generate.js"]
+    n_src_agents_test_agent_index_js["test-agent/index.js"]
+    n_src_agents_test_agent_plan_js["test-agent/plan.js"]
+  end
+  n_src_agents_test_agent --> n_src_agent_platform_protocol["src-agent-platform-protocol"]
+  n_src_agents_test_agent --> n_src_knowledge_model["src-knowledge-model"]
+  n_src_agents_test_agent --> n_src_testing["src-testing"]
+  n_src_agents_test_agent --> n_src_testing_e2e["src-testing-e2e"]

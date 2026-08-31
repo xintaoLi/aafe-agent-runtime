@@ -1,0 +1,22 @@
+{
+  "architecture": {
+    "id": "src-analyze",
+    "title": "src-analyze",
+    "kind": "directory",
+    "files": [
+      "src/analyze/entryDiscover.js",
+      "src/analyze/renderSkills.js",
+      "src/analyze/writeDocs.js"
+    ],
+    "routes": [],
+    "signals": [],
+    "components": [],
+    "dependsOn": []
+  },
+  "dataflow": {
+    "id": "src-analyze",
+    "dataHints": [],
+    "edges": [],
+    "routes": []
+  }
+}

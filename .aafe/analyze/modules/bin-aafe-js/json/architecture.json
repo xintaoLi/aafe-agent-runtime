@@ -1,0 +1,27 @@
+{
+  "module": "bin-aafe-js",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "bin/aafe.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-cli"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "bin/aafe.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-cli"
+  ],
+  "signals": []
+}

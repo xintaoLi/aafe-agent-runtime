@@ -1,0 +1,35 @@
+{
+  "module": "src-agent-platform-orchestrator",
+  "components": [
+    {
+      "name": "TRANSITIONS",
+      "kind": "variable",
+      "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+          "symbol": "TRANSITIONS"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "AgentOrchestrator",
+      "fromLabel": "AgentOrchestrator",
+      "to": "TRANSITIONS",
+      "toLabel": "TRANSITIONS",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+      "toFile": "src/agent-platform/orchestrator/ExecutionGraph.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "reason": "./ExecutionGraph.js"
+        }
+      ]
+    }
+  ]
+}

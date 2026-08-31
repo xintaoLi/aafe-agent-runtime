@@ -1,0 +1,16 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_knowledge_graph_relations_js["src/knowledge/graph/relations.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_knowledge_graph_relations_js
+  n_file_src_agents_code_intelligence_views_js["src/agents/code-intelligence/views.js"]
+  n_file_src_knowledge_graph_relations_js["src/knowledge/graph/relations.js"]
+  n_file_src_agents_code_intelligence_views_js -->|IMPORTS| n_file_src_knowledge_graph_relations_js
+  n_file_src_agents_failure_analyzer_index_js["src/agents/failure-analyzer/index.js"]
+  n_file_src_knowledge_graph_relations_js["src/knowledge/graph/relations.js"]
+  n_file_src_agents_failure_analyzer_index_js -->|IMPORTS| n_file_src_knowledge_graph_relations_js
+  n_file_src_agents_impact_analyzer_index_js["src/agents/impact-analyzer/index.js"]
+  n_file_src_knowledge_graph_relations_js["src/knowledge/graph/relations.js"]
+  n_file_src_agents_impact_analyzer_index_js -->|IMPORTS| n_file_src_knowledge_graph_relations_js
+  n_file_src_knowledge_graph_relations_js["src/knowledge/graph/relations.js"]
+  n_file_src_knowledge_model_index_js["src/knowledge/model/index.js"]
+  n_file_src_knowledge_graph_relations_js -->|IMPORTS| n_file_src_knowledge_model_index_js

@@ -1,0 +1,34 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_ddd_DDDGate_js["src/ddd/DDDGate.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_ddd_DDDGate_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_ddd_DDDScope_js["src/ddd/DDDScope.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_ddd_DDDScope_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_ddd_DDDAdvisor_js["src/ddd/DDDAdvisor.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_ddd_DDDAdvisor_js
+  n_file_src_agent_platform_skill_runtime_AgentRunti["src/agent-platform/skill-runtime/AgentRuntime.js"]
+  n_file_src_ddd_DDDGate_js["src/ddd/DDDGate.js"]
+  n_file_src_agent_platform_skill_runtime_AgentRunti -->|IMPORTS| n_file_src_ddd_DDDGate_js
+  n_file_src_agent_platform_skill_runtime_defaults_j["src/agent-platform/skill-runtime/defaults.js"]
+  n_file_src_ddd_DDDAdvisor_js["src/ddd/DDDAdvisor.js"]
+  n_file_src_agent_platform_skill_runtime_defaults_j -->|IMPORTS| n_file_src_ddd_DDDAdvisor_js
+  n_file_src_agent_platform_skill_runtime_defaults_j["src/agent-platform/skill-runtime/defaults.js"]
+  n_file_src_ddd_DDDGate_js["src/ddd/DDDGate.js"]
+  n_file_src_agent_platform_skill_runtime_defaults_j -->|IMPORTS| n_file_src_ddd_DDDGate_js
+  n_file_src_agent_platform_skill_runtime_defaults_j["src/agent-platform/skill-runtime/defaults.js"]
+  n_file_src_ddd_DDDScope_js["src/ddd/DDDScope.js"]
+  n_file_src_agent_platform_skill_runtime_defaults_j -->|IMPORTS| n_file_src_ddd_DDDScope_js
+  n_file_src_cli_ddd_js["src/cli/ddd.js"]
+  n_file_src_ddd_DDDAdvisor_js["src/ddd/DDDAdvisor.js"]
+  n_file_src_cli_ddd_js -->|IMPORTS| n_file_src_ddd_DDDAdvisor_js
+  n_file_src_cli_ddd_js["src/cli/ddd.js"]
+  n_file_src_ddd_DDDGate_js["src/ddd/DDDGate.js"]
+  n_file_src_cli_ddd_js -->|IMPORTS| n_file_src_ddd_DDDGate_js
+  n_file_src_cli_ddd_js["src/cli/ddd.js"]
+  n_file_src_ddd_DDDScope_js["src/ddd/DDDScope.js"]
+  n_file_src_cli_ddd_js -->|IMPORTS| n_file_src_ddd_DDDScope_js
+  n_file_src_ddd_DDDScope_js["src/ddd/DDDScope.js"]
+  n_file_src_ddd_DDDGate_js["src/ddd/DDDGate.js"]
+  n_file_src_ddd_DDDScope_js -->|IMPORTS| n_file_src_ddd_DDDGate_js

@@ -1,0 +1,132 @@
+{
+  "module": "route-ctx-path",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:47",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/schema/repair.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/schema/repair.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/schema/repair.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:132",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/runtime/AgentRuntime.js",
+        "nodes": [
+          "file:src/agent-platform/runtime/AgentRuntime.js",
+          "file:src/agent-platform/schema/repair.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/runtime/AgentRuntime.js",
+            "to": "file:src/agent-platform/schema/repair.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/runtime/AgentRuntime.js",
+            "reason": "../schema/repair.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:159",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/schema/repair.js",
+        "nodes": [
+          "file:src/agent-platform/schema/repair.js",
+          "file:src/agent-platform/schema/validate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/schema/repair.js",
+            "to": "file:src/agent-platform/schema/validate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/schema/repair.js",
+            "reason": "./validate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:app:${ctx.path}/${index}:src/agent-platform/schema/repair.js",
+        "level": 3,
+        "kind": "application",
+        "entrypoint": "${ctx.path}/${index}",
+        "nodes": [
+          "route:${ctx.path}/${index}",
+          "file:src/agent-platform/schema/repair.js"
+        ],
+        "edges": [
+          {
+            "from": "route:${ctx.path}/${index}",
+            "to": "file:src/agent-platform/schema/repair.js",
+            "type": "ROUTES_TO"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agent-platform/schema/repair.js",
+            "reason": "${ctx.path}/${index}"
+          }
+        ]
+      },
+      {
+        "id": "flow:app:${ctx.path}/${key}:src/agent-platform/schema/repair.js",
+        "level": 3,
+        "kind": "application",
+        "entrypoint": "${ctx.path}/${key}",
+        "nodes": [
+          "route:${ctx.path}/${key}",
+          "file:src/agent-platform/schema/repair.js"
+        ],
+        "edges": [
+          {
+            "from": "route:${ctx.path}/${key}",
+            "to": "file:src/agent-platform/schema/repair.js",
+            "type": "ROUTES_TO"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agent-platform/schema/repair.js",
+            "reason": "${ctx.path}/${key}"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 2,
+      "import": 3,
+      "call": 0
+    }
+  }
+}

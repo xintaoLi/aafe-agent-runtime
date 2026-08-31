@@ -1,0 +1,45 @@
+{
+  "updatedAt": 1787217018336,
+  "count": 3,
+  "items": [
+    {
+      "id": "flow:app:${ctx.path}/${index}:src/agent-platform/schema/repair.js",
+      "type": "impact",
+      "name": "flow:app:${ctx.path}/${index}:src/agent-platform/schema/repair.js",
+      "content": null,
+      "evidence": [],
+      "confidence": 0.05,
+      "generatedBy": "agent",
+      "validated": false,
+      "updatedAt": 1787208243051,
+      "reason": "flow-traceable: flow has no file-level node",
+      "runId": "20260820T064402-kf48"
+    },
+    {
+      "id": "flow:app:${ctx.path}/${key}:src/agent-platform/schema/repair.js",
+      "type": "impact",
+      "name": "flow:app:${ctx.path}/${key}:src/agent-platform/schema/repair.js",
+      "content": null,
+      "evidence": [],
+      "confidence": 0.05,
+      "generatedBy": "agent",
+      "validated": false,
+      "updatedAt": 1787208243051,
+      "reason": "flow-traceable: flow has no file-level node",
+      "runId": "20260820T064402-kf48"
+    },
+    {
+      "id": "flow:app:package.json:src/static-analysis/analyzers/repository.js",
+      "type": "impact",
+      "name": "flow:app:package.json:src/static-analysis/analyzers/repository.js",
+      "content": null,
+      "evidence": [],
+      "confidence": 0.15,
+      "generatedBy": "agent",
+      "validated": false,
+      "updatedAt": 1787217018336,
+      "reason": "flow-traceable: flow has no file-level node",
+      "runId": "20260820T091017-4t91"
+    }
+  ]
+}

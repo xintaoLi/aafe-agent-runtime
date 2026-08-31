@@ -1,0 +1,26 @@
+{
+  "module": "route-ai-agent",
+  "features": [
+    {
+      "id": "feature:ai-agent-memory",
+      "name": "memory",
+      "entrypoints": [
+        ".ai-agent/memory"
+      ],
+      "components": [],
+      "apis": [],
+      "stores": [],
+      "dataHints": [],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/cli/bootstrap.js",
+          "reason": ".ai-agent/memory"
+        }
+      ],
+      "confidence": 0.6,
+      "source": "static",
+      "status": "candidate"
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "module": "src-ide-bridge-context",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:30",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/ide-bridge/context/tokens.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/ide-bridge/context/tokens.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/ide-bridge/context/tokens.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:31",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/ide-bridge/context/render.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/ide-bridge/context/render.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/ide-bridge/context/render.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:195",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/context-agent/index.js",
+        "nodes": [
+          "file:src/agents/context-agent/index.js",
+          "file:src/ide-bridge/context/tokens.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/context-agent/index.js",
+            "to": "file:src/ide-bridge/context/tokens.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/context-agent/index.js",
+            "reason": "../../ide-bridge/context/tokens.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:372",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/platform.js",
+        "nodes": [
+          "file:src/cli/platform.js",
+          "file:src/ide-bridge/context/render.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/platform.js",
+            "to": "file:src/ide-bridge/context/render.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/platform.js",
+            "reason": "../ide-bridge/context/render.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 4,
+      "call": 0
+    }
+  }
+}

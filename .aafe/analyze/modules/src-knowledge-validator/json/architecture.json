@@ -1,0 +1,27 @@
+{
+  "module": "src-knowledge-validator",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/knowledge/validator/rules.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-knowledge-model"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/knowledge/validator/rules.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-knowledge-model"
+  ],
+  "signals": []
+}

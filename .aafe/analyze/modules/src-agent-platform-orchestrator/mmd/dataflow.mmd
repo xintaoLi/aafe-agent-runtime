@@ -1,0 +1,61 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_orchestrator_ExecutionGr["src/agent-platform/orchestrator/ExecutionGraph.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_orchestrator_ExecutionGr
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_orchestrator_AgentOrches
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agent_platform_orchestrator_AgentOrches
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_file_src_agent_platform_orchestrator_ExecutionGr["src/agent-platform/orchestrator/ExecutionGraph.js"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|IMPORTS| n_file_src_agent_platform_orchestrator_ExecutionGr
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_file_src_agent_platform_state_ExecutionState_js["src/agent-platform/state/ExecutionState.js"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|IMPORTS| n_file_src_agent_platform_state_ExecutionState_js
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_file_src_agent_platform_state_RunStore_js["src/agent-platform/state/RunStore.js"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|IMPORTS| n_file_src_agent_platform_state_RunStore_js
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|IMPORTS| n_file_src_agent_platform_policy_ExecutionPolicy_j
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_file_src_agent_platform_protocol_request_js["src/agent-platform/protocol/request.js"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|IMPORTS| n_file_src_agent_platform_protocol_request_js
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|IMPORTS| n_file_src_agent_platform_runtime_AgentRuntime_js
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_call_process_cwd["process.cwd"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|CALLS| n_call_process_cwd
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_call_createRunId["createRunId"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|CALLS| n_call_createRunId
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_call_policy_assertWithinBudget["policy.assertWithinBudget"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|CALLS| n_call_policy_assertWithinBudget
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_call_state_spent["state.spent"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|CALLS| n_call_state_spent
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_call_state_diagnostics_push["state.diagnostics.push"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|CALLS| n_call_state_diagnostics_push
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_call_planner_decide["planner.decide"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|CALLS| n_call_planner_decide
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_call_decisions_push["decisions.push"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|CALLS| n_call_decisions_push
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_call_onEvent["onEvent"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|CALLS| n_call_onEvent
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_call_replan["replan"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|CALLS| n_call_replan
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_call_state_diagnostics_push["state.diagnostics.push"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|CALLS| n_call_state_diagnostics_push

@@ -1,0 +1,5 @@
+flowchart TB
+  subgraph n_src_knowledge_validator["src-knowledge-validator"]
+    n_src_knowledge_validator_rules_js["validator/rules.js"]
+  end
+  n_src_knowledge_validator --> n_src_knowledge_model["src-knowledge-model"]

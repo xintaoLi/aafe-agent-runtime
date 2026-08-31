@@ -1,0 +1,17 @@
+{
+  "module": "route-tests",
+  "routes": [
+    {
+      "name": "",
+      "component": "",
+      "source": "unknown",
+      "evidence": [
+        {
+          "type": "route",
+          "file": ""
+        }
+      ]
+    }
+  ],
+  "summary": "Module route-tests owns 1 routes"
+}

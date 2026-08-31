@@ -1,0 +1,1068 @@
+{
+  "module": "src-agent-platform-registry",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:9",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/registry/AgentRegistry.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/registry/AgentRegistry.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/registry/AgentRegistry.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:10",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/registry/definition.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/registry/definition.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/registry/definition.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:103",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/config/agentsConfig.js",
+        "nodes": [
+          "file:src/agent-platform/config/agentsConfig.js",
+          "file:src/agent-platform/registry/definition.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/config/agentsConfig.js",
+            "to": "file:src/agent-platform/registry/definition.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "reason": "../registry/definition.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:107",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/index.js",
+        "nodes": [
+          "file:src/agent-platform/index.js",
+          "file:src/agent-platform/registry/AgentRegistry.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/index.js",
+            "to": "file:src/agent-platform/registry/AgentRegistry.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/index.js",
+            "reason": "./registry/AgentRegistry.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:129",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "file:src/agent-platform/registry/definition.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "file:src/agent-platform/registry/definition.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "reason": "./definition.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:299",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/doctor.js",
+        "nodes": [
+          "file:src/cli/doctor.js",
+          "file:src/agent-platform/registry/AgentRegistry.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/doctor.js",
+            "to": "file:src/agent-platform/registry/AgentRegistry.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/doctor.js",
+            "reason": "../agent-platform/registry/AgentRegistry.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:436",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:createAgentDefinition"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:createAgentDefinition",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "createAgentDefinition"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:437",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:agents.set"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:agents.set",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "agents.set"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:438",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:capabilityIndex.get"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:capabilityIndex.get",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "capabilityIndex.get"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:439",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:owners.includes"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:owners.includes",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "owners.includes"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:440",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:owners.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:owners.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "owners.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:441",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:capabilityIndex.set"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:capabilityIndex.set",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "capabilityIndex.set"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:442",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:agents.get"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:agents.get",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "agents.get"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:443",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:Array.from"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:Array.from",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "Array.from"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:444",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:agents.values"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:agents.values",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "agents.values"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:445",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:all.filter"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:all.filter",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "all.filter"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:446",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:ideAgentDefinition"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:ideAgentDefinition",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "ideAgentDefinition"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:447",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:capabilityIndex.get"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:capabilityIndex.get",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "capabilityIndex.get"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:448",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:agents.get"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:agents.get",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "agents.get"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:449",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:ideAgentDefinition"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:ideAgentDefinition",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "ideAgentDefinition"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:450",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:createAgentDefinition"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:createAgentDefinition",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "createAgentDefinition"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:451",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:Boolean"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:Boolean",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "Boolean"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:452",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:resolveCapability"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:resolveCapability",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "resolveCapability"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:453",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:map"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:map",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "map"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:454",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:list"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:list",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "list"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:455",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:filter"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:filter",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "filter"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:456",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:Array.from"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:Array.from",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "Array.from"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:457",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:capabilityIndex.keys"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:capabilityIndex.keys",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "capabilityIndex.keys"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:458",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:hasCapability"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:hasCapability",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "hasCapability"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:459",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:capabilityIndex.keys"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:capabilityIndex.keys",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "capabilityIndex.keys"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:460",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:resolveCapability"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:resolveCapability",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "resolveCapability"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:461",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:Object.entries"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:Object.entries",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "Object.entries"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:462",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:registry.register"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:registry.register",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "registry.register"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:463",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/AgentRegistry.js",
+        "nodes": [
+          "file:src/agent-platform/registry/AgentRegistry.js",
+          "call:createAgentDefinition"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/AgentRegistry.js",
+            "to": "call:createAgentDefinition",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/AgentRegistry.js",
+            "symbol": "createAgentDefinition"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:464",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/definition.js",
+        "nodes": [
+          "file:src/agent-platform/registry/definition.js",
+          "call:Object.freeze"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/definition.js",
+            "to": "call:Object.freeze",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/definition.js",
+            "symbol": "Object.freeze"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:465",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/definition.js",
+        "nodes": [
+          "file:src/agent-platform/registry/definition.js",
+          "call:Object.freeze"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/definition.js",
+            "to": "call:Object.freeze",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/definition.js",
+            "symbol": "Object.freeze"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:466",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/definition.js",
+        "nodes": [
+          "file:src/agent-platform/registry/definition.js",
+          "call:Object.freeze"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/definition.js",
+            "to": "call:Object.freeze",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/definition.js",
+            "symbol": "Object.freeze"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:467",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/definition.js",
+        "nodes": [
+          "file:src/agent-platform/registry/definition.js",
+          "call:Array.from"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/definition.js",
+            "to": "call:Array.from",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/definition.js",
+            "symbol": "Array.from"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:468",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/definition.js",
+        "nodes": [
+          "file:src/agent-platform/registry/definition.js",
+          "call:flatMap"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/definition.js",
+            "to": "call:flatMap",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/definition.js",
+            "symbol": "flatMap"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:469",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/definition.js",
+        "nodes": [
+          "file:src/agent-platform/registry/definition.js",
+          "call:Object.values"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/definition.js",
+            "to": "call:Object.values",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/definition.js",
+            "symbol": "Object.values"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:470",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/definition.js",
+        "nodes": [
+          "file:src/agent-platform/registry/definition.js",
+          "call:SCHEMA_MODES.includes"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/definition.js",
+            "to": "call:SCHEMA_MODES.includes",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/definition.js",
+            "symbol": "SCHEMA_MODES.includes"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:471",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/definition.js",
+        "nodes": [
+          "file:src/agent-platform/registry/definition.js",
+          "call:defaultSchemaMode"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/definition.js",
+            "to": "call:defaultSchemaMode",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/definition.js",
+            "symbol": "defaultSchemaMode"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:472",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/definition.js",
+        "nodes": [
+          "file:src/agent-platform/registry/definition.js",
+          "call:Number.isInteger"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/definition.js",
+            "to": "call:Number.isInteger",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/definition.js",
+            "symbol": "Number.isInteger"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:473",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/registry/definition.js",
+        "nodes": [
+          "file:src/agent-platform/registry/definition.js",
+          "call:Array.isArray"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/registry/definition.js",
+            "to": "call:Array.isArray",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/registry/definition.js",
+            "symbol": "Array.isArray"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 6,
+      "call": 38
+    }
+  }
+}

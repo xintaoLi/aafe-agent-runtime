@@ -1,0 +1,9 @@
+flowchart TB
+  subgraph n_src_agents_code_intelligence["src-agents-code-intelligence"]
+    n_VIEW_CAPABILITIES["VIEW_CAPABILITIES"]
+    n_src_agents_code_intelligence_index_js["code-intelligence/index.js"]
+  end
+  n_src_agents_code_intelligence --> n_src_agent_platform_protocol["src-agent-platform-protocol"]
+  n_src_agents_code_intelligence --> n_src_knowledge_model["src-knowledge-model"]
+  n_src_agents_code_intelligence --> n_src_static_analysis["src-static-analysis"]
+  n_src_agents_code_intelligence --> n_src_static_analysis_types["src-static-analysis-types"]

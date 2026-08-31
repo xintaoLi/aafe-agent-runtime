@@ -1,0 +1,270 @@
+{
+  "symbols": [
+    {
+      "id": "symbol:.session_tmps/d7cab1d6-a2be-4f0f-ba56-997fe454e78a/scan-src/DemoCard.tsx:DemoCard",
+      "fileId": "file:.session_tmps/d7cab1d6-a2be-4f0f-ba56-997fe454e78a/scan-src/DemoCard.tsx",
+      "name": "DemoCard",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/config/agentsConfig.js:ENV_EXPANDED_FIELDS",
+      "fileId": "file:src/agent-platform/config/agentsConfig.js",
+      "name": "ENV_EXPANDED_FIELDS",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/config/agentsConfig.js:AGENT_PROVIDERS",
+      "fileId": "file:src/agent-platform/config/agentsConfig.js",
+      "name": "AGENT_PROVIDERS",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/orchestrator/ExecutionGraph.js:TRANSITIONS",
+      "fileId": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+      "name": "TRANSITIONS",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/planner/RulePlanner.js:CAPABILITY_PLANS",
+      "fileId": "file:src/agent-platform/planner/RulePlanner.js",
+      "name": "CAPABILITY_PLANS",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/planner/decision.js:PLANNER_ACTIONS",
+      "fileId": "file:src/agent-platform/planner/decision.js",
+      "name": "PLANNER_ACTIONS",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/policy/ExecutionPolicy.js:FORBIDDEN_COMMAND_PATTERNS",
+      "fileId": "file:src/agent-platform/policy/ExecutionPolicy.js",
+      "name": "FORBIDDEN_COMMAND_PATTERNS",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/protocol/response.js:AGENT_STATUS",
+      "fileId": "file:src/agent-platform/protocol/response.js",
+      "name": "AGENT_STATUS",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/registry/definition.js:SCHEMA_MODES",
+      "fileId": "file:src/agent-platform/registry/definition.js",
+      "name": "SCHEMA_MODES",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/registry/definition.js:BUILTIN_AGENTS",
+      "fileId": "file:src/agent-platform/registry/definition.js",
+      "name": "BUILTIN_AGENTS",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/registry/definition.js:ALL_CAPABILITIES",
+      "fileId": "file:src/agent-platform/registry/definition.js",
+      "name": "ALL_CAPABILITIES",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/runtime/evidenceSchema.js:SCHEMA_FILE",
+      "fileId": "file:src/agent-platform/runtime/evidenceSchema.js",
+      "name": "SCHEMA_FILE",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/runtime/evidenceSchema.js:EVIDENCE_SCHEMA",
+      "fileId": "file:src/agent-platform/runtime/evidenceSchema.js",
+      "name": "EVIDENCE_SCHEMA",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/schema/loader.js:BUILTIN_AGENTS_DIR",
+      "fileId": "file:src/agent-platform/schema/loader.js",
+      "name": "BUILTIN_AGENTS_DIR",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/schema/validate.js:TYPE_CHECKS",
+      "fileId": "file:src/agent-platform/schema/validate.js",
+      "name": "TYPE_CHECKS",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/skill-runtime/defaults.js:LEGACY_DDD_ALIASES",
+      "fileId": "file:src/agent-platform/skill-runtime/defaults.js",
+      "name": "LEGACY_DDD_ALIASES",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agent-platform/skill-runtime/defaults.js:DDD_PATTERN_BRIDGE",
+      "fileId": "file:src/agent-platform/skill-runtime/defaults.js",
+      "name": "DDD_PATTERN_BRIDGE",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agents/code-intelligence/views.js:VIEW_CAPABILITIES",
+      "fileId": "file:src/agents/code-intelligence/views.js",
+      "name": "VIEW_CAPABILITIES",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/agents/failure-analyzer/classify.js:CLASSIFICATIONS",
+      "fileId": "file:src/agents/failure-analyzer/classify.js",
+      "name": "CLASSIFICATIONS",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/cli/e2eSetup.js:PLAYWRIGHT_PACKAGES",
+      "fileId": "file:src/cli/e2eSetup.js",
+      "name": "PLAYWRIGHT_PACKAGES",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/ddd/DDDScope.js:DDD_SKILL_ORDER",
+      "fileId": "file:src/ddd/DDDScope.js",
+      "name": "DDD_SKILL_ORDER",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/ddd/DDDScope.js:DDD_RULE_ORDER",
+      "fileId": "file:src/ddd/DDDScope.js",
+      "name": "DDD_RULE_ORDER",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/ddd/DDDScope.js:CAPABILITY_MATRIX",
+      "fileId": "file:src/ddd/DDDScope.js",
+      "name": "CAPABILITY_MATRIX",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/ddd/DDDScope.js:SKILL_RULES",
+      "fileId": "file:src/ddd/DDDScope.js",
+      "name": "SKILL_RULES",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/ide-bridge/context/render.js:CONTEXT_FORMATS",
+      "fileId": "file:src/ide-bridge/context/render.js",
+      "name": "CONTEXT_FORMATS",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/knowledge/report/impactMarkdown.js:SECTIONS",
+      "fileId": "file:src/knowledge/report/impactMarkdown.js",
+      "name": "SECTIONS",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/knowledge/report/impactMarkdown.js:RISK_LABEL",
+      "fileId": "file:src/knowledge/report/impactMarkdown.js",
+      "name": "RISK_LABEL",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/knowledge/search/KnowledgeIndex.js:KIND_MULTIPLIER",
+      "fileId": "file:src/knowledge/search/KnowledgeIndex.js",
+      "name": "KIND_MULTIPLIER",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/patterns/AntiPatternDetector.js:ANTI_PATTERN_RULES",
+      "fileId": "file:src/patterns/AntiPatternDetector.js",
+      "name": "ANTI_PATTERN_RULES",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/patterns/AntiPatternDetector.js:ANTI_PATTERN_CATALOG",
+      "fileId": "file:src/patterns/AntiPatternDetector.js",
+      "name": "ANTI_PATTERN_CATALOG",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/patterns/catalog.js:PATTERN_DOMAINS",
+      "fileId": "file:src/patterns/catalog.js",
+      "name": "PATTERN_DOMAINS",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/patterns/catalog.js:PATTERN_INDEX",
+      "fileId": "file:src/patterns/catalog.js",
+      "name": "PATTERN_INDEX",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/static-analysis/resolve/ModuleResolver.js:RESOLVE_EXTENSIONS",
+      "fileId": "file:src/static-analysis/resolve/ModuleResolver.js",
+      "name": "RESOLVE_EXTENSIONS",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/static-analysis/resolve/ModuleResolver.js:TS_CONFIG_FILES",
+      "fileId": "file:src/static-analysis/resolve/ModuleResolver.js",
+      "name": "TS_CONFIG_FILES",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/static-analysis/resolve/ModuleResolver.js:BUNDLER_CONFIG_FILES",
+      "fileId": "file:src/static-analysis/resolve/ModuleResolver.js",
+      "name": "BUNDLER_CONFIG_FILES",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/testing/e2e/config.js:DEFAULT_E2E_CONFIG",
+      "fileId": "file:src/testing/e2e/config.js",
+      "name": "DEFAULT_E2E_CONFIG",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/testing/e2e/pr.js:INLINE_TOKEN_REJECTION",
+      "fileId": "file:src/testing/e2e/pr.js",
+      "name": "INLINE_TOKEN_REJECTION",
+      "kind": "component",
+      "exported": false
+    },
+    {
+      "id": "symbol:src/testing/e2e/report.js:EXIT_CODE",
+      "fileId": "file:src/testing/e2e/report.js",
+      "name": "EXIT_CODE",
+      "kind": "component",
+      "exported": false
+    }
+  ]
+}

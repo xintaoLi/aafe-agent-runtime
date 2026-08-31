@@ -1,0 +1,34 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_knowledge_store_KnowledgeStore_js["src/knowledge/store/KnowledgeStore.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_knowledge_store_KnowledgeStore_js
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_knowledge_store_KnowledgeStore_js["src/knowledge/store/KnowledgeStore.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_knowledge_store_KnowledgeStore_js
+  n_file_src_agent_platform_skill_runtime_AgentRunti["src/agent-platform/skill-runtime/AgentRuntime.js"]
+  n_file_src_knowledge_store_KnowledgeStore_js["src/knowledge/store/KnowledgeStore.js"]
+  n_file_src_agent_platform_skill_runtime_AgentRunti -->|IMPORTS| n_file_src_knowledge_store_KnowledgeStore_js
+  n_file_src_cli_ddd_js["src/cli/ddd.js"]
+  n_file_src_knowledge_store_KnowledgeStore_js["src/knowledge/store/KnowledgeStore.js"]
+  n_file_src_cli_ddd_js -->|IMPORTS| n_file_src_knowledge_store_KnowledgeStore_js
+  n_file_src_cli_knowledge_js["src/cli/knowledge.js"]
+  n_file_src_knowledge_store_KnowledgeStore_js["src/knowledge/store/KnowledgeStore.js"]
+  n_file_src_cli_knowledge_js -->|IMPORTS| n_file_src_knowledge_store_KnowledgeStore_js
+  n_file_src_cli_patterns_js["src/cli/patterns.js"]
+  n_file_src_knowledge_store_KnowledgeStore_js["src/knowledge/store/KnowledgeStore.js"]
+  n_file_src_cli_patterns_js -->|IMPORTS| n_file_src_knowledge_store_KnowledgeStore_js
+  n_file_src_knowledge_store_KnowledgeStore_js["src/knowledge/store/KnowledgeStore.js"]
+  n_import_node_child_process["node:child_process"]
+  n_file_src_knowledge_store_KnowledgeStore_js -->|IMPORTS| n_import_node_child_process
+  n_file_src_knowledge_store_KnowledgeStore_js["src/knowledge/store/KnowledgeStore.js"]
+  n_import_node_fs_promises["node:fs/promises"]
+  n_file_src_knowledge_store_KnowledgeStore_js -->|IMPORTS| n_import_node_fs_promises
+  n_file_src_knowledge_store_KnowledgeStore_js["src/knowledge/store/KnowledgeStore.js"]
+  n_import_node_path["node:path"]
+  n_file_src_knowledge_store_KnowledgeStore_js -->|IMPORTS| n_import_node_path
+  n_file_src_knowledge_store_KnowledgeStore_js["src/knowledge/store/KnowledgeStore.js"]
+  n_import_node_util["node:util"]
+  n_file_src_knowledge_store_KnowledgeStore_js -->|IMPORTS| n_import_node_util
+  n_file_src_knowledge_store_KnowledgeStore_js["src/knowledge/store/KnowledgeStore.js"]
+  n_file_src_knowledge_model_index_js["src/knowledge/model/index.js"]
+  n_file_src_knowledge_store_KnowledgeStore_js -->|IMPORTS| n_file_src_knowledge_model_index_js

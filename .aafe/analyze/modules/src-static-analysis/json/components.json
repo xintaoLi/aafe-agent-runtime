@@ -1,0 +1,22 @@
+{
+  "module": "src-static-analysis",
+  "components": [],
+  "relations": [
+    {
+      "from": "orchestrator",
+      "fromLabel": "orchestrator",
+      "to": "registry",
+      "toLabel": "registry",
+      "type": "IMPORTS",
+      "fromFile": "src/static-analysis/orchestrator.js",
+      "toFile": "src/static-analysis/registry.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/static-analysis/orchestrator.js",
+          "reason": "./registry.js"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "module": "src-agent-platform-state",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:51",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/state/RunStore.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/state/RunStore.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/state/RunStore.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:116",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "file:src/agent-platform/state/ExecutionState.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "file:src/agent-platform/state/ExecutionState.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "reason": "../state/ExecutionState.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:117",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "file:src/agent-platform/state/RunStore.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "file:src/agent-platform/state/RunStore.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "reason": "../state/RunStore.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:178",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/state/RunStore.js",
+        "nodes": [
+          "file:src/agent-platform/state/RunStore.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/state/RunStore.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/state/RunStore.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:179",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/state/RunStore.js",
+        "nodes": [
+          "file:src/agent-platform/state/RunStore.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/state/RunStore.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/state/RunStore.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:374",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/platform.js",
+        "nodes": [
+          "file:src/cli/platform.js",
+          "file:src/agent-platform/state/RunStore.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/platform.js",
+            "to": "file:src/agent-platform/state/RunStore.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/platform.js",
+            "reason": "../agent-platform/state/RunStore.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 6,
+      "call": 0
+    }
+  }
+}

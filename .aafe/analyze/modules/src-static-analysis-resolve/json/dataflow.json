@@ -1,0 +1,132 @@
+{
+  "module": "src-static-analysis-resolve",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:54",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/static-analysis/resolve/ModuleResolver.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/static-analysis/resolve/ModuleResolver.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/static-analysis/resolve/ModuleResolver.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:452",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/graph.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/graph.js",
+          "file:src/static-analysis/resolve/ModuleResolver.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/graph.js",
+            "to": "file:src/static-analysis/resolve/ModuleResolver.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/graph.js",
+            "reason": "../resolve/ModuleResolver.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:482",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/resolve/ModuleResolver.js",
+        "nodes": [
+          "file:src/static-analysis/resolve/ModuleResolver.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/resolve/ModuleResolver.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/resolve/ModuleResolver.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:483",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/resolve/ModuleResolver.js",
+        "nodes": [
+          "file:src/static-analysis/resolve/ModuleResolver.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/resolve/ModuleResolver.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/resolve/ModuleResolver.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:488",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/routes/resolveRoutes.js",
+        "nodes": [
+          "file:src/static-analysis/routes/resolveRoutes.js",
+          "file:src/static-analysis/resolve/ModuleResolver.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/routes/resolveRoutes.js",
+            "to": "file:src/static-analysis/resolve/ModuleResolver.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/routes/resolveRoutes.js",
+            "reason": "../resolve/ModuleResolver.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 5,
+      "call": 0
+    }
+  }
+}

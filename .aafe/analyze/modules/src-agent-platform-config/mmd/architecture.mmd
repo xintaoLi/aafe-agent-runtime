@@ -1,0 +1,6 @@
+flowchart TB
+  subgraph n_src_agent_platform_config["src-agent-platform-config"]
+    n_ENV_EXPANDED_FIELDS["ENV_EXPANDED_FIELDS"]
+    n_AGENT_PROVIDERS["AGENT_PROVIDERS"]
+  end
+  n_src_agent_platform_config --> n_src_agent_platform_registry["src-agent-platform-registry"]

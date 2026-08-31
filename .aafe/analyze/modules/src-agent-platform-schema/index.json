@@ -1,0 +1,30 @@
+{
+  "id": "src-agent-platform-schema",
+  "summary": {
+    "routes": 0,
+    "components": 2,
+    "features": 2,
+    "flows": 11,
+    "dependsOn": []
+  },
+  "paths": {
+    "routes": "json/routes.json",
+    "architecture": "json/architecture.json",
+    "components": "json/components.json",
+    "features": "json/features.json",
+    "dataflow": "json/dataflow.json",
+    "mmd": {
+      "routes": "mmd/routes.mmd",
+      "architecture": "mmd/architecture.mmd",
+      "components": "mmd/components.mmd",
+      "dataflow": "mmd/dataflow.mmd"
+    },
+    "readme": "README.md"
+  },
+  "routes": [],
+  "components": [
+    "BUILTIN_AGENTS_DIR",
+    "TYPE_CHECKS"
+  ],
+  "dependencies": []
+}

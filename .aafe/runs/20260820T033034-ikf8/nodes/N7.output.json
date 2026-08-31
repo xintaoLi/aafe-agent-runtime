@@ -1,0 +1,49 @@
+{
+  "status": "success",
+  "result": {
+    "task": {
+      "kind": "test",
+      "goal": "优化 CLI plan 命令的输出格式",
+      "requirement": "优化 CLI plan 命令的输出格式",
+      "diffRef": null
+    },
+    "project": {
+      "name": "@aafe/agent-runtime",
+      "commit": "558505be872d",
+      "knowledgeOutput": ".aafe"
+    },
+    "architecture": {
+      "modules": [],
+      "dependencies": []
+    },
+    "affectedFiles": [],
+    "affectedModules": [],
+    "affectedFeatures": [],
+    "dataFlows": [],
+    "businessFlows": [],
+    "tests": [],
+    "risk": "low",
+    "confidence": 0.4,
+    "constraints": [
+      "AAFE analysis is advisory; verify each claim against the cited file before editing.",
+      "Do not change files outside the affected modules without re-running impact analysis."
+    ],
+    "evidence": [],
+    "recommendedChanges": [],
+    "testPlan": {
+      "id": "plan:mt0yqctr",
+      "risk": "low",
+      "preconditions": [],
+      "scenarios": []
+    },
+    "tokenEstimate": 188,
+    "truncated": []
+  },
+  "knowledgeUpdates": [],
+  "evidence": [],
+  "nextActions": [],
+  "metrics": {
+    "duration": 0,
+    "tokens": 188
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "module": "src-agent-platform-policy",
+  "components": [
+    {
+      "name": "FORBIDDEN_COMMAND_PATTERNS",
+      "kind": "variable",
+      "file": "src/agent-platform/policy/ExecutionPolicy.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/policy/ExecutionPolicy.js",
+          "symbol": "FORBIDDEN_COMMAND_PATTERNS"
+        }
+      ]
+    }
+  ],
+  "relations": []
+}

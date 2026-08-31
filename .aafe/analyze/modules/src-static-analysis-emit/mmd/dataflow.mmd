@@ -1,0 +1,10 @@
+flowchart TD
+  n_file_src_static_analysis_storage_persist_js["src/static-analysis/storage/persist.js"]
+  n_file_src_static_analysis_emit_formats_js["src/static-analysis/emit/formats.js"]
+  n_file_src_static_analysis_storage_persist_js -->|IMPORTS| n_file_src_static_analysis_emit_formats_js
+  n_file_src_static_analysis_storage_persist_js["src/static-analysis/storage/persist.js"]
+  n_file_src_static_analysis_emit_mermaid_js["src/static-analysis/emit/mermaid.js"]
+  n_file_src_static_analysis_storage_persist_js -->|IMPORTS| n_file_src_static_analysis_emit_mermaid_js
+  n_file_src_static_analysis_types_config_js["src/static-analysis/types/config.js"]
+  n_file_src_static_analysis_emit_formats_js["src/static-analysis/emit/formats.js"]
+  n_file_src_static_analysis_types_config_js -->|IMPORTS| n_file_src_static_analysis_emit_formats_js

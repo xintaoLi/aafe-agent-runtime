@@ -1,0 +1,68 @@
+{
+  "module": "route-aafe",
+  "features": [
+    {
+      "id": "feature:casesdir-id-yaml",
+      "name": "${id}",
+      "entrypoints": [
+        "${casesDir}/${id}.yaml"
+      ],
+      "components": [],
+      "apis": [],
+      "stores": [],
+      "dataHints": [],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "${casesDir}/${id}.yaml"
+        }
+      ],
+      "confidence": 0.6,
+      "source": "static",
+      "status": "candidate"
+    },
+    {
+      "id": "feature:aafe-e2e-specs-id-spec-js",
+      "name": "${id}.spec",
+      "entrypoints": [
+        ".aafe/e2e/specs/${id}.spec.js"
+      ],
+      "components": [],
+      "apis": [],
+      "stores": [],
+      "dataHints": [],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": ".aafe/e2e/specs/${id}.spec.js"
+        }
+      ],
+      "confidence": 0.6,
+      "source": "static",
+      "status": "candidate"
+    },
+    {
+      "id": "feature:tests-aafe-filestem-plan-spec-js",
+      "name": "${fileStem(plan)}.spec",
+      "entrypoints": [
+        "tests/aafe/${fileStem(plan)}.spec.js"
+      ],
+      "components": [],
+      "apis": [],
+      "stores": [],
+      "dataHints": [],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+        }
+      ],
+      "confidence": 0.6,
+      "source": "static",
+      "status": "candidate"
+    }
+  ]
+}

@@ -1,0 +1,252 @@
+{
+  "module": "src-agents-impact-analyzer",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:25",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agents/impact-analyzer/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agents/impact-analyzer/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agents/impact-analyzer/index.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:29",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agents/impact-analyzer/tokenize.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agents/impact-analyzer/tokenize.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agents/impact-analyzer/tokenize.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:206",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/impact-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/impact-analyzer/index.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/impact-analyzer/index.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/impact-analyzer/index.js",
+            "reason": "../../agent-platform/protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:207",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/impact-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/impact-analyzer/index.js",
+          "file:src/static-analysis/git/DiffFacts.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/impact-analyzer/index.js",
+            "to": "file:src/static-analysis/git/DiffFacts.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/impact-analyzer/index.js",
+            "reason": "../../static-analysis/git/DiffFacts.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:208",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/impact-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/impact-analyzer/index.js",
+          "file:src/static-analysis/types/evidence.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/impact-analyzer/index.js",
+            "to": "file:src/static-analysis/types/evidence.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/impact-analyzer/index.js",
+            "reason": "../../static-analysis/types/evidence.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:209",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/impact-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/impact-analyzer/index.js",
+          "file:src/knowledge/graph/relations.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/impact-analyzer/index.js",
+            "to": "file:src/knowledge/graph/relations.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/impact-analyzer/index.js",
+            "reason": "../../knowledge/graph/relations.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:210",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/impact-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/impact-analyzer/index.js",
+          "file:src/knowledge/model/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/impact-analyzer/index.js",
+            "to": "file:src/knowledge/model/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/impact-analyzer/index.js",
+            "reason": "../../knowledge/model/index.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:211",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/impact-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/impact-analyzer/index.js",
+          "file:src/agents/impact-analyzer/tokenize.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/impact-analyzer/index.js",
+            "to": "file:src/agents/impact-analyzer/tokenize.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/impact-analyzer/index.js",
+            "reason": "./tokenize.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:214",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/index.js",
+        "nodes": [
+          "file:src/agents/index.js",
+          "file:src/agents/impact-analyzer/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/index.js",
+            "to": "file:src/agents/impact-analyzer/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/index.js",
+            "reason": "./impact-analyzer/index.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:410",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/knowledge/search/KnowledgeIndex.js",
+        "nodes": [
+          "file:src/knowledge/search/KnowledgeIndex.js",
+          "file:src/agents/impact-analyzer/tokenize.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/knowledge/search/KnowledgeIndex.js",
+            "to": "file:src/agents/impact-analyzer/tokenize.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/knowledge/search/KnowledgeIndex.js",
+            "reason": "../../agents/impact-analyzer/tokenize.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 10,
+      "call": 0
+    }
+  }
+}

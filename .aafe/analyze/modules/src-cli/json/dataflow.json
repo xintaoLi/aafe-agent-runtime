@@ -1,0 +1,1932 @@
+{
+  "module": "src-cli",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:0",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:bin/aafe.js",
+        "nodes": [
+          "file:bin/aafe.js",
+          "file:src/cli/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:bin/aafe.js",
+            "to": "file:src/cli/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "bin/aafe.js",
+            "reason": "../src/cli/index.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:41",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/cli/patternRuntimeFiles.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/cli/patternRuntimeFiles.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/cli/patternRuntimeFiles.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:42",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/cli/migrate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/cli/migrate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/cli/migrate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:43",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/cli/hookScripts.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/cli/hookScripts.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/cli/hookScripts.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:45",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/cli/dddRuntimeFiles.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/cli/dddRuntimeFiles.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/cli/dddRuntimeFiles.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:58",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-completion-tapd-rules.js",
+        "nodes": [
+          "file:scripts/test-completion-tapd-rules.js",
+          "file:src/cli/completionImpactRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-completion-tapd-rules.js",
+            "to": "file:src/cli/completionImpactRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-completion-tapd-rules.js",
+            "reason": "../src/cli/completionImpactRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:59",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-completion-tapd-rules.js",
+        "nodes": [
+          "file:scripts/test-completion-tapd-rules.js",
+          "file:src/cli/tapdSubmitRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-completion-tapd-rules.js",
+            "to": "file:src/cli/tapdSubmitRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-completion-tapd-rules.js",
+            "reason": "../src/cli/tapdSubmitRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:60",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-completion-tapd-rules.js",
+        "nodes": [
+          "file:scripts/test-completion-tapd-rules.js",
+          "file:src/cli/requirementAnalysisRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-completion-tapd-rules.js",
+            "to": "file:src/cli/requirementAnalysisRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-completion-tapd-rules.js",
+            "reason": "../src/cli/requirementAnalysisRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:67",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-e2e-platform.js",
+        "nodes": [
+          "file:scripts/test-e2e-platform.js",
+          "file:src/cli/platform.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-e2e-platform.js",
+            "to": "file:src/cli/platform.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-e2e-platform.js",
+            "reason": "../src/cli/platform.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:68",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-e2e-platform.js",
+        "nodes": [
+          "file:scripts/test-e2e-platform.js",
+          "file:src/cli/e2eFromPrRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-e2e-platform.js",
+            "to": "file:src/cli/e2eFromPrRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-e2e-platform.js",
+            "reason": "../src/cli/e2eFromPrRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:69",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-e2e-platform.js",
+        "nodes": [
+          "file:scripts/test-e2e-platform.js",
+          "file:src/cli/migrate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-e2e-platform.js",
+            "to": "file:src/cli/migrate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-e2e-platform.js",
+            "reason": "../src/cli/migrate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:70",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-e2e-platform.js",
+        "nodes": [
+          "file:scripts/test-e2e-platform.js",
+          "file:src/cli/e2eSetup.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-e2e-platform.js",
+            "to": "file:src/cli/e2eSetup.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-e2e-platform.js",
+            "reason": "../src/cli/e2eSetup.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:84",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-file-license-rules.js",
+        "nodes": [
+          "file:scripts/test-file-license-rules.js",
+          "file:src/cli/fileLicenseRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-file-license-rules.js",
+            "to": "file:src/cli/fileLicenseRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-file-license-rules.js",
+            "reason": "../src/cli/fileLicenseRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:85",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-file-license-rules.js",
+        "nodes": [
+          "file:scripts/test-file-license-rules.js",
+          "file:src/cli/fileLicense.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-file-license-rules.js",
+            "to": "file:src/cli/fileLicense.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-file-license-rules.js",
+            "reason": "../src/cli/fileLicense.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:87",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-submit-config.js",
+        "nodes": [
+          "file:scripts/test-submit-config.js",
+          "file:src/cli/submitConfig.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-submit-config.js",
+            "to": "file:src/cli/submitConfig.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-submit-config.js",
+            "reason": "../src/cli/submitConfig.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:89",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-tapd-config.js",
+        "nodes": [
+          "file:scripts/test-tapd-config.js",
+          "file:src/cli/tapdConfig.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-tapd-config.js",
+            "to": "file:src/cli/tapdConfig.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-tapd-config.js",
+            "reason": "../src/cli/tapdConfig.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:96",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-workspace-cursor.js",
+        "nodes": [
+          "file:scripts/test-workspace-cursor.js",
+          "file:src/cli/bootstrap.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-workspace-cursor.js",
+            "to": "file:src/cli/bootstrap.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-workspace-cursor.js",
+            "reason": "../src/cli/bootstrap.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:97",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-workspace-cursor.js",
+        "nodes": [
+          "file:scripts/test-workspace-cursor.js",
+          "file:src/cli/cursorLayer.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-workspace-cursor.js",
+            "to": "file:src/cli/cursorLayer.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-workspace-cursor.js",
+            "reason": "../src/cli/cursorLayer.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:98",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-workspace-cursor.js",
+        "nodes": [
+          "file:scripts/test-workspace-cursor.js",
+          "file:src/cli/detect.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-workspace-cursor.js",
+            "to": "file:src/cli/detect.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-workspace-cursor.js",
+            "reason": "../src/cli/detect.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:99",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-workspace-cursor.js",
+        "nodes": [
+          "file:scripts/test-workspace-cursor.js",
+          "file:src/cli/doctor.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-workspace-cursor.js",
+            "to": "file:src/cli/doctor.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-workspace-cursor.js",
+            "reason": "../src/cli/doctor.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:100",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-workspace-cursor.js",
+        "nodes": [
+          "file:scripts/test-workspace-cursor.js",
+          "file:src/cli/workspace.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-workspace-cursor.js",
+            "to": "file:src/cli/workspace.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-workspace-cursor.js",
+            "reason": "../src/cli/workspace.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:247",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/analyze.js",
+        "nodes": [
+          "file:src/cli/analyze.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/analyze.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/analyze.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:248",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/analyze.js",
+        "nodes": [
+          "file:src/cli/analyze.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/analyze.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/analyze.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:249",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/analyze.js",
+        "nodes": [
+          "file:src/cli/analyze.js",
+          "file:src/static-analysis/types/config.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/analyze.js",
+            "to": "file:src/static-analysis/types/config.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/analyze.js",
+            "reason": "../static-analysis/types/config.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:250",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/analyze.js",
+        "nodes": [
+          "file:src/cli/analyze.js",
+          "file:src/static-analysis/types/context.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/analyze.js",
+            "to": "file:src/static-analysis/types/context.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/analyze.js",
+            "reason": "../static-analysis/types/context.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:251",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/analyze.js",
+        "nodes": [
+          "file:src/cli/analyze.js",
+          "file:src/static-analysis/orchestrator.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/analyze.js",
+            "to": "file:src/static-analysis/orchestrator.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/analyze.js",
+            "reason": "../static-analysis/orchestrator.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:252",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/analyze.js",
+        "nodes": [
+          "file:src/cli/analyze.js",
+          "file:src/static-analysis/renderSkills.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/analyze.js",
+            "to": "file:src/static-analysis/renderSkills.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/analyze.js",
+            "reason": "../static-analysis/renderSkills.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:253",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:254",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/migrate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/migrate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./migrate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:255",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/hookScripts.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/hookScripts.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./hookScripts.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:256",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:257",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/templates/TemplateSystem.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/templates/TemplateSystem.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "../templates/TemplateSystem.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:258",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/editorLayer.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/editorLayer.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./editorLayer.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:259",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/codebuddyLayer.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/codebuddyLayer.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./codebuddyLayer.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:260",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/editorRegistry.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/editorRegistry.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./editorRegistry.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:261",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/completionImpactRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/completionImpactRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./completionImpactRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:262",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/requirementAnalysisRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/requirementAnalysisRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./requirementAnalysisRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:263",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/tapdSubmitRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/tapdSubmitRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./tapdSubmitRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:264",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/fileLicenseRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/fileLicenseRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./fileLicenseRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:265",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/dddRuntimeFiles.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/dddRuntimeFiles.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./dddRuntimeFiles.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:266",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/patternRuntimeFiles.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/patternRuntimeFiles.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./patternRuntimeFiles.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:267",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/e2eFromPrRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/e2eFromPrRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./e2eFromPrRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:268",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/submitConfig.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/submitConfig.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./submitConfig.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:269",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/agent-platform/config/agentsConfig.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/agent-platform/config/agentsConfig.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "../agent-platform/config/agentsConfig.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:270",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/codebuddyLayer.js",
+        "nodes": [
+          "file:src/cli/codebuddyLayer.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/codebuddyLayer.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/codebuddyLayer.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:271",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/codebuddyLayer.js",
+        "nodes": [
+          "file:src/cli/codebuddyLayer.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/codebuddyLayer.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/codebuddyLayer.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:272",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/codebuddyLayer.js",
+        "nodes": [
+          "file:src/cli/codebuddyLayer.js",
+          "file:src/cli/requirementAnalysisRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/codebuddyLayer.js",
+            "to": "file:src/cli/requirementAnalysisRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/codebuddyLayer.js",
+            "reason": "./requirementAnalysisRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:273",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/codebuddyLayer.js",
+        "nodes": [
+          "file:src/cli/codebuddyLayer.js",
+          "file:src/cli/completionImpactRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/codebuddyLayer.js",
+            "to": "file:src/cli/completionImpactRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/codebuddyLayer.js",
+            "reason": "./completionImpactRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:274",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/codebuddyLayer.js",
+        "nodes": [
+          "file:src/cli/codebuddyLayer.js",
+          "file:src/cli/tapdSubmitRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/codebuddyLayer.js",
+            "to": "file:src/cli/tapdSubmitRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/codebuddyLayer.js",
+            "reason": "./tapdSubmitRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:275",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/codebuddyLayer.js",
+        "nodes": [
+          "file:src/cli/codebuddyLayer.js",
+          "file:src/cli/fileLicenseRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/codebuddyLayer.js",
+            "to": "file:src/cli/fileLicenseRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/codebuddyLayer.js",
+            "reason": "./fileLicenseRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:276",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/codebuddyLayer.js",
+        "nodes": [
+          "file:src/cli/codebuddyLayer.js",
+          "file:src/cli/pathRewrite.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/codebuddyLayer.js",
+            "to": "file:src/cli/pathRewrite.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/codebuddyLayer.js",
+            "reason": "./pathRewrite.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:277",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/codebuddyLayer.js",
+        "nodes": [
+          "file:src/cli/codebuddyLayer.js",
+          "file:src/cli/workspace.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/codebuddyLayer.js",
+            "to": "file:src/cli/workspace.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/codebuddyLayer.js",
+            "reason": "./workspace.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:278",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/cursorLayer.js",
+        "nodes": [
+          "file:src/cli/cursorLayer.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/cursorLayer.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/cursorLayer.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:279",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/cursorLayer.js",
+        "nodes": [
+          "file:src/cli/cursorLayer.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/cursorLayer.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/cursorLayer.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:280",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/cursorLayer.js",
+        "nodes": [
+          "file:src/cli/cursorLayer.js",
+          "file:src/cli/hookScripts.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/cursorLayer.js",
+            "to": "file:src/cli/hookScripts.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/cursorLayer.js",
+            "reason": "./hookScripts.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:281",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/cursorLayer.js",
+        "nodes": [
+          "file:src/cli/cursorLayer.js",
+          "file:src/cli/requirementAnalysisRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/cursorLayer.js",
+            "to": "file:src/cli/requirementAnalysisRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/cursorLayer.js",
+            "reason": "./requirementAnalysisRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:282",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/cursorLayer.js",
+        "nodes": [
+          "file:src/cli/cursorLayer.js",
+          "file:src/cli/completionImpactRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/cursorLayer.js",
+            "to": "file:src/cli/completionImpactRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/cursorLayer.js",
+            "reason": "./completionImpactRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:283",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/cursorLayer.js",
+        "nodes": [
+          "file:src/cli/cursorLayer.js",
+          "file:src/cli/tapdSubmitRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/cursorLayer.js",
+            "to": "file:src/cli/tapdSubmitRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/cursorLayer.js",
+            "reason": "./tapdSubmitRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:284",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/cursorLayer.js",
+        "nodes": [
+          "file:src/cli/cursorLayer.js",
+          "file:src/cli/fileLicenseRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/cursorLayer.js",
+            "to": "file:src/cli/fileLicenseRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/cursorLayer.js",
+            "reason": "./fileLicenseRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:285",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/cursorLayer.js",
+        "nodes": [
+          "file:src/cli/cursorLayer.js",
+          "file:src/cli/e2eFromPrRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/cursorLayer.js",
+            "to": "file:src/cli/e2eFromPrRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/cursorLayer.js",
+            "reason": "./e2eFromPrRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:286",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/cursorLayer.js",
+        "nodes": [
+          "file:src/cli/cursorLayer.js",
+          "file:src/cli/pathRewrite.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/cursorLayer.js",
+            "to": "file:src/cli/pathRewrite.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/cursorLayer.js",
+            "reason": "./pathRewrite.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:287",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/cursorLayer.js",
+        "nodes": [
+          "file:src/cli/cursorLayer.js",
+          "file:src/cli/workspace.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/cursorLayer.js",
+            "to": "file:src/cli/workspace.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/cursorLayer.js",
+            "reason": "./workspace.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:288",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/ddd.js",
+        "nodes": [
+          "file:src/cli/ddd.js",
+          "file:src/ddd/DDDAdvisor.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/ddd.js",
+            "to": "file:src/ddd/DDDAdvisor.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/ddd.js",
+            "reason": "../ddd/DDDAdvisor.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:289",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/ddd.js",
+        "nodes": [
+          "file:src/cli/ddd.js",
+          "file:src/ddd/DDDGate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/ddd.js",
+            "to": "file:src/ddd/DDDGate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/ddd.js",
+            "reason": "../ddd/DDDGate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:290",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/ddd.js",
+        "nodes": [
+          "file:src/cli/ddd.js",
+          "file:src/ddd/DDDScope.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/ddd.js",
+            "to": "file:src/ddd/DDDScope.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/ddd.js",
+            "reason": "../ddd/DDDScope.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:291",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/ddd.js",
+        "nodes": [
+          "file:src/cli/ddd.js",
+          "file:src/knowledge/store/KnowledgeStore.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/ddd.js",
+            "to": "file:src/knowledge/store/KnowledgeStore.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/ddd.js",
+            "reason": "../knowledge/store/KnowledgeStore.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:292",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/detect.js",
+        "nodes": [
+          "file:src/cli/detect.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/detect.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/detect.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:293",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/detect.js",
+        "nodes": [
+          "file:src/cli/detect.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/detect.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/detect.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:294",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/doctor.js",
+        "nodes": [
+          "file:src/cli/doctor.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/doctor.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/doctor.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:295",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/doctor.js",
+        "nodes": [
+          "file:src/cli/doctor.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/doctor.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/doctor.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:296",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/doctor.js",
+        "nodes": [
+          "file:src/cli/doctor.js",
+          "file:src/cli/editorLayer.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/doctor.js",
+            "to": "file:src/cli/editorLayer.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/doctor.js",
+            "reason": "./editorLayer.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:297",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/doctor.js",
+        "nodes": [
+          "file:src/cli/doctor.js",
+          "file:src/cli/editorRegistry.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/doctor.js",
+            "to": "file:src/cli/editorRegistry.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/doctor.js",
+            "reason": "./editorRegistry.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:298",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/doctor.js",
+        "nodes": [
+          "file:src/cli/doctor.js",
+          "file:src/agent-platform/config/agentsConfig.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/doctor.js",
+            "to": "file:src/agent-platform/config/agentsConfig.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/doctor.js",
+            "reason": "../agent-platform/config/agentsConfig.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:299",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/doctor.js",
+        "nodes": [
+          "file:src/cli/doctor.js",
+          "file:src/agent-platform/registry/AgentRegistry.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/doctor.js",
+            "to": "file:src/agent-platform/registry/AgentRegistry.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/doctor.js",
+            "reason": "../agent-platform/registry/AgentRegistry.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:300",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/doctor.js",
+        "nodes": [
+          "file:src/cli/doctor.js",
+          "file:src/cli/dddRuntimeFiles.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/doctor.js",
+            "to": "file:src/cli/dddRuntimeFiles.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/doctor.js",
+            "reason": "./dddRuntimeFiles.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:301",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/doctor.js",
+        "nodes": [
+          "file:src/cli/doctor.js",
+          "file:src/cli/patternRuntimeFiles.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/doctor.js",
+            "to": "file:src/cli/patternRuntimeFiles.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/doctor.js",
+            "reason": "./patternRuntimeFiles.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:302",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/doctor.js",
+        "nodes": [
+          "file:src/cli/doctor.js",
+          "file:src/cli/e2eSetup.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/doctor.js",
+            "to": "file:src/cli/e2eSetup.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/doctor.js",
+            "reason": "./e2eSetup.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:303",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/doctor.js",
+        "nodes": [
+          "file:src/cli/doctor.js",
+          "file:src/testing/e2e/config.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/doctor.js",
+            "to": "file:src/testing/e2e/config.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/doctor.js",
+            "reason": "../testing/e2e/config.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:304",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/doctor.js",
+        "nodes": [
+          "file:src/cli/doctor.js",
+          "file:src/cli/migrate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/doctor.js",
+            "to": "file:src/cli/migrate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/doctor.js",
+            "reason": "./migrate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:305",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/e2eSetup.js",
+        "nodes": [
+          "file:src/cli/e2eSetup.js",
+          "import:node:child_process"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/e2eSetup.js",
+            "to": "import:node:child_process",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/e2eSetup.js",
+            "reason": "node:child_process"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 180,
+      "call": 0
+    }
+  }
+}

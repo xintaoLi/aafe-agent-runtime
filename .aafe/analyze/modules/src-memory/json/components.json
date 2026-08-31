@@ -1,0 +1,22 @@
+{
+  "module": "src-memory",
+  "components": [],
+  "relations": [
+    {
+      "from": "MemoryRuntime",
+      "fromLabel": "MemoryRuntime",
+      "to": "MemoryStore",
+      "toLabel": "MemoryStore",
+      "type": "IMPORTS",
+      "fromFile": "src/memory/MemoryRuntime.js",
+      "toFile": "src/memory/MemoryStore.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/memory/MemoryRuntime.js",
+          "reason": "./MemoryStore.js"
+        }
+      ]
+    }
+  ]
+}

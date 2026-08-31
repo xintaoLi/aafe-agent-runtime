@@ -1,0 +1,47 @@
+{
+  "task": {
+    "kind": "requirement",
+    "goal": "给用户列表加手机号筛选",
+    "requirement": "给用户列表加手机号筛选",
+    "diffRef": null
+  },
+  "project": {
+    "name": "@aafe/agent-runtime",
+    "commit": "558505be872d",
+    "knowledgeOutput": ".aafe"
+  },
+  "architecture": {
+    "modules": [],
+    "dependencies": []
+  },
+  "relations": [],
+  "facts": [
+    {
+      "kind": "analysis-commit",
+      "value": "558505be872d",
+      "source": "manifest.json"
+    },
+    {
+      "kind": "impact-source",
+      "value": "requirement",
+      "source": "impact-analyzer"
+    }
+  ],
+  "affectedFiles": [],
+  "affectedModules": [],
+  "affectedFeatures": [],
+  "dataFlows": [],
+  "businessFlows": [],
+  "tests": [],
+  "risk": "low",
+  "confidence": 0.4,
+  "constraints": [
+    "AAFE analysis is advisory; verify each claim against the cited file before editing.",
+    "Do not change files outside the affected modules without re-running impact analysis."
+  ],
+  "evidence": [],
+  "codeSnippets": [],
+  "recommendedChanges": [],
+  "tokenEstimate": 215,
+  "truncated": []
+}

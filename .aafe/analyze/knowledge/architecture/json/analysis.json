@@ -1,0 +1,2977 @@
+{
+  "modules": [
+    {
+      "id": "module:src-cli",
+      "name": "src-cli",
+      "files": 34,
+      "filePaths": [
+        "src/cli/analyze.js",
+        "src/cli/bootstrap.js",
+        "src/cli/codebuddyLayer.js",
+        "src/cli/completionImpactRules.js",
+        "src/cli/cursorLayer.js",
+        "src/cli/ddd.js",
+        "src/cli/dddRuntimeFiles.js",
+        "src/cli/detect.js",
+        "src/cli/doctor.js",
+        "src/cli/e2eFromPrRules.js",
+        "src/cli/e2eSetup.js",
+        "src/cli/editorLayer.js",
+        "src/cli/editorRegistry.js",
+        "src/cli/fileLicense.js",
+        "src/cli/fileLicenseRules.js",
+        "src/cli/hookScripts.js",
+        "src/cli/index.js",
+        "src/cli/knowledge.js",
+        "src/cli/knowledgeWeb.js",
+        "src/cli/memory.js",
+        "src/cli/migrate.js",
+        "src/cli/pathRewrite.js",
+        "src/cli/patternRuntimeFiles.js",
+        "src/cli/patterns.js",
+        "src/cli/platform.js",
+        "src/cli/prompts.js",
+        "src/cli/requirementAnalysisRules.js",
+        "src/cli/skills.js",
+        "src/cli/submitConfig.js",
+        "src/cli/tapdConfig.js",
+        "src/cli/tapdSubmitRules.js",
+        "src/cli/taskCompletion.js",
+        "src/cli/update.js",
+        "src/cli/workspace.js"
+      ],
+      "dependencies": [
+        "module:src-agent-platform",
+        "module:src-agent-platform-config",
+        "module:src-agent-platform-protocol",
+        "module:src-agent-platform-registry",
+        "module:src-agent-platform-skill-runtime",
+        "module:src-agent-platform-state",
+        "module:src-ddd",
+        "module:src-ide-bridge-context",
+        "module:src-knowledge-report",
+        "module:src-knowledge-store",
+        "module:src-memory",
+        "module:src-patterns",
+        "module:src-static-analysis",
+        "module:src-static-analysis-types",
+        "module:src-templates",
+        "module:src-testing-e2e"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/codebuddyLayer.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/completionImpactRules.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/cursorLayer.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/ddd.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/dddRuntimeFiles.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/detect.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agent-platform-runtime",
+      "name": "src-agent-platform-runtime",
+      "files": 9,
+      "filePaths": [
+        "src/agent-platform/runtime/AgentRuntime.js",
+        "src/agent-platform/runtime/evidenceSchema.js",
+        "src/agent-platform/runtime/providers/AgentProvider.js",
+        "src/agent-platform/runtime/providers/CliAgentProvider.js",
+        "src/agent-platform/runtime/providers/HttpAgentProvider.js",
+        "src/agent-platform/runtime/providers/IdeAgentProvider.js",
+        "src/agent-platform/runtime/providers/LocalAgentProvider.js",
+        "src/agent-platform/runtime/providers/McpAgentProvider.js",
+        "src/agent-platform/runtime/providers/index.js"
+      ],
+      "dependencies": [
+        "module:src-agent-platform-policy",
+        "module:src-agent-platform-protocol",
+        "module:src-agent-platform-schema"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/evidenceSchema.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/providers/AgentProvider.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/providers/CliAgentProvider.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/providers/HttpAgentProvider.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/providers/IdeAgentProvider.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/providers/LocalAgentProvider.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/providers/McpAgentProvider.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-testing-e2e",
+      "name": "src-testing-e2e",
+      "files": 9,
+      "filePaths": [
+        "src/testing/e2e/compile.js",
+        "src/testing/e2e/config.js",
+        "src/testing/e2e/inventory.js",
+        "src/testing/e2e/layers.js",
+        "src/testing/e2e/match.js",
+        "src/testing/e2e/pr.js",
+        "src/testing/e2e/report.js",
+        "src/testing/e2e/runner.js",
+        "src/testing/e2e/yaml.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/testing/e2e/compile.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/testing/e2e/config.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/testing/e2e/inventory.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/testing/e2e/layers.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/testing/e2e/match.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/testing/e2e/pr.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/testing/e2e/report.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/testing/e2e/runner.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agent-platform-skill-runtime",
+      "name": "src-agent-platform-skill-runtime",
+      "files": 7,
+      "filePaths": [
+        "src/agent-platform/skill-runtime/AgentRuntime.js",
+        "src/agent-platform/skill-runtime/GateValidator.js",
+        "src/agent-platform/skill-runtime/HookBus.js",
+        "src/agent-platform/skill-runtime/PipelineExecutor.js",
+        "src/agent-platform/skill-runtime/SkillRegistry.js",
+        "src/agent-platform/skill-runtime/configLoader.js",
+        "src/agent-platform/skill-runtime/defaults.js"
+      ],
+      "dependencies": [
+        "module:src-ddd",
+        "module:src-knowledge-store",
+        "module:src-memory",
+        "module:src-patterns"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/GateValidator.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/HookBus.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/PipelineExecutor.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/SkillRegistry.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/configLoader.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/defaults.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-patterns",
+      "name": "src-patterns",
+      "files": 7,
+      "filePaths": [
+        "src/patterns/AntiPatternDetector.js",
+        "src/patterns/PatternAdvisor.js",
+        "src/patterns/PatternComposer.js",
+        "src/patterns/PatternGate.js",
+        "src/patterns/PatternProblems.js",
+        "src/patterns/PatternScore.js",
+        "src/patterns/catalog.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/patterns/AntiPatternDetector.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/patterns/PatternAdvisor.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/patterns/PatternComposer.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/patterns/PatternGate.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/patterns/PatternProblems.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/patterns/PatternScore.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/patterns/catalog.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-static-analysis-analyzers",
+      "name": "src-static-analysis-analyzers",
+      "files": 6,
+      "filePaths": [
+        "src/static-analysis/analyzers/architecture.js",
+        "src/static-analysis/analyzers/business.js",
+        "src/static-analysis/analyzers/dataflow.js",
+        "src/static-analysis/analyzers/feature.js",
+        "src/static-analysis/analyzers/graph.js",
+        "src/static-analysis/analyzers/repository.js"
+      ],
+      "dependencies": [
+        "module:src-static-analysis",
+        "module:src-static-analysis-ast",
+        "module:src-static-analysis-modules",
+        "module:src-static-analysis-resolve",
+        "module:src-static-analysis-routes",
+        "module:src-static-analysis-semantic",
+        "module:src-static-analysis-types"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/architecture.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/business.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/dataflow.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/feature.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/graph.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/repository.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agent-platform-planner",
+      "name": "src-agent-platform-planner",
+      "files": 4,
+      "filePaths": [
+        "src/agent-platform/planner/LlmPlanner.js",
+        "src/agent-platform/planner/RulePlanner.js",
+        "src/agent-platform/planner/decision.js",
+        "src/agent-platform/planner/index.js"
+      ],
+      "dependencies": [
+        "module:src-llm"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/planner/LlmPlanner.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/planner/RulePlanner.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/planner/decision.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/planner/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-static-analysis",
+      "name": "src-static-analysis",
+      "files": 4,
+      "filePaths": [
+        "src/static-analysis/entryDiscover.js",
+        "src/static-analysis/orchestrator.js",
+        "src/static-analysis/registry.js",
+        "src/static-analysis/renderSkills.js"
+      ],
+      "dependencies": [
+        "module:src-static-analysis-analyzers",
+        "module:src-static-analysis-ast",
+        "module:src-static-analysis-cache",
+        "module:src-static-analysis-modules",
+        "module:src-static-analysis-storage",
+        "module:src-static-analysis-types"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/entryDiscover.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/orchestrator.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/registry.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/renderSkills.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-static-analysis-types",
+      "name": "src-static-analysis-types",
+      "files": 4,
+      "filePaths": [
+        "src/static-analysis/types/config.js",
+        "src/static-analysis/types/context.js",
+        "src/static-analysis/types/evidence.js",
+        "src/static-analysis/types/result.js"
+      ],
+      "dependencies": [
+        "module:src-static-analysis-emit"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/types/config.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/types/context.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/types/evidence.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/types/result.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agent-platform-schema",
+      "name": "src-agent-platform-schema",
+      "files": 3,
+      "filePaths": [
+        "src/agent-platform/schema/loader.js",
+        "src/agent-platform/schema/repair.js",
+        "src/agent-platform/schema/validate.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/schema/loader.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/schema/repair.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/schema/validate.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agents-test-agent",
+      "name": "src-agents-test-agent",
+      "files": 3,
+      "filePaths": [
+        "src/agents/test-agent/generate.js",
+        "src/agents/test-agent/index.js",
+        "src/agents/test-agent/plan.js"
+      ],
+      "dependencies": [
+        "module:src-agent-platform-protocol",
+        "module:src-knowledge-model",
+        "module:src-testing",
+        "module:src-testing-e2e"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/plan.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-ddd",
+      "name": "src-ddd",
+      "files": 3,
+      "filePaths": [
+        "src/ddd/DDDAdvisor.js",
+        "src/ddd/DDDGate.js",
+        "src/ddd/DDDScope.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/ddd/DDDAdvisor.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/ddd/DDDGate.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/ddd/DDDScope.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-memory",
+      "name": "src-memory",
+      "files": 3,
+      "filePaths": [
+        "src/memory/CodeScanner.js",
+        "src/memory/MemoryRuntime.js",
+        "src/memory/MemoryStore.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/memory/CodeScanner.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/memory/MemoryRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/memory/MemoryStore.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agent-platform-orchestrator",
+      "name": "src-agent-platform-orchestrator",
+      "files": 2,
+      "filePaths": [
+        "src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "src/agent-platform/orchestrator/ExecutionGraph.js"
+      ],
+      "dependencies": [
+        "module:src-agent-platform-protocol",
+        "module:src-agent-platform-runtime",
+        "module:src-agent-platform-state"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agent-platform-protocol",
+      "name": "src-agent-platform-protocol",
+      "files": 2,
+      "filePaths": [
+        "src/agent-platform/protocol/request.js",
+        "src/agent-platform/protocol/response.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/protocol/request.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/protocol/response.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agent-platform-registry",
+      "name": "src-agent-platform-registry",
+      "files": 2,
+      "filePaths": [
+        "src/agent-platform/registry/AgentRegistry.js",
+        "src/agent-platform/registry/definition.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/registry/AgentRegistry.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/registry/definition.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agent-platform-state",
+      "name": "src-agent-platform-state",
+      "files": 2,
+      "filePaths": [
+        "src/agent-platform/state/ExecutionState.js",
+        "src/agent-platform/state/RunStore.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/state/ExecutionState.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/state/RunStore.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agents-code-intelligence",
+      "name": "src-agents-code-intelligence",
+      "files": 2,
+      "filePaths": [
+        "src/agents/code-intelligence/index.js",
+        "src/agents/code-intelligence/views.js"
+      ],
+      "dependencies": [
+        "module:src-agent-platform-protocol",
+        "module:src-knowledge-model",
+        "module:src-static-analysis",
+        "module:src-static-analysis-types"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/views.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agents-failure-analyzer",
+      "name": "src-agents-failure-analyzer",
+      "files": 2,
+      "filePaths": [
+        "src/agents/failure-analyzer/classify.js",
+        "src/agents/failure-analyzer/index.js"
+      ],
+      "dependencies": [
+        "module:src-agent-platform-protocol",
+        "module:src-knowledge-model"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/failure-analyzer/classify.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/failure-analyzer/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agents-impact-analyzer",
+      "name": "src-agents-impact-analyzer",
+      "files": 2,
+      "filePaths": [
+        "src/agents/impact-analyzer/index.js",
+        "src/agents/impact-analyzer/tokenize.js"
+      ],
+      "dependencies": [
+        "module:src-agent-platform-protocol",
+        "module:src-knowledge-graph",
+        "module:src-knowledge-model",
+        "module:src-static-analysis-git",
+        "module:src-static-analysis-types"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/tokenize.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-ide-bridge-context",
+      "name": "src-ide-bridge-context",
+      "files": 2,
+      "filePaths": [
+        "src/ide-bridge/context/render.js",
+        "src/ide-bridge/context/tokens.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/ide-bridge/context/render.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/ide-bridge/context/tokens.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-static-analysis-ast",
+      "name": "src-static-analysis-ast",
+      "files": 2,
+      "filePaths": [
+        "src/static-analysis/ast/extractors.js",
+        "src/static-analysis/ast/parseFile.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/ast/extractors.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/ast/parseFile.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-static-analysis-emit",
+      "name": "src-static-analysis-emit",
+      "files": 2,
+      "filePaths": [
+        "src/static-analysis/emit/formats.js",
+        "src/static-analysis/emit/mermaid.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/emit/formats.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/emit/mermaid.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-static-analysis-modules",
+      "name": "src-static-analysis-modules",
+      "files": 2,
+      "filePaths": [
+        "src/static-analysis/modules/buildBundles.js",
+        "src/static-analysis/modules/partition.js"
+      ],
+      "dependencies": [
+        "module:src-static-analysis-types"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/modules/buildBundles.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/modules/partition.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-testing",
+      "name": "src-testing",
+      "files": 2,
+      "filePaths": [
+        "src/testing/reportParser.js",
+        "src/testing/runnerDetect.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/testing/reportParser.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/testing/runnerDetect.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:bin-aafe-js",
+      "name": "bin-aafe-js",
+      "files": 1,
+      "filePaths": [
+        "bin/aafe.js"
+      ],
+      "dependencies": [
+        "module:src-cli"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "bin/aafe.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:route",
+      "name": "route",
+      "files": 1,
+      "filePaths": [
+        "src/static-analysis/ast/extractors.js"
+      ],
+      "dependencies": [],
+      "routes": [
+        "..."
+      ],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/ast/extractors.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:route-aafe",
+      "name": "route-aafe",
+      "files": 1,
+      "filePaths": [
+        "src/agents/test-agent/generate.js"
+      ],
+      "dependencies": [],
+      "routes": [
+        ".aafe/e2e/specs/${id}.spec.js"
+      ],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:route-ai-agent",
+      "name": "route-ai-agent",
+      "files": 1,
+      "filePaths": [
+        "src/cli/bootstrap.js"
+      ],
+      "dependencies": [],
+      "routes": [
+        ".ai-agent/memory"
+      ],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:route-casesdir",
+      "name": "route-casesdir",
+      "files": 1,
+      "filePaths": [
+        "src/agents/test-agent/generate.js"
+      ],
+      "dependencies": [],
+      "routes": [
+        "${casesDir}/${id}.yaml"
+      ],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:route-ctx-path",
+      "name": "route-ctx-path",
+      "files": 1,
+      "filePaths": [
+        "src/agent-platform/schema/repair.js"
+      ],
+      "dependencies": [],
+      "routes": [
+        "${ctx.path}/${index}",
+        "${ctx.path}/${key}"
+      ],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/schema/repair.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:route-package-json",
+      "name": "route-package-json",
+      "files": 1,
+      "filePaths": [
+        "src/static-analysis/analyzers/repository.js"
+      ],
+      "dependencies": [],
+      "routes": [
+        "package.json"
+      ],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/repository.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:route-tests",
+      "name": "route-tests",
+      "files": 1,
+      "filePaths": [
+        "src/agents/test-agent/generate.js"
+      ],
+      "dependencies": [],
+      "routes": [
+        "tests/aafe/${fileStem(plan)}.spec.js"
+      ],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src",
+      "name": "src",
+      "files": 1,
+      "filePaths": [
+        "src/index.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agent-platform",
+      "name": "src-agent-platform",
+      "files": 1,
+      "filePaths": [
+        "src/agent-platform/index.js"
+      ],
+      "dependencies": [
+        "module:src-agent-platform-config",
+        "module:src-agent-platform-orchestrator",
+        "module:src-agent-platform-planner",
+        "module:src-agent-platform-registry",
+        "module:src-agent-platform-runtime",
+        "module:src-agent-platform-schema",
+        "module:src-agents",
+        "module:src-knowledge-store"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agent-platform-config",
+      "name": "src-agent-platform-config",
+      "files": 1,
+      "filePaths": [
+        "src/agent-platform/config/agentsConfig.js"
+      ],
+      "dependencies": [
+        "module:src-agent-platform-registry"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/config/agentsConfig.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agent-platform-policy",
+      "name": "src-agent-platform-policy",
+      "files": 1,
+      "filePaths": [
+        "src/agent-platform/policy/ExecutionPolicy.js"
+      ],
+      "dependencies": [
+        "module:src-agent-platform-protocol"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/policy/ExecutionPolicy.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agents",
+      "name": "src-agents",
+      "files": 1,
+      "filePaths": [
+        "src/agents/index.js"
+      ],
+      "dependencies": [
+        "module:src-agents-code-intelligence",
+        "module:src-agents-context-agent",
+        "module:src-agents-failure-analyzer",
+        "module:src-agents-impact-analyzer",
+        "module:src-agents-knowledge-validator",
+        "module:src-agents-test-agent"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agents-context-agent",
+      "name": "src-agents-context-agent",
+      "files": 1,
+      "filePaths": [
+        "src/agents/context-agent/index.js"
+      ],
+      "dependencies": [
+        "module:src-agent-platform-protocol",
+        "module:src-ide-bridge-context"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/context-agent/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-agents-knowledge-validator",
+      "name": "src-agents-knowledge-validator",
+      "files": 1,
+      "filePaths": [
+        "src/agents/knowledge-validator/index.js"
+      ],
+      "dependencies": [
+        "module:src-agent-platform-protocol",
+        "module:src-knowledge-model",
+        "module:src-knowledge-validator"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/knowledge-validator/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-knowledge-graph",
+      "name": "src-knowledge-graph",
+      "files": 1,
+      "filePaths": [
+        "src/knowledge/graph/relations.js"
+      ],
+      "dependencies": [
+        "module:src-knowledge-model"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/knowledge/graph/relations.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-knowledge-model",
+      "name": "src-knowledge-model",
+      "files": 1,
+      "filePaths": [
+        "src/knowledge/model/index.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/knowledge/model/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-knowledge-report",
+      "name": "src-knowledge-report",
+      "files": 1,
+      "filePaths": [
+        "src/knowledge/report/impactMarkdown.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/knowledge/report/impactMarkdown.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-knowledge-store",
+      "name": "src-knowledge-store",
+      "files": 1,
+      "filePaths": [
+        "src/knowledge/store/KnowledgeStore.js"
+      ],
+      "dependencies": [
+        "module:src-knowledge-model"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/knowledge/store/KnowledgeStore.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-knowledge-validator",
+      "name": "src-knowledge-validator",
+      "files": 1,
+      "filePaths": [
+        "src/knowledge/validator/rules.js"
+      ],
+      "dependencies": [
+        "module:src-knowledge-model"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/knowledge/validator/rules.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-llm",
+      "name": "src-llm",
+      "files": 1,
+      "filePaths": [
+        "src/llm/LlmClient.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/llm/LlmClient.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-static-analysis-cache",
+      "name": "src-static-analysis-cache",
+      "files": 1,
+      "filePaths": [
+        "src/static-analysis/cache/AnalysisCache.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/cache/AnalysisCache.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-static-analysis-git",
+      "name": "src-static-analysis-git",
+      "files": 1,
+      "filePaths": [
+        "src/static-analysis/git/DiffFacts.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/git/DiffFacts.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-static-analysis-resolve",
+      "name": "src-static-analysis-resolve",
+      "files": 1,
+      "filePaths": [
+        "src/static-analysis/resolve/ModuleResolver.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/resolve/ModuleResolver.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-static-analysis-routes",
+      "name": "src-static-analysis-routes",
+      "files": 1,
+      "filePaths": [
+        "src/static-analysis/routes/resolveRoutes.js"
+      ],
+      "dependencies": [
+        "module:src-static-analysis-ast"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/routes/resolveRoutes.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-static-analysis-semantic",
+      "name": "src-static-analysis-semantic",
+      "files": 1,
+      "filePaths": [
+        "src/static-analysis/semantic/port.js"
+      ],
+      "dependencies": [
+        "module:src-llm"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/semantic/port.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-static-analysis-storage",
+      "name": "src-static-analysis-storage",
+      "files": 1,
+      "filePaths": [
+        "src/static-analysis/storage/persist.js"
+      ],
+      "dependencies": [
+        "module:src-static-analysis-emit"
+      ],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/storage/persist.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "module:src-templates",
+      "name": "src-templates",
+      "files": 1,
+      "filePaths": [
+        "src/templates/TemplateSystem.js"
+      ],
+      "dependencies": [],
+      "routes": [],
+      "signals": [],
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/templates/TemplateSystem.js",
+          "reason": "module membership"
+        }
+      ]
+    }
+  ],
+  "layers": [],
+  "dependencies": [
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform-config",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform-registry",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform-skill-runtime",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform-state",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-ddd",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-ide-bridge-context",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-knowledge-report",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-knowledge-store",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-memory",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-patterns",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-static-analysis",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-static-analysis-types",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-templates",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-testing-e2e",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-runtime",
+      "to": "module:src-agent-platform-policy",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/evidenceSchema.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-runtime",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/evidenceSchema.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-runtime",
+      "to": "module:src-agent-platform-schema",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/evidenceSchema.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-skill-runtime",
+      "to": "module:src-ddd",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/GateValidator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-skill-runtime",
+      "to": "module:src-knowledge-store",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/GateValidator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-skill-runtime",
+      "to": "module:src-memory",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/GateValidator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-skill-runtime",
+      "to": "module:src-patterns",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/GateValidator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/architecture.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/business.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-ast",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/architecture.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/business.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-modules",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/architecture.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/business.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-resolve",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/architecture.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/business.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-routes",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/architecture.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/business.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-semantic",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/architecture.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/business.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-types",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/architecture.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/business.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-planner",
+      "to": "module:src-llm",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/planner/LlmPlanner.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/planner/RulePlanner.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-analyzers",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/entryDiscover.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/orchestrator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-ast",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/entryDiscover.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/orchestrator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-cache",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/entryDiscover.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/orchestrator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-modules",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/entryDiscover.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/orchestrator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-storage",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/entryDiscover.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/orchestrator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-types",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/entryDiscover.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/orchestrator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-types",
+      "to": "module:src-static-analysis-emit",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/types/config.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/types/context.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-test-agent",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-test-agent",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-test-agent",
+      "to": "module:src-testing",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-test-agent",
+      "to": "module:src-testing-e2e",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-orchestrator",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-orchestrator",
+      "to": "module:src-agent-platform-runtime",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-orchestrator",
+      "to": "module:src-agent-platform-state",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-code-intelligence",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/views.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-code-intelligence",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/views.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-code-intelligence",
+      "to": "module:src-static-analysis",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/views.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-code-intelligence",
+      "to": "module:src-static-analysis-types",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/views.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-failure-analyzer",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/failure-analyzer/classify.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/failure-analyzer/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-failure-analyzer",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/failure-analyzer/classify.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/failure-analyzer/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-impact-analyzer",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/tokenize.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-impact-analyzer",
+      "to": "module:src-knowledge-graph",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/tokenize.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-impact-analyzer",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/tokenize.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-impact-analyzer",
+      "to": "module:src-static-analysis-git",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/tokenize.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-impact-analyzer",
+      "to": "module:src-static-analysis-types",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/tokenize.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-modules",
+      "to": "module:src-static-analysis-types",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/modules/buildBundles.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/modules/partition.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:bin-aafe-js",
+      "to": "module:src-cli",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "bin/aafe.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-config",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-orchestrator",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-planner",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-registry",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-runtime",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-schema",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agents",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-knowledge-store",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-config",
+      "to": "module:src-agent-platform-registry",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/config/agentsConfig.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-policy",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/policy/ExecutionPolicy.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-code-intelligence",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-context-agent",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-failure-analyzer",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-impact-analyzer",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-knowledge-validator",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-test-agent",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-context-agent",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/context-agent/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-context-agent",
+      "to": "module:src-ide-bridge-context",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/context-agent/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-knowledge-validator",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/knowledge-validator/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-knowledge-validator",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/knowledge-validator/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-knowledge-validator",
+      "to": "module:src-knowledge-validator",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/knowledge-validator/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-knowledge-graph",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/knowledge/graph/relations.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-knowledge-store",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/knowledge/store/KnowledgeStore.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-knowledge-validator",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/knowledge/validator/rules.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-routes",
+      "to": "module:src-static-analysis-ast",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/routes/resolveRoutes.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-semantic",
+      "to": "module:src-llm",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/semantic/port.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-storage",
+      "to": "module:src-static-analysis-emit",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/storage/persist.js",
+          "reason": "module membership"
+        }
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk:high-coupling:src-cli",
+      "type": "high-coupling",
+      "module": "module:src-cli",
+      "message": "Module src-cli depends on 16 modules",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/codebuddyLayer.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "risk:isolated:src",
+      "type": "isolated-module",
+      "module": "module:src",
+      "message": "Module src appears isolated",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "risk:high-coupling:src-agent-platform",
+      "type": "high-coupling",
+      "module": "module:src-agent-platform",
+      "message": "Module src-agent-platform depends on 8 modules",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "risk:isolated:src-knowledge-model",
+      "type": "isolated-module",
+      "module": "module:src-knowledge-model",
+      "message": "Module src-knowledge-model appears isolated",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/knowledge/model/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "risk:isolated:src-knowledge-report",
+      "type": "isolated-module",
+      "module": "module:src-knowledge-report",
+      "message": "Module src-knowledge-report appears isolated",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/knowledge/report/impactMarkdown.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "risk:isolated:src-llm",
+      "type": "isolated-module",
+      "module": "module:src-llm",
+      "message": "Module src-llm appears isolated",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/llm/LlmClient.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "risk:isolated:src-static-analysis-cache",
+      "type": "isolated-module",
+      "module": "module:src-static-analysis-cache",
+      "message": "Module src-static-analysis-cache appears isolated",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/cache/AnalysisCache.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "risk:isolated:src-static-analysis-git",
+      "type": "isolated-module",
+      "module": "module:src-static-analysis-git",
+      "message": "Module src-static-analysis-git appears isolated",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/git/DiffFacts.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "risk:isolated:src-static-analysis-resolve",
+      "type": "isolated-module",
+      "module": "module:src-static-analysis-resolve",
+      "message": "Module src-static-analysis-resolve appears isolated",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/resolve/ModuleResolver.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "risk:isolated:src-templates",
+      "type": "isolated-module",
+      "module": "module:src-templates",
+      "message": "Module src-templates appears isolated",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/templates/TemplateSystem.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "id": "risk:cycle:module:src-static-analysis>module:src-static-analysis-analyzers",
+      "type": "circular-dependency",
+      "message": "Circular dependency: module:src-static-analysis -> module:src-static-analysis-analyzers -> module:src-static-analysis",
+      "evidence": []
+    }
+  ],
+  "semantic": {
+    "status": "not_available",
+    "source": "static",
+    "candidates": [],
+    "message": "Semantic enrichment is reserved for LLM providers; static pipeline only emits facts/candidates."
+  },
+  "note": "Static facts only. Layer naming / DDD classification reserved for Semantic Port / LLM agents."
+}

@@ -1,0 +1,156 @@
+{
+  "module": "src-static-analysis-storage",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:472",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/orchestrator.js",
+        "nodes": [
+          "file:src/static-analysis/orchestrator.js",
+          "file:src/static-analysis/storage/persist.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/orchestrator.js",
+            "to": "file:src/static-analysis/storage/persist.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/orchestrator.js",
+            "reason": "./storage/persist.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:490",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/storage/persist.js",
+        "nodes": [
+          "file:src/static-analysis/storage/persist.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/storage/persist.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/storage/persist.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:491",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/storage/persist.js",
+        "nodes": [
+          "file:src/static-analysis/storage/persist.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/storage/persist.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/storage/persist.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:492",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/storage/persist.js",
+        "nodes": [
+          "file:src/static-analysis/storage/persist.js",
+          "file:src/static-analysis/emit/formats.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/storage/persist.js",
+            "to": "file:src/static-analysis/emit/formats.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/storage/persist.js",
+            "reason": "../emit/formats.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:493",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/storage/persist.js",
+        "nodes": [
+          "file:src/static-analysis/storage/persist.js",
+          "file:src/static-analysis/emit/mermaid.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/storage/persist.js",
+            "to": "file:src/static-analysis/emit/mermaid.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/storage/persist.js",
+            "reason": "../emit/mermaid.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:494",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/storage/persist.js",
+        "nodes": [
+          "file:src/static-analysis/storage/persist.js",
+          "file:src/static-analysis/modules/buildBundles.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/storage/persist.js",
+            "to": "file:src/static-analysis/modules/buildBundles.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/storage/persist.js",
+            "reason": "../modules/buildBundles.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 6,
+      "call": 0
+    }
+  }
+}

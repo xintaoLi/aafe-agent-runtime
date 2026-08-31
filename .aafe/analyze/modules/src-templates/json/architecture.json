@@ -1,0 +1,23 @@
+{
+  "module": "src-templates",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/templates/TemplateSystem.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/templates/TemplateSystem.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

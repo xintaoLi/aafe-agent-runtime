@@ -1,0 +1,29 @@
+{
+  "module": "src-static-analysis-ast",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/static-analysis/ast/extractors.js",
+        "src/static-analysis/ast/parseFile.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/static-analysis/ast/extractors.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/static-analysis/ast/parseFile.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

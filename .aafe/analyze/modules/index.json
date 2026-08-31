@@ -1,0 +1,1036 @@
+{
+  "modules": [
+    {
+      "id": "src-cli",
+      "entry": "modules/src-cli/index.json",
+      "jsonDir": "modules/src-cli/json/",
+      "mmdDir": "modules/src-cli/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 1,
+        "features": 1,
+        "flows": 180,
+        "dependsOn": [
+          "module:src-agent-platform",
+          "module:src-agent-platform-config",
+          "module:src-agent-platform-protocol",
+          "module:src-agent-platform-registry",
+          "module:src-agent-platform-skill-runtime",
+          "module:src-agent-platform-state",
+          "module:src-ddd",
+          "module:src-ide-bridge-context",
+          "module:src-knowledge-report",
+          "module:src-knowledge-store",
+          "module:src-memory",
+          "module:src-patterns",
+          "module:src-static-analysis",
+          "module:src-static-analysis-types",
+          "module:src-templates",
+          "module:src-testing-e2e"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-agent-platform",
+        "module:src-agent-platform-config",
+        "module:src-agent-platform-protocol",
+        "module:src-agent-platform-registry",
+        "module:src-agent-platform-skill-runtime",
+        "module:src-agent-platform-state",
+        "module:src-ddd",
+        "module:src-ide-bridge-context",
+        "module:src-knowledge-report",
+        "module:src-knowledge-store",
+        "module:src-memory",
+        "module:src-patterns",
+        "module:src-static-analysis",
+        "module:src-static-analysis-types",
+        "module:src-templates",
+        "module:src-testing-e2e"
+      ]
+    },
+    {
+      "id": "src-agent-platform-runtime",
+      "entry": "modules/src-agent-platform-runtime/index.json",
+      "jsonDir": "modules/src-agent-platform-runtime/json/",
+      "mmdDir": "modules/src-agent-platform-runtime/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 2,
+        "features": 0,
+        "flows": 57,
+        "dependsOn": [
+          "module:src-agent-platform-policy",
+          "module:src-agent-platform-protocol",
+          "module:src-agent-platform-schema"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-agent-platform-policy",
+        "module:src-agent-platform-protocol",
+        "module:src-agent-platform-schema"
+      ]
+    },
+    {
+      "id": "src-testing-e2e",
+      "entry": "modules/src-testing-e2e/index.json",
+      "jsonDir": "modules/src-testing-e2e/json/",
+      "mmdDir": "modules/src-testing-e2e/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 3,
+        "features": 0,
+        "flows": 27,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-agent-platform-skill-runtime",
+      "entry": "modules/src-agent-platform-skill-runtime/index.json",
+      "jsonDir": "modules/src-agent-platform-skill-runtime/json/",
+      "mmdDir": "modules/src-agent-platform-skill-runtime/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 2,
+        "features": 0,
+        "flows": 20,
+        "dependsOn": [
+          "module:src-ddd",
+          "module:src-knowledge-store",
+          "module:src-memory",
+          "module:src-patterns"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-ddd",
+        "module:src-knowledge-store",
+        "module:src-memory",
+        "module:src-patterns"
+      ]
+    },
+    {
+      "id": "src-patterns",
+      "entry": "modules/src-patterns/index.json",
+      "jsonDir": "modules/src-patterns/json/",
+      "mmdDir": "modules/src-patterns/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 4,
+        "features": 0,
+        "flows": 23,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-static-analysis-analyzers",
+      "entry": "modules/src-static-analysis-analyzers/index.json",
+      "jsonDir": "modules/src-static-analysis-analyzers/json/",
+      "mmdDir": "modules/src-static-analysis-analyzers/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 1,
+        "flows": 34,
+        "dependsOn": [
+          "module:src-static-analysis",
+          "module:src-static-analysis-ast",
+          "module:src-static-analysis-modules",
+          "module:src-static-analysis-resolve",
+          "module:src-static-analysis-routes",
+          "module:src-static-analysis-semantic",
+          "module:src-static-analysis-types"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-static-analysis",
+        "module:src-static-analysis-ast",
+        "module:src-static-analysis-modules",
+        "module:src-static-analysis-resolve",
+        "module:src-static-analysis-routes",
+        "module:src-static-analysis-semantic",
+        "module:src-static-analysis-types"
+      ]
+    },
+    {
+      "id": "src-agent-platform-planner",
+      "entry": "modules/src-agent-platform-planner/index.json",
+      "jsonDir": "modules/src-agent-platform-planner/json/",
+      "mmdDir": "modules/src-agent-platform-planner/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 2,
+        "features": 0,
+        "flows": 79,
+        "dependsOn": [
+          "module:src-llm"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-llm"
+      ]
+    },
+    {
+      "id": "src-static-analysis",
+      "entry": "modules/src-static-analysis/index.json",
+      "jsonDir": "modules/src-static-analysis/json/",
+      "mmdDir": "modules/src-static-analysis/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 18,
+        "dependsOn": [
+          "module:src-static-analysis-analyzers",
+          "module:src-static-analysis-ast",
+          "module:src-static-analysis-cache",
+          "module:src-static-analysis-modules",
+          "module:src-static-analysis-storage",
+          "module:src-static-analysis-types"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-static-analysis-analyzers",
+        "module:src-static-analysis-ast",
+        "module:src-static-analysis-cache",
+        "module:src-static-analysis-modules",
+        "module:src-static-analysis-storage",
+        "module:src-static-analysis-types"
+      ]
+    },
+    {
+      "id": "src-static-analysis-types",
+      "entry": "modules/src-static-analysis-types/index.json",
+      "jsonDir": "modules/src-static-analysis-types/json/",
+      "mmdDir": "modules/src-static-analysis-types/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 21,
+        "dependsOn": [
+          "module:src-static-analysis-emit"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-static-analysis-emit"
+      ]
+    },
+    {
+      "id": "src-agent-platform-schema",
+      "entry": "modules/src-agent-platform-schema/index.json",
+      "jsonDir": "modules/src-agent-platform-schema/json/",
+      "mmdDir": "modules/src-agent-platform-schema/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 2,
+        "features": 2,
+        "flows": 11,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-agents-test-agent",
+      "entry": "modules/src-agents-test-agent/index.json",
+      "jsonDir": "modules/src-agents-test-agent/json/",
+      "mmdDir": "modules/src-agents-test-agent/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 3,
+        "flows": 24,
+        "dependsOn": [
+          "module:src-agent-platform-protocol",
+          "module:src-knowledge-model",
+          "module:src-testing",
+          "module:src-testing-e2e"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-agent-platform-protocol",
+        "module:src-knowledge-model",
+        "module:src-testing",
+        "module:src-testing-e2e"
+      ]
+    },
+    {
+      "id": "src-ddd",
+      "entry": "modules/src-ddd/index.json",
+      "jsonDir": "modules/src-ddd/json/",
+      "mmdDir": "modules/src-ddd/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 4,
+        "features": 0,
+        "flows": 11,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-memory",
+      "entry": "modules/src-memory/index.json",
+      "jsonDir": "modules/src-memory/json/",
+      "mmdDir": "modules/src-memory/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 8,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-agent-platform-orchestrator",
+      "entry": "modules/src-agent-platform-orchestrator/index.json",
+      "jsonDir": "modules/src-agent-platform-orchestrator/json/",
+      "mmdDir": "modules/src-agent-platform-orchestrator/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 1,
+        "features": 0,
+        "flows": 60,
+        "dependsOn": [
+          "module:src-agent-platform-protocol",
+          "module:src-agent-platform-runtime",
+          "module:src-agent-platform-state"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-agent-platform-protocol",
+        "module:src-agent-platform-runtime",
+        "module:src-agent-platform-state"
+      ]
+    },
+    {
+      "id": "src-agent-platform-protocol",
+      "entry": "modules/src-agent-platform-protocol/index.json",
+      "jsonDir": "modules/src-agent-platform-protocol/json/",
+      "mmdDir": "modules/src-agent-platform-protocol/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 1,
+        "features": 0,
+        "flows": 37,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-agent-platform-registry",
+      "entry": "modules/src-agent-platform-registry/index.json",
+      "jsonDir": "modules/src-agent-platform-registry/json/",
+      "mmdDir": "modules/src-agent-platform-registry/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 3,
+        "features": 0,
+        "flows": 44,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-agent-platform-state",
+      "entry": "modules/src-agent-platform-state/index.json",
+      "jsonDir": "modules/src-agent-platform-state/json/",
+      "mmdDir": "modules/src-agent-platform-state/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 6,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-agents-code-intelligence",
+      "entry": "modules/src-agents-code-intelligence/index.json",
+      "jsonDir": "modules/src-agents-code-intelligence/json/",
+      "mmdDir": "modules/src-agents-code-intelligence/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 1,
+        "features": 0,
+        "flows": 12,
+        "dependsOn": [
+          "module:src-agent-platform-protocol",
+          "module:src-knowledge-model",
+          "module:src-static-analysis",
+          "module:src-static-analysis-types"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-agent-platform-protocol",
+        "module:src-knowledge-model",
+        "module:src-static-analysis",
+        "module:src-static-analysis-types"
+      ]
+    },
+    {
+      "id": "src-agents-failure-analyzer",
+      "entry": "modules/src-agents-failure-analyzer/index.json",
+      "jsonDir": "modules/src-agents-failure-analyzer/json/",
+      "mmdDir": "modules/src-agents-failure-analyzer/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 1,
+        "features": 0,
+        "flows": 9,
+        "dependsOn": [
+          "module:src-agent-platform-protocol",
+          "module:src-knowledge-model"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-agent-platform-protocol",
+        "module:src-knowledge-model"
+      ]
+    },
+    {
+      "id": "src-agents-impact-analyzer",
+      "entry": "modules/src-agents-impact-analyzer/index.json",
+      "jsonDir": "modules/src-agents-impact-analyzer/json/",
+      "mmdDir": "modules/src-agents-impact-analyzer/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 10,
+        "dependsOn": [
+          "module:src-agent-platform-protocol",
+          "module:src-knowledge-graph",
+          "module:src-knowledge-model",
+          "module:src-static-analysis-git",
+          "module:src-static-analysis-types"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-agent-platform-protocol",
+        "module:src-knowledge-graph",
+        "module:src-knowledge-model",
+        "module:src-static-analysis-git",
+        "module:src-static-analysis-types"
+      ]
+    },
+    {
+      "id": "src-ide-bridge-context",
+      "entry": "modules/src-ide-bridge-context/index.json",
+      "jsonDir": "modules/src-ide-bridge-context/json/",
+      "mmdDir": "modules/src-ide-bridge-context/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 1,
+        "features": 0,
+        "flows": 4,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-static-analysis-ast",
+      "entry": "modules/src-static-analysis-ast/index.json",
+      "jsonDir": "modules/src-static-analysis-ast/json/",
+      "mmdDir": "modules/src-static-analysis-ast/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 1,
+        "flows": 7,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-static-analysis-emit",
+      "entry": "modules/src-static-analysis-emit/index.json",
+      "jsonDir": "modules/src-static-analysis-emit/json/",
+      "mmdDir": "modules/src-static-analysis-emit/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 3,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-static-analysis-modules",
+      "entry": "modules/src-static-analysis-modules/index.json",
+      "jsonDir": "modules/src-static-analysis-modules/json/",
+      "mmdDir": "modules/src-static-analysis-modules/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 4,
+        "dependsOn": [
+          "module:src-static-analysis-types"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-static-analysis-types"
+      ]
+    },
+    {
+      "id": "src-testing",
+      "entry": "modules/src-testing/index.json",
+      "jsonDir": "modules/src-testing/json/",
+      "mmdDir": "modules/src-testing/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 4,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "bin-aafe-js",
+      "entry": "modules/bin-aafe-js/index.json",
+      "jsonDir": "modules/bin-aafe-js/json/",
+      "mmdDir": "modules/bin-aafe-js/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 5,
+        "dependsOn": [
+          "module:src-cli"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-cli"
+      ]
+    },
+    {
+      "id": "route",
+      "entry": "modules/route/index.json",
+      "jsonDir": "modules/route/json/",
+      "mmdDir": "modules/route/mmd/",
+      "summary": {
+        "routes": 1,
+        "components": 0,
+        "features": 1,
+        "flows": 4,
+        "dependsOn": []
+      },
+      "routes": [
+        null
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "route-aafe",
+      "entry": "modules/route-aafe/index.json",
+      "jsonDir": "modules/route-aafe/json/",
+      "mmdDir": "modules/route-aafe/mmd/",
+      "summary": {
+        "routes": 1,
+        "components": 0,
+        "features": 3,
+        "flows": 7,
+        "dependsOn": []
+      },
+      "routes": [
+        null
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "route-ai-agent",
+      "entry": "modules/route-ai-agent/index.json",
+      "jsonDir": "modules/route-ai-agent/json/",
+      "mmdDir": "modules/route-ai-agent/mmd/",
+      "summary": {
+        "routes": 1,
+        "components": 0,
+        "features": 1,
+        "flows": 21,
+        "dependsOn": []
+      },
+      "routes": [
+        null
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "route-casesdir",
+      "entry": "modules/route-casesdir/index.json",
+      "jsonDir": "modules/route-casesdir/json/",
+      "mmdDir": "modules/route-casesdir/mmd/",
+      "summary": {
+        "routes": 1,
+        "components": 0,
+        "features": 3,
+        "flows": 7,
+        "dependsOn": []
+      },
+      "routes": [
+        null
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "route-ctx-path",
+      "entry": "modules/route-ctx-path/index.json",
+      "jsonDir": "modules/route-ctx-path/json/",
+      "mmdDir": "modules/route-ctx-path/mmd/",
+      "summary": {
+        "routes": 2,
+        "components": 0,
+        "features": 2,
+        "flows": 5,
+        "dependsOn": []
+      },
+      "routes": [
+        null,
+        null
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "route-package-json",
+      "entry": "modules/route-package-json/index.json",
+      "jsonDir": "modules/route-package-json/json/",
+      "mmdDir": "modules/route-package-json/mmd/",
+      "summary": {
+        "routes": 1,
+        "components": 0,
+        "features": 1,
+        "flows": 8,
+        "dependsOn": []
+      },
+      "routes": [
+        null
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "route-tests",
+      "entry": "modules/route-tests/index.json",
+      "jsonDir": "modules/route-tests/json/",
+      "mmdDir": "modules/route-tests/mmd/",
+      "summary": {
+        "routes": 1,
+        "components": 0,
+        "features": 3,
+        "flows": 7,
+        "dependsOn": []
+      },
+      "routes": [
+        null
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "src",
+      "entry": "modules/src/index.json",
+      "jsonDir": "modules/src/json/",
+      "mmdDir": "modules/src/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 0,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-agent-platform",
+      "entry": "modules/src-agent-platform/index.json",
+      "jsonDir": "modules/src-agent-platform/json/",
+      "mmdDir": "modules/src-agent-platform/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 21,
+        "dependsOn": [
+          "module:src-agent-platform-config",
+          "module:src-agent-platform-orchestrator",
+          "module:src-agent-platform-planner",
+          "module:src-agent-platform-registry",
+          "module:src-agent-platform-runtime",
+          "module:src-agent-platform-schema",
+          "module:src-agents",
+          "module:src-knowledge-store"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-agent-platform-config",
+        "module:src-agent-platform-orchestrator",
+        "module:src-agent-platform-planner",
+        "module:src-agent-platform-registry",
+        "module:src-agent-platform-runtime",
+        "module:src-agent-platform-schema",
+        "module:src-agents",
+        "module:src-knowledge-store"
+      ]
+    },
+    {
+      "id": "src-agent-platform-config",
+      "entry": "modules/src-agent-platform-config/index.json",
+      "jsonDir": "modules/src-agent-platform-config/json/",
+      "mmdDir": "modules/src-agent-platform-config/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 2,
+        "features": 0,
+        "flows": 39,
+        "dependsOn": [
+          "module:src-agent-platform-registry"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-agent-platform-registry"
+      ]
+    },
+    {
+      "id": "src-agent-platform-policy",
+      "entry": "modules/src-agent-platform-policy/index.json",
+      "jsonDir": "modules/src-agent-platform-policy/json/",
+      "mmdDir": "modules/src-agent-platform-policy/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 1,
+        "features": 0,
+        "flows": 34,
+        "dependsOn": [
+          "module:src-agent-platform-protocol"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-agent-platform-protocol"
+      ]
+    },
+    {
+      "id": "src-agents",
+      "entry": "modules/src-agents/index.json",
+      "jsonDir": "modules/src-agents/json/",
+      "mmdDir": "modules/src-agents/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 7,
+        "dependsOn": [
+          "module:src-agents-code-intelligence",
+          "module:src-agents-context-agent",
+          "module:src-agents-failure-analyzer",
+          "module:src-agents-impact-analyzer",
+          "module:src-agents-knowledge-validator",
+          "module:src-agents-test-agent"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-agents-code-intelligence",
+        "module:src-agents-context-agent",
+        "module:src-agents-failure-analyzer",
+        "module:src-agents-impact-analyzer",
+        "module:src-agents-knowledge-validator",
+        "module:src-agents-test-agent"
+      ]
+    },
+    {
+      "id": "src-agents-context-agent",
+      "entry": "modules/src-agents-context-agent/index.json",
+      "jsonDir": "modules/src-agents-context-agent/json/",
+      "mmdDir": "modules/src-agents-context-agent/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 6,
+        "dependsOn": [
+          "module:src-agent-platform-protocol",
+          "module:src-ide-bridge-context"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-agent-platform-protocol",
+        "module:src-ide-bridge-context"
+      ]
+    },
+    {
+      "id": "src-agents-knowledge-validator",
+      "entry": "modules/src-agents-knowledge-validator/index.json",
+      "jsonDir": "modules/src-agents-knowledge-validator/json/",
+      "mmdDir": "modules/src-agents-knowledge-validator/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 5,
+        "dependsOn": [
+          "module:src-agent-platform-protocol",
+          "module:src-knowledge-model",
+          "module:src-knowledge-validator"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-agent-platform-protocol",
+        "module:src-knowledge-model",
+        "module:src-knowledge-validator"
+      ]
+    },
+    {
+      "id": "src-knowledge-graph",
+      "entry": "modules/src-knowledge-graph/index.json",
+      "jsonDir": "modules/src-knowledge-graph/json/",
+      "mmdDir": "modules/src-knowledge-graph/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 5,
+        "dependsOn": [
+          "module:src-knowledge-model"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-knowledge-model"
+      ]
+    },
+    {
+      "id": "src-knowledge-model",
+      "entry": "modules/src-knowledge-model/index.json",
+      "jsonDir": "modules/src-knowledge-model/json/",
+      "mmdDir": "modules/src-knowledge-model/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 9,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-knowledge-report",
+      "entry": "modules/src-knowledge-report/index.json",
+      "jsonDir": "modules/src-knowledge-report/json/",
+      "mmdDir": "modules/src-knowledge-report/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 2,
+        "features": 0,
+        "flows": 2,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-knowledge-store",
+      "entry": "modules/src-knowledge-store/index.json",
+      "jsonDir": "modules/src-knowledge-store/json/",
+      "mmdDir": "modules/src-knowledge-store/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 11,
+        "dependsOn": [
+          "module:src-knowledge-model"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-knowledge-model"
+      ]
+    },
+    {
+      "id": "src-knowledge-validator",
+      "entry": "modules/src-knowledge-validator/index.json",
+      "jsonDir": "modules/src-knowledge-validator/json/",
+      "mmdDir": "modules/src-knowledge-validator/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 5,
+        "dependsOn": [
+          "module:src-knowledge-model"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-knowledge-model"
+      ]
+    },
+    {
+      "id": "src-llm",
+      "entry": "modules/src-llm/index.json",
+      "jsonDir": "modules/src-llm/json/",
+      "mmdDir": "modules/src-llm/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 3,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-static-analysis-cache",
+      "entry": "modules/src-static-analysis-cache/index.json",
+      "jsonDir": "modules/src-static-analysis-cache/json/",
+      "mmdDir": "modules/src-static-analysis-cache/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 4,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-static-analysis-git",
+      "entry": "modules/src-static-analysis-git/index.json",
+      "jsonDir": "modules/src-static-analysis-git/json/",
+      "mmdDir": "modules/src-static-analysis-git/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 5,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-static-analysis-resolve",
+      "entry": "modules/src-static-analysis-resolve/index.json",
+      "jsonDir": "modules/src-static-analysis-resolve/json/",
+      "mmdDir": "modules/src-static-analysis-resolve/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 3,
+        "features": 0,
+        "flows": 5,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    },
+    {
+      "id": "src-static-analysis-routes",
+      "entry": "modules/src-static-analysis-routes/index.json",
+      "jsonDir": "modules/src-static-analysis-routes/json/",
+      "mmdDir": "modules/src-static-analysis-routes/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 6,
+        "dependsOn": [
+          "module:src-static-analysis-ast"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-static-analysis-ast"
+      ]
+    },
+    {
+      "id": "src-static-analysis-semantic",
+      "entry": "modules/src-static-analysis-semantic/index.json",
+      "jsonDir": "modules/src-static-analysis-semantic/json/",
+      "mmdDir": "modules/src-static-analysis-semantic/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 3,
+        "dependsOn": [
+          "module:src-llm"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-llm"
+      ]
+    },
+    {
+      "id": "src-static-analysis-storage",
+      "entry": "modules/src-static-analysis-storage/index.json",
+      "jsonDir": "modules/src-static-analysis-storage/json/",
+      "mmdDir": "modules/src-static-analysis-storage/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 6,
+        "dependsOn": [
+          "module:src-static-analysis-emit"
+        ]
+      },
+      "routes": [],
+      "dependencies": [
+        "module:src-static-analysis-emit"
+      ]
+    },
+    {
+      "id": "src-templates",
+      "entry": "modules/src-templates/index.json",
+      "jsonDir": "modules/src-templates/json/",
+      "mmdDir": "modules/src-templates/mmd/",
+      "summary": {
+        "routes": 0,
+        "components": 0,
+        "features": 0,
+        "flows": 1,
+        "dependsOn": []
+      },
+      "routes": [],
+      "dependencies": []
+    }
+  ]
+}

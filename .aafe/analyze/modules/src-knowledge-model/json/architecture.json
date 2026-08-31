@@ -1,0 +1,23 @@
+{
+  "module": "src-knowledge-model",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/knowledge/model/index.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/knowledge/model/index.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

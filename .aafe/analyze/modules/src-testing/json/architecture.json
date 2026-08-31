@@ -1,0 +1,29 @@
+{
+  "module": "src-testing",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/testing/reportParser.js",
+        "src/testing/runnerDetect.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/testing/reportParser.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/testing/runnerDetect.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

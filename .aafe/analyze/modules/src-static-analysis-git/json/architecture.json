@@ -1,0 +1,23 @@
+{
+  "module": "src-static-analysis-git",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/static-analysis/git/DiffFacts.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/static-analysis/git/DiffFacts.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

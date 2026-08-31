@@ -1,0 +1,1829 @@
+{
+  "status": "success",
+  "result": {
+    "task": {
+      "kind": "test",
+      "goal": "verify the current change",
+      "requirement": null,
+      "diffRef": null
+    },
+    "project": {
+      "name": "@aafe/agent-runtime",
+      "commit": "0b567c49cf3f",
+      "knowledgeOutput": ".aafe"
+    },
+    "architecture": {
+      "modules": [
+        {
+          "id": "src-agent-platform-protocol",
+          "files": [
+            "src/agent-platform/protocol/request.js",
+            "src/agent-platform/protocol/response.js"
+          ],
+          "routes": [],
+          "components": [
+            "AGENT_STATUS"
+          ]
+        },
+        {
+          "id": "src-agents-test-agent",
+          "files": [
+            "src/agents/test-agent/generate.js",
+            "src/agents/test-agent/index.js",
+            "src/agents/test-agent/plan.js"
+          ],
+          "routes": [],
+          "components": []
+        },
+        {
+          "id": "src-cli",
+          "files": [
+            "src/cli/analyze.js",
+            "src/cli/bootstrap.js",
+            "src/cli/codebuddyLayer.js",
+            "src/cli/completionImpactRules.js",
+            "src/cli/cursorLayer.js",
+            "src/cli/ddd.js",
+            "src/cli/dddRuntimeFiles.js",
+            "src/cli/detect.js",
+            "src/cli/doctor.js",
+            "src/cli/e2eFromPrRules.js",
+            "src/cli/e2eSetup.js",
+            "src/cli/editorLayer.js"
+          ],
+          "routes": [],
+          "components": [
+            "PLAYWRIGHT_PACKAGES"
+          ]
+        },
+        {
+          "id": "src-testing-e2e",
+          "files": [
+            "src/testing/e2e/compile.js",
+            "src/testing/e2e/config.js",
+            "src/testing/e2e/inventory.js",
+            "src/testing/e2e/layers.js",
+            "src/testing/e2e/match.js",
+            "src/testing/e2e/pr.js",
+            "src/testing/e2e/report.js",
+            "src/testing/e2e/runner.js",
+            "src/testing/e2e/yaml.js"
+          ],
+          "routes": [],
+          "components": [
+            "DEFAULT_E2E_CONFIG",
+            "INLINE_TOKEN_REJECTION",
+            "EXIT_CODE"
+          ]
+        },
+        {
+          "id": "src-agent-platform-runtime",
+          "files": [
+            "src/agent-platform/runtime/AgentRuntime.js",
+            "src/agent-platform/runtime/evidenceSchema.js",
+            "src/agent-platform/runtime/providers/AgentProvider.js",
+            "src/agent-platform/runtime/providers/CliAgentProvider.js",
+            "src/agent-platform/runtime/providers/HttpAgentProvider.js",
+            "src/agent-platform/runtime/providers/IdeAgentProvider.js",
+            "src/agent-platform/runtime/providers/LocalAgentProvider.js",
+            "src/agent-platform/runtime/providers/McpAgentProvider.js",
+            "src/agent-platform/runtime/providers/index.js"
+          ],
+          "routes": [],
+          "components": [
+            "SCHEMA_FILE",
+            "EVIDENCE_SCHEMA"
+          ]
+        },
+        {
+          "id": "src-agent-platform-orchestrator",
+          "files": [
+            "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "src/agent-platform/orchestrator/ExecutionGraph.js"
+          ],
+          "routes": [],
+          "components": [
+            "TRANSITIONS"
+          ]
+        }
+      ],
+      "dependencies": [
+        {
+          "from": "src-agents-test-agent",
+          "to": "src-agent-platform-protocol"
+        },
+        {
+          "from": "src-agents-test-agent",
+          "to": "src-knowledge-model"
+        },
+        {
+          "from": "src-agents-test-agent",
+          "to": "src-testing"
+        },
+        {
+          "from": "src-agents-test-agent",
+          "to": "src-testing-e2e"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-agent-platform"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-agent-platform-config"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-agent-platform-protocol"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-agent-platform-registry"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-agent-platform-skill-runtime"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-agent-platform-state"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-ddd"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-ide-bridge-context"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-knowledge-report"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-knowledge-store"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-memory"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-patterns"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-static-analysis"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-static-analysis-types"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-templates"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-testing-e2e"
+        },
+        {
+          "from": "src-agent-platform-runtime",
+          "to": "src-agent-platform-policy"
+        },
+        {
+          "from": "src-agent-platform-runtime",
+          "to": "src-agent-platform-protocol"
+        },
+        {
+          "from": "src-agent-platform-runtime",
+          "to": "src-agent-platform-schema"
+        },
+        {
+          "from": "src-agent-platform-orchestrator",
+          "to": "src-agent-platform-protocol"
+        },
+        {
+          "from": "src-agent-platform-orchestrator",
+          "to": "src-agent-platform-runtime"
+        },
+        {
+          "from": "src-agent-platform-orchestrator",
+          "to": "src-agent-platform-state"
+        }
+      ]
+    },
+    "relations": [
+      {
+        "from": "src-agents-test-agent",
+        "to": "src-agent-platform-protocol",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-agents-test-agent",
+        "to": "src-knowledge-model",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-agents-test-agent",
+        "to": "src-testing",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-agents-test-agent",
+        "to": "src-testing-e2e",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-agent-platform",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-agent-platform-config",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-agent-platform-protocol",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-agent-platform-registry",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-agent-platform-skill-runtime",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-agent-platform-state",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-ddd",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-ide-bridge-context",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-knowledge-report",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-knowledge-store",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-memory",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-patterns",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-static-analysis",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-static-analysis-types",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-templates",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-cli",
+        "to": "src-testing-e2e",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-agent-platform-runtime",
+        "to": "src-agent-platform-policy",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-agent-platform-runtime",
+        "to": "src-agent-platform-protocol",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-agent-platform-runtime",
+        "to": "src-agent-platform-schema",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-agent-platform-orchestrator",
+        "to": "src-agent-platform-protocol",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-agent-platform-orchestrator",
+        "to": "src-agent-platform-runtime",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-agent-platform-orchestrator",
+        "to": "src-agent-platform-state",
+        "type": "module-depends-on",
+        "why": "declared in the module dependency graph"
+      },
+      {
+        "from": "src-agent-platform-protocol",
+        "to": "src/agent-platform/protocol/request.js",
+        "type": "module-contains",
+        "why": "modified (+2/-1)"
+      },
+      {
+        "from": "src-agents-test-agent",
+        "to": "src/agents/test-agent/index.js",
+        "type": "module-contains",
+        "why": "modified (+7/-2)"
+      },
+      {
+        "from": "src-cli",
+        "to": "src/cli/bootstrap.js",
+        "type": "module-contains",
+        "why": "modified (+2/-2)"
+      },
+      {
+        "from": "src-cli",
+        "to": "src/cli/completionImpactRules.js",
+        "type": "module-contains",
+        "why": "modified (+11/-10)"
+      },
+      {
+        "from": "src-cli",
+        "to": "src/cli/e2eFromPrRules.js",
+        "type": "module-contains",
+        "why": "modified (+7/-5)"
+      },
+      {
+        "from": "src-cli",
+        "to": "src/cli/index.js",
+        "type": "module-contains",
+        "why": "modified (+4/-4)"
+      },
+      {
+        "from": "src-cli",
+        "to": "src/cli/platform.js",
+        "type": "module-contains",
+        "why": "modified (+41/-2)"
+      },
+      {
+        "from": "src-cli",
+        "to": "src/cli/portableCompletionTapdPack.js",
+        "type": "module-contains",
+        "why": "modified (+4/-4)"
+      },
+      {
+        "from": "src-cli",
+        "to": "src/cli/prompts.js",
+        "type": "module-contains",
+        "why": "modified (+2/-4)"
+      },
+      {
+        "from": "src-testing-e2e",
+        "to": "src/testing/e2e/config.js",
+        "type": "module-contains",
+        "why": "modified (+9/-4)"
+      },
+      {
+        "from": "src-testing-e2e",
+        "to": "src/testing/e2e/index.js",
+        "type": "module-contains",
+        "why": "modified (+1/-1)"
+      },
+      {
+        "from": "src-testing-e2e",
+        "to": "src/testing/e2e/runner.js",
+        "type": "module-contains",
+        "why": "modified (+31/-16)"
+      },
+      {
+        "from": "src-agent-platform-runtime",
+        "to": "src/agent-platform/runtime/AgentRuntime.js",
+        "type": "module-contains",
+        "why": "module membership"
+      },
+      {
+        "from": "src-agent-platform-runtime",
+        "to": "src/agent-platform/runtime/evidenceSchema.js",
+        "type": "module-contains",
+        "why": "module membership"
+      },
+      {
+        "from": "src-agent-platform-orchestrator",
+        "to": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "type": "module-contains",
+        "why": "module membership"
+      },
+      {
+        "from": "src-agent-platform-orchestrator",
+        "to": "src/agent-platform/orchestrator/ExecutionGraph.js",
+        "type": "module-contains",
+        "why": "module membership"
+      },
+      {
+        "from": "src-agents-code-intelligence",
+        "to": "src/agents/code-intelligence/index.js",
+        "type": "module-contains",
+        "why": "module membership"
+      },
+      {
+        "from": "src-agents-code-intelligence",
+        "to": "src/agents/code-intelligence/views.js",
+        "type": "module-contains",
+        "why": "module membership"
+      },
+      {
+        "from": "src-agents-failure-analyzer",
+        "to": "src/agents/failure-analyzer/classify.js",
+        "type": "module-contains",
+        "why": "module membership"
+      },
+      {
+        "from": "src-agents-failure-analyzer",
+        "to": "src/agents/failure-analyzer/index.js",
+        "type": "module-contains",
+        "why": "module membership"
+      },
+      {
+        "from": "src-agents-impact-analyzer",
+        "to": "src/agents/impact-analyzer/index.js",
+        "type": "module-contains",
+        "why": "module membership"
+      },
+      {
+        "from": "src-agents-impact-analyzer",
+        "to": "src/agents/impact-analyzer/tokenize.js",
+        "type": "module-contains",
+        "why": "module membership"
+      },
+      {
+        "from": "src-agent-platform-policy",
+        "to": "src/agent-platform/policy/ExecutionPolicy.js",
+        "type": "module-contains",
+        "why": "module membership"
+      },
+      {
+        "from": "src-agents-context-agent",
+        "to": "src/agents/context-agent/index.js",
+        "type": "module-contains",
+        "why": "module membership"
+      },
+      {
+        "from": "src-agents-knowledge-validator",
+        "to": "src/agents/knowledge-validator/index.js",
+        "type": "module-contains",
+        "why": "module membership"
+      },
+      {
+        "from": "src-agents",
+        "to": "src/agents/index.js",
+        "type": "module-contains",
+        "why": "module membership"
+      },
+      {
+        "from": "bin-aafe-js",
+        "to": "bin/aafe.js",
+        "type": "module-contains",
+        "why": "module membership"
+      },
+      {
+        "from": "src-agent-platform",
+        "to": "src/agent-platform/index.js",
+        "type": "module-contains",
+        "why": "module membership"
+      }
+    ],
+    "facts": [
+      {
+        "kind": "analysis-commit",
+        "value": "0b567c49cf3f",
+        "source": "manifest.json"
+      },
+      {
+        "kind": "impact-source",
+        "value": "diff",
+        "source": "impact-analyzer"
+      },
+      {
+        "kind": "module-files",
+        "value": {
+          "module": "src-agent-platform-protocol",
+          "files": [
+            "src/agent-platform/protocol/request.js",
+            "src/agent-platform/protocol/response.js"
+          ]
+        },
+        "source": "modules/src-agent-platform-protocol"
+      },
+      {
+        "kind": "components",
+        "value": {
+          "module": "src-agent-platform-protocol",
+          "components": [
+            "AGENT_STATUS"
+          ]
+        },
+        "source": "modules/src-agent-platform-protocol/components"
+      },
+      {
+        "kind": "module-files",
+        "value": {
+          "module": "src-agents-test-agent",
+          "files": [
+            "src/agents/test-agent/generate.js",
+            "src/agents/test-agent/index.js",
+            "src/agents/test-agent/plan.js"
+          ]
+        },
+        "source": "modules/src-agents-test-agent"
+      },
+      {
+        "kind": "module-files",
+        "value": {
+          "module": "src-cli",
+          "files": [
+            "src/cli/analyze.js",
+            "src/cli/bootstrap.js",
+            "src/cli/codebuddyLayer.js",
+            "src/cli/completionImpactRules.js",
+            "src/cli/cursorLayer.js",
+            "src/cli/ddd.js",
+            "src/cli/dddRuntimeFiles.js",
+            "src/cli/detect.js",
+            "src/cli/doctor.js",
+            "src/cli/e2eFromPrRules.js",
+            "src/cli/e2eSetup.js",
+            "src/cli/editorLayer.js"
+          ]
+        },
+        "source": "modules/src-cli"
+      },
+      {
+        "kind": "components",
+        "value": {
+          "module": "src-cli",
+          "components": [
+            "PLAYWRIGHT_PACKAGES"
+          ]
+        },
+        "source": "modules/src-cli/components"
+      },
+      {
+        "kind": "module-files",
+        "value": {
+          "module": "src-testing-e2e",
+          "files": [
+            "src/testing/e2e/compile.js",
+            "src/testing/e2e/config.js",
+            "src/testing/e2e/inventory.js",
+            "src/testing/e2e/layers.js",
+            "src/testing/e2e/match.js",
+            "src/testing/e2e/pr.js",
+            "src/testing/e2e/report.js",
+            "src/testing/e2e/runner.js",
+            "src/testing/e2e/yaml.js"
+          ]
+        },
+        "source": "modules/src-testing-e2e"
+      },
+      {
+        "kind": "components",
+        "value": {
+          "module": "src-testing-e2e",
+          "components": [
+            "DEFAULT_E2E_CONFIG",
+            "INLINE_TOKEN_REJECTION",
+            "EXIT_CODE"
+          ]
+        },
+        "source": "modules/src-testing-e2e/components"
+      },
+      {
+        "kind": "module-files",
+        "value": {
+          "module": "src-agent-platform-runtime",
+          "files": [
+            "src/agent-platform/runtime/AgentRuntime.js",
+            "src/agent-platform/runtime/evidenceSchema.js",
+            "src/agent-platform/runtime/providers/AgentProvider.js",
+            "src/agent-platform/runtime/providers/CliAgentProvider.js",
+            "src/agent-platform/runtime/providers/HttpAgentProvider.js",
+            "src/agent-platform/runtime/providers/IdeAgentProvider.js",
+            "src/agent-platform/runtime/providers/LocalAgentProvider.js",
+            "src/agent-platform/runtime/providers/McpAgentProvider.js",
+            "src/agent-platform/runtime/providers/index.js"
+          ]
+        },
+        "source": "modules/src-agent-platform-runtime"
+      },
+      {
+        "kind": "components",
+        "value": {
+          "module": "src-agent-platform-runtime",
+          "components": [
+            "SCHEMA_FILE",
+            "EVIDENCE_SCHEMA"
+          ]
+        },
+        "source": "modules/src-agent-platform-runtime/components"
+      },
+      {
+        "kind": "module-files",
+        "value": {
+          "module": "src-agent-platform-orchestrator",
+          "files": [
+            "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "src/agent-platform/orchestrator/ExecutionGraph.js"
+          ]
+        },
+        "source": "modules/src-agent-platform-orchestrator"
+      },
+      {
+        "kind": "components",
+        "value": {
+          "module": "src-agent-platform-orchestrator",
+          "components": [
+            "TRANSITIONS"
+          ]
+        },
+        "source": "modules/src-agent-platform-orchestrator/components"
+      }
+    ],
+    "affectedFiles": [
+      {
+        "id": ".aafe.config.json",
+        "label": ".aafe.config.json [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".aafe.config.json",
+            "reason": "modified (+1/-1)"
+          }
+        ]
+      },
+      {
+        "id": ".ai-agent/skill-index.md",
+        "label": ".ai-agent/skill-index.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/skill-index.md",
+            "reason": "modified (+1/-1)"
+          }
+        ]
+      },
+      {
+        "id": ".ai-agent/skills/aafe-test-from-pr.md",
+        "label": ".ai-agent/skills/aafe-test-from-pr.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/skills/aafe-test-from-pr.md",
+            "reason": "modified (+5/-3)"
+          }
+        ]
+      },
+      {
+        "id": ".ai-agent/skills/architecture-impact-test-forecast.md",
+        "label": ".ai-agent/skills/architecture-impact-test-forecast.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/skills/architecture-impact-test-forecast.md",
+            "reason": "modified (+1/-1)"
+          }
+        ]
+      },
+      {
+        "id": ".ai-agent/skills/minimal-convergent-self-test.md",
+        "label": ".ai-agent/skills/minimal-convergent-self-test.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/skills/minimal-convergent-self-test.md",
+            "reason": "modified (+7/-6)"
+          }
+        ]
+      },
+      {
+        "id": ".cursor/rules/aafe-test-from-pr.mdc",
+        "label": ".cursor/rules/aafe-test-from-pr.mdc [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".cursor/rules/aafe-test-from-pr.mdc",
+            "reason": "modified (+1/-1)"
+          }
+        ]
+      },
+      {
+        "id": ".cursor/skills/aafe-test-from-pr/SKILL.md",
+        "label": ".cursor/skills/aafe-test-from-pr/SKILL.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".cursor/skills/aafe-test-from-pr/SKILL.md",
+            "reason": "modified (+1/-1)"
+          }
+        ]
+      },
+      {
+        "id": "README.md",
+        "label": "README.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "README.md",
+            "reason": "modified (+4/-2)"
+          }
+        ]
+      },
+      {
+        "id": "scripts/test-completion-tapd-rules.js",
+        "label": "scripts/test-completion-tapd-rules.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "scripts/test-completion-tapd-rules.js",
+            "reason": "modified (+3/-0)"
+          }
+        ]
+      },
+      {
+        "id": "scripts/test-e2e-platform.js",
+        "label": "scripts/test-e2e-platform.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "scripts/test-e2e-platform.js",
+            "reason": "modified (+38/-5)"
+          }
+        ]
+      },
+      {
+        "id": "src/agent-platform/protocol/request.js",
+        "label": "src/agent-platform/protocol/request.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/protocol/request.js",
+            "reason": "modified (+2/-1)"
+          }
+        ]
+      },
+      {
+        "id": "src/agents/test-agent/index.js",
+        "label": "src/agents/test-agent/index.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/test-agent/index.js",
+            "reason": "modified (+7/-2)"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/bootstrap.js",
+        "label": "src/cli/bootstrap.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/bootstrap.js",
+            "reason": "modified (+2/-2)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/completionImpactRules.js",
+            "reason": "modified (+11/-10)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/e2eFromPrRules.js",
+            "reason": "modified (+7/-5)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/index.js",
+            "reason": "modified (+4/-4)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/platform.js",
+            "reason": "modified (+41/-2)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/portableCompletionTapdPack.js",
+            "reason": "modified (+4/-4)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/prompts.js",
+            "reason": "modified (+2/-4)"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/completionImpactRules.js",
+        "label": "src/cli/completionImpactRules.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/completionImpactRules.js",
+            "reason": "modified (+11/-10)"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/e2eFromPrRules.js",
+        "label": "src/cli/e2eFromPrRules.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/e2eFromPrRules.js",
+            "reason": "modified (+7/-5)"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/index.js",
+        "label": "src/cli/index.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/index.js",
+            "reason": "modified (+4/-4)"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/platform.js",
+        "label": "src/cli/platform.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/platform.js",
+            "reason": "modified (+41/-2)"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/portableCompletionTapdPack.js",
+        "label": "src/cli/portableCompletionTapdPack.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/portableCompletionTapdPack.js",
+            "reason": "modified (+4/-4)"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/prompts.js",
+        "label": "src/cli/prompts.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/prompts.js",
+            "reason": "modified (+2/-4)"
+          }
+        ]
+      },
+      {
+        "id": "src/testing/e2e/config.js",
+        "label": "src/testing/e2e/config.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/testing/e2e/config.js",
+            "reason": "modified (+9/-4)"
+          },
+          {
+            "type": "source",
+            "file": "src/testing/e2e/index.js",
+            "reason": "modified (+1/-1)"
+          },
+          {
+            "type": "source",
+            "file": "src/testing/e2e/runner.js",
+            "reason": "modified (+31/-16)"
+          }
+        ]
+      },
+      {
+        "id": "src/testing/e2e/index.js",
+        "label": "src/testing/e2e/index.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/testing/e2e/index.js",
+            "reason": "modified (+1/-1)"
+          }
+        ]
+      },
+      {
+        "id": "src/testing/e2e/runner.js",
+        "label": "src/testing/e2e/runner.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/testing/e2e/runner.js",
+            "reason": "modified (+31/-16)"
+          }
+        ]
+      },
+      {
+        "id": "tests/aafe/verify-the-current-change.spec.js",
+        "label": "tests/aafe/verify-the-current-change.spec.js [added]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "tests/aafe/verify-the-current-change.spec.js",
+            "reason": "added (+0/-0)"
+          }
+        ]
+      }
+    ],
+    "affectedModules": [
+      {
+        "id": "src-agent-platform-protocol",
+        "label": "src-agent-platform-protocol",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/protocol/request.js",
+            "reason": "modified (+2/-1)"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-test-agent",
+        "label": "src-agents-test-agent",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/test-agent/index.js",
+            "reason": "modified (+7/-2)"
+          }
+        ]
+      },
+      {
+        "id": "src-cli",
+        "label": "src-cli",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/bootstrap.js",
+            "reason": "modified (+2/-2)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/completionImpactRules.js",
+            "reason": "modified (+11/-10)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/e2eFromPrRules.js",
+            "reason": "modified (+7/-5)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/index.js",
+            "reason": "modified (+4/-4)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/platform.js",
+            "reason": "modified (+41/-2)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/portableCompletionTapdPack.js",
+            "reason": "modified (+4/-4)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/prompts.js",
+            "reason": "modified (+2/-4)"
+          }
+        ]
+      },
+      {
+        "id": "src-testing-e2e",
+        "label": "src-testing-e2e",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/testing/e2e/config.js",
+            "reason": "modified (+9/-4)"
+          },
+          {
+            "type": "source",
+            "file": "src/testing/e2e/index.js",
+            "reason": "modified (+1/-1)"
+          },
+          {
+            "type": "source",
+            "file": "src/testing/e2e/runner.js",
+            "reason": "modified (+31/-16)"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform-runtime",
+        "label": "src-agent-platform-runtime",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/runtime/AgentRuntime.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/runtime/evidenceSchema.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform-orchestrator",
+        "label": "src-agent-platform-orchestrator",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-code-intelligence",
+        "label": "src-agents-code-intelligence",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/agents/code-intelligence/views.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-failure-analyzer",
+        "label": "src-agents-failure-analyzer",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/failure-analyzer/classify.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-impact-analyzer",
+        "label": "src-agents-impact-analyzer",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/impact-analyzer/index.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/agents/impact-analyzer/tokenize.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform-policy",
+        "label": "src-agent-platform-policy",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-context-agent",
+        "label": "src-agents-context-agent",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/context-agent/index.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-knowledge-validator",
+        "label": "src-agents-knowledge-validator",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/knowledge-validator/index.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents",
+        "label": "src-agents",
+        "score": 0.55,
+        "why": "depends on src-agents-test-agent (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/index.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "bin-aafe-js",
+        "label": "bin-aafe-js",
+        "score": 0.55,
+        "why": "depends on src-cli (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "bin/aafe.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform",
+        "label": "src-agent-platform",
+        "score": 0.303,
+        "why": "depends on src-agent-platform-runtime (2 hops away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/index.js",
+            "reason": "module membership"
+          }
+        ]
+      }
+    ],
+    "affectedFeatures": [
+      {
+        "id": "feature:ai-agent-memory",
+        "label": "memory",
+        "score": 0.5,
+        "why": "feature lives in affected module src-cli",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/cli/bootstrap.js",
+            "reason": ".ai-agent/memory"
+          }
+        ]
+      },
+      {
+        "id": "feature:casesdir-id-yaml",
+        "label": "${id}",
+        "score": 0.5,
+        "why": "feature lives in affected module src-agents-test-agent",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "${casesDir}/${id}.yaml"
+          }
+        ]
+      },
+      {
+        "id": "feature:aafe-e2e-specs-id-spec-js",
+        "label": "${id}.spec",
+        "score": 0.5,
+        "why": "feature lives in affected module src-agents-test-agent",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": ".aafe/e2e/specs/${id}.spec.js"
+          }
+        ]
+      },
+      {
+        "id": "feature:tests-aafe-filestem-plan-spec-js",
+        "label": "${fileStem(plan)}.spec",
+        "score": 0.5,
+        "why": "feature lives in affected module src-agents-test-agent",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+          }
+        ]
+      }
+    ],
+    "dataFlows": [],
+    "businessFlows": [
+      {
+        "id": "business:ai-agent-memory",
+        "label": "memory",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-cli",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/cli/bootstrap.js",
+            "reason": ".ai-agent/memory"
+          }
+        ]
+      },
+      {
+        "id": "business:casesdir-id-yaml",
+        "label": "${id}",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-agents-test-agent",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "${casesDir}/${id}.yaml"
+          }
+        ]
+      },
+      {
+        "id": "business:aafe-e2e-specs-id-spec-js",
+        "label": "${id}.spec",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-agents-test-agent",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": ".aafe/e2e/specs/${id}.spec.js"
+          }
+        ]
+      },
+      {
+        "id": "business:tests-aafe-filestem-plan-spec-js",
+        "label": "${fileStem(plan)}.spec",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-agents-test-agent",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+          }
+        ]
+      }
+    ],
+    "tests": [
+      "src/testing/e2e/config.js",
+      "src/testing/e2e/index.js",
+      "src/testing/e2e/runner.js",
+      "tests/aafe/verify-the-current-change.spec.js",
+      "src/testing/e2e/compile.js",
+      "src/testing/e2e/inventory.js",
+      "src/testing/e2e/layers.js",
+      "src/testing/e2e/match.js",
+      "src/testing/e2e/pr.js",
+      "src/testing/e2e/report.js",
+      "src/testing/e2e/yaml.js"
+    ],
+    "risk": "high",
+    "confidence": 1,
+    "constraints": [
+      "AAFE analysis is advisory; verify each claim against the cited file before editing.",
+      "Do not change files outside the affected modules without re-running impact analysis."
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agent-platform/protocol/request.js",
+        "reason": "modified (+2/-1)"
+      },
+      {
+        "type": "source",
+        "file": "src/agents/test-agent/index.js",
+        "reason": "modified (+7/-2)"
+      },
+      {
+        "type": "source",
+        "file": "src/cli/bootstrap.js",
+        "reason": "modified (+2/-2)"
+      },
+      {
+        "type": "source",
+        "file": "src/cli/completionImpactRules.js",
+        "reason": "modified (+11/-10)"
+      },
+      {
+        "type": "source",
+        "file": "src/cli/e2eFromPrRules.js",
+        "reason": "modified (+7/-5)"
+      },
+      {
+        "type": "source",
+        "file": "src/cli/index.js",
+        "reason": "modified (+4/-4)"
+      },
+      {
+        "type": "source",
+        "file": "src/cli/platform.js",
+        "reason": "modified (+41/-2)"
+      },
+      {
+        "type": "source",
+        "file": "src/cli/portableCompletionTapdPack.js",
+        "reason": "modified (+4/-4)"
+      },
+      {
+        "type": "source",
+        "file": "src/cli/prompts.js",
+        "reason": "modified (+2/-4)"
+      },
+      {
+        "type": "source",
+        "file": "src/testing/e2e/config.js",
+        "reason": "modified (+9/-4)"
+      },
+      {
+        "type": "source",
+        "file": "src/testing/e2e/index.js",
+        "reason": "modified (+1/-1)"
+      },
+      {
+        "type": "source",
+        "file": "src/testing/e2e/runner.js",
+        "reason": "modified (+31/-16)"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/runtime/AgentRuntime.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/runtime/evidenceSchema.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agents/code-intelligence/index.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agents/code-intelligence/views.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agents/failure-analyzer/classify.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agents/failure-analyzer/index.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agents/impact-analyzer/index.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agents/impact-analyzer/tokenize.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/policy/ExecutionPolicy.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agents/context-agent/index.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agents/knowledge-validator/index.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agents/index.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "bin/aafe.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/index.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": ".aafe.config.json",
+        "reason": "modified (+1/-1)"
+      },
+      {
+        "type": "source",
+        "file": ".ai-agent/skill-index.md",
+        "reason": "modified (+1/-1)"
+      },
+      {
+        "type": "source",
+        "file": ".ai-agent/skills/aafe-test-from-pr.md",
+        "reason": "modified (+5/-3)"
+      },
+      {
+        "type": "source",
+        "file": ".ai-agent/skills/architecture-impact-test-forecast.md",
+        "reason": "modified (+1/-1)"
+      },
+      {
+        "type": "source",
+        "file": ".ai-agent/skills/minimal-convergent-self-test.md",
+        "reason": "modified (+7/-6)"
+      },
+      {
+        "type": "source",
+        "file": ".cursor/rules/aafe-test-from-pr.mdc",
+        "reason": "modified (+1/-1)"
+      },
+      {
+        "type": "source",
+        "file": ".cursor/skills/aafe-test-from-pr/SKILL.md",
+        "reason": "modified (+1/-1)"
+      },
+      {
+        "type": "source",
+        "file": "README.md",
+        "reason": "modified (+4/-2)"
+      },
+      {
+        "type": "source",
+        "file": "scripts/test-completion-tapd-rules.js",
+        "reason": "modified (+3/-0)"
+      },
+      {
+        "type": "source",
+        "file": "scripts/test-e2e-platform.js",
+        "reason": "modified (+38/-5)"
+      },
+      {
+        "type": "source",
+        "file": "tests/aafe/verify-the-current-change.spec.js",
+        "reason": "added (+0/-0)"
+      },
+      {
+        "type": "route",
+        "file": "src/cli/bootstrap.js",
+        "reason": ".ai-agent/memory"
+      },
+      {
+        "type": "route",
+        "file": "src/agents/test-agent/generate.js",
+        "reason": "${casesDir}/${id}.yaml"
+      },
+      {
+        "type": "route",
+        "file": "src/agents/test-agent/generate.js",
+        "reason": ".aafe/e2e/specs/${id}.spec.js"
+      },
+      {
+        "type": "route",
+        "file": "src/agents/test-agent/generate.js",
+        "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+      }
+    ],
+    "codeSnippets": [
+      {
+        "path": "src/agent-platform/protocol/request.js",
+        "startLine": 52,
+        "endLine": 63,
+        "language": "js",
+        "why": "modified (+2/-1)",
+        "truncated": true,
+        "content": "let taskCounter = 0;\n\n/**\n * @returns {Task}\n */\nexport function createTask(partial = {}) {\n  taskCounter += 1;\n  return {\n    id: partial.id ?? `task-${Date.now().toString(36)}-${taskCounter}`,\n    kind: partial.kind ?? 'generic',\n    goal: partial.goal ?? '',\n    requirement: partial.requirement ?? null,"
+      },
+      {
+        "path": "src/agents/test-agent/index.js",
+        "startLine": 21,
+        "endLine": 32,
+        "language": "js",
+        "why": "modified (+7/-2)",
+        "truncated": true,
+        "content": "import { mkdir, writeFile } from 'node:fs/promises';\nimport path from 'node:path';\nimport { agentPartial, agentSkipped, agentSuccess } from '../../agent-platform/protocol/response.js';\nimport { detectTestRunners } from '../../testing/runnerDetect.js';\nimport { parseTestReport } from '../../testing/reportParser.js';\nimport { loadE2eConfig } from '../../testing/e2e/config.js';\nimport { executeE2eCases } from '../../testing/e2e/runner.js';\nimport { persistImpactPack, writeInventoryCases } from '../../testing/e2e/inventory.js';\nimport { fetchPullRequest, parsePrUrl, resolvePrToken } from '../../testing/e2e/pr.js';\nimport { collectDiffFacts } from '../../static-analysis/git/DiffFacts.js';\nimport { shouldRouteToUnitChain } from '../../testing/e2e/layers.js';\nimport { buildTestPlan } from './plan.js';"
+      },
+      {
+        "path": "src/cli/bootstrap.js",
+        "startLine": 1,
+        "endLine": 12,
+        "language": "js",
+        "why": "modified (+2/-2)",
+        "truncated": true,
+        "content": "import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';\nimport { runMigrations } from './migrate.js';\nimport { taskCompletionHookScript } from './hookScripts.js';\nimport path from 'node:path';\nimport { createTemplatePlan, packageRecommendations } from '../templates/TemplateSystem.js';\nimport { writeLayeredEditorAdapters } from './editorLayer.js';\nimport { writeFlatCodeBuddyAdapters } from './codebuddyLayer.js';\nimport { getEditorAdapter, getLayeredEditors } from './editorRegistry.js';\nimport {\n  architectureImpactTestForecastSkillContent,\n  minimalConvergentSelfTestSkillContent,\n  taskCompletionImpactProjectRuleMdc,"
+      },
+      {
+        "path": "src/cli/completionImpactRules.js",
+        "startLine": 1,
+        "endLine": 12,
+        "language": "js",
+        "why": "modified (+11/-10)",
+        "truncated": true,
+        "content": "export function taskCompletionImpactRuleMdc(ctx = {}) {\n  // Editor adapters are thin pointers; detailed protocol lives in `.ai-agent/rules/` + skills.\n  return taskCompletionImpactPointerRuleMdc(ctx);\n}\n\nexport function taskCompletionImpactPointerRuleMdc(ctx = {}) {\n  const agentPrefix = ctx.agentPrefix ?? '.ai-agent';\n  const moduleName = ctx.moduleName ?? 'module';\n  const moduleGlob = ctx.moduleGlob;\n  const header = moduleGlob\n    ? `---\\ndescription: AAFE Task Completion Impact and Test Analysis (${moduleName})\\nalwaysApply: true\\nglobs: ${moduleGlob}\\n---`\n    : '---\\ndescription: AAFE Task Completion Impact and Test Analysis\\nalwaysApply: true\\n---';"
+      },
+      {
+        "path": "src/cli/e2eFromPrRules.js",
+        "startLine": 32,
+        "endLine": 43,
+        "language": "js",
+        "why": "modified (+7/-5)",
+        "truncated": true,
+        "content": "export const AAFE_TEST_FROM_PR_SKILL_DIR = 'aafe-test-from-pr';\nexport const AAFE_TEST_FROM_PR_RULE_FILE = 'aafe-test-from-pr.mdc';\n\n/** Matches the historical uitest trigger phrases so Cursor selects this skill instead. */\nexport const AAFE_TEST_FROM_PR_DESCRIPTION = '用户说「分析此PR <PR URL>影响并生成测试用例」「按 PR 补测试」「执行 PR 分析生成测试用例」「生成测试用例并执行e2e测试」或直接贴出 GitHub/工蜂 PR/MR 链接时，跑 aafe test --pr=<url>（要执行再加 --run）。禁止安装或调用 uitest / @aafe/ai-test。';\n\nexport function aafeTestFromPrSkillContent(agentPrefix = '.ai-agent') {\n  return `# Skill: AAFE Test from PR\n\nTrigger: 用户要按 PR/MR **生成测试用例**、**补测试**、**执行 e2e** 或 **输出报告**，包括直接贴出 PR/MR 链接。\n\nCompanion CLI: \\`aafe test --pr=<url>\\`（本包能力，不是 \\`uitest\\`）。"
+      },
+      {
+        "path": "src/cli/index.js",
+        "startLine": 1,
+        "endLine": 12,
+        "language": "js",
+        "why": "modified (+4/-4)",
+        "truncated": true,
+        "content": "import { bootstrapProject } from './bootstrap.js';\nimport { runAnalyzeCommand } from './analyze.js';\nimport { runDDDCommand } from './ddd.js';\nimport { detectProject } from './detect.js';\nimport { doctorProject } from './doctor.js';\nimport { runMemoryCommand } from './memory.js';\nimport { runKnowledgeCommand } from './knowledge.js';\nimport { runKnowledgeWebCommand } from './knowledgeWeb.js';\nimport { runTaskCompletion } from './taskCompletion.js';\nimport { runPatternCommand } from './patterns.js';\nimport { runSkillsCommand } from './skills.js';\nimport { runE2eSetupCommand } from './e2eSetup.js';"
+      }
+    ],
+    "recommendedChanges": [
+      {
+        "order": 1,
+        "target": "src-agent-platform-protocol",
+        "action": "implement",
+        "why": "module owns a changed file"
+      },
+      {
+        "order": 2,
+        "target": "src-agents-test-agent",
+        "action": "implement",
+        "why": "module owns a changed file"
+      },
+      {
+        "order": 3,
+        "target": "src-cli",
+        "action": "implement",
+        "why": "module owns a changed file"
+      },
+      {
+        "order": 4,
+        "target": "src-testing-e2e",
+        "action": "implement",
+        "why": "module owns a changed file"
+      },
+      {
+        "order": 5,
+        "target": "src-agent-platform-runtime",
+        "action": "review-for-regression",
+        "why": "depends on src-agent-platform-protocol (1 hop away)"
+      },
+      {
+        "order": 6,
+        "target": "src-agent-platform-orchestrator",
+        "action": "review-for-regression",
+        "why": "depends on src-agent-platform-protocol (1 hop away)"
+      },
+      {
+        "order": 7,
+        "target": "src-agents-code-intelligence",
+        "action": "review-for-regression",
+        "why": "depends on src-agent-platform-protocol (1 hop away)"
+      },
+      {
+        "order": 8,
+        "target": "src-agents-failure-analyzer",
+        "action": "review-for-regression",
+        "why": "depends on src-agent-platform-protocol (1 hop away)"
+      },
+      {
+        "order": 9,
+        "target": "src-agents-impact-analyzer",
+        "action": "review-for-regression",
+        "why": "depends on src-agent-platform-protocol (1 hop away)"
+      },
+      {
+        "order": 10,
+        "target": "src/testing/e2e/config.js, src/testing/e2e/index.js, src/testing/e2e/runner.js, tests/aafe/verify-the-current-change.spec.js, src/testing/e2e/compile.js",
+        "action": "update-or-extend-tests",
+        "why": "existing tests cover the affected modules"
+      }
+    ],
+    "testPlan": {
+      "id": "plan:mt1hjpkb",
+      "risk": "high",
+      "preconditions": [],
+      "scenarios": [
+        {
+          "id": "scenario:feature:feature-ai-agent-memory",
+          "title": "Feature \"memory\" keeps working after the change",
+          "priority": "critical"
+        },
+        {
+          "id": "scenario:feature:feature-casesdir-id-yaml",
+          "title": "Feature \"${id}\" keeps working after the change",
+          "priority": "critical"
+        },
+        {
+          "id": "scenario:feature:feature-aafe-e2e-specs-id-spec-js",
+          "title": "Feature \"${id}.spec\" keeps working after the change",
+          "priority": "critical"
+        },
+        {
+          "id": "scenario:feature:feature-tests-aafe-filestem-plan-spec-js",
+          "title": "Feature \"${fileStem(plan)}.spec\" keeps working after the change",
+          "priority": "critical"
+        },
+        {
+          "id": "scenario:business:business-ai-agent-memory",
+          "title": "Business rule \"memory\" is still enforced",
+          "priority": "critical"
+        },
+        {
+          "id": "scenario:business:business-casesdir-id-yaml",
+          "title": "Business rule \"${id}\" is still enforced",
+          "priority": "critical"
+        },
+        {
+          "id": "scenario:business:business-aafe-e2e-specs-id-spec-js",
+          "title": "Business rule \"${id}.spec\" is still enforced",
+          "priority": "critical"
+        },
+        {
+          "id": "scenario:business:business-tests-aafe-filestem-plan-spec-js",
+          "title": "Business rule \"${fileStem(plan)}.spec\" is still enforced",
+          "priority": "critical"
+        }
+      ]
+    },
+    "tokenEstimate": 9457,
+    "truncated": []
+  },
+  "knowledgeUpdates": [],
+  "evidence": [],
+  "nextActions": [],
+  "metrics": {
+    "duration": 4,
+    "tokens": 9457
+  },
+  "contract": {
+    "mode": "warn",
+    "repairs": [],
+    "attempts": 1,
+    "input": "ok",
+    "output": "ok"
+  }
+}

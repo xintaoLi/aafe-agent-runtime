@@ -1,0 +1,516 @@
+{
+  "module": "src-static-analysis-types",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:185",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/index.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/index.js",
+          "file:src/static-analysis/types/config.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/index.js",
+            "to": "file:src/static-analysis/types/config.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "../../static-analysis/types/config.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:186",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/index.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/index.js",
+          "file:src/static-analysis/types/context.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/index.js",
+            "to": "file:src/static-analysis/types/context.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "../../static-analysis/types/context.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:208",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/impact-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/impact-analyzer/index.js",
+          "file:src/static-analysis/types/evidence.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/impact-analyzer/index.js",
+            "to": "file:src/static-analysis/types/evidence.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/impact-analyzer/index.js",
+            "reason": "../../static-analysis/types/evidence.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:249",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/analyze.js",
+        "nodes": [
+          "file:src/cli/analyze.js",
+          "file:src/static-analysis/types/config.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/analyze.js",
+            "to": "file:src/static-analysis/types/config.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/analyze.js",
+            "reason": "../static-analysis/types/config.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:250",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/analyze.js",
+        "nodes": [
+          "file:src/cli/analyze.js",
+          "file:src/static-analysis/types/context.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/analyze.js",
+            "to": "file:src/static-analysis/types/context.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/analyze.js",
+            "reason": "../static-analysis/types/context.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:435",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/architecture.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/architecture.js",
+          "file:src/static-analysis/types/result.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/architecture.js",
+            "to": "file:src/static-analysis/types/result.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/architecture.js",
+            "reason": "../types/result.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:436",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/architecture.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/architecture.js",
+          "file:src/static-analysis/types/evidence.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/architecture.js",
+            "to": "file:src/static-analysis/types/evidence.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/architecture.js",
+            "reason": "../types/evidence.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:440",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/business.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/business.js",
+          "file:src/static-analysis/types/result.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/business.js",
+            "to": "file:src/static-analysis/types/result.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/business.js",
+            "reason": "../types/result.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:441",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/business.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/business.js",
+          "file:src/static-analysis/types/evidence.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/business.js",
+            "to": "file:src/static-analysis/types/evidence.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/business.js",
+            "reason": "../types/evidence.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:442",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/dataflow.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/dataflow.js",
+          "file:src/static-analysis/types/result.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/dataflow.js",
+            "to": "file:src/static-analysis/types/result.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/dataflow.js",
+            "reason": "../types/result.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:443",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/dataflow.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/dataflow.js",
+          "file:src/static-analysis/types/evidence.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/dataflow.js",
+            "to": "file:src/static-analysis/types/evidence.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/dataflow.js",
+            "reason": "../types/evidence.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:445",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/feature.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/feature.js",
+          "file:src/static-analysis/types/result.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/feature.js",
+            "to": "file:src/static-analysis/types/result.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/feature.js",
+            "reason": "../types/result.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:446",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/feature.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/feature.js",
+          "file:src/static-analysis/types/evidence.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/feature.js",
+            "to": "file:src/static-analysis/types/evidence.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/feature.js",
+            "reason": "../types/evidence.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:453",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/graph.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/graph.js",
+          "file:src/static-analysis/types/result.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/graph.js",
+            "to": "file:src/static-analysis/types/result.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/graph.js",
+            "reason": "../types/result.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:454",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/graph.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/graph.js",
+          "file:src/static-analysis/types/evidence.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/graph.js",
+            "to": "file:src/static-analysis/types/evidence.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/graph.js",
+            "reason": "../types/evidence.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:459",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/repository.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/repository.js",
+          "file:src/static-analysis/types/result.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/repository.js",
+            "to": "file:src/static-analysis/types/result.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "../types/result.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:460",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/repository.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/repository.js",
+          "file:src/static-analysis/types/evidence.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/repository.js",
+            "to": "file:src/static-analysis/types/evidence.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "../types/evidence.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:469",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/modules/buildBundles.js",
+        "nodes": [
+          "file:src/static-analysis/modules/buildBundles.js",
+          "file:src/static-analysis/types/evidence.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/modules/buildBundles.js",
+            "to": "file:src/static-analysis/types/evidence.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/modules/buildBundles.js",
+            "reason": "../types/evidence.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:470",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/orchestrator.js",
+        "nodes": [
+          "file:src/static-analysis/orchestrator.js",
+          "file:src/static-analysis/types/context.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/orchestrator.js",
+            "to": "file:src/static-analysis/types/context.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/orchestrator.js",
+            "reason": "./types/context.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:495",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/types/config.js",
+        "nodes": [
+          "file:src/static-analysis/types/config.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/types/config.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/types/config.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:496",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/types/config.js",
+        "nodes": [
+          "file:src/static-analysis/types/config.js",
+          "file:src/static-analysis/emit/formats.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/types/config.js",
+            "to": "file:src/static-analysis/emit/formats.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/types/config.js",
+            "reason": "../emit/formats.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 21,
+      "call": 0
+    }
+  }
+}

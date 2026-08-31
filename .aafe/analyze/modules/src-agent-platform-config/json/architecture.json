@@ -1,0 +1,30 @@
+{
+  "module": "src-agent-platform-config",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agent-platform/config/agentsConfig.js"
+      ],
+      "routes": [],
+      "components": [
+        "ENV_EXPANDED_FIELDS",
+        "AGENT_PROVIDERS"
+      ]
+    },
+    "outboundModules": [
+      "module:src-agent-platform-registry"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agent-platform/config/agentsConfig.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-agent-platform-registry"
+  ],
+  "signals": []
+}

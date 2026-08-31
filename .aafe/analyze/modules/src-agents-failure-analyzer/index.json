@@ -1,0 +1,35 @@
+{
+  "id": "src-agents-failure-analyzer",
+  "summary": {
+    "routes": 0,
+    "components": 1,
+    "features": 0,
+    "flows": 9,
+    "dependsOn": [
+      "module:src-agent-platform-protocol",
+      "module:src-knowledge-model"
+    ]
+  },
+  "paths": {
+    "routes": "json/routes.json",
+    "architecture": "json/architecture.json",
+    "components": "json/components.json",
+    "features": "json/features.json",
+    "dataflow": "json/dataflow.json",
+    "mmd": {
+      "routes": "mmd/routes.mmd",
+      "architecture": "mmd/architecture.mmd",
+      "components": "mmd/components.mmd",
+      "dataflow": "mmd/dataflow.mmd"
+    },
+    "readme": "README.md"
+  },
+  "routes": [],
+  "components": [
+    "CLASSIFICATIONS"
+  ],
+  "dependencies": [
+    "module:src-agent-platform-protocol",
+    "module:src-knowledge-model"
+  ]
+}

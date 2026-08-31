@@ -1,0 +1,23 @@
+{
+  "status": "partial",
+  "result": {
+    "id": "plan:mt0yqctr",
+    "requirement": "优化 CLI plan 命令的输出格式",
+    "risk": "low",
+    "runner": {
+      "e2e": null,
+      "unit": null
+    },
+    "scenarios": [],
+    "existingTests": [],
+    "coverageGaps": [],
+    "evidence": []
+  },
+  "knowledgeUpdates": [],
+  "evidence": [],
+  "nextActions": [],
+  "metrics": {
+    "duration": 0
+  },
+  "reason": "impact report yielded no testable artifact"
+}

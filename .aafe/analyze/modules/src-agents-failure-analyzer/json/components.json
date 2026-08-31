@@ -1,0 +1,35 @@
+{
+  "module": "src-agents-failure-analyzer",
+  "components": [
+    {
+      "name": "CLASSIFICATIONS",
+      "kind": "variable",
+      "file": "src/agents/failure-analyzer/classify.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agents/failure-analyzer/classify.js",
+          "symbol": "CLASSIFICATIONS"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "CLASSIFICATIONS",
+      "toLabel": "CLASSIFICATIONS",
+      "type": "IMPORTS",
+      "fromFile": "src/agents/failure-analyzer/index.js",
+      "toFile": "src/agents/failure-analyzer/classify.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agents/failure-analyzer/index.js",
+          "reason": "./classify.js"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "id": "src-agent-platform-orchestrator",
+  "summary": {
+    "routes": 0,
+    "components": 1,
+    "features": 0,
+    "flows": 60,
+    "dependsOn": [
+      "module:src-agent-platform-protocol",
+      "module:src-agent-platform-runtime",
+      "module:src-agent-platform-state"
+    ]
+  },
+  "paths": {
+    "routes": "json/routes.json",
+    "architecture": "json/architecture.json",
+    "components": "json/components.json",
+    "features": "json/features.json",
+    "dataflow": "json/dataflow.json",
+    "mmd": {
+      "routes": "mmd/routes.mmd",
+      "architecture": "mmd/architecture.mmd",
+      "components": "mmd/components.mmd",
+      "dataflow": "mmd/dataflow.mmd"
+    },
+    "readme": "README.md"
+  },
+  "routes": [],
+  "components": [
+    "TRANSITIONS"
+  ],
+  "dependencies": [
+    "module:src-agent-platform-protocol",
+    "module:src-agent-platform-runtime",
+    "module:src-agent-platform-state"
+  ]
+}

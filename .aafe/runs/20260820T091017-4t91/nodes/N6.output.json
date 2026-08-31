@@ -1,0 +1,460 @@
+{
+  "status": "success",
+  "result": {
+    "source": "requirement",
+    "affectedFiles": [
+      {
+        "id": "src/agents/failure-analyzer/classify.js",
+        "label": "src/agents/failure-analyzer/classify.js",
+        "score": 0.188,
+        "why": "path terms match requirement: analyze",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/failure-analyzer/classify.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/agents/failure-analyzer/index.js",
+        "label": "src/agents/failure-analyzer/index.js",
+        "score": 0.188,
+        "why": "path terms match requirement: analyze",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/agents/impact-analyzer/index.js",
+        "label": "src/agents/impact-analyzer/index.js",
+        "score": 0.188,
+        "why": "path terms match requirement: analyze",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/impact-analyzer/index.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/agents/impact-analyzer/tokenize.js",
+        "label": "src/agents/impact-analyzer/tokenize.js",
+        "score": 0.188,
+        "why": "path terms match requirement: analyze",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/impact-analyzer/tokenize.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/analyze.js",
+        "label": "src/cli/analyze.js",
+        "score": 0.188,
+        "why": "path terms match requirement: analyze",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/analyze.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/static-analysis/analyzers/architecture.js",
+        "label": "src/static-analysis/analyzers/architecture.js",
+        "score": 0.188,
+        "why": "path terms match requirement: analyze",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/architecture.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/static-analysis/analyzers/business.js",
+        "label": "src/static-analysis/analyzers/business.js",
+        "score": 0.188,
+        "why": "path terms match requirement: analyze",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/business.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/static-analysis/analyzers/dataflow.js",
+        "label": "src/static-analysis/analyzers/dataflow.js",
+        "score": 0.188,
+        "why": "path terms match requirement: analyze",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/dataflow.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/static-analysis/analyzers/feature.js",
+        "label": "src/static-analysis/analyzers/feature.js",
+        "score": 0.188,
+        "why": "path terms match requirement: analyze",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/feature.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/static-analysis/analyzers/graph.js",
+        "label": "src/static-analysis/analyzers/graph.js",
+        "score": 0.188,
+        "why": "path terms match requirement: analyze",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/graph.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      },
+      {
+        "id": "src/static-analysis/analyzers/repository.js",
+        "label": "src/static-analysis/analyzers/repository.js",
+        "score": 0.188,
+        "why": "path terms match requirement: analyze",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "requirement lexical match"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "requirement lexical match"
+          }
+        ]
+      }
+    ],
+    "affectedModules": [
+      {
+        "id": "src-agents-failure-analyzer",
+        "label": "src-agents-failure-analyzer",
+        "score": 0.9,
+        "why": "module routes/components match: analyze",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/failure-analyzer/classify.js",
+            "reason": "module boundary"
+          },
+          {
+            "type": "source",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "module boundary"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-impact-analyzer",
+        "label": "src-agents-impact-analyzer",
+        "score": 0.9,
+        "why": "module routes/components match: analyze",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/impact-analyzer/index.js",
+            "reason": "module boundary"
+          },
+          {
+            "type": "source",
+            "file": "src/agents/impact-analyzer/tokenize.js",
+            "reason": "module boundary"
+          }
+        ]
+      },
+      {
+        "id": "src-static-analysis-analyzers",
+        "label": "src-static-analysis-analyzers",
+        "score": 0.9,
+        "why": "module routes/components match: analyze",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/architecture.js",
+            "reason": "module boundary"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/business.js",
+            "reason": "module boundary"
+          }
+        ]
+      },
+      {
+        "id": "src-cli",
+        "label": "src-cli",
+        "score": 0.9,
+        "why": "module contains files whose paths match the requirement",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/analyze.js",
+            "reason": "module boundary"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/bootstrap.js",
+            "reason": "module boundary"
+          }
+        ]
+      },
+      {
+        "id": "route-package-json",
+        "label": "route-package-json",
+        "score": 0.9,
+        "why": "module contains files whose paths match the requirement",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "module boundary"
+          }
+        ]
+      },
+      {
+        "id": "src-agents",
+        "label": "src-agents",
+        "score": 0.55,
+        "why": "depends on src-agents-failure-analyzer (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/index.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-static-analysis",
+        "label": "src-static-analysis",
+        "score": 0.55,
+        "why": "depends on src-static-analysis-analyzers (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/entryDiscover.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/orchestrator.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "bin-aafe-js",
+        "label": "bin-aafe-js",
+        "score": 0.55,
+        "why": "depends on src-cli (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "bin/aafe.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform",
+        "label": "src-agent-platform",
+        "score": 0.303,
+        "why": "depends on src-agents (2 hops away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/index.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-code-intelligence",
+        "label": "src-agents-code-intelligence",
+        "score": 0.303,
+        "why": "depends on src-static-analysis (2 hops away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/agents/code-intelligence/views.js",
+            "reason": "module membership"
+          }
+        ]
+      }
+    ],
+    "affectedFeatures": [
+      {
+        "id": "feature:ai-agent-memory",
+        "label": "memory",
+        "score": 0.5,
+        "why": "feature lives in affected module src-cli",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/cli/bootstrap.js",
+            "reason": ".ai-agent/memory"
+          }
+        ]
+      },
+      {
+        "id": "feature:package-json",
+        "label": "package",
+        "score": 0.5,
+        "why": "feature lives in affected module src-static-analysis-analyzers",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "package.json"
+          }
+        ]
+      }
+    ],
+    "affectedDataFlows": [
+      {
+        "id": "flow:app:package.json:src/static-analysis/analyzers/repository.js",
+        "label": "route-package-json: 1 edge(s)",
+        "score": 0.6,
+        "why": "application flow crosses an affected module",
+        "evidence": []
+      }
+    ],
+    "affectedBusinessFlows": [
+      {
+        "id": "business:ai-agent-memory",
+        "label": "memory",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-cli",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/cli/bootstrap.js",
+            "reason": ".ai-agent/memory"
+          }
+        ]
+      },
+      {
+        "id": "business:package-json",
+        "label": "package",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-static-analysis-analyzers",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "package.json"
+          }
+        ]
+      }
+    ],
+    "affectedTests": [],
+    "risk": "high",
+    "confidence": 0.25
+  },
+  "knowledgeUpdates": [],
+  "evidence": [
+    {
+      "type": "source",
+      "file": "src/agents/failure-analyzer/classify.js",
+      "reason": "module boundary"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/impact-analyzer/index.js",
+      "reason": "module boundary"
+    },
+    {
+      "type": "source",
+      "file": "src/static-analysis/analyzers/architecture.js",
+      "reason": "module boundary"
+    },
+    {
+      "type": "source",
+      "file": "src/cli/analyze.js",
+      "reason": "module boundary"
+    },
+    {
+      "type": "source",
+      "file": "src/static-analysis/analyzers/repository.js",
+      "reason": "module boundary"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/index.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/static-analysis/entryDiscover.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "bin/aafe.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agent-platform/index.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/code-intelligence/index.js",
+      "reason": "module membership"
+    }
+  ],
+  "nextActions": [
+    {
+      "capability": "knowledge-validation",
+      "reason": "impact claims should be evidence-checked before use"
+    },
+    {
+      "capability": "context-packaging",
+      "reason": "the IDE agent needs a minimal context package"
+    }
+  ],
+  "metrics": {
+    "duration": 2
+  },
+  "contract": {
+    "mode": "warn",
+    "repairs": [],
+    "attempts": 1,
+    "input": "ok",
+    "output": "ok",
+    "evidence": "ok"
+  }
+}

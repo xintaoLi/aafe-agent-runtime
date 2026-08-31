@@ -1,0 +1,363 @@
+{
+  "status": "success",
+  "result": {
+    "checked": 21,
+    "summary": {
+      "ok": 19,
+      "downgrade": 2,
+      "reject": 0
+    },
+    "rejected": [],
+    "downgraded": [
+      "flow:app:${ctx.path}/${index}:src/agent-platform/schema/repair.js",
+      "flow:app:${ctx.path}/${key}:src/agent-platform/schema/repair.js"
+    ],
+    "findings": [
+      {
+        "verdict": "downgrade",
+        "rule": "flow-traceable",
+        "target": "flow:app:${ctx.path}/${index}:src/agent-platform/schema/repair.js",
+        "detail": "flow has no file-level node"
+      },
+      {
+        "verdict": "downgrade",
+        "rule": "flow-traceable",
+        "target": "flow:app:${ctx.path}/${key}:src/agent-platform/schema/repair.js",
+        "detail": "flow has no file-level node"
+      }
+    ],
+    "trustedImpact": {
+      "source": "requirement",
+      "affectedFiles": [
+        {
+          "id": "src/agent-platform/runtime/evidenceSchema.js",
+          "label": "src/agent-platform/runtime/evidenceSchema.js",
+          "score": 0.273,
+          "why": "path terms match requirement: schema",
+          "evidence": [
+            {
+              "type": "source",
+              "file": "src/agent-platform/runtime/evidenceSchema.js",
+              "reason": "requirement lexical match"
+            }
+          ]
+        },
+        {
+          "id": "src/agent-platform/schema/loader.js",
+          "label": "src/agent-platform/schema/loader.js",
+          "score": 0.273,
+          "why": "path terms match requirement: schema",
+          "evidence": [
+            {
+              "type": "source",
+              "file": "src/agent-platform/schema/loader.js",
+              "reason": "requirement lexical match"
+            }
+          ]
+        },
+        {
+          "id": "src/agent-platform/schema/repair.js",
+          "label": "src/agent-platform/schema/repair.js",
+          "score": 0.273,
+          "why": "path terms match requirement: schema",
+          "evidence": [
+            {
+              "type": "source",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "requirement lexical match"
+            },
+            {
+              "type": "source",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "requirement lexical match"
+            }
+          ]
+        },
+        {
+          "id": "src/agent-platform/schema/validate.js",
+          "label": "src/agent-platform/schema/validate.js",
+          "score": 0.273,
+          "why": "path terms match requirement: schema",
+          "evidence": [
+            {
+              "type": "source",
+              "file": "src/agent-platform/schema/validate.js",
+              "reason": "requirement lexical match"
+            }
+          ]
+        }
+      ],
+      "affectedModules": [
+        {
+          "id": "src-agent-platform-registry",
+          "label": "src-agent-platform-registry",
+          "score": 0.9,
+          "why": "module routes/components match: schema",
+          "evidence": [
+            {
+              "type": "source",
+              "file": "src/agent-platform/registry/AgentRegistry.js",
+              "reason": "module boundary"
+            },
+            {
+              "type": "source",
+              "file": "src/agent-platform/registry/definition.js",
+              "reason": "module boundary"
+            }
+          ]
+        },
+        {
+          "id": "src-agent-platform-runtime",
+          "label": "src-agent-platform-runtime",
+          "score": 0.9,
+          "why": "module routes/components match: schema",
+          "evidence": [
+            {
+              "type": "source",
+              "file": "src/agent-platform/runtime/AgentRuntime.js",
+              "reason": "module boundary"
+            },
+            {
+              "type": "source",
+              "file": "src/agent-platform/runtime/evidenceSchema.js",
+              "reason": "module boundary"
+            }
+          ]
+        },
+        {
+          "id": "src-agent-platform-schema",
+          "label": "src-agent-platform-schema",
+          "score": 0.9,
+          "why": "module routes/components match: schema",
+          "evidence": [
+            {
+              "type": "source",
+              "file": "src/agent-platform/schema/loader.js",
+              "reason": "module boundary"
+            },
+            {
+              "type": "source",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "module boundary"
+            }
+          ]
+        },
+        {
+          "id": "route-ctx-path",
+          "label": "route-ctx-path",
+          "score": 0.9,
+          "why": "module contains files whose paths match the requirement",
+          "evidence": [
+            {
+              "type": "source",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "module boundary"
+            }
+          ]
+        },
+        {
+          "id": "src-cli",
+          "label": "src-cli",
+          "score": 0.55,
+          "why": "depends on src-agent-platform-registry (1 hop away)",
+          "evidence": [
+            {
+              "type": "source",
+              "file": "src/cli/analyze.js",
+              "reason": "module membership"
+            },
+            {
+              "type": "source",
+              "file": "src/cli/bootstrap.js",
+              "reason": "module membership"
+            }
+          ]
+        },
+        {
+          "id": "src-agent-platform",
+          "label": "src-agent-platform",
+          "score": 0.55,
+          "why": "depends on src-agent-platform-registry (1 hop away)",
+          "evidence": [
+            {
+              "type": "source",
+              "file": "src/agent-platform/index.js",
+              "reason": "module membership"
+            }
+          ]
+        },
+        {
+          "id": "src-agent-platform-config",
+          "label": "src-agent-platform-config",
+          "score": 0.55,
+          "why": "depends on src-agent-platform-registry (1 hop away)",
+          "evidence": [
+            {
+              "type": "source",
+              "file": "src/agent-platform/config/agentsConfig.js",
+              "reason": "module membership"
+            }
+          ]
+        },
+        {
+          "id": "src-agent-platform-orchestrator",
+          "label": "src-agent-platform-orchestrator",
+          "score": 0.55,
+          "why": "depends on src-agent-platform-runtime (1 hop away)",
+          "evidence": [
+            {
+              "type": "source",
+              "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+              "reason": "module membership"
+            },
+            {
+              "type": "source",
+              "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+              "reason": "module membership"
+            }
+          ]
+        },
+        {
+          "id": "bin-aafe-js",
+          "label": "bin-aafe-js",
+          "score": 0.303,
+          "why": "depends on src-cli (2 hops away)",
+          "evidence": [
+            {
+              "type": "source",
+              "file": "bin/aafe.js",
+              "reason": "module membership"
+            }
+          ]
+        }
+      ],
+      "affectedFeatures": [
+        {
+          "id": "feature:ai-agent-memory",
+          "label": "memory",
+          "score": 0.5,
+          "why": "feature lives in affected module src-cli",
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/cli/bootstrap.js",
+              "reason": ".ai-agent/memory"
+            }
+          ]
+        },
+        {
+          "id": "feature:ctx-path-index",
+          "label": "${index}",
+          "score": 0.5,
+          "why": "feature lives in affected module src-agent-platform-schema",
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "${ctx.path}/${index}"
+            }
+          ]
+        },
+        {
+          "id": "feature:ctx-path-key",
+          "label": "${key}",
+          "score": 0.5,
+          "why": "feature lives in affected module src-agent-platform-schema",
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "${ctx.path}/${key}"
+            }
+          ]
+        }
+      ],
+      "affectedDataFlows": [
+        {
+          "id": "flow:app:${ctx.path}/${index}:src/agent-platform/schema/repair.js",
+          "label": "route-ctx-path: 1 edge(s)",
+          "score": 0.6,
+          "why": "application flow crosses an affected module",
+          "evidence": []
+        },
+        {
+          "id": "flow:app:${ctx.path}/${key}:src/agent-platform/schema/repair.js",
+          "label": "route-ctx-path: 1 edge(s)",
+          "score": 0.6,
+          "why": "application flow crosses an affected module",
+          "evidence": []
+        }
+      ],
+      "affectedBusinessFlows": [
+        {
+          "id": "business:ai-agent-memory",
+          "label": "memory",
+          "score": 0.5,
+          "why": "business rule anchored in affected module src-cli",
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/cli/bootstrap.js",
+              "reason": ".ai-agent/memory"
+            }
+          ]
+        },
+        {
+          "id": "business:ctx-path-index",
+          "label": "${index}",
+          "score": 0.5,
+          "why": "business rule anchored in affected module src-agent-platform-schema",
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "${ctx.path}/${index}"
+            }
+          ]
+        },
+        {
+          "id": "business:ctx-path-key",
+          "label": "${key}",
+          "score": 0.5,
+          "why": "business rule anchored in affected module src-agent-platform-schema",
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "${ctx.path}/${key}"
+            }
+          ]
+        }
+      ],
+      "affectedTests": [],
+      "risk": "high",
+      "confidence": 0.36
+    }
+  },
+  "knowledgeUpdates": [
+    {
+      "op": "downgrade",
+      "kind": "impact",
+      "id": "flow:app:${ctx.path}/${index}:src/agent-platform/schema/repair.js",
+      "reason": "flow-traceable: flow has no file-level node"
+    },
+    {
+      "op": "downgrade",
+      "kind": "impact",
+      "id": "flow:app:${ctx.path}/${key}:src/agent-platform/schema/repair.js",
+      "reason": "flow-traceable: flow has no file-level node"
+    }
+  ],
+  "evidence": [],
+  "nextActions": [],
+  "metrics": {
+    "duration": 0
+  },
+  "contract": {
+    "mode": "warn",
+    "repairs": [],
+    "attempts": 1,
+    "input": "ok",
+    "output": "ok"
+  }
+}

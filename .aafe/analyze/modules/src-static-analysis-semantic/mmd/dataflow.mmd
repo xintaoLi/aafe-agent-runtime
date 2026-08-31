@@ -1,0 +1,10 @@
+flowchart TD
+  n_file_src_static_analysis_analyzers_architecture_["src/static-analysis/analyzers/architecture.js"]
+  n_file_src_static_analysis_semantic_port_js["src/static-analysis/semantic/port.js"]
+  n_file_src_static_analysis_analyzers_architecture_ -->|IMPORTS| n_file_src_static_analysis_semantic_port_js
+  n_file_src_static_analysis_analyzers_business_js["src/static-analysis/analyzers/business.js"]
+  n_file_src_static_analysis_semantic_port_js["src/static-analysis/semantic/port.js"]
+  n_file_src_static_analysis_analyzers_business_js -->|IMPORTS| n_file_src_static_analysis_semantic_port_js
+  n_file_src_static_analysis_semantic_port_js["src/static-analysis/semantic/port.js"]
+  n_file_src_llm_LlmClient_js["src/llm/LlmClient.js"]
+  n_file_src_static_analysis_semantic_port_js -->|IMPORTS| n_file_src_llm_LlmClient_js

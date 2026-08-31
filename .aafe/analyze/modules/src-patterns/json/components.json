@@ -1,0 +1,199 @@
+{
+  "module": "src-patterns",
+  "components": [
+    {
+      "name": "ANTI_PATTERN_RULES",
+      "kind": "variable",
+      "file": "src/patterns/AntiPatternDetector.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/patterns/AntiPatternDetector.js",
+          "symbol": "ANTI_PATTERN_RULES"
+        }
+      ]
+    },
+    {
+      "name": "ANTI_PATTERN_CATALOG",
+      "kind": "variable",
+      "file": "src/patterns/AntiPatternDetector.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/patterns/AntiPatternDetector.js",
+          "symbol": "ANTI_PATTERN_CATALOG"
+        }
+      ]
+    },
+    {
+      "name": "PATTERN_DOMAINS",
+      "kind": "variable",
+      "file": "src/patterns/catalog.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/patterns/catalog.js",
+          "symbol": "PATTERN_DOMAINS"
+        }
+      ]
+    },
+    {
+      "name": "PATTERN_INDEX",
+      "kind": "variable",
+      "file": "src/patterns/catalog.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/patterns/catalog.js",
+          "symbol": "PATTERN_INDEX"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "ANTI_PATTERN_RULES",
+      "fromLabel": "ANTI_PATTERN_RULES",
+      "to": "PATTERN_DOMAINS",
+      "toLabel": "PATTERN_DOMAINS",
+      "type": "IMPORTS",
+      "fromFile": "src/patterns/AntiPatternDetector.js",
+      "toFile": "src/patterns/catalog.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/patterns/AntiPatternDetector.js",
+          "reason": "./catalog.js"
+        }
+      ]
+    },
+    {
+      "from": "PatternAdvisor",
+      "fromLabel": "PatternAdvisor",
+      "to": "PatternComposer",
+      "toLabel": "PatternComposer",
+      "type": "IMPORTS",
+      "fromFile": "src/patterns/PatternAdvisor.js",
+      "toFile": "src/patterns/PatternComposer.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/patterns/PatternAdvisor.js",
+          "reason": "./PatternComposer.js"
+        }
+      ]
+    },
+    {
+      "from": "PatternAdvisor",
+      "fromLabel": "PatternAdvisor",
+      "to": "PatternProblems",
+      "toLabel": "PatternProblems",
+      "type": "IMPORTS",
+      "fromFile": "src/patterns/PatternAdvisor.js",
+      "toFile": "src/patterns/PatternProblems.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/patterns/PatternAdvisor.js",
+          "reason": "./PatternProblems.js"
+        }
+      ]
+    },
+    {
+      "from": "PatternAdvisor",
+      "fromLabel": "PatternAdvisor",
+      "to": "ANTI_PATTERN_RULES",
+      "toLabel": "ANTI_PATTERN_RULES",
+      "type": "IMPORTS",
+      "fromFile": "src/patterns/PatternAdvisor.js",
+      "toFile": "src/patterns/AntiPatternDetector.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/patterns/PatternAdvisor.js",
+          "reason": "./AntiPatternDetector.js"
+        }
+      ]
+    },
+    {
+      "from": "PatternAdvisor",
+      "fromLabel": "PatternAdvisor",
+      "to": "PATTERN_DOMAINS",
+      "toLabel": "PATTERN_DOMAINS",
+      "type": "IMPORTS",
+      "fromFile": "src/patterns/PatternAdvisor.js",
+      "toFile": "src/patterns/catalog.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/patterns/PatternAdvisor.js",
+          "reason": "./catalog.js"
+        }
+      ]
+    },
+    {
+      "from": "PatternComposer",
+      "fromLabel": "PatternComposer",
+      "to": "PATTERN_DOMAINS",
+      "toLabel": "PATTERN_DOMAINS",
+      "type": "IMPORTS",
+      "fromFile": "src/patterns/PatternComposer.js",
+      "toFile": "src/patterns/catalog.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/patterns/PatternComposer.js",
+          "reason": "./catalog.js"
+        }
+      ]
+    },
+    {
+      "from": "PatternComposer",
+      "fromLabel": "PatternComposer",
+      "to": "PatternScore",
+      "toLabel": "PatternScore",
+      "type": "IMPORTS",
+      "fromFile": "src/patterns/PatternComposer.js",
+      "toFile": "src/patterns/PatternScore.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/patterns/PatternComposer.js",
+          "reason": "./PatternScore.js"
+        }
+      ]
+    },
+    {
+      "from": "PatternComposer",
+      "fromLabel": "PatternComposer",
+      "to": "PatternProblems",
+      "toLabel": "PatternProblems",
+      "type": "IMPORTS",
+      "fromFile": "src/patterns/PatternComposer.js",
+      "toFile": "src/patterns/PatternProblems.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/patterns/PatternComposer.js",
+          "reason": "./PatternProblems.js"
+        }
+      ]
+    },
+    {
+      "from": "PatternScore",
+      "fromLabel": "PatternScore",
+      "to": "PATTERN_DOMAINS",
+      "toLabel": "PATTERN_DOMAINS",
+      "type": "IMPORTS",
+      "fromFile": "src/patterns/PatternScore.js",
+      "toFile": "src/patterns/catalog.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/patterns/PatternScore.js",
+          "reason": "./catalog.js"
+        }
+      ]
+    }
+  ]
+}

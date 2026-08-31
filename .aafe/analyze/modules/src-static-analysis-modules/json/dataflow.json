@@ -1,0 +1,108 @@
+{
+  "module": "src-static-analysis-modules",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:433",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/architecture.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/architecture.js",
+          "file:src/static-analysis/modules/partition.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/architecture.js",
+            "to": "file:src/static-analysis/modules/partition.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/architecture.js",
+            "reason": "../modules/partition.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:469",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/modules/buildBundles.js",
+        "nodes": [
+          "file:src/static-analysis/modules/buildBundles.js",
+          "file:src/static-analysis/types/evidence.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/modules/buildBundles.js",
+            "to": "file:src/static-analysis/types/evidence.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/modules/buildBundles.js",
+            "reason": "../types/evidence.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:474",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/orchestrator.js",
+        "nodes": [
+          "file:src/static-analysis/orchestrator.js",
+          "file:src/static-analysis/modules/buildBundles.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/orchestrator.js",
+            "to": "file:src/static-analysis/modules/buildBundles.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/orchestrator.js",
+            "reason": "./modules/buildBundles.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:494",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/storage/persist.js",
+        "nodes": [
+          "file:src/static-analysis/storage/persist.js",
+          "file:src/static-analysis/modules/buildBundles.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/storage/persist.js",
+            "to": "file:src/static-analysis/modules/buildBundles.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/storage/persist.js",
+            "reason": "../modules/buildBundles.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 4,
+      "call": 0
+    }
+  }
+}

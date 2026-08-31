@@ -1,0 +1,48 @@
+{
+  "status": "partial",
+  "result": {
+    "runner": "playwright",
+    "command": "aafe test --run",
+    "status": "failed",
+    "verdict": "blocked",
+    "reportDir": "/Users/lixintao/github/aafe-agent-runtime/.aafe/e2e/reports/e2e-mt1hjpln-dtxp1t",
+    "htmlPath": "/Users/lixintao/github/aafe-agent-runtime/.aafe/e2e/reports/e2e-mt1hjpln-dtxp1t/index.html",
+    "jsonPath": "/Users/lixintao/github/aafe-agent-runtime/.aafe/e2e/reports/e2e-mt1hjpln-dtxp1t/report.json",
+    "report": {
+      "format": "playwright",
+      "status": "failed",
+      "totals": {
+        "total": 0,
+        "passed": 0,
+        "failed": 0,
+        "blocked": 0,
+        "skipped": 0
+      },
+      "failures": []
+    },
+    "detectedRunners": null,
+    "needInput": "baseUrl",
+    "askUser": true,
+    "prompt": "请提供本次被测页面的完整 URL（含协议与环境）。测试地址每次可能不同，不要写入固定 e2e.baseUrl，不要猜，不要用 http://localhost:8080。提供后加上 --base-url=<url> 再 --run。",
+    "persistBaseUrl": false
+  },
+  "knowledgeUpdates": [],
+  "evidence": [],
+  "nextActions": [
+    {
+      "capability": "failure-analysis",
+      "reason": "a failing run needs root-cause analysis"
+    }
+  ],
+  "metrics": {
+    "duration": 1
+  },
+  "reason": "请提供本次被测页面的完整 URL（含协议与环境）。测试地址每次可能不同，不要写入固定 e2e.baseUrl，不要猜，不要用 http://localhost:8080。提供后加上 --base-url=<url> 再 --run。",
+  "contract": {
+    "mode": "warn",
+    "repairs": [],
+    "attempts": 1,
+    "input": "/write: expected boolean, got null",
+    "output": "ok"
+  }
+}

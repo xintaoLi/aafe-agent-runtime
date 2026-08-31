@@ -1,0 +1,1309 @@
+{
+  "relations": [
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform-config",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform-registry",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform-skill-runtime",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform-state",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-ddd",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-ide-bridge-context",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-knowledge-report",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-knowledge-store",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-memory",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-patterns",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-static-analysis",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-static-analysis-types",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-templates",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-testing-e2e",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/cli/analyze.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/cli/bootstrap.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-runtime",
+      "to": "module:src-agent-platform-policy",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/evidenceSchema.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-runtime",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/evidenceSchema.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-runtime",
+      "to": "module:src-agent-platform-schema",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/runtime/evidenceSchema.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-skill-runtime",
+      "to": "module:src-ddd",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/GateValidator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-skill-runtime",
+      "to": "module:src-knowledge-store",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/GateValidator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-skill-runtime",
+      "to": "module:src-memory",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/GateValidator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-skill-runtime",
+      "to": "module:src-patterns",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/skill-runtime/GateValidator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/architecture.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/business.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-ast",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/architecture.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/business.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-modules",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/architecture.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/business.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-resolve",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/architecture.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/business.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-routes",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/architecture.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/business.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-semantic",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/architecture.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/business.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-types",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/architecture.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/analyzers/business.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-planner",
+      "to": "module:src-llm",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/planner/LlmPlanner.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/planner/RulePlanner.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-analyzers",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/entryDiscover.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/orchestrator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-ast",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/entryDiscover.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/orchestrator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-cache",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/entryDiscover.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/orchestrator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-modules",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/entryDiscover.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/orchestrator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-storage",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/entryDiscover.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/orchestrator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-types",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/entryDiscover.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/orchestrator.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-types",
+      "to": "module:src-static-analysis-emit",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/types/config.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/types/context.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-test-agent",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-test-agent",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-test-agent",
+      "to": "module:src-testing",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-test-agent",
+      "to": "module:src-testing-e2e",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/test-agent/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-orchestrator",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-orchestrator",
+      "to": "module:src-agent-platform-runtime",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-orchestrator",
+      "to": "module:src-agent-platform-state",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-code-intelligence",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/views.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-code-intelligence",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/views.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-code-intelligence",
+      "to": "module:src-static-analysis",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/views.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-code-intelligence",
+      "to": "module:src-static-analysis-types",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/code-intelligence/views.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-failure-analyzer",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/failure-analyzer/classify.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/failure-analyzer/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-failure-analyzer",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/failure-analyzer/classify.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/failure-analyzer/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-impact-analyzer",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/tokenize.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-impact-analyzer",
+      "to": "module:src-knowledge-graph",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/tokenize.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-impact-analyzer",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/tokenize.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-impact-analyzer",
+      "to": "module:src-static-analysis-git",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/tokenize.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-impact-analyzer",
+      "to": "module:src-static-analysis-types",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/index.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/agents/impact-analyzer/tokenize.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-modules",
+      "to": "module:src-static-analysis-types",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/modules/buildBundles.js",
+          "reason": "module membership"
+        },
+        {
+          "type": "source",
+          "file": "src/static-analysis/modules/partition.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:bin-aafe-js",
+      "to": "module:src-cli",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "bin/aafe.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-config",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-orchestrator",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-planner",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-registry",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-runtime",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-schema",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agents",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-knowledge-store",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-config",
+      "to": "module:src-agent-platform-registry",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/config/agentsConfig.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agent-platform-policy",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agent-platform/policy/ExecutionPolicy.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-code-intelligence",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-context-agent",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-failure-analyzer",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-impact-analyzer",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-knowledge-validator",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-test-agent",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-context-agent",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/context-agent/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-context-agent",
+      "to": "module:src-ide-bridge-context",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/context-agent/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-knowledge-validator",
+      "to": "module:src-agent-platform-protocol",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/knowledge-validator/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-knowledge-validator",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/knowledge-validator/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-agents-knowledge-validator",
+      "to": "module:src-knowledge-validator",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/agents/knowledge-validator/index.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-knowledge-graph",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/knowledge/graph/relations.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-knowledge-store",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/knowledge/store/KnowledgeStore.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-knowledge-validator",
+      "to": "module:src-knowledge-model",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/knowledge/validator/rules.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-routes",
+      "to": "module:src-static-analysis-ast",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/routes/resolveRoutes.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-semantic",
+      "to": "module:src-llm",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/semantic/port.js",
+          "reason": "module membership"
+        }
+      ]
+    },
+    {
+      "from": "module:src-static-analysis-storage",
+      "to": "module:src-static-analysis-emit",
+      "type": "MODULE_DEPENDS",
+      "evidence": [
+        {
+          "type": "source",
+          "file": "src/static-analysis/storage/persist.js",
+          "reason": "module membership"
+        }
+      ]
+    }
+  ]
+}

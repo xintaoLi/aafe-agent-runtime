@@ -1,0 +1,33 @@
+{
+  "status": "skipped",
+  "result": {
+    "scripts": [
+      "doctor",
+      "init",
+      "sync",
+      "memory:summary",
+      "memory:compact",
+      "memory:scan",
+      "knowledge:init",
+      "knowledge:update",
+      "knowledge:sync",
+      "knowledge:web",
+      "knowledge:web:serve",
+      "skills:list",
+      "skills:install:aafe-vue-complex",
+      "pattern:ask",
+      "pattern:select",
+      "ddd:ask",
+      "ddd:analyze",
+      "update",
+      "refresh",
+      "test",
+      "test:agent-platform"
+    ]
+  },
+  "knowledgeUpdates": [],
+  "evidence": [],
+  "nextActions": [],
+  "metrics": {},
+  "reason": "no-test-runner-detected"
+}

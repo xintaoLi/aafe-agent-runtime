@@ -1,0 +1,808 @@
+{
+  "evidence": [
+    {
+      "analyzer": "repository",
+      "type": "config",
+      "file": "bin/aafe.js",
+      "reason": "entrypoint via package.json#bin"
+    },
+    {
+      "analyzer": "repository",
+      "type": "config",
+      "file": "src/index.js",
+      "reason": "entrypoint via package.json#exports."
+    },
+    {
+      "analyzer": "graph",
+      "type": "route",
+      "file": "src/cli/bootstrap.js",
+      "reason": ".ai-agent/memory"
+    },
+    {
+      "analyzer": "graph",
+      "type": "route",
+      "file": "src/static-analysis/ast/extractors.js",
+      "reason": "..."
+    },
+    {
+      "analyzer": "graph",
+      "type": "route",
+      "file": "src/static-analysis/analyzers/repository.js",
+      "reason": "package.json"
+    },
+    {
+      "analyzer": "graph",
+      "type": "route",
+      "file": "src/agent-platform/schema/repair.js",
+      "reason": "${ctx.path}/${index}"
+    },
+    {
+      "analyzer": "graph",
+      "type": "route",
+      "file": "src/agent-platform/schema/repair.js",
+      "reason": "${ctx.path}/${key}"
+    },
+    {
+      "analyzer": "graph",
+      "type": "route",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": "${casesDir}/${id}.yaml"
+    },
+    {
+      "analyzer": "graph",
+      "type": "route",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": ".aafe/e2e/specs/${id}.spec.js"
+    },
+    {
+      "analyzer": "graph",
+      "type": "route",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/cli/analyze.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/cli/bootstrap.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/cli/codebuddyLayer.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/cli/completionImpactRules.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/cli/cursorLayer.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/cli/ddd.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/cli/dddRuntimeFiles.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/cli/detect.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/runtime/AgentRuntime.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/runtime/evidenceSchema.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/runtime/providers/AgentProvider.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/runtime/providers/CliAgentProvider.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/runtime/providers/HttpAgentProvider.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/runtime/providers/IdeAgentProvider.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/runtime/providers/LocalAgentProvider.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/runtime/providers/McpAgentProvider.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/testing/e2e/compile.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/testing/e2e/config.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/testing/e2e/inventory.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/testing/e2e/layers.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/testing/e2e/match.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/testing/e2e/pr.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/testing/e2e/report.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/testing/e2e/runner.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/skill-runtime/GateValidator.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/skill-runtime/HookBus.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/skill-runtime/PipelineExecutor.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/skill-runtime/SkillRegistry.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/skill-runtime/configLoader.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/skill-runtime/defaults.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/patterns/AntiPatternDetector.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/patterns/PatternAdvisor.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/patterns/PatternComposer.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/patterns/PatternGate.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/patterns/PatternProblems.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/patterns/PatternScore.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/patterns/catalog.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/analyzers/architecture.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/analyzers/business.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/analyzers/dataflow.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/analyzers/feature.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/analyzers/graph.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/analyzers/repository.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/planner/LlmPlanner.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/planner/RulePlanner.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/planner/decision.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/planner/index.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/entryDiscover.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/orchestrator.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/registry.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/renderSkills.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/types/config.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/types/context.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/types/evidence.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/types/result.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/schema/loader.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/schema/repair.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/schema/validate.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agents/test-agent/index.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agents/test-agent/plan.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/ddd/DDDAdvisor.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/ddd/DDDGate.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/ddd/DDDScope.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/memory/CodeScanner.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/memory/MemoryRuntime.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/memory/MemoryStore.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/protocol/request.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/protocol/response.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/registry/AgentRegistry.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/registry/definition.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/state/ExecutionState.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/state/RunStore.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agents/code-intelligence/index.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agents/code-intelligence/views.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agents/failure-analyzer/classify.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agents/failure-analyzer/index.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agents/impact-analyzer/index.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agents/impact-analyzer/tokenize.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/ide-bridge/context/render.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/ide-bridge/context/tokens.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/ast/extractors.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/ast/parseFile.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/emit/formats.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/emit/mermaid.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/modules/buildBundles.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/modules/partition.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/testing/reportParser.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/testing/runnerDetect.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "bin/aafe.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/ast/extractors.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/cli/bootstrap.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agent-platform/schema/repair.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/static-analysis/analyzers/repository.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "architecture",
+      "type": "source",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": "module membership"
+    },
+    {
+      "analyzer": "dataflow",
+      "type": "route",
+      "file": "src/cli/bootstrap.js",
+      "reason": ".ai-agent/memory"
+    },
+    {
+      "analyzer": "dataflow",
+      "type": "route",
+      "file": "src/static-analysis/ast/extractors.js",
+      "reason": "..."
+    },
+    {
+      "analyzer": "dataflow",
+      "type": "route",
+      "file": "src/static-analysis/analyzers/repository.js",
+      "reason": "package.json"
+    },
+    {
+      "analyzer": "dataflow",
+      "type": "route",
+      "file": "src/agent-platform/schema/repair.js",
+      "reason": "${ctx.path}/${index}"
+    },
+    {
+      "analyzer": "dataflow",
+      "type": "route",
+      "file": "src/agent-platform/schema/repair.js",
+      "reason": "${ctx.path}/${key}"
+    },
+    {
+      "analyzer": "dataflow",
+      "type": "route",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": "${casesDir}/${id}.yaml"
+    },
+    {
+      "analyzer": "dataflow",
+      "type": "route",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": ".aafe/e2e/specs/${id}.spec.js"
+    },
+    {
+      "analyzer": "dataflow",
+      "type": "route",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+    },
+    {
+      "analyzer": "feature",
+      "type": "route",
+      "file": "src/cli/bootstrap.js",
+      "reason": ".ai-agent/memory"
+    },
+    {
+      "analyzer": "feature",
+      "type": "route",
+      "file": "src/static-analysis/ast/extractors.js",
+      "reason": "..."
+    },
+    {
+      "analyzer": "feature",
+      "type": "route",
+      "file": "src/static-analysis/analyzers/repository.js",
+      "reason": "package.json"
+    },
+    {
+      "analyzer": "feature",
+      "type": "route",
+      "file": "src/agent-platform/schema/repair.js",
+      "reason": "${ctx.path}/${index}"
+    },
+    {
+      "analyzer": "feature",
+      "type": "route",
+      "file": "src/agent-platform/schema/repair.js",
+      "reason": "${ctx.path}/${key}"
+    },
+    {
+      "analyzer": "feature",
+      "type": "route",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": "${casesDir}/${id}.yaml"
+    },
+    {
+      "analyzer": "feature",
+      "type": "route",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": ".aafe/e2e/specs/${id}.spec.js"
+    },
+    {
+      "analyzer": "feature",
+      "type": "route",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+    },
+    {
+      "analyzer": "business",
+      "type": "route",
+      "file": "src/cli/bootstrap.js",
+      "reason": ".ai-agent/memory"
+    },
+    {
+      "analyzer": "business",
+      "type": "route",
+      "file": "src/static-analysis/ast/extractors.js",
+      "reason": "..."
+    },
+    {
+      "analyzer": "business",
+      "type": "route",
+      "file": "src/static-analysis/analyzers/repository.js",
+      "reason": "package.json"
+    },
+    {
+      "analyzer": "business",
+      "type": "route",
+      "file": "src/agent-platform/schema/repair.js",
+      "reason": "${ctx.path}/${index}"
+    },
+    {
+      "analyzer": "business",
+      "type": "route",
+      "file": "src/agent-platform/schema/repair.js",
+      "reason": "${ctx.path}/${key}"
+    },
+    {
+      "analyzer": "business",
+      "type": "route",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": "${casesDir}/${id}.yaml"
+    },
+    {
+      "analyzer": "business",
+      "type": "route",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": ".aafe/e2e/specs/${id}.spec.js"
+    },
+    {
+      "analyzer": "business",
+      "type": "route",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+    }
+  ]
+}

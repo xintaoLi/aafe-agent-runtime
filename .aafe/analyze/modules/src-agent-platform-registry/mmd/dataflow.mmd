@@ -1,0 +1,61 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_registry_AgentRegistry_j
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_registry_definition_js["src/agent-platform/registry/definition.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_registry_definition_js
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_file_src_agent_platform_registry_definition_js["src/agent-platform/registry/definition.js"]
+  n_file_src_agent_platform_config_agentsConfig_js -->|IMPORTS| n_file_src_agent_platform_registry_definition_js
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agent_platform_registry_AgentRegistry_j
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_file_src_agent_platform_registry_definition_js["src/agent-platform/registry/definition.js"]
+  n_file_src_agent_platform_registry_AgentRegistry_j -->|IMPORTS| n_file_src_agent_platform_registry_definition_js
+  n_file_src_cli_doctor_js["src/cli/doctor.js"]
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_file_src_cli_doctor_js -->|IMPORTS| n_file_src_agent_platform_registry_AgentRegistry_j
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_call_createAgentDefinition["createAgentDefinition"]
+  n_file_src_agent_platform_registry_AgentRegistry_j -->|CALLS| n_call_createAgentDefinition
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_call_agents_set["agents.set"]
+  n_file_src_agent_platform_registry_AgentRegistry_j -->|CALLS| n_call_agents_set
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_call_capabilityIndex_get["capabilityIndex.get"]
+  n_file_src_agent_platform_registry_AgentRegistry_j -->|CALLS| n_call_capabilityIndex_get
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_call_owners_includes["owners.includes"]
+  n_file_src_agent_platform_registry_AgentRegistry_j -->|CALLS| n_call_owners_includes
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_call_owners_push["owners.push"]
+  n_file_src_agent_platform_registry_AgentRegistry_j -->|CALLS| n_call_owners_push
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_call_capabilityIndex_set["capabilityIndex.set"]
+  n_file_src_agent_platform_registry_AgentRegistry_j -->|CALLS| n_call_capabilityIndex_set
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_call_agents_get["agents.get"]
+  n_file_src_agent_platform_registry_AgentRegistry_j -->|CALLS| n_call_agents_get
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_call_Array_from["Array.from"]
+  n_file_src_agent_platform_registry_AgentRegistry_j -->|CALLS| n_call_Array_from
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_call_agents_values["agents.values"]
+  n_file_src_agent_platform_registry_AgentRegistry_j -->|CALLS| n_call_agents_values
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_call_all_filter["all.filter"]
+  n_file_src_agent_platform_registry_AgentRegistry_j -->|CALLS| n_call_all_filter
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_call_ideAgentDefinition["ideAgentDefinition"]
+  n_file_src_agent_platform_registry_AgentRegistry_j -->|CALLS| n_call_ideAgentDefinition
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_call_capabilityIndex_get["capabilityIndex.get"]
+  n_file_src_agent_platform_registry_AgentRegistry_j -->|CALLS| n_call_capabilityIndex_get
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_call_agents_get["agents.get"]
+  n_file_src_agent_platform_registry_AgentRegistry_j -->|CALLS| n_call_agents_get
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_call_ideAgentDefinition["ideAgentDefinition"]
+  n_file_src_agent_platform_registry_AgentRegistry_j -->|CALLS| n_call_ideAgentDefinition

@@ -1,0 +1,1010 @@
+{
+  "status": "partial",
+  "result": {
+    "source": "analyze",
+    "stats": {
+      "files": 124,
+      "modules": 45,
+      "symbols": 12,
+      "dependencies": 69,
+      "flows": 857,
+      "features": 5,
+      "businessCandidates": 5
+    },
+    "modules": [
+      {
+        "id": "module:src-cli",
+        "name": "src-cli",
+        "files": 28
+      },
+      {
+        "id": "module:src-agent-platform-skill-runtime",
+        "name": "src-agent-platform-skill-runtime",
+        "files": 7
+      },
+      {
+        "id": "module:src-agent-platform-runtime",
+        "name": "src-agent-platform-runtime",
+        "files": 6
+      },
+      {
+        "id": "module:src-static-analysis-analyzers",
+        "name": "src-static-analysis-analyzers",
+        "files": 6
+      },
+      {
+        "id": "module:src-agent-platform-planner",
+        "name": "src-agent-platform-planner",
+        "files": 4
+      },
+      {
+        "id": "module:src-static-analysis",
+        "name": "src-static-analysis",
+        "files": 4
+      },
+      {
+        "id": "module:src-static-analysis-types",
+        "name": "src-static-analysis-types",
+        "files": 4
+      },
+      {
+        "id": "module:src-agents-test-agent",
+        "name": "src-agents-test-agent",
+        "files": 3
+      },
+      {
+        "id": "module:src-memory",
+        "name": "src-memory",
+        "files": 3
+      },
+      {
+        "id": "module:src-agent-platform-orchestrator",
+        "name": "src-agent-platform-orchestrator",
+        "files": 2
+      },
+      {
+        "id": "module:src-agent-platform-protocol",
+        "name": "src-agent-platform-protocol",
+        "files": 2
+      },
+      {
+        "id": "module:src-agent-platform-registry",
+        "name": "src-agent-platform-registry",
+        "files": 2
+      },
+      {
+        "id": "module:src-agent-platform-state",
+        "name": "src-agent-platform-state",
+        "files": 2
+      },
+      {
+        "id": "module:src-agents-code-intelligence",
+        "name": "src-agents-code-intelligence",
+        "files": 2
+      },
+      {
+        "id": "module:src-agents-failure-analyzer",
+        "name": "src-agents-failure-analyzer",
+        "files": 2
+      },
+      {
+        "id": "module:src-agents-impact-analyzer",
+        "name": "src-agents-impact-analyzer",
+        "files": 2
+      },
+      {
+        "id": "module:src-ide-bridge-context",
+        "name": "src-ide-bridge-context",
+        "files": 2
+      },
+      {
+        "id": "module:src-static-analysis-ast",
+        "name": "src-static-analysis-ast",
+        "files": 2
+      },
+      {
+        "id": "module:src-static-analysis-emit",
+        "name": "src-static-analysis-emit",
+        "files": 2
+      },
+      {
+        "id": "module:src-static-analysis-modules",
+        "name": "src-static-analysis-modules",
+        "files": 2
+      },
+      {
+        "id": "module:src-testing",
+        "name": "src-testing",
+        "files": 2
+      },
+      {
+        "id": "module:bin-aafe-js",
+        "name": "bin-aafe-js",
+        "files": 1
+      },
+      {
+        "id": "module:route",
+        "name": "route",
+        "files": 1
+      },
+      {
+        "id": "module:route-ai-agent",
+        "name": "route-ai-agent",
+        "files": 1
+      },
+      {
+        "id": "module:route-package-json",
+        "name": "route-package-json",
+        "files": 1
+      },
+      {
+        "id": "module:route-tests",
+        "name": "route-tests",
+        "files": 1
+      },
+      {
+        "id": "module:src",
+        "name": "src",
+        "files": 1
+      },
+      {
+        "id": "module:src-agent-platform",
+        "name": "src-agent-platform",
+        "files": 1
+      },
+      {
+        "id": "module:src-agent-platform-config",
+        "name": "src-agent-platform-config",
+        "files": 1
+      },
+      {
+        "id": "module:src-agent-platform-policy",
+        "name": "src-agent-platform-policy",
+        "files": 1
+      },
+      {
+        "id": "module:src-agents",
+        "name": "src-agents",
+        "files": 1
+      },
+      {
+        "id": "module:src-agents-context-agent",
+        "name": "src-agents-context-agent",
+        "files": 1
+      },
+      {
+        "id": "module:src-agents-knowledge-validator",
+        "name": "src-agents-knowledge-validator",
+        "files": 1
+      },
+      {
+        "id": "module:src-ddd",
+        "name": "src-ddd",
+        "files": 1
+      },
+      {
+        "id": "module:src-knowledge-graph",
+        "name": "src-knowledge-graph",
+        "files": 1
+      },
+      {
+        "id": "module:src-knowledge-model",
+        "name": "src-knowledge-model",
+        "files": 1
+      },
+      {
+        "id": "module:src-knowledge-store",
+        "name": "src-knowledge-store",
+        "files": 1
+      },
+      {
+        "id": "module:src-knowledge-validator",
+        "name": "src-knowledge-validator",
+        "files": 1
+      },
+      {
+        "id": "module:src-llm",
+        "name": "src-llm",
+        "files": 1
+      },
+      {
+        "id": "module:src-patterns",
+        "name": "src-patterns",
+        "files": 1
+      },
+      {
+        "id": "module:src-static-analysis-git",
+        "name": "src-static-analysis-git",
+        "files": 1
+      },
+      {
+        "id": "module:src-static-analysis-routes",
+        "name": "src-static-analysis-routes",
+        "files": 1
+      },
+      {
+        "id": "module:src-static-analysis-semantic",
+        "name": "src-static-analysis-semantic",
+        "files": 1
+      },
+      {
+        "id": "module:src-static-analysis-storage",
+        "name": "src-static-analysis-storage",
+        "files": 1
+      },
+      {
+        "id": "module:src-templates",
+        "name": "src-templates",
+        "files": 1
+      }
+    ],
+    "routes": 5,
+    "features": 5,
+    "risks": [
+      {
+        "id": "risk:high-coupling:src-cli",
+        "type": "high-coupling",
+        "module": "module:src-cli",
+        "message": "Module src-cli depends on 12 modules",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/analyze.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/bootstrap.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/codebuddyLayer.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "risk:isolated:src",
+        "type": "isolated-module",
+        "module": "module:src",
+        "message": "Module src appears isolated",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/index.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "risk:isolated:src-ddd",
+        "type": "isolated-module",
+        "module": "module:src-ddd",
+        "message": "Module src-ddd appears isolated",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/ddd/DDDAdvisor.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "risk:isolated:src-knowledge-model",
+        "type": "isolated-module",
+        "module": "module:src-knowledge-model",
+        "message": "Module src-knowledge-model appears isolated",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/knowledge/model/index.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "risk:isolated:src-llm",
+        "type": "isolated-module",
+        "module": "module:src-llm",
+        "message": "Module src-llm appears isolated",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/llm/LlmClient.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "risk:isolated:src-patterns",
+        "type": "isolated-module",
+        "module": "module:src-patterns",
+        "message": "Module src-patterns appears isolated",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/patterns/PatternAdvisor.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "risk:isolated:src-static-analysis-git",
+        "type": "isolated-module",
+        "module": "module:src-static-analysis-git",
+        "message": "Module src-static-analysis-git appears isolated",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/git/DiffFacts.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "risk:isolated:src-templates",
+        "type": "isolated-module",
+        "module": "module:src-templates",
+        "message": "Module src-templates appears isolated",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/templates/TemplateSystem.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "risk:cycle:module:src-static-analysis>module:src-static-analysis-analyzers",
+        "type": "circular-dependency",
+        "message": "Circular dependency: module:src-static-analysis -> module:src-static-analysis-analyzers -> module:src-static-analysis",
+        "evidence": []
+      }
+    ],
+    "output": ".aafe",
+    "persist": {
+      "mode": "merge",
+      "skipped": false,
+      "output": ".aafe",
+      "formats": [
+        "json",
+        "jsonl",
+        "md",
+        "mmd"
+      ],
+      "writes": {
+        ".aafe/manifest.json": "unchanged",
+        ".aafe/index.json": "unchanged",
+        ".aafe/knowledge/repository/json/files.json": "unchanged",
+        ".aafe/knowledge/repository/json/packages.json": "unchanged",
+        ".aafe/knowledge/repository/json/symbols.json": "unchanged",
+        ".aafe/knowledge/architecture/json/analysis.json": "unchanged",
+        ".aafe/knowledge/dataflow/json/analysis.json": "unchanged",
+        ".aafe/knowledge/features/json/candidates.json": "unchanged",
+        ".aafe/knowledge/business/json/candidates.json": "unchanged",
+        ".aafe/knowledge/evidence/json/index.json": "unchanged",
+        ".aafe/knowledge/relations/json/modules.json": "unchanged",
+        ".aafe/knowledge/relations/json/components.json": "unchanged",
+        ".aafe/knowledge/relations/json/dataflow.json": "unchanged",
+        ".aafe/modules/index.json": "unchanged",
+        ".aafe/modules/src-cli/index.json": "unchanged",
+        ".aafe/modules/src-cli/json/routes.json": "unchanged",
+        ".aafe/modules/src-cli/json/architecture.json": "unchanged",
+        ".aafe/modules/src-cli/json/components.json": "unchanged",
+        ".aafe/modules/src-cli/json/features.json": "unchanged",
+        ".aafe/modules/src-cli/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agent-platform-skill-runtime/index.json": "unchanged",
+        ".aafe/modules/src-agent-platform-skill-runtime/json/routes.json": "unchanged",
+        ".aafe/modules/src-agent-platform-skill-runtime/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agent-platform-skill-runtime/json/components.json": "unchanged",
+        ".aafe/modules/src-agent-platform-skill-runtime/json/features.json": "unchanged",
+        ".aafe/modules/src-agent-platform-skill-runtime/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agent-platform-runtime/index.json": "unchanged",
+        ".aafe/modules/src-agent-platform-runtime/json/routes.json": "unchanged",
+        ".aafe/modules/src-agent-platform-runtime/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agent-platform-runtime/json/components.json": "unchanged",
+        ".aafe/modules/src-agent-platform-runtime/json/features.json": "unchanged",
+        ".aafe/modules/src-agent-platform-runtime/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-static-analysis-analyzers/index.json": "unchanged",
+        ".aafe/modules/src-static-analysis-analyzers/json/routes.json": "unchanged",
+        ".aafe/modules/src-static-analysis-analyzers/json/architecture.json": "unchanged",
+        ".aafe/modules/src-static-analysis-analyzers/json/components.json": "unchanged",
+        ".aafe/modules/src-static-analysis-analyzers/json/features.json": "unchanged",
+        ".aafe/modules/src-static-analysis-analyzers/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agent-platform-planner/index.json": "unchanged",
+        ".aafe/modules/src-agent-platform-planner/json/routes.json": "unchanged",
+        ".aafe/modules/src-agent-platform-planner/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agent-platform-planner/json/components.json": "unchanged",
+        ".aafe/modules/src-agent-platform-planner/json/features.json": "unchanged",
+        ".aafe/modules/src-agent-platform-planner/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-static-analysis/index.json": "unchanged",
+        ".aafe/modules/src-static-analysis/json/routes.json": "unchanged",
+        ".aafe/modules/src-static-analysis/json/architecture.json": "unchanged",
+        ".aafe/modules/src-static-analysis/json/components.json": "unchanged",
+        ".aafe/modules/src-static-analysis/json/features.json": "unchanged",
+        ".aafe/modules/src-static-analysis/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-static-analysis-types/index.json": "unchanged",
+        ".aafe/modules/src-static-analysis-types/json/routes.json": "unchanged",
+        ".aafe/modules/src-static-analysis-types/json/architecture.json": "unchanged",
+        ".aafe/modules/src-static-analysis-types/json/components.json": "unchanged",
+        ".aafe/modules/src-static-analysis-types/json/features.json": "unchanged",
+        ".aafe/modules/src-static-analysis-types/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agents-test-agent/index.json": "unchanged",
+        ".aafe/modules/src-agents-test-agent/json/routes.json": "unchanged",
+        ".aafe/modules/src-agents-test-agent/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agents-test-agent/json/components.json": "unchanged",
+        ".aafe/modules/src-agents-test-agent/json/features.json": "unchanged",
+        ".aafe/modules/src-agents-test-agent/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-memory/index.json": "unchanged",
+        ".aafe/modules/src-memory/json/routes.json": "unchanged",
+        ".aafe/modules/src-memory/json/architecture.json": "unchanged",
+        ".aafe/modules/src-memory/json/components.json": "unchanged",
+        ".aafe/modules/src-memory/json/features.json": "unchanged",
+        ".aafe/modules/src-memory/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agent-platform-orchestrator/index.json": "unchanged",
+        ".aafe/modules/src-agent-platform-orchestrator/json/routes.json": "unchanged",
+        ".aafe/modules/src-agent-platform-orchestrator/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agent-platform-orchestrator/json/components.json": "unchanged",
+        ".aafe/modules/src-agent-platform-orchestrator/json/features.json": "unchanged",
+        ".aafe/modules/src-agent-platform-orchestrator/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agent-platform-protocol/index.json": "unchanged",
+        ".aafe/modules/src-agent-platform-protocol/json/routes.json": "unchanged",
+        ".aafe/modules/src-agent-platform-protocol/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agent-platform-protocol/json/components.json": "unchanged",
+        ".aafe/modules/src-agent-platform-protocol/json/features.json": "unchanged",
+        ".aafe/modules/src-agent-platform-protocol/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agent-platform-registry/index.json": "unchanged",
+        ".aafe/modules/src-agent-platform-registry/json/routes.json": "unchanged",
+        ".aafe/modules/src-agent-platform-registry/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agent-platform-registry/json/components.json": "unchanged",
+        ".aafe/modules/src-agent-platform-registry/json/features.json": "unchanged",
+        ".aafe/modules/src-agent-platform-registry/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agent-platform-state/index.json": "unchanged",
+        ".aafe/modules/src-agent-platform-state/json/routes.json": "unchanged",
+        ".aafe/modules/src-agent-platform-state/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agent-platform-state/json/components.json": "unchanged",
+        ".aafe/modules/src-agent-platform-state/json/features.json": "unchanged",
+        ".aafe/modules/src-agent-platform-state/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agents-code-intelligence/index.json": "unchanged",
+        ".aafe/modules/src-agents-code-intelligence/json/routes.json": "unchanged",
+        ".aafe/modules/src-agents-code-intelligence/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agents-code-intelligence/json/components.json": "unchanged",
+        ".aafe/modules/src-agents-code-intelligence/json/features.json": "unchanged",
+        ".aafe/modules/src-agents-code-intelligence/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agents-failure-analyzer/index.json": "unchanged",
+        ".aafe/modules/src-agents-failure-analyzer/json/routes.json": "unchanged",
+        ".aafe/modules/src-agents-failure-analyzer/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agents-failure-analyzer/json/components.json": "unchanged",
+        ".aafe/modules/src-agents-failure-analyzer/json/features.json": "unchanged",
+        ".aafe/modules/src-agents-failure-analyzer/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agents-impact-analyzer/index.json": "unchanged",
+        ".aafe/modules/src-agents-impact-analyzer/json/routes.json": "unchanged",
+        ".aafe/modules/src-agents-impact-analyzer/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agents-impact-analyzer/json/components.json": "unchanged",
+        ".aafe/modules/src-agents-impact-analyzer/json/features.json": "unchanged",
+        ".aafe/modules/src-agents-impact-analyzer/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-ide-bridge-context/index.json": "unchanged",
+        ".aafe/modules/src-ide-bridge-context/json/routes.json": "unchanged",
+        ".aafe/modules/src-ide-bridge-context/json/architecture.json": "unchanged",
+        ".aafe/modules/src-ide-bridge-context/json/components.json": "unchanged",
+        ".aafe/modules/src-ide-bridge-context/json/features.json": "unchanged",
+        ".aafe/modules/src-ide-bridge-context/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-static-analysis-ast/index.json": "unchanged",
+        ".aafe/modules/src-static-analysis-ast/json/routes.json": "unchanged",
+        ".aafe/modules/src-static-analysis-ast/json/architecture.json": "unchanged",
+        ".aafe/modules/src-static-analysis-ast/json/components.json": "unchanged",
+        ".aafe/modules/src-static-analysis-ast/json/features.json": "unchanged",
+        ".aafe/modules/src-static-analysis-ast/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-static-analysis-emit/index.json": "unchanged",
+        ".aafe/modules/src-static-analysis-emit/json/routes.json": "unchanged",
+        ".aafe/modules/src-static-analysis-emit/json/architecture.json": "unchanged",
+        ".aafe/modules/src-static-analysis-emit/json/components.json": "unchanged",
+        ".aafe/modules/src-static-analysis-emit/json/features.json": "unchanged",
+        ".aafe/modules/src-static-analysis-emit/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-static-analysis-modules/index.json": "unchanged",
+        ".aafe/modules/src-static-analysis-modules/json/routes.json": "unchanged",
+        ".aafe/modules/src-static-analysis-modules/json/architecture.json": "unchanged",
+        ".aafe/modules/src-static-analysis-modules/json/components.json": "unchanged",
+        ".aafe/modules/src-static-analysis-modules/json/features.json": "unchanged",
+        ".aafe/modules/src-static-analysis-modules/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-testing/index.json": "unchanged",
+        ".aafe/modules/src-testing/json/routes.json": "unchanged",
+        ".aafe/modules/src-testing/json/architecture.json": "unchanged",
+        ".aafe/modules/src-testing/json/components.json": "unchanged",
+        ".aafe/modules/src-testing/json/features.json": "unchanged",
+        ".aafe/modules/src-testing/json/dataflow.json": "unchanged",
+        ".aafe/modules/bin-aafe-js/index.json": "unchanged",
+        ".aafe/modules/bin-aafe-js/json/routes.json": "unchanged",
+        ".aafe/modules/bin-aafe-js/json/architecture.json": "unchanged",
+        ".aafe/modules/bin-aafe-js/json/components.json": "unchanged",
+        ".aafe/modules/bin-aafe-js/json/features.json": "unchanged",
+        ".aafe/modules/bin-aafe-js/json/dataflow.json": "unchanged",
+        ".aafe/modules/route/index.json": "unchanged",
+        ".aafe/modules/route/json/routes.json": "unchanged",
+        ".aafe/modules/route/json/architecture.json": "unchanged",
+        ".aafe/modules/route/json/components.json": "unchanged",
+        ".aafe/modules/route/json/features.json": "unchanged",
+        ".aafe/modules/route/json/dataflow.json": "unchanged",
+        ".aafe/modules/route-ai-agent/index.json": "unchanged",
+        ".aafe/modules/route-ai-agent/json/routes.json": "unchanged",
+        ".aafe/modules/route-ai-agent/json/architecture.json": "unchanged",
+        ".aafe/modules/route-ai-agent/json/components.json": "unchanged",
+        ".aafe/modules/route-ai-agent/json/features.json": "unchanged",
+        ".aafe/modules/route-ai-agent/json/dataflow.json": "unchanged",
+        ".aafe/modules/route-package-json/index.json": "unchanged",
+        ".aafe/modules/route-package-json/json/routes.json": "unchanged",
+        ".aafe/modules/route-package-json/json/architecture.json": "unchanged",
+        ".aafe/modules/route-package-json/json/components.json": "unchanged",
+        ".aafe/modules/route-package-json/json/features.json": "unchanged",
+        ".aafe/modules/route-package-json/json/dataflow.json": "unchanged",
+        ".aafe/modules/route-tests/index.json": "unchanged",
+        ".aafe/modules/route-tests/json/routes.json": "unchanged",
+        ".aafe/modules/route-tests/json/architecture.json": "unchanged",
+        ".aafe/modules/route-tests/json/components.json": "unchanged",
+        ".aafe/modules/route-tests/json/features.json": "unchanged",
+        ".aafe/modules/route-tests/json/dataflow.json": "unchanged",
+        ".aafe/modules/src/index.json": "unchanged",
+        ".aafe/modules/src/json/routes.json": "unchanged",
+        ".aafe/modules/src/json/architecture.json": "unchanged",
+        ".aafe/modules/src/json/components.json": "unchanged",
+        ".aafe/modules/src/json/features.json": "unchanged",
+        ".aafe/modules/src/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agent-platform/index.json": "unchanged",
+        ".aafe/modules/src-agent-platform/json/routes.json": "unchanged",
+        ".aafe/modules/src-agent-platform/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agent-platform/json/components.json": "unchanged",
+        ".aafe/modules/src-agent-platform/json/features.json": "unchanged",
+        ".aafe/modules/src-agent-platform/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agent-platform-config/index.json": "unchanged",
+        ".aafe/modules/src-agent-platform-config/json/routes.json": "unchanged",
+        ".aafe/modules/src-agent-platform-config/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agent-platform-config/json/components.json": "unchanged",
+        ".aafe/modules/src-agent-platform-config/json/features.json": "unchanged",
+        ".aafe/modules/src-agent-platform-config/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agent-platform-policy/index.json": "unchanged",
+        ".aafe/modules/src-agent-platform-policy/json/routes.json": "unchanged",
+        ".aafe/modules/src-agent-platform-policy/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agent-platform-policy/json/components.json": "unchanged",
+        ".aafe/modules/src-agent-platform-policy/json/features.json": "unchanged",
+        ".aafe/modules/src-agent-platform-policy/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agents/index.json": "unchanged",
+        ".aafe/modules/src-agents/json/routes.json": "unchanged",
+        ".aafe/modules/src-agents/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agents/json/components.json": "unchanged",
+        ".aafe/modules/src-agents/json/features.json": "unchanged",
+        ".aafe/modules/src-agents/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agents-context-agent/index.json": "unchanged",
+        ".aafe/modules/src-agents-context-agent/json/routes.json": "unchanged",
+        ".aafe/modules/src-agents-context-agent/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agents-context-agent/json/components.json": "unchanged",
+        ".aafe/modules/src-agents-context-agent/json/features.json": "unchanged",
+        ".aafe/modules/src-agents-context-agent/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-agents-knowledge-validator/index.json": "unchanged",
+        ".aafe/modules/src-agents-knowledge-validator/json/routes.json": "unchanged",
+        ".aafe/modules/src-agents-knowledge-validator/json/architecture.json": "unchanged",
+        ".aafe/modules/src-agents-knowledge-validator/json/components.json": "unchanged",
+        ".aafe/modules/src-agents-knowledge-validator/json/features.json": "unchanged",
+        ".aafe/modules/src-agents-knowledge-validator/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-ddd/index.json": "unchanged",
+        ".aafe/modules/src-ddd/json/routes.json": "unchanged",
+        ".aafe/modules/src-ddd/json/architecture.json": "unchanged",
+        ".aafe/modules/src-ddd/json/components.json": "unchanged",
+        ".aafe/modules/src-ddd/json/features.json": "unchanged",
+        ".aafe/modules/src-ddd/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-knowledge-graph/index.json": "unchanged",
+        ".aafe/modules/src-knowledge-graph/json/routes.json": "unchanged",
+        ".aafe/modules/src-knowledge-graph/json/architecture.json": "unchanged",
+        ".aafe/modules/src-knowledge-graph/json/components.json": "unchanged",
+        ".aafe/modules/src-knowledge-graph/json/features.json": "unchanged",
+        ".aafe/modules/src-knowledge-graph/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-knowledge-model/index.json": "unchanged",
+        ".aafe/modules/src-knowledge-model/json/routes.json": "unchanged",
+        ".aafe/modules/src-knowledge-model/json/architecture.json": "unchanged",
+        ".aafe/modules/src-knowledge-model/json/components.json": "unchanged",
+        ".aafe/modules/src-knowledge-model/json/features.json": "unchanged",
+        ".aafe/modules/src-knowledge-model/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-knowledge-store/index.json": "unchanged",
+        ".aafe/modules/src-knowledge-store/json/routes.json": "unchanged",
+        ".aafe/modules/src-knowledge-store/json/architecture.json": "unchanged",
+        ".aafe/modules/src-knowledge-store/json/components.json": "unchanged",
+        ".aafe/modules/src-knowledge-store/json/features.json": "unchanged",
+        ".aafe/modules/src-knowledge-store/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-knowledge-validator/index.json": "unchanged",
+        ".aafe/modules/src-knowledge-validator/json/routes.json": "unchanged",
+        ".aafe/modules/src-knowledge-validator/json/architecture.json": "unchanged",
+        ".aafe/modules/src-knowledge-validator/json/components.json": "unchanged",
+        ".aafe/modules/src-knowledge-validator/json/features.json": "unchanged",
+        ".aafe/modules/src-knowledge-validator/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-llm/index.json": "unchanged",
+        ".aafe/modules/src-llm/json/routes.json": "unchanged",
+        ".aafe/modules/src-llm/json/architecture.json": "unchanged",
+        ".aafe/modules/src-llm/json/components.json": "unchanged",
+        ".aafe/modules/src-llm/json/features.json": "unchanged",
+        ".aafe/modules/src-llm/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-patterns/index.json": "unchanged",
+        ".aafe/modules/src-patterns/json/routes.json": "unchanged",
+        ".aafe/modules/src-patterns/json/architecture.json": "unchanged",
+        ".aafe/modules/src-patterns/json/components.json": "unchanged",
+        ".aafe/modules/src-patterns/json/features.json": "unchanged",
+        ".aafe/modules/src-patterns/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-static-analysis-git/index.json": "unchanged",
+        ".aafe/modules/src-static-analysis-git/json/routes.json": "unchanged",
+        ".aafe/modules/src-static-analysis-git/json/architecture.json": "unchanged",
+        ".aafe/modules/src-static-analysis-git/json/components.json": "unchanged",
+        ".aafe/modules/src-static-analysis-git/json/features.json": "unchanged",
+        ".aafe/modules/src-static-analysis-git/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-static-analysis-routes/index.json": "unchanged",
+        ".aafe/modules/src-static-analysis-routes/json/routes.json": "unchanged",
+        ".aafe/modules/src-static-analysis-routes/json/architecture.json": "unchanged",
+        ".aafe/modules/src-static-analysis-routes/json/components.json": "unchanged",
+        ".aafe/modules/src-static-analysis-routes/json/features.json": "unchanged",
+        ".aafe/modules/src-static-analysis-routes/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-static-analysis-semantic/index.json": "unchanged",
+        ".aafe/modules/src-static-analysis-semantic/json/routes.json": "unchanged",
+        ".aafe/modules/src-static-analysis-semantic/json/architecture.json": "unchanged",
+        ".aafe/modules/src-static-analysis-semantic/json/components.json": "unchanged",
+        ".aafe/modules/src-static-analysis-semantic/json/features.json": "unchanged",
+        ".aafe/modules/src-static-analysis-semantic/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-static-analysis-storage/index.json": "unchanged",
+        ".aafe/modules/src-static-analysis-storage/json/routes.json": "unchanged",
+        ".aafe/modules/src-static-analysis-storage/json/architecture.json": "unchanged",
+        ".aafe/modules/src-static-analysis-storage/json/components.json": "unchanged",
+        ".aafe/modules/src-static-analysis-storage/json/features.json": "unchanged",
+        ".aafe/modules/src-static-analysis-storage/json/dataflow.json": "unchanged",
+        ".aafe/modules/src-templates/index.json": "unchanged",
+        ".aafe/modules/src-templates/json/routes.json": "unchanged",
+        ".aafe/modules/src-templates/json/architecture.json": "unchanged",
+        ".aafe/modules/src-templates/json/components.json": "unchanged",
+        ".aafe/modules/src-templates/json/features.json": "unchanged",
+        ".aafe/modules/src-templates/json/dataflow.json": "unchanged",
+        ".aafe/knowledge/graph/jsonl/nodes.jsonl": "unchanged",
+        ".aafe/knowledge/graph/jsonl/edges.jsonl": "unchanged",
+        ".aafe/knowledge/architecture/mmd/overview.mmd": "unchanged",
+        ".aafe/knowledge/relations/mmd/modules.mmd": "unchanged",
+        ".aafe/knowledge/relations/mmd/components.mmd": "unchanged",
+        ".aafe/knowledge/relations/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-cli/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-cli/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-cli/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-cli/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-skill-runtime/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-skill-runtime/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-skill-runtime/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-skill-runtime/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-runtime/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-runtime/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-runtime/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-runtime/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-analyzers/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-analyzers/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-analyzers/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-analyzers/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-planner/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-planner/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-planner/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-planner/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-types/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-types/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-types/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-types/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agents-test-agent/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agents-test-agent/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agents-test-agent/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agents-test-agent/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-memory/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-memory/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-memory/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-memory/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-orchestrator/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-orchestrator/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-orchestrator/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-orchestrator/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-protocol/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-protocol/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-protocol/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-protocol/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-registry/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-registry/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-registry/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-registry/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-state/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-state/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-state/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-state/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agents-code-intelligence/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agents-code-intelligence/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agents-code-intelligence/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agents-code-intelligence/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agents-failure-analyzer/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agents-failure-analyzer/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agents-failure-analyzer/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agents-failure-analyzer/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agents-impact-analyzer/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agents-impact-analyzer/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agents-impact-analyzer/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agents-impact-analyzer/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-ide-bridge-context/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-ide-bridge-context/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-ide-bridge-context/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-ide-bridge-context/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-ast/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-ast/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-ast/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-ast/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-emit/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-emit/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-emit/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-emit/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-modules/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-modules/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-modules/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-modules/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-testing/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-testing/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-testing/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-testing/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/bin-aafe-js/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/bin-aafe-js/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/bin-aafe-js/mmd/components.mmd": "unchanged",
+        ".aafe/modules/bin-aafe-js/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/route/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/route/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/route/mmd/components.mmd": "unchanged",
+        ".aafe/modules/route/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/route-ai-agent/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/route-ai-agent/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/route-ai-agent/mmd/components.mmd": "unchanged",
+        ".aafe/modules/route-ai-agent/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/route-package-json/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/route-package-json/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/route-package-json/mmd/components.mmd": "unchanged",
+        ".aafe/modules/route-package-json/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/route-tests/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/route-tests/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/route-tests/mmd/components.mmd": "unchanged",
+        ".aafe/modules/route-tests/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-config/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-config/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-config/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-config/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-policy/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-policy/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-policy/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agent-platform-policy/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agents/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agents/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agents/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agents/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agents-context-agent/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agents-context-agent/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agents-context-agent/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agents-context-agent/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-agents-knowledge-validator/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-agents-knowledge-validator/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-agents-knowledge-validator/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-agents-knowledge-validator/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-ddd/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-ddd/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-ddd/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-ddd/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-graph/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-graph/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-graph/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-graph/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-model/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-model/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-model/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-model/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-store/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-store/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-store/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-store/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-validator/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-validator/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-validator/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-knowledge-validator/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-llm/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-llm/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-llm/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-llm/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-patterns/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-patterns/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-patterns/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-patterns/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-git/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-git/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-git/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-git/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-routes/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-routes/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-routes/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-routes/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-semantic/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-semantic/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-semantic/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-semantic/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-storage/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-storage/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-storage/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-static-analysis-storage/mmd/dataflow.mmd": "unchanged",
+        ".aafe/modules/src-templates/mmd/routes.mmd": "unchanged",
+        ".aafe/modules/src-templates/mmd/architecture.mmd": "unchanged",
+        ".aafe/modules/src-templates/mmd/components.mmd": "unchanged",
+        ".aafe/modules/src-templates/mmd/dataflow.mmd": "unchanged",
+        ".aafe/knowledge/architecture/md/index.md": "unchanged",
+        ".aafe/knowledge/dataflow/md/index.md": "unchanged",
+        ".aafe/knowledge/features/md/index.md": "unchanged",
+        ".aafe/knowledge/business/md/index.md": "unchanged",
+        ".aafe/knowledge/llm/md/README.md": "unchanged",
+        ".aafe/modules/index.md": "unchanged",
+        ".aafe/README.md": "unchanged",
+        ".aafe/modules/src-cli/README.md": "unchanged",
+        ".aafe/modules/src-agent-platform-skill-runtime/README.md": "unchanged",
+        ".aafe/modules/src-agent-platform-runtime/README.md": "unchanged",
+        ".aafe/modules/src-static-analysis-analyzers/README.md": "unchanged",
+        ".aafe/modules/src-agent-platform-planner/README.md": "unchanged",
+        ".aafe/modules/src-static-analysis/README.md": "unchanged",
+        ".aafe/modules/src-static-analysis-types/README.md": "unchanged",
+        ".aafe/modules/src-agents-test-agent/README.md": "unchanged",
+        ".aafe/modules/src-memory/README.md": "unchanged",
+        ".aafe/modules/src-agent-platform-orchestrator/README.md": "unchanged",
+        ".aafe/modules/src-agent-platform-protocol/README.md": "unchanged",
+        ".aafe/modules/src-agent-platform-registry/README.md": "unchanged",
+        ".aafe/modules/src-agent-platform-state/README.md": "unchanged",
+        ".aafe/modules/src-agents-code-intelligence/README.md": "unchanged",
+        ".aafe/modules/src-agents-failure-analyzer/README.md": "unchanged",
+        ".aafe/modules/src-agents-impact-analyzer/README.md": "unchanged",
+        ".aafe/modules/src-ide-bridge-context/README.md": "unchanged",
+        ".aafe/modules/src-static-analysis-ast/README.md": "unchanged",
+        ".aafe/modules/src-static-analysis-emit/README.md": "unchanged",
+        ".aafe/modules/src-static-analysis-modules/README.md": "unchanged",
+        ".aafe/modules/src-testing/README.md": "unchanged",
+        ".aafe/modules/bin-aafe-js/README.md": "unchanged",
+        ".aafe/modules/route/README.md": "unchanged",
+        ".aafe/modules/route-ai-agent/README.md": "unchanged",
+        ".aafe/modules/route-package-json/README.md": "unchanged",
+        ".aafe/modules/route-tests/README.md": "unchanged",
+        ".aafe/modules/src/README.md": "unchanged",
+        ".aafe/modules/src-agent-platform/README.md": "unchanged",
+        ".aafe/modules/src-agent-platform-config/README.md": "unchanged",
+        ".aafe/modules/src-agent-platform-policy/README.md": "unchanged",
+        ".aafe/modules/src-agents/README.md": "unchanged",
+        ".aafe/modules/src-agents-context-agent/README.md": "unchanged",
+        ".aafe/modules/src-agents-knowledge-validator/README.md": "unchanged",
+        ".aafe/modules/src-ddd/README.md": "unchanged",
+        ".aafe/modules/src-knowledge-graph/README.md": "unchanged",
+        ".aafe/modules/src-knowledge-model/README.md": "unchanged",
+        ".aafe/modules/src-knowledge-store/README.md": "unchanged",
+        ".aafe/modules/src-knowledge-validator/README.md": "unchanged",
+        ".aafe/modules/src-llm/README.md": "unchanged",
+        ".aafe/modules/src-patterns/README.md": "unchanged",
+        ".aafe/modules/src-static-analysis-git/README.md": "unchanged",
+        ".aafe/modules/src-static-analysis-routes/README.md": "unchanged",
+        ".aafe/modules/src-static-analysis-semantic/README.md": "unchanged",
+        ".aafe/modules/src-static-analysis-storage/README.md": "unchanged",
+        ".aafe/modules/src-templates/README.md": "unchanged"
+      }
+    }
+  },
+  "knowledgeUpdates": [],
+  "evidence": [
+    {
+      "type": "source",
+      "file": "src/cli/analyze.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agent-platform/runtime/providers/AgentProvider.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/static-analysis/analyzers/architecture.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agent-platform/planner/LlmPlanner.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/static-analysis/entryDiscover.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/static-analysis/types/config.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/test-agent/generate.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/memory/CodeScanner.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agent-platform/protocol/request.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agent-platform/registry/AgentRegistry.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agent-platform/state/ExecutionState.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/code-intelligence/index.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/failure-analyzer/classify.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/impact-analyzer/index.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/ide-bridge/context/render.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/static-analysis/ast/extractors.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/static-analysis/emit/formats.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/static-analysis/modules/buildBundles.js",
+      "reason": "module membership"
+    }
+  ],
+  "nextActions": [],
+  "metrics": {
+    "duration": 343
+  },
+  "reason": "semantic enrichment unavailable: static-only"
+}

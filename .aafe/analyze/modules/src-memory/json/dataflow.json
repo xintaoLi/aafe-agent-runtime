@@ -1,0 +1,204 @@
+{
+  "module": "src-memory",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:164",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/skill-runtime/AgentRuntime.js",
+        "nodes": [
+          "file:src/agent-platform/skill-runtime/AgentRuntime.js",
+          "file:src/memory/MemoryRuntime.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/skill-runtime/AgentRuntime.js",
+            "to": "file:src/memory/MemoryRuntime.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+            "reason": "../../memory/MemoryRuntime.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:356",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/memory.js",
+        "nodes": [
+          "file:src/cli/memory.js",
+          "file:src/memory/MemoryStore.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/memory.js",
+            "to": "file:src/memory/MemoryStore.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/memory.js",
+            "reason": "../memory/MemoryStore.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:357",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/memory.js",
+        "nodes": [
+          "file:src/cli/memory.js",
+          "file:src/memory/CodeScanner.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/memory.js",
+            "to": "file:src/memory/CodeScanner.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/memory.js",
+            "reason": "../memory/CodeScanner.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:419",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/memory/CodeScanner.js",
+        "nodes": [
+          "file:src/memory/CodeScanner.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/memory/CodeScanner.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/memory/CodeScanner.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:420",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/memory/CodeScanner.js",
+        "nodes": [
+          "file:src/memory/CodeScanner.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/memory/CodeScanner.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/memory/CodeScanner.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:421",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/memory/MemoryRuntime.js",
+        "nodes": [
+          "file:src/memory/MemoryRuntime.js",
+          "file:src/memory/MemoryStore.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/memory/MemoryRuntime.js",
+            "to": "file:src/memory/MemoryStore.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/memory/MemoryRuntime.js",
+            "reason": "./MemoryStore.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:422",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/memory/MemoryStore.js",
+        "nodes": [
+          "file:src/memory/MemoryStore.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/memory/MemoryStore.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/memory/MemoryStore.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:423",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/memory/MemoryStore.js",
+        "nodes": [
+          "file:src/memory/MemoryStore.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/memory/MemoryStore.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/memory/MemoryStore.js",
+            "reason": "node:path"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 8,
+      "call": 0
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "module": "src-agents-code-intelligence",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agents/code-intelligence/index.js",
+        "src/agents/code-intelligence/views.js"
+      ],
+      "routes": [],
+      "components": [
+        "VIEW_CAPABILITIES"
+      ]
+    },
+    "outboundModules": [
+      "module:src-agent-platform-protocol",
+      "module:src-knowledge-model",
+      "module:src-static-analysis",
+      "module:src-static-analysis-types"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agents/code-intelligence/index.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agents/code-intelligence/views.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-agent-platform-protocol",
+    "module:src-knowledge-model",
+    "module:src-static-analysis",
+    "module:src-static-analysis-types"
+  ],
+  "signals": []
+}

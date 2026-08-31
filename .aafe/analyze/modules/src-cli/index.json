@@ -1,0 +1,63 @@
+{
+  "id": "src-cli",
+  "summary": {
+    "routes": 0,
+    "components": 1,
+    "features": 1,
+    "flows": 180,
+    "dependsOn": [
+      "module:src-agent-platform",
+      "module:src-agent-platform-config",
+      "module:src-agent-platform-protocol",
+      "module:src-agent-platform-registry",
+      "module:src-agent-platform-skill-runtime",
+      "module:src-agent-platform-state",
+      "module:src-ddd",
+      "module:src-ide-bridge-context",
+      "module:src-knowledge-report",
+      "module:src-knowledge-store",
+      "module:src-memory",
+      "module:src-patterns",
+      "module:src-static-analysis",
+      "module:src-static-analysis-types",
+      "module:src-templates",
+      "module:src-testing-e2e"
+    ]
+  },
+  "paths": {
+    "routes": "json/routes.json",
+    "architecture": "json/architecture.json",
+    "components": "json/components.json",
+    "features": "json/features.json",
+    "dataflow": "json/dataflow.json",
+    "mmd": {
+      "routes": "mmd/routes.mmd",
+      "architecture": "mmd/architecture.mmd",
+      "components": "mmd/components.mmd",
+      "dataflow": "mmd/dataflow.mmd"
+    },
+    "readme": "README.md"
+  },
+  "routes": [],
+  "components": [
+    "PLAYWRIGHT_PACKAGES"
+  ],
+  "dependencies": [
+    "module:src-agent-platform",
+    "module:src-agent-platform-config",
+    "module:src-agent-platform-protocol",
+    "module:src-agent-platform-registry",
+    "module:src-agent-platform-skill-runtime",
+    "module:src-agent-platform-state",
+    "module:src-ddd",
+    "module:src-ide-bridge-context",
+    "module:src-knowledge-report",
+    "module:src-knowledge-store",
+    "module:src-memory",
+    "module:src-patterns",
+    "module:src-static-analysis",
+    "module:src-static-analysis-types",
+    "module:src-templates",
+    "module:src-testing-e2e"
+  ]
+}

@@ -1,0 +1,522 @@
+{
+  "module": "route-ai-agent",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:96",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-workspace-cursor.js",
+        "nodes": [
+          "file:scripts/test-workspace-cursor.js",
+          "file:src/cli/bootstrap.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-workspace-cursor.js",
+            "to": "file:src/cli/bootstrap.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-workspace-cursor.js",
+            "reason": "../src/cli/bootstrap.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:253",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:254",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/migrate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/migrate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./migrate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:255",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/hookScripts.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/hookScripts.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./hookScripts.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:256",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:257",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/templates/TemplateSystem.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/templates/TemplateSystem.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "../templates/TemplateSystem.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:258",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/editorLayer.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/editorLayer.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./editorLayer.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:259",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/codebuddyLayer.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/codebuddyLayer.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./codebuddyLayer.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:260",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/editorRegistry.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/editorRegistry.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./editorRegistry.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:261",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/completionImpactRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/completionImpactRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./completionImpactRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:262",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/requirementAnalysisRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/requirementAnalysisRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./requirementAnalysisRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:263",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/tapdSubmitRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/tapdSubmitRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./tapdSubmitRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:264",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/fileLicenseRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/fileLicenseRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./fileLicenseRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:265",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/dddRuntimeFiles.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/dddRuntimeFiles.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./dddRuntimeFiles.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:266",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/patternRuntimeFiles.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/patternRuntimeFiles.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./patternRuntimeFiles.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:267",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/e2eFromPrRules.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/e2eFromPrRules.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./e2eFromPrRules.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:268",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/cli/submitConfig.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/cli/submitConfig.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "./submitConfig.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:269",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/agent-platform/config/agentsConfig.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/agent-platform/config/agentsConfig.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "../agent-platform/config/agentsConfig.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:328",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/index.js",
+        "nodes": [
+          "file:src/cli/index.js",
+          "file:src/cli/bootstrap.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/index.js",
+            "to": "file:src/cli/bootstrap.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/index.js",
+            "reason": "./bootstrap.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:394",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/update.js",
+        "nodes": [
+          "file:src/cli/update.js",
+          "file:src/cli/bootstrap.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/update.js",
+            "to": "file:src/cli/bootstrap.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/update.js",
+            "reason": "./bootstrap.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:app:.ai-agent/memory:src/cli/bootstrap.js",
+        "level": 3,
+        "kind": "application",
+        "entrypoint": ".ai-agent/memory",
+        "nodes": [
+          "route:.ai-agent/memory",
+          "file:src/cli/bootstrap.js",
+          "import:./hookScripts.js"
+        ],
+        "edges": [
+          {
+            "from": "route:.ai-agent/memory",
+            "to": "file:src/cli/bootstrap.js",
+            "type": "ROUTES_TO"
+          },
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "import:./hookScripts.js",
+            "type": "REQUESTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/cli/bootstrap.js",
+            "reason": ".ai-agent/memory"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 1,
+      "import": 20,
+      "call": 0
+    }
+  }
+}

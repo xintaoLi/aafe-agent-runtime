@@ -1,0 +1,70 @@
+{
+  "module": "src-testing-e2e",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/testing/e2e/compile.js",
+        "src/testing/e2e/config.js",
+        "src/testing/e2e/inventory.js",
+        "src/testing/e2e/layers.js",
+        "src/testing/e2e/match.js",
+        "src/testing/e2e/pr.js",
+        "src/testing/e2e/report.js",
+        "src/testing/e2e/runner.js",
+        "src/testing/e2e/yaml.js"
+      ],
+      "routes": [],
+      "components": [
+        "DEFAULT_E2E_CONFIG",
+        "INLINE_TOKEN_REJECTION",
+        "EXIT_CODE"
+      ]
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/testing/e2e/compile.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/testing/e2e/config.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/testing/e2e/inventory.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/testing/e2e/layers.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/testing/e2e/match.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/testing/e2e/pr.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/testing/e2e/report.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/testing/e2e/runner.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

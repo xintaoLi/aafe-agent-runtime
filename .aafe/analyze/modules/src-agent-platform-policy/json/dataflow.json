@@ -1,0 +1,828 @@
+{
+  "module": "src-agent-platform-policy",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:50",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/policy/ExecutionPolicy.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/policy/ExecutionPolicy.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:118",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "file:src/agent-platform/policy/ExecutionPolicy.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "reason": "../policy/ExecutionPolicy.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:128",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "file:src/agent-platform/protocol/request.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "file:src/agent-platform/protocol/request.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "reason": "../protocol/request.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:134",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/runtime/AgentRuntime.js",
+        "nodes": [
+          "file:src/agent-platform/runtime/AgentRuntime.js",
+          "file:src/agent-platform/policy/ExecutionPolicy.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/runtime/AgentRuntime.js",
+            "to": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/runtime/AgentRuntime.js",
+            "reason": "../policy/ExecutionPolicy.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:387",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:Object.freeze"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:Object.freeze",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "Object.freeze"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:388",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:defaultConstraints"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:defaultConstraints",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "defaultConstraints"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:389",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:positiveOrNull"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:positiveOrNull",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "positiveOrNull"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:390",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:positiveOrNull"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:positiveOrNull",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "positiveOrNull"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:391",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:clampPositive"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:clampPositive",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "clampPositive"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:392",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:clampNonNegative"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:clampNonNegative",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "clampNonNegative"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:393",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:Math.max"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:Math.max",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "Math.max"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:394",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:Number.isFinite"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:Number.isFinite",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "Number.isFinite"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:395",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:assertNotDestructive"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:assertNotDestructive",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "assertNotDestructive"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:396",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:filter"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:filter",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "filter"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:397",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:FORBIDDEN_COMMAND_PATTERNS.find"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:FORBIDDEN_COMMAND_PATTERNS.find",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "FORBIDDEN_COMMAND_PATTERNS.find"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:398",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:regexp.test"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:regexp.test",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "regexp.test"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:399",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:Number"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:Number",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "Number"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:400",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:Number"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:Number",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "Number"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:401",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:Math.round"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:Math.round",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "Math.round"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:402",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:cost.toFixed"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:cost.toFixed",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "cost.toFixed"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:403",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:Number.isFinite"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:Number.isFinite",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "Number.isFinite"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:404",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:promiseFactory"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:promiseFactory",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "promiseFactory"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:405",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:Promise.race"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:Promise.race",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "Promise.race"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:406",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:promiseFactory"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:promiseFactory",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "promiseFactory"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:407",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:setTimeout"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:setTimeout",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "setTimeout"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:408",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:reject"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:reject",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "reject"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:409",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:clearTimeout"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:clearTimeout",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "clearTimeout"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:410",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:Math.max"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:Math.max",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "Math.max"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:411",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:Math.min"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:Math.min",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "Math.min"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:412",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:Array.from"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:Array.from",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "Array.from"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:413",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:worker"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:worker",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "worker"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:414",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:Promise.all"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:Promise.all",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "Promise.all"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:415",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:Number.isFinite"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:Number.isFinite",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "Number.isFinite"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:416",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "call:Number.isFinite"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "call:Number.isFinite",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "symbol": "Number.isFinite"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 4,
+      "call": 30
+    }
+  }
+}

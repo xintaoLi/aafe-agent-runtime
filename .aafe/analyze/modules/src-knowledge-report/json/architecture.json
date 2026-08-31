@@ -1,0 +1,26 @@
+{
+  "module": "src-knowledge-report",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/knowledge/report/impactMarkdown.js"
+      ],
+      "routes": [],
+      "components": [
+        "SECTIONS",
+        "RISK_LABEL"
+      ]
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/knowledge/report/impactMarkdown.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

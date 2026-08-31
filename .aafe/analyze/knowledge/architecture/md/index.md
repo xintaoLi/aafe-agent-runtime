@@ -1,0 +1,102 @@
+# Architecture (static facts)
+
+## Modules
+
+- `src-cli` — 34 files
+- `src-agent-platform-runtime` — 9 files
+- `src-testing-e2e` — 9 files
+- `src-agent-platform-skill-runtime` — 7 files
+- `src-patterns` — 7 files
+- `src-static-analysis-analyzers` — 6 files
+- `src-agent-platform-planner` — 4 files
+- `src-static-analysis` — 4 files
+- `src-static-analysis-types` — 4 files
+- `src-agent-platform-schema` — 3 files
+- `src-agents-test-agent` — 3 files
+- `src-ddd` — 3 files
+- `src-memory` — 3 files
+- `src-agent-platform-orchestrator` — 2 files
+- `src-agent-platform-protocol` — 2 files
+- `src-agent-platform-registry` — 2 files
+- `src-agent-platform-state` — 2 files
+- `src-agents-code-intelligence` — 2 files
+- `src-agents-failure-analyzer` — 2 files
+- `src-agents-impact-analyzer` — 2 files
+- `src-ide-bridge-context` — 2 files
+- `src-static-analysis-ast` — 2 files
+- `src-static-analysis-emit` — 2 files
+- `src-static-analysis-modules` — 2 files
+- `src-testing` — 2 files
+- `bin-aafe-js` — 1 files
+- `route` — 1 files
+- `route-aafe` — 1 files
+- `route-ai-agent` — 1 files
+- `route-casesdir` — 1 files
+- `route-ctx-path` — 1 files
+- `route-package-json` — 1 files
+- `route-tests` — 1 files
+- `src` — 1 files
+- `src-agent-platform` — 1 files
+- `src-agent-platform-config` — 1 files
+- `src-agent-platform-policy` — 1 files
+- `src-agents` — 1 files
+- `src-agents-context-agent` — 1 files
+- `src-agents-knowledge-validator` — 1 files
+- `src-knowledge-graph` — 1 files
+- `src-knowledge-model` — 1 files
+- `src-knowledge-report` — 1 files
+- `src-knowledge-store` — 1 files
+- `src-knowledge-validator` — 1 files
+- `src-llm` — 1 files
+- `src-static-analysis-cache` — 1 files
+- `src-static-analysis-git` — 1 files
+- `src-static-analysis-resolve` — 1 files
+- `src-static-analysis-routes` — 1 files
+- `src-static-analysis-semantic` — 1 files
+- `src-static-analysis-storage` — 1 files
+- `src-templates` — 1 files
+
+## Per-module
+
+- `modules/src-cli/json/architecture.json`
+- `modules/src-agent-platform-runtime/json/architecture.json`
+- `modules/src-testing-e2e/json/architecture.json`
+- `modules/src-agent-platform-skill-runtime/json/architecture.json`
+- `modules/src-patterns/json/architecture.json`
+- `modules/src-static-analysis-analyzers/json/architecture.json`
+- `modules/src-agent-platform-planner/json/architecture.json`
+- `modules/src-static-analysis/json/architecture.json`
+- `modules/src-static-analysis-types/json/architecture.json`
+- `modules/src-agent-platform-schema/json/architecture.json`
+- `modules/src-agents-test-agent/json/architecture.json`
+- `modules/src-ddd/json/architecture.json`
+- `modules/src-memory/json/architecture.json`
+- `modules/src-agent-platform-orchestrator/json/architecture.json`
+- `modules/src-agent-platform-protocol/json/architecture.json`
+- `modules/src-agent-platform-registry/json/architecture.json`
+- `modules/src-agent-platform-state/json/architecture.json`
+- `modules/src-agents-code-intelligence/json/architecture.json`
+- `modules/src-agents-failure-analyzer/json/architecture.json`
+- `modules/src-agents-impact-analyzer/json/architecture.json`
+- `modules/src-ide-bridge-context/json/architecture.json`
+- `modules/src-static-analysis-ast/json/architecture.json`
+- `modules/src-static-analysis-emit/json/architecture.json`
+- `modules/src-static-analysis-modules/json/architecture.json`
+- `modules/src-testing/json/architecture.json`
+- `modules/bin-aafe-js/json/architecture.json`
+- `modules/route/json/architecture.json`
+- `modules/route-aafe/json/architecture.json`
+- `modules/route-ai-agent/json/architecture.json`
+- `modules/route-casesdir/json/architecture.json`
+- `modules/route-ctx-path/json/architecture.json`
+- `modules/route-package-json/json/architecture.json`
+- `modules/route-tests/json/architecture.json`
+- `modules/src/json/architecture.json`
+- `modules/src-agent-platform/json/architecture.json`
+- `modules/src-agent-platform-config/json/architecture.json`
+- `modules/src-agent-platform-policy/json/architecture.json`
+- `modules/src-agents/json/architecture.json`
+- `modules/src-agents-context-agent/json/architecture.json`
+- `modules/src-agents-knowledge-validator/json/architecture.json`
+
+Overview: `.aafe/knowledge/architecture/json/analysis.json`

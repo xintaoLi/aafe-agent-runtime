@@ -1,0 +1,15 @@
+flowchart LR
+  n_AgentRuntime["AgentRuntime"]
+  n_SkillRegistry["SkillRegistry"]
+  n_AgentRuntime -->|IMPORTS| n_SkillRegistry
+  n_PipelineExecutor["PipelineExecutor"]
+  n_AgentRuntime -->|IMPORTS| n_PipelineExecutor
+  n_GateValidator["GateValidator"]
+  n_AgentRuntime -->|IMPORTS| n_GateValidator
+  n_HookBus["HookBus"]
+  n_AgentRuntime -->|IMPORTS| n_HookBus
+  n_configLoader["configLoader"]
+  n_configLoader -->|IMPORTS| n_AgentRuntime
+  n_LEGACY_DDD_ALIASES["LEGACY_DDD_ALIASES"]
+  n_configLoader -->|IMPORTS| n_LEGACY_DDD_ALIASES
+  n_LEGACY_DDD_ALIASES -->|IMPORTS| n_AgentRuntime

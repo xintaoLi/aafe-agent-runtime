@@ -1,0 +1,182 @@
+{
+  "runId": "20260820T033146-bv3h",
+  "status": "complete",
+  "reason": "context package is ready for the IDE agent",
+  "task": {
+    "id": "task-mt0yrwpz-1",
+    "kind": "requirement",
+    "goal": "improve the cli plan command output",
+    "requirement": "improve the cli plan command output",
+    "diffRef": null,
+    "failureRef": null
+  },
+  "decisions": [
+    {
+      "action": "invoke_agent",
+      "capability": "project-analysis",
+      "reason": "project knowledge is working-tree-dirty",
+      "input": {
+        "reason": "working-tree-dirty"
+      },
+      "expectedOutput": [
+        "modules",
+        "routes",
+        "features"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "requirement-impact",
+      "reason": "task kind \"requirement\" requires requirement-impact",
+      "input": {
+        "requirement": "improve the cli plan command output"
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "knowledge-validation",
+      "reason": "task kind \"requirement\" requires knowledge-validation",
+      "input": {
+        "source": "impact"
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "context-packaging",
+      "reason": "task kind \"requirement\" requires context-packaging",
+      "input": {
+        "kind": "requirement",
+        "goal": "improve the cli plan command output"
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "complete",
+      "reason": "context package is ready for the IDE agent"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "N1",
+      "agent": "code-intelligence",
+      "capability": "project-analysis",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T033146-bv3h/nodes/N1.input.json",
+      "outputRef": ".aafe/runs/20260820T033146-bv3h/nodes/N1.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787196706949,
+      "finishedAt": 1787196707306,
+      "reason": "semantic enrichment unavailable: static-only"
+    },
+    {
+      "id": "N2",
+      "agent": "impact-analyzer",
+      "capability": "requirement-impact",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T033146-bv3h/nodes/N2.input.json",
+      "outputRef": ".aafe/runs/20260820T033146-bv3h/nodes/N2.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787196707306,
+      "finishedAt": 1787196707325
+    },
+    {
+      "id": "N3",
+      "agent": "knowledge-validator",
+      "capability": "knowledge-validation",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T033146-bv3h/nodes/N3.input.json",
+      "outputRef": ".aafe/runs/20260820T033146-bv3h/nodes/N3.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787196707326,
+      "finishedAt": 1787196707327
+    },
+    {
+      "id": "N4",
+      "agent": "context-agent",
+      "capability": "context-packaging",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T033146-bv3h/nodes/N4.input.json",
+      "outputRef": ".aafe/runs/20260820T033146-bv3h/nodes/N4.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787196707327,
+      "finishedAt": 1787196707330
+    }
+  ],
+  "state": {
+    "runId": "20260820T033146-bv3h",
+    "task": {
+      "id": "task-mt0yrwpz-1",
+      "kind": "requirement",
+      "goal": "improve the cli plan command output",
+      "requirement": "improve the cli plan command output",
+      "diffRef": null,
+      "failureRef": null
+    },
+    "step": 4,
+    "history": [
+      {
+        "step": 1,
+        "node": "N1",
+        "agent": "code-intelligence",
+        "capability": "project-analysis",
+        "status": "partial",
+        "reason": "semantic enrichment unavailable: static-only",
+        "durationMs": 357
+      },
+      {
+        "step": 2,
+        "node": "N2",
+        "agent": "impact-analyzer",
+        "capability": "requirement-impact",
+        "status": "success",
+        "durationMs": 19
+      },
+      {
+        "step": 3,
+        "node": "N3",
+        "agent": "knowledge-validator",
+        "capability": "knowledge-validation",
+        "status": "success",
+        "durationMs": 1
+      },
+      {
+        "step": 4,
+        "node": "N4",
+        "agent": "context-agent",
+        "capability": "context-packaging",
+        "status": "success",
+        "durationMs": 3
+      }
+    ],
+    "satisfied": [
+      "project-analysis",
+      "requirement-impact",
+      "knowledge-validation",
+      "context-packaging"
+    ],
+    "knowledgeUpdates": [
+      {
+        "op": "downgrade",
+        "kind": "impact",
+        "id": "flow:app:.ai-agent/memory:src/cli/bootstrap.js",
+        "reason": "flow-traceable: flow has no file-level node"
+      }
+    ],
+    "diagnostics": [],
+    "durationMs": 409
+  },
+  "summary": {
+    "pending": 0,
+    "running": 0,
+    "success": 4,
+    "failed": 0,
+    "skipped": 0
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "module": "src-agents-context-agent",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:27",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agents/context-agent/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agents/context-agent/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agents/context-agent/index.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:192",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/context-agent/index.js",
+        "nodes": [
+          "file:src/agents/context-agent/index.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/context-agent/index.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/context-agent/index.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:193",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/context-agent/index.js",
+        "nodes": [
+          "file:src/agents/context-agent/index.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/context-agent/index.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/context-agent/index.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:194",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/context-agent/index.js",
+        "nodes": [
+          "file:src/agents/context-agent/index.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/context-agent/index.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/context-agent/index.js",
+            "reason": "../../agent-platform/protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:195",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/context-agent/index.js",
+        "nodes": [
+          "file:src/agents/context-agent/index.js",
+          "file:src/ide-bridge/context/tokens.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/context-agent/index.js",
+            "to": "file:src/ide-bridge/context/tokens.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/context-agent/index.js",
+            "reason": "../../ide-bridge/context/tokens.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:216",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/index.js",
+        "nodes": [
+          "file:src/agents/index.js",
+          "file:src/agents/context-agent/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/index.js",
+            "to": "file:src/agents/context-agent/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/index.js",
+            "reason": "./context-agent/index.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 6,
+      "call": 0
+    }
+  }
+}

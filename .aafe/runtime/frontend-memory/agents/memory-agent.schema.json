@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "required": [
+    "problemType",
+    "confidence",
+    "evidence",
+    "rootCause",
+    "solutions",
+    "verification"
+  ],
+  "properties": {
+    "problemType": {
+      "type": "array"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "evidence": {
+      "type": "array"
+    },
+    "rootCause": {
+      "type": "array"
+    },
+    "solutions": {
+      "type": "array"
+    },
+    "verification": {
+      "type": "array"
+    }
+  }
+}

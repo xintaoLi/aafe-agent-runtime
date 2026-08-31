@@ -1,0 +1,28 @@
+{
+  "module": "route-ctx-path",
+  "routes": [
+    {
+      "name": "",
+      "component": "",
+      "source": "unknown",
+      "evidence": [
+        {
+          "type": "route",
+          "file": ""
+        }
+      ]
+    },
+    {
+      "name": "",
+      "component": "",
+      "source": "unknown",
+      "evidence": [
+        {
+          "type": "route",
+          "file": ""
+        }
+      ]
+    }
+  ],
+  "summary": "Module route-ctx-path owns 2 routes"
+}

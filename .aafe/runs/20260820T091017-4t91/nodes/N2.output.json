@@ -1,0 +1,614 @@
+{
+  "status": "partial",
+  "result": {
+    "id": "plan:mt1av90c",
+    "requirement": "full coverage from analyze",
+    "risk": "medium",
+    "scenario": "coverage",
+    "runner": {
+      "e2e": "playwright",
+      "unit": null
+    },
+    "scenarios": [],
+    "existingTests": [],
+    "coverageGaps": [
+      {
+        "moduleId": "feature:ai-agent-memory",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:package-json",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:ctx-path-index",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:ctx-path-key",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:casesdir-id-yaml",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:aafe-e2e-specs-id-spec-js",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:tests-aafe-filestem-plan-spec-js",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:feature",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:feature",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:casesdir-id-yaml",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:aafe-e2e-specs-id-spec-js",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:tests-aafe-filestem-plan-spec-js",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:ai-agent-memory",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:casesdir-id-yaml",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:aafe-e2e-specs-id-spec-js",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:tests-aafe-filestem-plan-spec-js",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:ctx-path-index",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:ctx-path-key",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:package-json",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:casesdir-id-yaml",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:aafe-e2e-specs-id-spec-js",
+        "reason": "feature has no real route entry"
+      },
+      {
+        "moduleId": "feature:tests-aafe-filestem-plan-spec-js",
+        "reason": "feature has no real route entry"
+      }
+    ],
+    "evidence": [],
+    "inventory": {
+      "ok": true,
+      "builtAt": "2026-08-20T09:10:18.204Z",
+      "root": "/Users/lixintao/github/aafe-agent-runtime",
+      "extraFiles": [],
+      "routes": [],
+      "features": [
+        {
+          "id": "feature:ai-agent-memory",
+          "name": "memory",
+          "moduleId": "src-cli",
+          "entrypoints": [
+            ".ai-agent/memory"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/cli/bootstrap.js",
+              "reason": ".ai-agent/memory"
+            }
+          ]
+        },
+        {
+          "id": "feature:package-json",
+          "name": "package",
+          "moduleId": "src-static-analysis-analyzers",
+          "entrypoints": [
+            "package.json"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/static-analysis/analyzers/repository.js",
+              "reason": "package.json"
+            }
+          ]
+        },
+        {
+          "id": "feature:ctx-path-index",
+          "name": "${index}",
+          "moduleId": "src-agent-platform-schema",
+          "entrypoints": [
+            "${ctx.path}/${index}"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "${ctx.path}/${index}"
+            }
+          ]
+        },
+        {
+          "id": "feature:ctx-path-key",
+          "name": "${key}",
+          "moduleId": "src-agent-platform-schema",
+          "entrypoints": [
+            "${ctx.path}/${key}"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "${ctx.path}/${key}"
+            }
+          ]
+        },
+        {
+          "id": "feature:casesdir-id-yaml",
+          "name": "${id}",
+          "moduleId": "src-agents-test-agent",
+          "entrypoints": [
+            "${casesDir}/${id}.yaml"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "${casesDir}/${id}.yaml"
+            }
+          ]
+        },
+        {
+          "id": "feature:aafe-e2e-specs-id-spec-js",
+          "name": "${id}.spec",
+          "moduleId": "src-agents-test-agent",
+          "entrypoints": [
+            ".aafe/e2e/specs/${id}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": ".aafe/e2e/specs/${id}.spec.js"
+            }
+          ]
+        },
+        {
+          "id": "feature:tests-aafe-filestem-plan-spec-js",
+          "name": "${fileStem(plan)}.spec",
+          "moduleId": "src-agents-test-agent",
+          "entrypoints": [
+            "tests/aafe/${fileStem(plan)}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+            }
+          ]
+        },
+        {
+          "id": "feature:feature",
+          "name": "...",
+          "moduleId": "src-static-analysis-ast",
+          "entrypoints": [
+            "..."
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/static-analysis/ast/extractors.js",
+              "reason": "..."
+            }
+          ]
+        },
+        {
+          "id": "feature:feature",
+          "name": "...",
+          "moduleId": "route",
+          "entrypoints": [
+            "..."
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/static-analysis/ast/extractors.js",
+              "reason": "..."
+            }
+          ]
+        },
+        {
+          "id": "feature:casesdir-id-yaml",
+          "name": "${id}",
+          "moduleId": "route-aafe",
+          "entrypoints": [
+            "${casesDir}/${id}.yaml"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "${casesDir}/${id}.yaml"
+            }
+          ]
+        },
+        {
+          "id": "feature:aafe-e2e-specs-id-spec-js",
+          "name": "${id}.spec",
+          "moduleId": "route-aafe",
+          "entrypoints": [
+            ".aafe/e2e/specs/${id}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": ".aafe/e2e/specs/${id}.spec.js"
+            }
+          ]
+        },
+        {
+          "id": "feature:tests-aafe-filestem-plan-spec-js",
+          "name": "${fileStem(plan)}.spec",
+          "moduleId": "route-aafe",
+          "entrypoints": [
+            "tests/aafe/${fileStem(plan)}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+            }
+          ]
+        },
+        {
+          "id": "feature:ai-agent-memory",
+          "name": "memory",
+          "moduleId": "route-ai-agent",
+          "entrypoints": [
+            ".ai-agent/memory"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/cli/bootstrap.js",
+              "reason": ".ai-agent/memory"
+            }
+          ]
+        },
+        {
+          "id": "feature:casesdir-id-yaml",
+          "name": "${id}",
+          "moduleId": "route-casesdir",
+          "entrypoints": [
+            "${casesDir}/${id}.yaml"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "${casesDir}/${id}.yaml"
+            }
+          ]
+        },
+        {
+          "id": "feature:aafe-e2e-specs-id-spec-js",
+          "name": "${id}.spec",
+          "moduleId": "route-casesdir",
+          "entrypoints": [
+            ".aafe/e2e/specs/${id}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": ".aafe/e2e/specs/${id}.spec.js"
+            }
+          ]
+        },
+        {
+          "id": "feature:tests-aafe-filestem-plan-spec-js",
+          "name": "${fileStem(plan)}.spec",
+          "moduleId": "route-casesdir",
+          "entrypoints": [
+            "tests/aafe/${fileStem(plan)}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+            }
+          ]
+        },
+        {
+          "id": "feature:ctx-path-index",
+          "name": "${index}",
+          "moduleId": "route-ctx-path",
+          "entrypoints": [
+            "${ctx.path}/${index}"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "${ctx.path}/${index}"
+            }
+          ]
+        },
+        {
+          "id": "feature:ctx-path-key",
+          "name": "${key}",
+          "moduleId": "route-ctx-path",
+          "entrypoints": [
+            "${ctx.path}/${key}"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "${ctx.path}/${key}"
+            }
+          ]
+        },
+        {
+          "id": "feature:package-json",
+          "name": "package",
+          "moduleId": "route-package-json",
+          "entrypoints": [
+            "package.json"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/static-analysis/analyzers/repository.js",
+              "reason": "package.json"
+            }
+          ]
+        },
+        {
+          "id": "feature:casesdir-id-yaml",
+          "name": "${id}",
+          "moduleId": "route-tests",
+          "entrypoints": [
+            "${casesDir}/${id}.yaml"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "${casesDir}/${id}.yaml"
+            }
+          ]
+        },
+        {
+          "id": "feature:aafe-e2e-specs-id-spec-js",
+          "name": "${id}.spec",
+          "moduleId": "route-tests",
+          "entrypoints": [
+            ".aafe/e2e/specs/${id}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": ".aafe/e2e/specs/${id}.spec.js"
+            }
+          ]
+        },
+        {
+          "id": "feature:tests-aafe-filestem-plan-spec-js",
+          "name": "${fileStem(plan)}.spec",
+          "moduleId": "route-tests",
+          "entrypoints": [
+            "tests/aafe/${fileStem(plan)}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+            }
+          ]
+        }
+      ],
+      "suggestedChains": [],
+      "matchedCases": [],
+      "verification": {
+        "items": [
+          {
+            "category": "new-feature",
+            "count": 0
+          },
+          {
+            "category": "regression-guard",
+            "count": 0
+          },
+          {
+            "category": "manual-confirm",
+            "count": 22
+          }
+        ],
+        "manualConfirmRequired": true,
+        "missingFeatures": [
+          {
+            "id": "feature:ai-agent-memory",
+            "name": "memory",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:package-json",
+            "name": "package",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:ctx-path-index",
+            "name": "${index}",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:ctx-path-key",
+            "name": "${key}",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:casesdir-id-yaml",
+            "name": "${id}",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:aafe-e2e-specs-id-spec-js",
+            "name": "${id}.spec",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:tests-aafe-filestem-plan-spec-js",
+            "name": "${fileStem(plan)}.spec",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:feature",
+            "name": "...",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:feature",
+            "name": "...",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:casesdir-id-yaml",
+            "name": "${id}",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:aafe-e2e-specs-id-spec-js",
+            "name": "${id}.spec",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:tests-aafe-filestem-plan-spec-js",
+            "name": "${fileStem(plan)}.spec",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:ai-agent-memory",
+            "name": "memory",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:casesdir-id-yaml",
+            "name": "${id}",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:aafe-e2e-specs-id-spec-js",
+            "name": "${id}.spec",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:tests-aafe-filestem-plan-spec-js",
+            "name": "${fileStem(plan)}.spec",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:ctx-path-index",
+            "name": "${index}",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:ctx-path-key",
+            "name": "${key}",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:package-json",
+            "name": "package",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:casesdir-id-yaml",
+            "name": "${id}",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:aafe-e2e-specs-id-spec-js",
+            "name": "${id}.spec",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          },
+          {
+            "id": "feature:tests-aafe-filestem-plan-spec-js",
+            "name": "${fileStem(plan)}.spec",
+            "coverage": "missing",
+            "reason": "feature has no real route entry"
+          }
+        ]
+      }
+    },
+    "e2eApplicable": false,
+    "pr": null
+  },
+  "knowledgeUpdates": [],
+  "evidence": [],
+  "nextActions": [],
+  "metrics": {
+    "duration": 41
+  },
+  "reason": "impact report yielded no testable artifact",
+  "contract": {
+    "mode": "warn",
+    "repairs": [],
+    "attempts": 1,
+    "input": "/write: expected boolean, got null",
+    "output": "ok"
+  }
+}

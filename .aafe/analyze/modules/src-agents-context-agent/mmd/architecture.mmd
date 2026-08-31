@@ -1,0 +1,6 @@
+flowchart TB
+  subgraph n_src_agents_context_agent["src-agents-context-agent"]
+    n_src_agents_context_agent_index_js["context-agent/index.js"]
+  end
+  n_src_agents_context_agent --> n_src_agent_platform_protocol["src-agent-platform-protocol"]
+  n_src_agents_context_agent --> n_src_ide_bridge_context["src-ide-bridge-context"]

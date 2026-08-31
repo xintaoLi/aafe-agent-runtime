@@ -1,0 +1,621 @@
+{
+  "relations": [
+    {
+      "moduleId": "module:route",
+      "flowId": "flow:app:...:src/static-analysis/ast/extractors.js",
+      "from": "route:...",
+      "to": "file:src/static-analysis/ast/extractors.js",
+      "type": "ROUTES_TO"
+    },
+    {
+      "moduleId": "module:route-aafe",
+      "flowId": "flow:app:${casesDir}/${id}.yaml:src/agents/test-agent/generate.js",
+      "from": "route:${casesDir}/${id}.yaml",
+      "to": "file:src/agents/test-agent/generate.js",
+      "type": "ROUTES_TO"
+    },
+    {
+      "moduleId": "module:route-aafe",
+      "flowId": "flow:app:.aafe/e2e/specs/${id}.spec.js:src/agents/test-agent/generate.js",
+      "from": "route:.aafe/e2e/specs/${id}.spec.js",
+      "to": "file:src/agents/test-agent/generate.js",
+      "type": "ROUTES_TO"
+    },
+    {
+      "moduleId": "module:route-aafe",
+      "flowId": "flow:app:tests/aafe/${fileStem(plan)}.spec.js:src/agents/test-agent/generate.js",
+      "from": "route:tests/aafe/${fileStem(plan)}.spec.js",
+      "to": "file:src/agents/test-agent/generate.js",
+      "type": "ROUTES_TO"
+    },
+    {
+      "moduleId": "module:route-ai-agent",
+      "flowId": "flow:app:.ai-agent/memory:src/cli/bootstrap.js",
+      "from": "route:.ai-agent/memory",
+      "to": "file:src/cli/bootstrap.js",
+      "type": "ROUTES_TO"
+    },
+    {
+      "moduleId": "module:route-ai-agent",
+      "flowId": "flow:app:.ai-agent/memory:src/cli/bootstrap.js",
+      "from": "file:src/cli/bootstrap.js",
+      "to": "import:./hookScripts.js",
+      "type": "REQUESTS"
+    },
+    {
+      "moduleId": "module:route-casesdir",
+      "flowId": "flow:app:${casesDir}/${id}.yaml:src/agents/test-agent/generate.js",
+      "from": "route:${casesDir}/${id}.yaml",
+      "to": "file:src/agents/test-agent/generate.js",
+      "type": "ROUTES_TO"
+    },
+    {
+      "moduleId": "module:route-casesdir",
+      "flowId": "flow:app:.aafe/e2e/specs/${id}.spec.js:src/agents/test-agent/generate.js",
+      "from": "route:.aafe/e2e/specs/${id}.spec.js",
+      "to": "file:src/agents/test-agent/generate.js",
+      "type": "ROUTES_TO"
+    },
+    {
+      "moduleId": "module:route-casesdir",
+      "flowId": "flow:app:tests/aafe/${fileStem(plan)}.spec.js:src/agents/test-agent/generate.js",
+      "from": "route:tests/aafe/${fileStem(plan)}.spec.js",
+      "to": "file:src/agents/test-agent/generate.js",
+      "type": "ROUTES_TO"
+    },
+    {
+      "moduleId": "module:route-ctx-path",
+      "flowId": "flow:app:${ctx.path}/${index}:src/agent-platform/schema/repair.js",
+      "from": "route:${ctx.path}/${index}",
+      "to": "file:src/agent-platform/schema/repair.js",
+      "type": "ROUTES_TO"
+    },
+    {
+      "moduleId": "module:route-ctx-path",
+      "flowId": "flow:app:${ctx.path}/${key}:src/agent-platform/schema/repair.js",
+      "from": "route:${ctx.path}/${key}",
+      "to": "file:src/agent-platform/schema/repair.js",
+      "type": "ROUTES_TO"
+    },
+    {
+      "moduleId": "module:route-package-json",
+      "flowId": "flow:app:package.json:src/static-analysis/analyzers/repository.js",
+      "from": "route:package.json",
+      "to": "file:src/static-analysis/analyzers/repository.js",
+      "type": "ROUTES_TO"
+    },
+    {
+      "moduleId": "module:route-tests",
+      "flowId": "flow:app:${casesDir}/${id}.yaml:src/agents/test-agent/generate.js",
+      "from": "route:${casesDir}/${id}.yaml",
+      "to": "file:src/agents/test-agent/generate.js",
+      "type": "ROUTES_TO"
+    },
+    {
+      "moduleId": "module:route-tests",
+      "flowId": "flow:app:.aafe/e2e/specs/${id}.spec.js:src/agents/test-agent/generate.js",
+      "from": "route:.aafe/e2e/specs/${id}.spec.js",
+      "to": "file:src/agents/test-agent/generate.js",
+      "type": "ROUTES_TO"
+    },
+    {
+      "moduleId": "module:route-tests",
+      "flowId": "flow:app:tests/aafe/${fileStem(plan)}.spec.js:src/agents/test-agent/generate.js",
+      "from": "route:tests/aafe/${fileStem(plan)}.spec.js",
+      "to": "file:src/agents/test-agent/generate.js",
+      "type": "ROUTES_TO"
+    }
+  ],
+  "architectureFlows": [
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform-config",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform-protocol",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform-registry",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform-skill-runtime",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-agent-platform-state",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-ddd",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-ide-bridge-context",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-knowledge-report",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-knowledge-store",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-memory",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-patterns",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-static-analysis",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-static-analysis-types",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-templates",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-cli",
+      "to": "module:src-testing-e2e",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform-runtime",
+      "to": "module:src-agent-platform-policy",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform-runtime",
+      "to": "module:src-agent-platform-protocol",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform-runtime",
+      "to": "module:src-agent-platform-schema",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform-skill-runtime",
+      "to": "module:src-ddd",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform-skill-runtime",
+      "to": "module:src-knowledge-store",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform-skill-runtime",
+      "to": "module:src-memory",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform-skill-runtime",
+      "to": "module:src-patterns",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-ast",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-modules",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-resolve",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-routes",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-semantic",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis-analyzers",
+      "to": "module:src-static-analysis-types",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform-planner",
+      "to": "module:src-llm",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-analyzers",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-ast",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-cache",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-modules",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-storage",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis",
+      "to": "module:src-static-analysis-types",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis-types",
+      "to": "module:src-static-analysis-emit",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-test-agent",
+      "to": "module:src-agent-platform-protocol",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-test-agent",
+      "to": "module:src-knowledge-model",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-test-agent",
+      "to": "module:src-testing",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-test-agent",
+      "to": "module:src-testing-e2e",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform-orchestrator",
+      "to": "module:src-agent-platform-protocol",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform-orchestrator",
+      "to": "module:src-agent-platform-runtime",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform-orchestrator",
+      "to": "module:src-agent-platform-state",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-code-intelligence",
+      "to": "module:src-agent-platform-protocol",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-code-intelligence",
+      "to": "module:src-knowledge-model",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-code-intelligence",
+      "to": "module:src-static-analysis",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-code-intelligence",
+      "to": "module:src-static-analysis-types",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-failure-analyzer",
+      "to": "module:src-agent-platform-protocol",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-failure-analyzer",
+      "to": "module:src-knowledge-model",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-impact-analyzer",
+      "to": "module:src-agent-platform-protocol",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-impact-analyzer",
+      "to": "module:src-knowledge-graph",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-impact-analyzer",
+      "to": "module:src-knowledge-model",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-impact-analyzer",
+      "to": "module:src-static-analysis-git",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-impact-analyzer",
+      "to": "module:src-static-analysis-types",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis-modules",
+      "to": "module:src-static-analysis-types",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:bin-aafe-js",
+      "to": "module:src-cli",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-config",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-orchestrator",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-planner",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-registry",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-runtime",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agent-platform-schema",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-agents",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform",
+      "to": "module:src-knowledge-store",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform-config",
+      "to": "module:src-agent-platform-registry",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agent-platform-policy",
+      "to": "module:src-agent-platform-protocol",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-code-intelligence",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-context-agent",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-failure-analyzer",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-impact-analyzer",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-knowledge-validator",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents",
+      "to": "module:src-agents-test-agent",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-context-agent",
+      "to": "module:src-agent-platform-protocol",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-context-agent",
+      "to": "module:src-ide-bridge-context",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-knowledge-validator",
+      "to": "module:src-agent-platform-protocol",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-knowledge-validator",
+      "to": "module:src-knowledge-model",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-agents-knowledge-validator",
+      "to": "module:src-knowledge-validator",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-knowledge-graph",
+      "to": "module:src-knowledge-model",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-knowledge-store",
+      "to": "module:src-knowledge-model",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-knowledge-validator",
+      "to": "module:src-knowledge-model",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis-routes",
+      "to": "module:src-static-analysis-ast",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis-semantic",
+      "to": "module:src-llm",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    },
+    {
+      "from": "module:src-static-analysis-storage",
+      "to": "module:src-static-analysis-emit",
+      "type": "ARCHITECTURE_FLOW",
+      "via": "module-dependency"
+    }
+  ]
+}

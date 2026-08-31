@@ -1,0 +1,31 @@
+{
+  "id": "src-testing-e2e",
+  "summary": {
+    "routes": 0,
+    "components": 3,
+    "features": 0,
+    "flows": 27,
+    "dependsOn": []
+  },
+  "paths": {
+    "routes": "json/routes.json",
+    "architecture": "json/architecture.json",
+    "components": "json/components.json",
+    "features": "json/features.json",
+    "dataflow": "json/dataflow.json",
+    "mmd": {
+      "routes": "mmd/routes.mmd",
+      "architecture": "mmd/architecture.mmd",
+      "components": "mmd/components.mmd",
+      "dataflow": "mmd/dataflow.mmd"
+    },
+    "readme": "README.md"
+  },
+  "routes": [],
+  "components": [
+    "DEFAULT_E2E_CONFIG",
+    "INLINE_TOKEN_REJECTION",
+    "EXIT_CODE"
+  ],
+  "dependencies": []
+}

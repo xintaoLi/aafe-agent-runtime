@@ -1,0 +1,228 @@
+{
+  "module": "src-agents-failure-analyzer",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:197",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/failure-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/failure-analyzer/index.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/failure-analyzer/index.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:198",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/failure-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/failure-analyzer/index.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/failure-analyzer/index.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:199",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/failure-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/failure-analyzer/index.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/failure-analyzer/index.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "../../agent-platform/protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:200",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/failure-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/failure-analyzer/index.js",
+          "file:src/testing/reportParser.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/failure-analyzer/index.js",
+            "to": "file:src/testing/reportParser.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "../../testing/reportParser.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:201",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/failure-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/failure-analyzer/index.js",
+          "file:src/static-analysis/git/DiffFacts.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/failure-analyzer/index.js",
+            "to": "file:src/static-analysis/git/DiffFacts.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "../../static-analysis/git/DiffFacts.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:202",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/failure-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/failure-analyzer/index.js",
+          "file:src/knowledge/graph/relations.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/failure-analyzer/index.js",
+            "to": "file:src/knowledge/graph/relations.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "../../knowledge/graph/relations.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:203",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/failure-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/failure-analyzer/index.js",
+          "file:src/knowledge/model/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/failure-analyzer/index.js",
+            "to": "file:src/knowledge/model/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "../../knowledge/model/index.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:204",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/failure-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/failure-analyzer/index.js",
+          "file:src/agents/failure-analyzer/classify.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/failure-analyzer/index.js",
+            "to": "file:src/agents/failure-analyzer/classify.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "./classify.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:218",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/index.js",
+        "nodes": [
+          "file:src/agents/index.js",
+          "file:src/agents/failure-analyzer/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/index.js",
+            "to": "file:src/agents/failure-analyzer/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/index.js",
+            "reason": "./failure-analyzer/index.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 9,
+      "call": 0
+    }
+  }
+}

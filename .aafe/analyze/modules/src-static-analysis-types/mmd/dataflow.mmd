@@ -1,0 +1,61 @@
+flowchart TD
+  n_file_src_agents_code_intelligence_index_js["src/agents/code-intelligence/index.js"]
+  n_file_src_static_analysis_types_config_js["src/static-analysis/types/config.js"]
+  n_file_src_agents_code_intelligence_index_js -->|IMPORTS| n_file_src_static_analysis_types_config_js
+  n_file_src_agents_code_intelligence_index_js["src/agents/code-intelligence/index.js"]
+  n_file_src_static_analysis_types_context_js["src/static-analysis/types/context.js"]
+  n_file_src_agents_code_intelligence_index_js -->|IMPORTS| n_file_src_static_analysis_types_context_js
+  n_file_src_agents_impact_analyzer_index_js["src/agents/impact-analyzer/index.js"]
+  n_file_src_static_analysis_types_evidence_js["src/static-analysis/types/evidence.js"]
+  n_file_src_agents_impact_analyzer_index_js -->|IMPORTS| n_file_src_static_analysis_types_evidence_js
+  n_file_src_cli_analyze_js["src/cli/analyze.js"]
+  n_file_src_static_analysis_types_config_js["src/static-analysis/types/config.js"]
+  n_file_src_cli_analyze_js -->|IMPORTS| n_file_src_static_analysis_types_config_js
+  n_file_src_cli_analyze_js["src/cli/analyze.js"]
+  n_file_src_static_analysis_types_context_js["src/static-analysis/types/context.js"]
+  n_file_src_cli_analyze_js -->|IMPORTS| n_file_src_static_analysis_types_context_js
+  n_file_src_static_analysis_analyzers_architecture_["src/static-analysis/analyzers/architecture.js"]
+  n_file_src_static_analysis_types_result_js["src/static-analysis/types/result.js"]
+  n_file_src_static_analysis_analyzers_architecture_ -->|IMPORTS| n_file_src_static_analysis_types_result_js
+  n_file_src_static_analysis_analyzers_architecture_["src/static-analysis/analyzers/architecture.js"]
+  n_file_src_static_analysis_types_evidence_js["src/static-analysis/types/evidence.js"]
+  n_file_src_static_analysis_analyzers_architecture_ -->|IMPORTS| n_file_src_static_analysis_types_evidence_js
+  n_file_src_static_analysis_analyzers_business_js["src/static-analysis/analyzers/business.js"]
+  n_file_src_static_analysis_types_result_js["src/static-analysis/types/result.js"]
+  n_file_src_static_analysis_analyzers_business_js -->|IMPORTS| n_file_src_static_analysis_types_result_js
+  n_file_src_static_analysis_analyzers_business_js["src/static-analysis/analyzers/business.js"]
+  n_file_src_static_analysis_types_evidence_js["src/static-analysis/types/evidence.js"]
+  n_file_src_static_analysis_analyzers_business_js -->|IMPORTS| n_file_src_static_analysis_types_evidence_js
+  n_file_src_static_analysis_analyzers_dataflow_js["src/static-analysis/analyzers/dataflow.js"]
+  n_file_src_static_analysis_types_result_js["src/static-analysis/types/result.js"]
+  n_file_src_static_analysis_analyzers_dataflow_js -->|IMPORTS| n_file_src_static_analysis_types_result_js
+  n_file_src_static_analysis_analyzers_dataflow_js["src/static-analysis/analyzers/dataflow.js"]
+  n_file_src_static_analysis_types_evidence_js["src/static-analysis/types/evidence.js"]
+  n_file_src_static_analysis_analyzers_dataflow_js -->|IMPORTS| n_file_src_static_analysis_types_evidence_js
+  n_file_src_static_analysis_analyzers_feature_js["src/static-analysis/analyzers/feature.js"]
+  n_file_src_static_analysis_types_result_js["src/static-analysis/types/result.js"]
+  n_file_src_static_analysis_analyzers_feature_js -->|IMPORTS| n_file_src_static_analysis_types_result_js
+  n_file_src_static_analysis_analyzers_feature_js["src/static-analysis/analyzers/feature.js"]
+  n_file_src_static_analysis_types_evidence_js["src/static-analysis/types/evidence.js"]
+  n_file_src_static_analysis_analyzers_feature_js -->|IMPORTS| n_file_src_static_analysis_types_evidence_js
+  n_file_src_static_analysis_analyzers_graph_js["src/static-analysis/analyzers/graph.js"]
+  n_file_src_static_analysis_types_result_js["src/static-analysis/types/result.js"]
+  n_file_src_static_analysis_analyzers_graph_js -->|IMPORTS| n_file_src_static_analysis_types_result_js
+  n_file_src_static_analysis_analyzers_graph_js["src/static-analysis/analyzers/graph.js"]
+  n_file_src_static_analysis_types_evidence_js["src/static-analysis/types/evidence.js"]
+  n_file_src_static_analysis_analyzers_graph_js -->|IMPORTS| n_file_src_static_analysis_types_evidence_js
+  n_file_src_static_analysis_analyzers_repository_js["src/static-analysis/analyzers/repository.js"]
+  n_file_src_static_analysis_types_result_js["src/static-analysis/types/result.js"]
+  n_file_src_static_analysis_analyzers_repository_js -->|IMPORTS| n_file_src_static_analysis_types_result_js
+  n_file_src_static_analysis_analyzers_repository_js["src/static-analysis/analyzers/repository.js"]
+  n_file_src_static_analysis_types_evidence_js["src/static-analysis/types/evidence.js"]
+  n_file_src_static_analysis_analyzers_repository_js -->|IMPORTS| n_file_src_static_analysis_types_evidence_js
+  n_file_src_static_analysis_modules_buildBundles_js["src/static-analysis/modules/buildBundles.js"]
+  n_file_src_static_analysis_types_evidence_js["src/static-analysis/types/evidence.js"]
+  n_file_src_static_analysis_modules_buildBundles_js -->|IMPORTS| n_file_src_static_analysis_types_evidence_js
+  n_file_src_static_analysis_orchestrator_js["src/static-analysis/orchestrator.js"]
+  n_file_src_static_analysis_types_context_js["src/static-analysis/types/context.js"]
+  n_file_src_static_analysis_orchestrator_js -->|IMPORTS| n_file_src_static_analysis_types_context_js
+  n_file_src_static_analysis_types_config_js["src/static-analysis/types/config.js"]
+  n_import_node_path["node:path"]
+  n_file_src_static_analysis_types_config_js -->|IMPORTS| n_import_node_path

@@ -1,0 +1,32 @@
+{
+  "status": "success",
+  "result": {
+    "checked": 0,
+    "summary": {
+      "ok": 0,
+      "downgrade": 0,
+      "reject": 0
+    },
+    "rejected": [],
+    "downgraded": [],
+    "findings": [],
+    "trustedImpact": {
+      "source": "requirement",
+      "affectedFiles": [],
+      "affectedModules": [],
+      "affectedFeatures": [],
+      "affectedDataFlows": [],
+      "affectedBusinessFlows": [],
+      "affectedTests": [],
+      "risk": "low",
+      "confidence": 0.4
+    },
+    "note": "impact report was empty; nothing to validate"
+  },
+  "knowledgeUpdates": [],
+  "evidence": [],
+  "nextActions": [],
+  "metrics": {
+    "duration": 0
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "module": "src-patterns",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/patterns/AntiPatternDetector.js",
+        "src/patterns/PatternAdvisor.js",
+        "src/patterns/PatternComposer.js",
+        "src/patterns/PatternGate.js",
+        "src/patterns/PatternProblems.js",
+        "src/patterns/PatternScore.js",
+        "src/patterns/catalog.js"
+      ],
+      "routes": [],
+      "components": [
+        "ANTI_PATTERN_RULES",
+        "ANTI_PATTERN_CATALOG",
+        "PATTERN_DOMAINS",
+        "PATTERN_INDEX"
+      ]
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/patterns/AntiPatternDetector.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/patterns/PatternAdvisor.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/patterns/PatternComposer.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/patterns/PatternGate.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/patterns/PatternProblems.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/patterns/PatternScore.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/patterns/catalog.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

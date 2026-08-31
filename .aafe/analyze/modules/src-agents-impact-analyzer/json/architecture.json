@@ -1,0 +1,41 @@
+{
+  "module": "src-agents-impact-analyzer",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agents/impact-analyzer/index.js",
+        "src/agents/impact-analyzer/tokenize.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-agent-platform-protocol",
+      "module:src-knowledge-graph",
+      "module:src-knowledge-model",
+      "module:src-static-analysis-git",
+      "module:src-static-analysis-types"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agents/impact-analyzer/index.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agents/impact-analyzer/tokenize.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-agent-platform-protocol",
+    "module:src-knowledge-graph",
+    "module:src-knowledge-model",
+    "module:src-static-analysis-git",
+    "module:src-static-analysis-types"
+  ],
+  "signals": []
+}

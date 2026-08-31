@@ -1,0 +1,660 @@
+{
+  "module": "src-testing-e2e",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:72",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-e2e-platform.js",
+        "nodes": [
+          "file:scripts/test-e2e-platform.js",
+          "file:src/testing/e2e/compile.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-e2e-platform.js",
+            "to": "file:src/testing/e2e/compile.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-e2e-platform.js",
+            "reason": "../src/testing/e2e/compile.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:73",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-e2e-platform.js",
+        "nodes": [
+          "file:scripts/test-e2e-platform.js",
+          "file:src/testing/e2e/config.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-e2e-platform.js",
+            "to": "file:src/testing/e2e/config.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-e2e-platform.js",
+            "reason": "../src/testing/e2e/config.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:74",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-e2e-platform.js",
+        "nodes": [
+          "file:scripts/test-e2e-platform.js",
+          "file:src/testing/e2e/inventory.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-e2e-platform.js",
+            "to": "file:src/testing/e2e/inventory.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-e2e-platform.js",
+            "reason": "../src/testing/e2e/inventory.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:75",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-e2e-platform.js",
+        "nodes": [
+          "file:scripts/test-e2e-platform.js",
+          "file:src/testing/e2e/layers.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-e2e-platform.js",
+            "to": "file:src/testing/e2e/layers.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-e2e-platform.js",
+            "reason": "../src/testing/e2e/layers.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:76",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-e2e-platform.js",
+        "nodes": [
+          "file:scripts/test-e2e-platform.js",
+          "file:src/testing/e2e/pr.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-e2e-platform.js",
+            "to": "file:src/testing/e2e/pr.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-e2e-platform.js",
+            "reason": "../src/testing/e2e/pr.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:77",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-e2e-platform.js",
+        "nodes": [
+          "file:scripts/test-e2e-platform.js",
+          "file:src/testing/e2e/report.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-e2e-platform.js",
+            "to": "file:src/testing/e2e/report.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-e2e-platform.js",
+            "reason": "../src/testing/e2e/report.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:78",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-e2e-platform.js",
+        "nodes": [
+          "file:scripts/test-e2e-platform.js",
+          "file:src/testing/e2e/runner.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-e2e-platform.js",
+            "to": "file:src/testing/e2e/runner.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-e2e-platform.js",
+            "reason": "../src/testing/e2e/runner.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:79",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-e2e-platform.js",
+        "nodes": [
+          "file:scripts/test-e2e-platform.js",
+          "file:src/testing/e2e/yaml.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-e2e-platform.js",
+            "to": "file:src/testing/e2e/yaml.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-e2e-platform.js",
+            "reason": "../src/testing/e2e/yaml.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:224",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/generate.js",
+        "nodes": [
+          "file:src/agents/test-agent/generate.js",
+          "file:src/testing/e2e/yaml.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/generate.js",
+            "to": "file:src/testing/e2e/yaml.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "../../testing/e2e/yaml.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:225",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/generate.js",
+        "nodes": [
+          "file:src/agents/test-agent/generate.js",
+          "file:src/testing/e2e/compile.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/generate.js",
+            "to": "file:src/testing/e2e/compile.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "../../testing/e2e/compile.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:226",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/generate.js",
+        "nodes": [
+          "file:src/agents/test-agent/generate.js",
+          "file:src/testing/e2e/yaml.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/generate.js",
+            "to": "file:src/testing/e2e/yaml.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "../../testing/e2e/yaml.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:232",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/index.js",
+        "nodes": [
+          "file:src/agents/test-agent/index.js",
+          "file:src/testing/e2e/config.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/index.js",
+            "to": "file:src/testing/e2e/config.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/index.js",
+            "reason": "../../testing/e2e/config.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:233",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/index.js",
+        "nodes": [
+          "file:src/agents/test-agent/index.js",
+          "file:src/testing/e2e/runner.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/index.js",
+            "to": "file:src/testing/e2e/runner.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/index.js",
+            "reason": "../../testing/e2e/runner.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:234",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/index.js",
+        "nodes": [
+          "file:src/agents/test-agent/index.js",
+          "file:src/testing/e2e/inventory.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/index.js",
+            "to": "file:src/testing/e2e/inventory.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/index.js",
+            "reason": "../../testing/e2e/inventory.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:235",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/index.js",
+        "nodes": [
+          "file:src/agents/test-agent/index.js",
+          "file:src/testing/e2e/pr.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/index.js",
+            "to": "file:src/testing/e2e/pr.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/index.js",
+            "reason": "../../testing/e2e/pr.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:237",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/index.js",
+        "nodes": [
+          "file:src/agents/test-agent/index.js",
+          "file:src/testing/e2e/layers.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/index.js",
+            "to": "file:src/testing/e2e/layers.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/index.js",
+            "reason": "../../testing/e2e/layers.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:241",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/plan.js",
+        "nodes": [
+          "file:src/agents/test-agent/plan.js",
+          "file:src/testing/e2e/config.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/plan.js",
+            "to": "file:src/testing/e2e/config.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/plan.js",
+            "reason": "../../testing/e2e/config.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:242",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/plan.js",
+        "nodes": [
+          "file:src/agents/test-agent/plan.js",
+          "file:src/testing/e2e/inventory.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/plan.js",
+            "to": "file:src/testing/e2e/inventory.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/plan.js",
+            "reason": "../../testing/e2e/inventory.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:243",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/plan.js",
+        "nodes": [
+          "file:src/agents/test-agent/plan.js",
+          "file:src/testing/e2e/layers.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/plan.js",
+            "to": "file:src/testing/e2e/layers.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/plan.js",
+            "reason": "../../testing/e2e/layers.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:244",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/plan.js",
+        "nodes": [
+          "file:src/agents/test-agent/plan.js",
+          "file:src/testing/e2e/match.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/plan.js",
+            "to": "file:src/testing/e2e/match.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/plan.js",
+            "reason": "../../testing/e2e/match.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:245",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/plan.js",
+        "nodes": [
+          "file:src/agents/test-agent/plan.js",
+          "file:src/testing/e2e/yaml.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/plan.js",
+            "to": "file:src/testing/e2e/yaml.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/plan.js",
+            "reason": "../../testing/e2e/yaml.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:303",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/doctor.js",
+        "nodes": [
+          "file:src/cli/doctor.js",
+          "file:src/testing/e2e/config.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/doctor.js",
+            "to": "file:src/testing/e2e/config.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/doctor.js",
+            "reason": "../testing/e2e/config.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:309",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/e2eSetup.js",
+        "nodes": [
+          "file:src/cli/e2eSetup.js",
+          "file:src/testing/e2e/config.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/e2eSetup.js",
+            "to": "file:src/testing/e2e/config.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/e2eSetup.js",
+            "reason": "../testing/e2e/config.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:310",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/e2eSetup.js",
+        "nodes": [
+          "file:src/cli/e2eSetup.js",
+          "file:src/testing/e2e/runner.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/e2eSetup.js",
+            "to": "file:src/testing/e2e/runner.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/e2eSetup.js",
+            "reason": "../testing/e2e/runner.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:375",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/platform.js",
+        "nodes": [
+          "file:src/cli/platform.js",
+          "file:src/testing/e2e/config.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/platform.js",
+            "to": "file:src/testing/e2e/config.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/platform.js",
+            "reason": "../testing/e2e/config.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:383",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/prompts.js",
+        "nodes": [
+          "file:src/cli/prompts.js",
+          "file:src/testing/e2e/config.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/prompts.js",
+            "to": "file:src/testing/e2e/config.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/prompts.js",
+            "reason": "../testing/e2e/config.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:499",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/testing/e2e/compile.js",
+        "nodes": [
+          "file:src/testing/e2e/compile.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/testing/e2e/compile.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/testing/e2e/compile.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 27,
+      "call": 0
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "status": "skipped",
+  "result": null,
+  "knowledgeUpdates": [],
+  "evidence": [],
+  "nextActions": [
+    {
+      "capability": "test-planning",
+      "reason": "generation needs a plan first"
+    }
+  ],
+  "metrics": {},
+  "reason": "no-test-plan-available"
+}

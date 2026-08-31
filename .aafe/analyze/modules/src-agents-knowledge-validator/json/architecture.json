@@ -1,0 +1,31 @@
+{
+  "module": "src-agents-knowledge-validator",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agents/knowledge-validator/index.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-agent-platform-protocol",
+      "module:src-knowledge-model",
+      "module:src-knowledge-validator"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agents/knowledge-validator/index.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-agent-platform-protocol",
+    "module:src-knowledge-model",
+    "module:src-knowledge-validator"
+  ],
+  "signals": []
+}

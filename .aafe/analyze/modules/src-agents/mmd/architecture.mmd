@@ -1,0 +1,10 @@
+flowchart TB
+  subgraph n_src_agents["src-agents"]
+    n_src_agents_index_js["agents/index.js"]
+  end
+  n_src_agents --> n_src_agents_code_intelligence["src-agents-code-intelligence"]
+  n_src_agents --> n_src_agents_context_agent["src-agents-context-agent"]
+  n_src_agents --> n_src_agents_failure_analyzer["src-agents-failure-analyzer"]
+  n_src_agents --> n_src_agents_impact_analyzer["src-agents-impact-analyzer"]
+  n_src_agents --> n_src_agents_knowledge_validator["src-agents-knowledge-validator"]
+  n_src_agents --> n_src_agents_test_agent["src-agents-test-agent"]

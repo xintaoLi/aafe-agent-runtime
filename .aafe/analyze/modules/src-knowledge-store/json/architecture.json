@@ -1,0 +1,27 @@
+{
+  "module": "src-knowledge-store",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/knowledge/store/KnowledgeStore.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-knowledge-model"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/knowledge/store/KnowledgeStore.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-knowledge-model"
+  ],
+  "signals": []
+}

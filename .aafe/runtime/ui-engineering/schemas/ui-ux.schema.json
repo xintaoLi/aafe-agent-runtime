@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/ui/ui-ux.schema.json",
+  "title": "UX / Visual Decision",
+  "type": "object",
+  "properties": {
+    "user": {
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "primaryTask": {
+      "type": "string"
+    },
+    "hierarchy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "primaryTask"
+  ]
+}

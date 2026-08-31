@@ -1,0 +1,22 @@
+{
+  "module": "src-agents-impact-analyzer",
+  "components": [],
+  "relations": [
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "tokenize",
+      "toLabel": "tokenize",
+      "type": "IMPORTS",
+      "fromFile": "src/agents/impact-analyzer/index.js",
+      "toFile": "src/agents/impact-analyzer/tokenize.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agents/impact-analyzer/index.js",
+          "reason": "./tokenize.js"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "module": "src-memory",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/memory/CodeScanner.js",
+        "src/memory/MemoryRuntime.js",
+        "src/memory/MemoryStore.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/memory/CodeScanner.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/memory/MemoryRuntime.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/memory/MemoryStore.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

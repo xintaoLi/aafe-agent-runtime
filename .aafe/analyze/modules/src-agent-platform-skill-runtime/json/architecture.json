@@ -1,0 +1,72 @@
+{
+  "module": "src-agent-platform-skill-runtime",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agent-platform/skill-runtime/AgentRuntime.js",
+        "src/agent-platform/skill-runtime/GateValidator.js",
+        "src/agent-platform/skill-runtime/HookBus.js",
+        "src/agent-platform/skill-runtime/PipelineExecutor.js",
+        "src/agent-platform/skill-runtime/SkillRegistry.js",
+        "src/agent-platform/skill-runtime/configLoader.js",
+        "src/agent-platform/skill-runtime/defaults.js"
+      ],
+      "routes": [],
+      "components": [
+        "LEGACY_DDD_ALIASES",
+        "DDD_PATTERN_BRIDGE"
+      ]
+    },
+    "outboundModules": [
+      "module:src-ddd",
+      "module:src-knowledge-store",
+      "module:src-memory",
+      "module:src-patterns"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/skill-runtime/GateValidator.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/skill-runtime/HookBus.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/skill-runtime/PipelineExecutor.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/skill-runtime/SkillRegistry.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/skill-runtime/configLoader.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/skill-runtime/defaults.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-ddd",
+    "module:src-knowledge-store",
+    "module:src-memory",
+    "module:src-patterns"
+  ],
+  "signals": []
+}

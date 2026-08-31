@@ -1,0 +1,1091 @@
+{
+  "status": "success",
+  "result": {
+    "id": "plan:mt1atakf",
+    "requirement": "full coverage from analyze",
+    "risk": "medium",
+    "scenario": "coverage",
+    "runner": {
+      "e2e": "playwright",
+      "unit": null
+    },
+    "scenarios": [
+      {
+        "id": "FEAT-CHAIN-FEATURE-AI-AGENT-MEMORY",
+        "caseId": null,
+        "title": "功能覆盖 memory",
+        "kind": "e2e",
+        "steps": [
+          "Navigate to /.ai-agent/memory",
+          "Wait for the page to load"
+        ],
+        "expected": [
+          "No console errors",
+          "No HTTP errors"
+        ],
+        "priority": "normal",
+        "source": {
+          "type": "feature",
+          "path": "/.ai-agent/memory",
+          "moduleId": "src-cli",
+          "file": null,
+          "coverage": "missing"
+        },
+        "relatedFeature": "feature:ai-agent-memory"
+      },
+      {
+        "id": "FEAT-CHAIN-FEATURE-PACKAGE-JSON",
+        "caseId": null,
+        "title": "功能覆盖 package",
+        "kind": "e2e",
+        "steps": [
+          "Navigate to /package.json",
+          "Wait for the page to load"
+        ],
+        "expected": [
+          "No console errors",
+          "No HTTP errors"
+        ],
+        "priority": "normal",
+        "source": {
+          "type": "feature",
+          "path": "/package.json",
+          "moduleId": "src-static-analysis-analyzers",
+          "file": null,
+          "coverage": "missing"
+        },
+        "relatedFeature": "feature:package-json"
+      },
+      {
+        "id": "FEAT-CHAIN-FEATURE-CTX-PATH-INDEX",
+        "caseId": null,
+        "title": "功能覆盖 ${index}",
+        "kind": "e2e",
+        "steps": [
+          "Navigate to /src/agent-platform/schema/repair.js",
+          "Wait for the page to load"
+        ],
+        "expected": [
+          "No console errors",
+          "No HTTP errors"
+        ],
+        "priority": "normal",
+        "source": {
+          "type": "feature",
+          "path": "/src/agent-platform/schema/repair.js",
+          "moduleId": "src-agent-platform-schema",
+          "file": null,
+          "coverage": "missing"
+        },
+        "relatedFeature": "feature:ctx-path-index"
+      },
+      {
+        "id": "FEAT-CHAIN-FEATURE-CTX-PATH-KEY",
+        "caseId": null,
+        "title": "功能覆盖 ${key}",
+        "kind": "e2e",
+        "steps": [
+          "Navigate to /src/agent-platform/schema/repair.js",
+          "Wait for the page to load"
+        ],
+        "expected": [
+          "No console errors",
+          "No HTTP errors"
+        ],
+        "priority": "normal",
+        "source": {
+          "type": "feature",
+          "path": "/src/agent-platform/schema/repair.js",
+          "moduleId": "src-agent-platform-schema",
+          "file": null,
+          "coverage": "missing"
+        },
+        "relatedFeature": "feature:ctx-path-key"
+      },
+      {
+        "id": "FEAT-CHAIN-FEATURE-CASESDIR-ID-YAML",
+        "caseId": null,
+        "title": "功能覆盖 ${id}",
+        "kind": "e2e",
+        "steps": [
+          "Navigate to /src/agents/test-agent/generate.js",
+          "Wait for the page to load"
+        ],
+        "expected": [
+          "No console errors",
+          "No HTTP errors"
+        ],
+        "priority": "normal",
+        "source": {
+          "type": "feature",
+          "path": "/src/agents/test-agent/generate.js",
+          "moduleId": "src-agents-test-agent",
+          "file": null,
+          "coverage": "missing"
+        },
+        "relatedFeature": "feature:casesdir-id-yaml"
+      },
+      {
+        "id": "FEAT-CHAIN-FEATURE-AAFE-E2E-SPECS-I",
+        "caseId": null,
+        "title": "功能覆盖 ${id}.spec",
+        "kind": "e2e",
+        "steps": [
+          "Navigate to /src/agents/test-agent/generate.js",
+          "Wait for the page to load"
+        ],
+        "expected": [
+          "No console errors",
+          "No HTTP errors"
+        ],
+        "priority": "normal",
+        "source": {
+          "type": "feature",
+          "path": "/src/agents/test-agent/generate.js",
+          "moduleId": "src-agents-test-agent",
+          "file": null,
+          "coverage": "missing"
+        },
+        "relatedFeature": "feature:aafe-e2e-specs-id-spec-js"
+      },
+      {
+        "id": "FEAT-CHAIN-FEATURE-TESTS-AAFE-FILES",
+        "caseId": null,
+        "title": "功能覆盖 ${fileStem(plan)}.spec",
+        "kind": "e2e",
+        "steps": [
+          "Navigate to /src/agents/test-agent/generate.js",
+          "Wait for the page to load"
+        ],
+        "expected": [
+          "No console errors",
+          "No HTTP errors"
+        ],
+        "priority": "normal",
+        "source": {
+          "type": "feature",
+          "path": "/src/agents/test-agent/generate.js",
+          "moduleId": "src-agents-test-agent",
+          "file": null,
+          "coverage": "missing"
+        },
+        "relatedFeature": "feature:tests-aafe-filestem-plan-spec-js"
+      },
+      {
+        "id": "FEAT-CHAIN-FEATURE-FEATURE",
+        "caseId": null,
+        "title": "功能覆盖 ...",
+        "kind": "e2e",
+        "steps": [
+          "Navigate to /src/static-analysis/ast/extractors.js",
+          "Wait for the page to load"
+        ],
+        "expected": [
+          "No console errors",
+          "No HTTP errors"
+        ],
+        "priority": "normal",
+        "source": {
+          "type": "feature",
+          "path": "/src/static-analysis/ast/extractors.js",
+          "moduleId": "src-static-analysis-ast",
+          "file": null,
+          "coverage": "missing"
+        },
+        "relatedFeature": "feature:feature"
+      }
+    ],
+    "existingTests": [],
+    "coverageGaps": [],
+    "evidence": [
+      {
+        "type": "route",
+        "file": "src-cli",
+        "reason": "route /.ai-agent/memory"
+      },
+      {
+        "type": "route",
+        "file": "src-static-analysis-analyzers",
+        "reason": "route /package.json"
+      },
+      {
+        "type": "route",
+        "file": "src-agent-platform-schema",
+        "reason": "route /src/agent-platform/schema/repair.js"
+      },
+      {
+        "type": "route",
+        "file": "src-agent-platform-schema",
+        "reason": "route /src/agent-platform/schema/repair.js"
+      },
+      {
+        "type": "route",
+        "file": "src-agents-test-agent",
+        "reason": "route /src/agents/test-agent/generate.js"
+      },
+      {
+        "type": "route",
+        "file": "src-agents-test-agent",
+        "reason": "route /src/agents/test-agent/generate.js"
+      },
+      {
+        "type": "route",
+        "file": "src-agents-test-agent",
+        "reason": "route /src/agents/test-agent/generate.js"
+      },
+      {
+        "type": "route",
+        "file": "src-static-analysis-ast",
+        "reason": "route /src/static-analysis/ast/extractors.js"
+      },
+      {
+        "type": "route",
+        "file": "route",
+        "reason": "route /src/static-analysis/ast/extractors.js"
+      },
+      {
+        "type": "route",
+        "file": "route-aafe",
+        "reason": "route /src/agents/test-agent/generate.js"
+      },
+      {
+        "type": "route",
+        "file": "route-aafe",
+        "reason": "route /src/agents/test-agent/generate.js"
+      },
+      {
+        "type": "route",
+        "file": "route-aafe",
+        "reason": "route /src/agents/test-agent/generate.js"
+      },
+      {
+        "type": "route",
+        "file": "route-ai-agent",
+        "reason": "route /.ai-agent/memory"
+      },
+      {
+        "type": "route",
+        "file": "route-casesdir",
+        "reason": "route /src/agents/test-agent/generate.js"
+      },
+      {
+        "type": "route",
+        "file": "route-casesdir",
+        "reason": "route /src/agents/test-agent/generate.js"
+      },
+      {
+        "type": "route",
+        "file": "route-casesdir",
+        "reason": "route /src/agents/test-agent/generate.js"
+      },
+      {
+        "type": "route",
+        "file": "route-ctx-path",
+        "reason": "route /src/agent-platform/schema/repair.js"
+      },
+      {
+        "type": "route",
+        "file": "route-ctx-path",
+        "reason": "route /src/agent-platform/schema/repair.js"
+      },
+      {
+        "type": "route",
+        "file": "route-package-json",
+        "reason": "route /package.json"
+      },
+      {
+        "type": "route",
+        "file": "route-tests",
+        "reason": "route /src/agents/test-agent/generate.js"
+      },
+      {
+        "type": "route",
+        "file": "route-tests",
+        "reason": "route /src/agents/test-agent/generate.js"
+      },
+      {
+        "type": "route",
+        "file": "route-tests",
+        "reason": "route /src/agents/test-agent/generate.js"
+      }
+    ],
+    "inventory": {
+      "ok": true,
+      "builtAt": "2026-08-20T09:08:46.911Z",
+      "root": "/Users/lixintao/github/aafe-agent-runtime",
+      "extraFiles": [],
+      "routes": [],
+      "features": [
+        {
+          "id": "feature:ai-agent-memory",
+          "name": "memory",
+          "moduleId": "src-cli",
+          "entrypoints": [
+            ".ai-agent/memory"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/cli/bootstrap.js",
+              "reason": ".ai-agent/memory"
+            }
+          ]
+        },
+        {
+          "id": "feature:package-json",
+          "name": "package",
+          "moduleId": "src-static-analysis-analyzers",
+          "entrypoints": [
+            "package.json"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/static-analysis/analyzers/repository.js",
+              "reason": "package.json"
+            }
+          ]
+        },
+        {
+          "id": "feature:ctx-path-index",
+          "name": "${index}",
+          "moduleId": "src-agent-platform-schema",
+          "entrypoints": [
+            "${ctx.path}/${index}"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "${ctx.path}/${index}"
+            }
+          ]
+        },
+        {
+          "id": "feature:ctx-path-key",
+          "name": "${key}",
+          "moduleId": "src-agent-platform-schema",
+          "entrypoints": [
+            "${ctx.path}/${key}"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "${ctx.path}/${key}"
+            }
+          ]
+        },
+        {
+          "id": "feature:casesdir-id-yaml",
+          "name": "${id}",
+          "moduleId": "src-agents-test-agent",
+          "entrypoints": [
+            "${casesDir}/${id}.yaml"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "${casesDir}/${id}.yaml"
+            }
+          ]
+        },
+        {
+          "id": "feature:aafe-e2e-specs-id-spec-js",
+          "name": "${id}.spec",
+          "moduleId": "src-agents-test-agent",
+          "entrypoints": [
+            ".aafe/e2e/specs/${id}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": ".aafe/e2e/specs/${id}.spec.js"
+            }
+          ]
+        },
+        {
+          "id": "feature:tests-aafe-filestem-plan-spec-js",
+          "name": "${fileStem(plan)}.spec",
+          "moduleId": "src-agents-test-agent",
+          "entrypoints": [
+            "tests/aafe/${fileStem(plan)}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+            }
+          ]
+        },
+        {
+          "id": "feature:feature",
+          "name": "...",
+          "moduleId": "src-static-analysis-ast",
+          "entrypoints": [
+            "..."
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/static-analysis/ast/extractors.js",
+              "reason": "..."
+            }
+          ]
+        },
+        {
+          "id": "feature:feature",
+          "name": "...",
+          "moduleId": "route",
+          "entrypoints": [
+            "..."
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/static-analysis/ast/extractors.js",
+              "reason": "..."
+            }
+          ]
+        },
+        {
+          "id": "feature:casesdir-id-yaml",
+          "name": "${id}",
+          "moduleId": "route-aafe",
+          "entrypoints": [
+            "${casesDir}/${id}.yaml"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "${casesDir}/${id}.yaml"
+            }
+          ]
+        },
+        {
+          "id": "feature:aafe-e2e-specs-id-spec-js",
+          "name": "${id}.spec",
+          "moduleId": "route-aafe",
+          "entrypoints": [
+            ".aafe/e2e/specs/${id}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": ".aafe/e2e/specs/${id}.spec.js"
+            }
+          ]
+        },
+        {
+          "id": "feature:tests-aafe-filestem-plan-spec-js",
+          "name": "${fileStem(plan)}.spec",
+          "moduleId": "route-aafe",
+          "entrypoints": [
+            "tests/aafe/${fileStem(plan)}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+            }
+          ]
+        },
+        {
+          "id": "feature:ai-agent-memory",
+          "name": "memory",
+          "moduleId": "route-ai-agent",
+          "entrypoints": [
+            ".ai-agent/memory"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/cli/bootstrap.js",
+              "reason": ".ai-agent/memory"
+            }
+          ]
+        },
+        {
+          "id": "feature:casesdir-id-yaml",
+          "name": "${id}",
+          "moduleId": "route-casesdir",
+          "entrypoints": [
+            "${casesDir}/${id}.yaml"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "${casesDir}/${id}.yaml"
+            }
+          ]
+        },
+        {
+          "id": "feature:aafe-e2e-specs-id-spec-js",
+          "name": "${id}.spec",
+          "moduleId": "route-casesdir",
+          "entrypoints": [
+            ".aafe/e2e/specs/${id}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": ".aafe/e2e/specs/${id}.spec.js"
+            }
+          ]
+        },
+        {
+          "id": "feature:tests-aafe-filestem-plan-spec-js",
+          "name": "${fileStem(plan)}.spec",
+          "moduleId": "route-casesdir",
+          "entrypoints": [
+            "tests/aafe/${fileStem(plan)}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+            }
+          ]
+        },
+        {
+          "id": "feature:ctx-path-index",
+          "name": "${index}",
+          "moduleId": "route-ctx-path",
+          "entrypoints": [
+            "${ctx.path}/${index}"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "${ctx.path}/${index}"
+            }
+          ]
+        },
+        {
+          "id": "feature:ctx-path-key",
+          "name": "${key}",
+          "moduleId": "route-ctx-path",
+          "entrypoints": [
+            "${ctx.path}/${key}"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agent-platform/schema/repair.js",
+              "reason": "${ctx.path}/${key}"
+            }
+          ]
+        },
+        {
+          "id": "feature:package-json",
+          "name": "package",
+          "moduleId": "route-package-json",
+          "entrypoints": [
+            "package.json"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/static-analysis/analyzers/repository.js",
+              "reason": "package.json"
+            }
+          ]
+        },
+        {
+          "id": "feature:casesdir-id-yaml",
+          "name": "${id}",
+          "moduleId": "route-tests",
+          "entrypoints": [
+            "${casesDir}/${id}.yaml"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "${casesDir}/${id}.yaml"
+            }
+          ]
+        },
+        {
+          "id": "feature:aafe-e2e-specs-id-spec-js",
+          "name": "${id}.spec",
+          "moduleId": "route-tests",
+          "entrypoints": [
+            ".aafe/e2e/specs/${id}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": ".aafe/e2e/specs/${id}.spec.js"
+            }
+          ]
+        },
+        {
+          "id": "feature:tests-aafe-filestem-plan-spec-js",
+          "name": "${fileStem(plan)}.spec",
+          "moduleId": "route-tests",
+          "entrypoints": [
+            "tests/aafe/${fileStem(plan)}.spec.js"
+          ],
+          "evidence": [
+            {
+              "type": "route",
+              "file": "src/agents/test-agent/generate.js",
+              "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+            }
+          ]
+        }
+      ],
+      "suggestedChains": [
+        {
+          "id": "FEAT-CHAIN-FEATURE-AI-AGENT-MEMORY",
+          "kind": "feature",
+          "title": "功能覆盖 memory",
+          "featureId": "feature:ai-agent-memory",
+          "entryHints": [
+            "/.ai-agent/memory"
+          ],
+          "moduleId": "src-cli",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-PACKAGE-JSON",
+          "kind": "feature",
+          "title": "功能覆盖 package",
+          "featureId": "feature:package-json",
+          "entryHints": [
+            "/package.json"
+          ],
+          "moduleId": "src-static-analysis-analyzers",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-CTX-PATH-INDEX",
+          "kind": "feature",
+          "title": "功能覆盖 ${index}",
+          "featureId": "feature:ctx-path-index",
+          "entryHints": [
+            "/src/agent-platform/schema/repair.js"
+          ],
+          "moduleId": "src-agent-platform-schema",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-CTX-PATH-KEY",
+          "kind": "feature",
+          "title": "功能覆盖 ${key}",
+          "featureId": "feature:ctx-path-key",
+          "entryHints": [
+            "/src/agent-platform/schema/repair.js"
+          ],
+          "moduleId": "src-agent-platform-schema",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-CASESDIR-ID-YAML",
+          "kind": "feature",
+          "title": "功能覆盖 ${id}",
+          "featureId": "feature:casesdir-id-yaml",
+          "entryHints": [
+            "/src/agents/test-agent/generate.js"
+          ],
+          "moduleId": "src-agents-test-agent",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-AAFE-E2E-SPECS-I",
+          "kind": "feature",
+          "title": "功能覆盖 ${id}.spec",
+          "featureId": "feature:aafe-e2e-specs-id-spec-js",
+          "entryHints": [
+            "/src/agents/test-agent/generate.js"
+          ],
+          "moduleId": "src-agents-test-agent",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-TESTS-AAFE-FILES",
+          "kind": "feature",
+          "title": "功能覆盖 ${fileStem(plan)}.spec",
+          "featureId": "feature:tests-aafe-filestem-plan-spec-js",
+          "entryHints": [
+            "/src/agents/test-agent/generate.js"
+          ],
+          "moduleId": "src-agents-test-agent",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-FEATURE",
+          "kind": "feature",
+          "title": "功能覆盖 ...",
+          "featureId": "feature:feature",
+          "entryHints": [
+            "/src/static-analysis/ast/extractors.js"
+          ],
+          "moduleId": "src-static-analysis-ast",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-FEATURE",
+          "kind": "feature",
+          "title": "功能覆盖 ...",
+          "featureId": "feature:feature",
+          "entryHints": [
+            "/src/static-analysis/ast/extractors.js"
+          ],
+          "moduleId": "route",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-CASESDIR-ID-YAML",
+          "kind": "feature",
+          "title": "功能覆盖 ${id}",
+          "featureId": "feature:casesdir-id-yaml",
+          "entryHints": [
+            "/src/agents/test-agent/generate.js"
+          ],
+          "moduleId": "route-aafe",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-AAFE-E2E-SPECS-I",
+          "kind": "feature",
+          "title": "功能覆盖 ${id}.spec",
+          "featureId": "feature:aafe-e2e-specs-id-spec-js",
+          "entryHints": [
+            "/src/agents/test-agent/generate.js"
+          ],
+          "moduleId": "route-aafe",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-TESTS-AAFE-FILES",
+          "kind": "feature",
+          "title": "功能覆盖 ${fileStem(plan)}.spec",
+          "featureId": "feature:tests-aafe-filestem-plan-spec-js",
+          "entryHints": [
+            "/src/agents/test-agent/generate.js"
+          ],
+          "moduleId": "route-aafe",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-AI-AGENT-MEMORY",
+          "kind": "feature",
+          "title": "功能覆盖 memory",
+          "featureId": "feature:ai-agent-memory",
+          "entryHints": [
+            "/.ai-agent/memory"
+          ],
+          "moduleId": "route-ai-agent",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-CASESDIR-ID-YAML",
+          "kind": "feature",
+          "title": "功能覆盖 ${id}",
+          "featureId": "feature:casesdir-id-yaml",
+          "entryHints": [
+            "/src/agents/test-agent/generate.js"
+          ],
+          "moduleId": "route-casesdir",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-AAFE-E2E-SPECS-I",
+          "kind": "feature",
+          "title": "功能覆盖 ${id}.spec",
+          "featureId": "feature:aafe-e2e-specs-id-spec-js",
+          "entryHints": [
+            "/src/agents/test-agent/generate.js"
+          ],
+          "moduleId": "route-casesdir",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-TESTS-AAFE-FILES",
+          "kind": "feature",
+          "title": "功能覆盖 ${fileStem(plan)}.spec",
+          "featureId": "feature:tests-aafe-filestem-plan-spec-js",
+          "entryHints": [
+            "/src/agents/test-agent/generate.js"
+          ],
+          "moduleId": "route-casesdir",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-CTX-PATH-INDEX",
+          "kind": "feature",
+          "title": "功能覆盖 ${index}",
+          "featureId": "feature:ctx-path-index",
+          "entryHints": [
+            "/src/agent-platform/schema/repair.js"
+          ],
+          "moduleId": "route-ctx-path",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-CTX-PATH-KEY",
+          "kind": "feature",
+          "title": "功能覆盖 ${key}",
+          "featureId": "feature:ctx-path-key",
+          "entryHints": [
+            "/src/agent-platform/schema/repair.js"
+          ],
+          "moduleId": "route-ctx-path",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-PACKAGE-JSON",
+          "kind": "feature",
+          "title": "功能覆盖 package",
+          "featureId": "feature:package-json",
+          "entryHints": [
+            "/package.json"
+          ],
+          "moduleId": "route-package-json",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-CASESDIR-ID-YAML",
+          "kind": "feature",
+          "title": "功能覆盖 ${id}",
+          "featureId": "feature:casesdir-id-yaml",
+          "entryHints": [
+            "/src/agents/test-agent/generate.js"
+          ],
+          "moduleId": "route-tests",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-AAFE-E2E-SPECS-I",
+          "kind": "feature",
+          "title": "功能覆盖 ${id}.spec",
+          "featureId": "feature:aafe-e2e-specs-id-spec-js",
+          "entryHints": [
+            "/src/agents/test-agent/generate.js"
+          ],
+          "moduleId": "route-tests",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        },
+        {
+          "id": "FEAT-CHAIN-FEATURE-TESTS-AAFE-FILES",
+          "kind": "feature",
+          "title": "功能覆盖 ${fileStem(plan)}.spec",
+          "featureId": "feature:tests-aafe-filestem-plan-spec-js",
+          "entryHints": [
+            "/src/agents/test-agent/generate.js"
+          ],
+          "moduleId": "route-tests",
+          "file": null,
+          "matchedCaseIds": [],
+          "coverage": "missing"
+        }
+      ],
+      "matchedCases": [],
+      "verification": {
+        "items": [
+          {
+            "category": "new-feature",
+            "count": 22
+          },
+          {
+            "category": "regression-guard",
+            "count": 0
+          },
+          {
+            "category": "manual-confirm",
+            "count": 0
+          }
+        ],
+        "manualConfirmRequired": false,
+        "missingFeatures": []
+      }
+    },
+    "e2eApplicable": true,
+    "pr": null
+  },
+  "knowledgeUpdates": [],
+  "evidence": [
+    {
+      "type": "route",
+      "file": "src-cli",
+      "reason": "route /.ai-agent/memory"
+    },
+    {
+      "type": "route",
+      "file": "src-static-analysis-analyzers",
+      "reason": "route /package.json"
+    },
+    {
+      "type": "route",
+      "file": "src-agent-platform-schema",
+      "reason": "route /src/agent-platform/schema/repair.js"
+    },
+    {
+      "type": "route",
+      "file": "src-agent-platform-schema",
+      "reason": "route /src/agent-platform/schema/repair.js"
+    },
+    {
+      "type": "route",
+      "file": "src-agents-test-agent",
+      "reason": "route /src/agents/test-agent/generate.js"
+    },
+    {
+      "type": "route",
+      "file": "src-agents-test-agent",
+      "reason": "route /src/agents/test-agent/generate.js"
+    },
+    {
+      "type": "route",
+      "file": "src-agents-test-agent",
+      "reason": "route /src/agents/test-agent/generate.js"
+    },
+    {
+      "type": "route",
+      "file": "src-static-analysis-ast",
+      "reason": "route /src/static-analysis/ast/extractors.js"
+    },
+    {
+      "type": "route",
+      "file": "route",
+      "reason": "route /src/static-analysis/ast/extractors.js"
+    },
+    {
+      "type": "route",
+      "file": "route-aafe",
+      "reason": "route /src/agents/test-agent/generate.js"
+    },
+    {
+      "type": "route",
+      "file": "route-aafe",
+      "reason": "route /src/agents/test-agent/generate.js"
+    },
+    {
+      "type": "route",
+      "file": "route-aafe",
+      "reason": "route /src/agents/test-agent/generate.js"
+    },
+    {
+      "type": "route",
+      "file": "route-ai-agent",
+      "reason": "route /.ai-agent/memory"
+    },
+    {
+      "type": "route",
+      "file": "route-casesdir",
+      "reason": "route /src/agents/test-agent/generate.js"
+    },
+    {
+      "type": "route",
+      "file": "route-casesdir",
+      "reason": "route /src/agents/test-agent/generate.js"
+    },
+    {
+      "type": "route",
+      "file": "route-casesdir",
+      "reason": "route /src/agents/test-agent/generate.js"
+    },
+    {
+      "type": "route",
+      "file": "route-ctx-path",
+      "reason": "route /src/agent-platform/schema/repair.js"
+    },
+    {
+      "type": "route",
+      "file": "route-ctx-path",
+      "reason": "route /src/agent-platform/schema/repair.js"
+    },
+    {
+      "type": "route",
+      "file": "route-package-json",
+      "reason": "route /package.json"
+    },
+    {
+      "type": "route",
+      "file": "route-tests",
+      "reason": "route /src/agents/test-agent/generate.js"
+    },
+    {
+      "type": "route",
+      "file": "route-tests",
+      "reason": "route /src/agents/test-agent/generate.js"
+    },
+    {
+      "type": "route",
+      "file": "route-tests",
+      "reason": "route /src/agents/test-agent/generate.js"
+    }
+  ],
+  "nextActions": [
+    {
+      "capability": "test-generation",
+      "reason": "turn the plan into runnable skeletons"
+    }
+  ],
+  "metrics": {
+    "duration": 43
+  },
+  "contract": {
+    "mode": "warn",
+    "repairs": [],
+    "attempts": 1,
+    "input": "/write: expected boolean, got null",
+    "output": "ok",
+    "evidence": "ok"
+  }
+}

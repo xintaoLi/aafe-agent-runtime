@@ -1,0 +1,43 @@
+{
+  "id": "src-static-analysis-analyzers",
+  "summary": {
+    "routes": 0,
+    "components": 0,
+    "features": 1,
+    "flows": 34,
+    "dependsOn": [
+      "module:src-static-analysis",
+      "module:src-static-analysis-ast",
+      "module:src-static-analysis-modules",
+      "module:src-static-analysis-resolve",
+      "module:src-static-analysis-routes",
+      "module:src-static-analysis-semantic",
+      "module:src-static-analysis-types"
+    ]
+  },
+  "paths": {
+    "routes": "json/routes.json",
+    "architecture": "json/architecture.json",
+    "components": "json/components.json",
+    "features": "json/features.json",
+    "dataflow": "json/dataflow.json",
+    "mmd": {
+      "routes": "mmd/routes.mmd",
+      "architecture": "mmd/architecture.mmd",
+      "components": "mmd/components.mmd",
+      "dataflow": "mmd/dataflow.mmd"
+    },
+    "readme": "README.md"
+  },
+  "routes": [],
+  "components": [],
+  "dependencies": [
+    "module:src-static-analysis",
+    "module:src-static-analysis-ast",
+    "module:src-static-analysis-modules",
+    "module:src-static-analysis-resolve",
+    "module:src-static-analysis-routes",
+    "module:src-static-analysis-semantic",
+    "module:src-static-analysis-types"
+  ]
+}

@@ -1,0 +1,10 @@
+flowchart LR
+  n_LlmPlanner["LlmPlanner"]
+  n_CAPABILITY_PLANS["CAPABILITY_PLANS"]
+  n_LlmPlanner -->|IMPORTS| n_CAPABILITY_PLANS
+  n_PLANNER_ACTIONS["PLANNER_ACTIONS"]
+  n_LlmPlanner -->|IMPORTS| n_PLANNER_ACTIONS
+  n_CAPABILITY_PLANS -->|IMPORTS| n_PLANNER_ACTIONS
+  n_index["index"]
+  n_index -->|IMPORTS| n_CAPABILITY_PLANS
+  n_index -->|IMPORTS| n_LlmPlanner

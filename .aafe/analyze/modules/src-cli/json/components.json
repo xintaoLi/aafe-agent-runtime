@@ -1,0 +1,1491 @@
+{
+  "module": "src-cli",
+  "components": [
+    {
+      "name": "PLAYWRIGHT_PACKAGES",
+      "kind": "variable",
+      "file": "src/cli/e2eSetup.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/cli/e2eSetup.js",
+          "symbol": "PLAYWRIGHT_PACKAGES"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "migrate",
+      "toLabel": "migrate",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/migrate.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "./migrate.js"
+        }
+      ]
+    },
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "hookScripts",
+      "toLabel": "hookScripts",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/hookScripts.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "./hookScripts.js"
+        }
+      ]
+    },
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "editorLayer",
+      "toLabel": "editorLayer",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/editorLayer.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "./editorLayer.js"
+        }
+      ]
+    },
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "codebuddyLayer",
+      "toLabel": "codebuddyLayer",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/codebuddyLayer.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "./codebuddyLayer.js"
+        }
+      ]
+    },
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "editorRegistry",
+      "toLabel": "editorRegistry",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/editorRegistry.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "./editorRegistry.js"
+        }
+      ]
+    },
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "completionImpactRules",
+      "toLabel": "completionImpactRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/completionImpactRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "./completionImpactRules.js"
+        }
+      ]
+    },
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "requirementAnalysisRules",
+      "toLabel": "requirementAnalysisRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/requirementAnalysisRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "./requirementAnalysisRules.js"
+        }
+      ]
+    },
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "tapdSubmitRules",
+      "toLabel": "tapdSubmitRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/tapdSubmitRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "./tapdSubmitRules.js"
+        }
+      ]
+    },
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "fileLicense",
+      "toLabel": "fileLicense",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/fileLicense.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "./fileLicenseRules.js"
+        }
+      ]
+    },
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "fileLicenseRules",
+      "toLabel": "fileLicenseRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/fileLicenseRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "./fileLicenseRules.js"
+        }
+      ]
+    },
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "ddd",
+      "toLabel": "ddd",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/ddd.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "./dddRuntimeFiles.js"
+        }
+      ]
+    },
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "dddRuntimeFiles",
+      "toLabel": "dddRuntimeFiles",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/dddRuntimeFiles.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "./dddRuntimeFiles.js"
+        }
+      ]
+    },
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "patternRuntimeFiles",
+      "toLabel": "patternRuntimeFiles",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/patternRuntimeFiles.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "./patternRuntimeFiles.js"
+        }
+      ]
+    },
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "e2eFromPrRules",
+      "toLabel": "e2eFromPrRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/e2eFromPrRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "./e2eFromPrRules.js"
+        }
+      ]
+    },
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "submitConfig",
+      "toLabel": "submitConfig",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/submitConfig.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "./submitConfig.js"
+        }
+      ]
+    },
+    {
+      "from": "bootstrap",
+      "fromLabel": "bootstrap",
+      "to": "platform",
+      "toLabel": "platform",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/bootstrap.js",
+      "toFile": "src/cli/platform.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/bootstrap.js",
+          "reason": "../agent-platform/config/agentsConfig.js"
+        }
+      ]
+    },
+    {
+      "from": "codebuddyLayer",
+      "fromLabel": "codebuddyLayer",
+      "to": "requirementAnalysisRules",
+      "toLabel": "requirementAnalysisRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/codebuddyLayer.js",
+      "toFile": "src/cli/requirementAnalysisRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/codebuddyLayer.js",
+          "reason": "./requirementAnalysisRules.js"
+        }
+      ]
+    },
+    {
+      "from": "codebuddyLayer",
+      "fromLabel": "codebuddyLayer",
+      "to": "completionImpactRules",
+      "toLabel": "completionImpactRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/codebuddyLayer.js",
+      "toFile": "src/cli/completionImpactRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/codebuddyLayer.js",
+          "reason": "./completionImpactRules.js"
+        }
+      ]
+    },
+    {
+      "from": "codebuddyLayer",
+      "fromLabel": "codebuddyLayer",
+      "to": "tapdSubmitRules",
+      "toLabel": "tapdSubmitRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/codebuddyLayer.js",
+      "toFile": "src/cli/tapdSubmitRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/codebuddyLayer.js",
+          "reason": "./tapdSubmitRules.js"
+        }
+      ]
+    },
+    {
+      "from": "codebuddyLayer",
+      "fromLabel": "codebuddyLayer",
+      "to": "fileLicense",
+      "toLabel": "fileLicense",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/codebuddyLayer.js",
+      "toFile": "src/cli/fileLicense.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/codebuddyLayer.js",
+          "reason": "./fileLicenseRules.js"
+        }
+      ]
+    },
+    {
+      "from": "codebuddyLayer",
+      "fromLabel": "codebuddyLayer",
+      "to": "fileLicenseRules",
+      "toLabel": "fileLicenseRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/codebuddyLayer.js",
+      "toFile": "src/cli/fileLicenseRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/codebuddyLayer.js",
+          "reason": "./fileLicenseRules.js"
+        }
+      ]
+    },
+    {
+      "from": "codebuddyLayer",
+      "fromLabel": "codebuddyLayer",
+      "to": "pathRewrite",
+      "toLabel": "pathRewrite",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/codebuddyLayer.js",
+      "toFile": "src/cli/pathRewrite.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/codebuddyLayer.js",
+          "reason": "./pathRewrite.js"
+        }
+      ]
+    },
+    {
+      "from": "codebuddyLayer",
+      "fromLabel": "codebuddyLayer",
+      "to": "workspace",
+      "toLabel": "workspace",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/codebuddyLayer.js",
+      "toFile": "src/cli/workspace.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/codebuddyLayer.js",
+          "reason": "./workspace.js"
+        }
+      ]
+    },
+    {
+      "from": "cursorLayer",
+      "fromLabel": "cursorLayer",
+      "to": "hookScripts",
+      "toLabel": "hookScripts",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/cursorLayer.js",
+      "toFile": "src/cli/hookScripts.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/cursorLayer.js",
+          "reason": "./hookScripts.js"
+        }
+      ]
+    },
+    {
+      "from": "cursorLayer",
+      "fromLabel": "cursorLayer",
+      "to": "requirementAnalysisRules",
+      "toLabel": "requirementAnalysisRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/cursorLayer.js",
+      "toFile": "src/cli/requirementAnalysisRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/cursorLayer.js",
+          "reason": "./requirementAnalysisRules.js"
+        }
+      ]
+    },
+    {
+      "from": "cursorLayer",
+      "fromLabel": "cursorLayer",
+      "to": "completionImpactRules",
+      "toLabel": "completionImpactRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/cursorLayer.js",
+      "toFile": "src/cli/completionImpactRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/cursorLayer.js",
+          "reason": "./completionImpactRules.js"
+        }
+      ]
+    },
+    {
+      "from": "cursorLayer",
+      "fromLabel": "cursorLayer",
+      "to": "tapdSubmitRules",
+      "toLabel": "tapdSubmitRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/cursorLayer.js",
+      "toFile": "src/cli/tapdSubmitRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/cursorLayer.js",
+          "reason": "./tapdSubmitRules.js"
+        }
+      ]
+    },
+    {
+      "from": "cursorLayer",
+      "fromLabel": "cursorLayer",
+      "to": "fileLicense",
+      "toLabel": "fileLicense",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/cursorLayer.js",
+      "toFile": "src/cli/fileLicense.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/cursorLayer.js",
+          "reason": "./fileLicenseRules.js"
+        }
+      ]
+    },
+    {
+      "from": "cursorLayer",
+      "fromLabel": "cursorLayer",
+      "to": "fileLicenseRules",
+      "toLabel": "fileLicenseRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/cursorLayer.js",
+      "toFile": "src/cli/fileLicenseRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/cursorLayer.js",
+          "reason": "./fileLicenseRules.js"
+        }
+      ]
+    },
+    {
+      "from": "cursorLayer",
+      "fromLabel": "cursorLayer",
+      "to": "e2eFromPrRules",
+      "toLabel": "e2eFromPrRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/cursorLayer.js",
+      "toFile": "src/cli/e2eFromPrRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/cursorLayer.js",
+          "reason": "./e2eFromPrRules.js"
+        }
+      ]
+    },
+    {
+      "from": "cursorLayer",
+      "fromLabel": "cursorLayer",
+      "to": "pathRewrite",
+      "toLabel": "pathRewrite",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/cursorLayer.js",
+      "toFile": "src/cli/pathRewrite.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/cursorLayer.js",
+          "reason": "./pathRewrite.js"
+        }
+      ]
+    },
+    {
+      "from": "cursorLayer",
+      "fromLabel": "cursorLayer",
+      "to": "workspace",
+      "toLabel": "workspace",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/cursorLayer.js",
+      "toFile": "src/cli/workspace.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/cursorLayer.js",
+          "reason": "./workspace.js"
+        }
+      ]
+    },
+    {
+      "from": "ddd",
+      "fromLabel": "ddd",
+      "to": "knowledge",
+      "toLabel": "knowledge",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/ddd.js",
+      "toFile": "src/cli/knowledge.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/ddd.js",
+          "reason": "../knowledge/store/KnowledgeStore.js"
+        }
+      ]
+    },
+    {
+      "from": "doctor",
+      "fromLabel": "doctor",
+      "to": "editorLayer",
+      "toLabel": "editorLayer",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/doctor.js",
+      "toFile": "src/cli/editorLayer.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/doctor.js",
+          "reason": "./editorLayer.js"
+        }
+      ]
+    },
+    {
+      "from": "doctor",
+      "fromLabel": "doctor",
+      "to": "editorRegistry",
+      "toLabel": "editorRegistry",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/doctor.js",
+      "toFile": "src/cli/editorRegistry.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/doctor.js",
+          "reason": "./editorRegistry.js"
+        }
+      ]
+    },
+    {
+      "from": "doctor",
+      "fromLabel": "doctor",
+      "to": "platform",
+      "toLabel": "platform",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/doctor.js",
+      "toFile": "src/cli/platform.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/doctor.js",
+          "reason": "../agent-platform/config/agentsConfig.js"
+        }
+      ]
+    },
+    {
+      "from": "doctor",
+      "fromLabel": "doctor",
+      "to": "ddd",
+      "toLabel": "ddd",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/doctor.js",
+      "toFile": "src/cli/ddd.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/doctor.js",
+          "reason": "./dddRuntimeFiles.js"
+        }
+      ]
+    },
+    {
+      "from": "doctor",
+      "fromLabel": "doctor",
+      "to": "dddRuntimeFiles",
+      "toLabel": "dddRuntimeFiles",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/doctor.js",
+      "toFile": "src/cli/dddRuntimeFiles.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/doctor.js",
+          "reason": "./dddRuntimeFiles.js"
+        }
+      ]
+    },
+    {
+      "from": "doctor",
+      "fromLabel": "doctor",
+      "to": "patternRuntimeFiles",
+      "toLabel": "patternRuntimeFiles",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/doctor.js",
+      "toFile": "src/cli/patternRuntimeFiles.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/doctor.js",
+          "reason": "./patternRuntimeFiles.js"
+        }
+      ]
+    },
+    {
+      "from": "doctor",
+      "fromLabel": "doctor",
+      "to": "PLAYWRIGHT_PACKAGES",
+      "toLabel": "PLAYWRIGHT_PACKAGES",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/doctor.js",
+      "toFile": "src/cli/e2eSetup.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/doctor.js",
+          "reason": "./e2eSetup.js"
+        }
+      ]
+    },
+    {
+      "from": "doctor",
+      "fromLabel": "doctor",
+      "to": "migrate",
+      "toLabel": "migrate",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/doctor.js",
+      "toFile": "src/cli/migrate.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/doctor.js",
+          "reason": "./migrate.js"
+        }
+      ]
+    },
+    {
+      "from": "PLAYWRIGHT_PACKAGES",
+      "fromLabel": "PLAYWRIGHT_PACKAGES",
+      "to": "detect",
+      "toLabel": "detect",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/e2eSetup.js",
+      "toFile": "src/cli/detect.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/e2eSetup.js",
+          "reason": "./detect.js"
+        }
+      ]
+    },
+    {
+      "from": "editorLayer",
+      "fromLabel": "editorLayer",
+      "to": "editorRegistry",
+      "toLabel": "editorRegistry",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/editorLayer.js",
+      "toFile": "src/cli/editorRegistry.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/editorLayer.js",
+          "reason": "./editorRegistry.js"
+        }
+      ]
+    },
+    {
+      "from": "editorLayer",
+      "fromLabel": "editorLayer",
+      "to": "requirementAnalysisRules",
+      "toLabel": "requirementAnalysisRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/editorLayer.js",
+      "toFile": "src/cli/requirementAnalysisRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/editorLayer.js",
+          "reason": "./requirementAnalysisRules.js"
+        }
+      ]
+    },
+    {
+      "from": "editorLayer",
+      "fromLabel": "editorLayer",
+      "to": "completionImpactRules",
+      "toLabel": "completionImpactRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/editorLayer.js",
+      "toFile": "src/cli/completionImpactRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/editorLayer.js",
+          "reason": "./completionImpactRules.js"
+        }
+      ]
+    },
+    {
+      "from": "editorLayer",
+      "fromLabel": "editorLayer",
+      "to": "tapdSubmitRules",
+      "toLabel": "tapdSubmitRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/editorLayer.js",
+      "toFile": "src/cli/tapdSubmitRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/editorLayer.js",
+          "reason": "./tapdSubmitRules.js"
+        }
+      ]
+    },
+    {
+      "from": "editorLayer",
+      "fromLabel": "editorLayer",
+      "to": "pathRewrite",
+      "toLabel": "pathRewrite",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/editorLayer.js",
+      "toFile": "src/cli/pathRewrite.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/editorLayer.js",
+          "reason": "./pathRewrite.js"
+        }
+      ]
+    },
+    {
+      "from": "editorLayer",
+      "fromLabel": "editorLayer",
+      "to": "cursorLayer",
+      "toLabel": "cursorLayer",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/editorLayer.js",
+      "toFile": "src/cli/cursorLayer.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/editorLayer.js",
+          "reason": "./cursorLayer.js"
+        }
+      ]
+    },
+    {
+      "from": "editorLayer",
+      "fromLabel": "editorLayer",
+      "to": "codebuddyLayer",
+      "toLabel": "codebuddyLayer",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/editorLayer.js",
+      "toFile": "src/cli/codebuddyLayer.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/editorLayer.js",
+          "reason": "./codebuddyLayer.js"
+        }
+      ]
+    },
+    {
+      "from": "editorLayer",
+      "fromLabel": "editorLayer",
+      "to": "fileLicense",
+      "toLabel": "fileLicense",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/editorLayer.js",
+      "toFile": "src/cli/fileLicense.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/editorLayer.js",
+          "reason": "./fileLicenseRules.js"
+        }
+      ]
+    },
+    {
+      "from": "editorLayer",
+      "fromLabel": "editorLayer",
+      "to": "fileLicenseRules",
+      "toLabel": "fileLicenseRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/editorLayer.js",
+      "toFile": "src/cli/fileLicenseRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/editorLayer.js",
+          "reason": "./fileLicenseRules.js"
+        }
+      ]
+    },
+    {
+      "from": "editorLayer",
+      "fromLabel": "editorLayer",
+      "to": "workspace",
+      "toLabel": "workspace",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/editorLayer.js",
+      "toFile": "src/cli/workspace.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/editorLayer.js",
+          "reason": "./workspace.js"
+        }
+      ]
+    },
+    {
+      "from": "fileLicense",
+      "fromLabel": "fileLicense",
+      "to": "fileLicenseRules",
+      "toLabel": "fileLicenseRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/fileLicense.js",
+      "toFile": "src/cli/fileLicenseRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/fileLicense.js",
+          "reason": "./fileLicenseRules.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "bootstrap",
+      "toLabel": "bootstrap",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/bootstrap.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./bootstrap.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "analyze",
+      "toLabel": "analyze",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/analyze.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./analyze.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "ddd",
+      "toLabel": "ddd",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/ddd.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./ddd.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "detect",
+      "toLabel": "detect",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/detect.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./detect.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "doctor",
+      "toLabel": "doctor",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/doctor.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./doctor.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "memory",
+      "toLabel": "memory",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/memory.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./memory.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "knowledge",
+      "toLabel": "knowledge",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/knowledge.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./knowledge.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "knowledgeWeb",
+      "toLabel": "knowledgeWeb",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/knowledgeWeb.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./knowledgeWeb.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "taskCompletion",
+      "toLabel": "taskCompletion",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/taskCompletion.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./taskCompletion.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "patterns",
+      "toLabel": "patterns",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/patterns.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./patterns.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "skills",
+      "toLabel": "skills",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/skills.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./skills.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "PLAYWRIGHT_PACKAGES",
+      "toLabel": "PLAYWRIGHT_PACKAGES",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/e2eSetup.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./e2eSetup.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "fileLicense",
+      "toLabel": "fileLicense",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/fileLicense.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./fileLicense.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "update",
+      "toLabel": "update",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/update.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./update.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "migrate",
+      "toLabel": "migrate",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/migrate.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./migrate.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "platform",
+      "toLabel": "platform",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/platform.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "../agent-platform/skill-runtime/configLoader.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "workspace",
+      "toLabel": "workspace",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/index.js",
+      "toFile": "src/cli/workspace.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/index.js",
+          "reason": "./workspace.js"
+        }
+      ]
+    },
+    {
+      "from": "knowledge",
+      "fromLabel": "knowledge",
+      "to": "analyze",
+      "toLabel": "analyze",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/knowledge.js",
+      "toFile": "src/cli/analyze.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/knowledge.js",
+          "reason": "./analyze.js"
+        }
+      ]
+    },
+    {
+      "from": "knowledgeWeb",
+      "fromLabel": "knowledgeWeb",
+      "to": "analyze",
+      "toLabel": "analyze",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/knowledgeWeb.js",
+      "toFile": "src/cli/analyze.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/knowledgeWeb.js",
+          "reason": "./analyze.js"
+        }
+      ]
+    },
+    {
+      "from": "migrate",
+      "fromLabel": "migrate",
+      "to": "platform",
+      "toLabel": "platform",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/migrate.js",
+      "toFile": "src/cli/platform.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/migrate.js",
+          "reason": "../agent-platform/config/agentsConfig.js"
+        }
+      ]
+    },
+    {
+      "from": "migrate",
+      "fromLabel": "migrate",
+      "to": "fileLicense",
+      "toLabel": "fileLicense",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/migrate.js",
+      "toFile": "src/cli/fileLicense.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/migrate.js",
+          "reason": "./fileLicenseRules.js"
+        }
+      ]
+    },
+    {
+      "from": "migrate",
+      "fromLabel": "migrate",
+      "to": "fileLicenseRules",
+      "toLabel": "fileLicenseRules",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/migrate.js",
+      "toFile": "src/cli/fileLicenseRules.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/migrate.js",
+          "reason": "./fileLicenseRules.js"
+        }
+      ]
+    },
+    {
+      "from": "patternRuntimeFiles",
+      "fromLabel": "patternRuntimeFiles",
+      "to": "patterns",
+      "toLabel": "patterns",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/patternRuntimeFiles.js",
+      "toFile": "src/cli/patterns.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/patternRuntimeFiles.js",
+          "reason": "../patterns/catalog.js"
+        }
+      ]
+    },
+    {
+      "from": "patterns",
+      "fromLabel": "patterns",
+      "to": "knowledge",
+      "toLabel": "knowledge",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/patterns.js",
+      "toFile": "src/cli/knowledge.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/patterns.js",
+          "reason": "../knowledge/store/KnowledgeStore.js"
+        }
+      ]
+    },
+    {
+      "from": "platform",
+      "fromLabel": "platform",
+      "to": "index",
+      "toLabel": "index",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/platform.js",
+      "toFile": "src/cli/index.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/platform.js",
+          "reason": "../agent-platform/index.js"
+        }
+      ]
+    },
+    {
+      "from": "platform",
+      "fromLabel": "platform",
+      "to": "knowledge",
+      "toLabel": "knowledge",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/platform.js",
+      "toFile": "src/cli/knowledge.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/platform.js",
+          "reason": "../knowledge/report/impactMarkdown.js"
+        }
+      ]
+    },
+    {
+      "from": "prompts",
+      "fromLabel": "prompts",
+      "to": "workspace",
+      "toLabel": "workspace",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/prompts.js",
+      "toFile": "src/cli/workspace.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/prompts.js",
+          "reason": "./workspace.js"
+        }
+      ]
+    },
+    {
+      "from": "prompts",
+      "fromLabel": "prompts",
+      "to": "tapdConfig",
+      "toLabel": "tapdConfig",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/prompts.js",
+      "toFile": "src/cli/tapdConfig.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/prompts.js",
+          "reason": "./tapdConfig.js"
+        }
+      ]
+    },
+    {
+      "from": "prompts",
+      "fromLabel": "prompts",
+      "to": "submitConfig",
+      "toLabel": "submitConfig",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/prompts.js",
+      "toFile": "src/cli/submitConfig.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/prompts.js",
+          "reason": "./submitConfig.js"
+        }
+      ]
+    },
+    {
+      "from": "prompts",
+      "fromLabel": "prompts",
+      "to": "detect",
+      "toLabel": "detect",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/prompts.js",
+      "toFile": "src/cli/detect.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/prompts.js",
+          "reason": "./detect.js"
+        }
+      ]
+    },
+    {
+      "from": "prompts",
+      "fromLabel": "prompts",
+      "to": "PLAYWRIGHT_PACKAGES",
+      "toLabel": "PLAYWRIGHT_PACKAGES",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/prompts.js",
+      "toFile": "src/cli/e2eSetup.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/prompts.js",
+          "reason": "./e2eSetup.js"
+        }
+      ]
+    },
+    {
+      "from": "update",
+      "fromLabel": "update",
+      "to": "bootstrap",
+      "toLabel": "bootstrap",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/update.js",
+      "toFile": "src/cli/bootstrap.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/update.js",
+          "reason": "./bootstrap.js"
+        }
+      ]
+    },
+    {
+      "from": "update",
+      "fromLabel": "update",
+      "to": "detect",
+      "toLabel": "detect",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/update.js",
+      "toFile": "src/cli/detect.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/update.js",
+          "reason": "./detect.js"
+        }
+      ]
+    },
+    {
+      "from": "update",
+      "fromLabel": "update",
+      "to": "doctor",
+      "toLabel": "doctor",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/update.js",
+      "toFile": "src/cli/doctor.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/update.js",
+          "reason": "./doctor.js"
+        }
+      ]
+    },
+    {
+      "from": "update",
+      "fromLabel": "update",
+      "to": "knowledge",
+      "toLabel": "knowledge",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/update.js",
+      "toFile": "src/cli/knowledge.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/update.js",
+          "reason": "./knowledge.js"
+        }
+      ]
+    },
+    {
+      "from": "update",
+      "fromLabel": "update",
+      "to": "migrate",
+      "toLabel": "migrate",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/update.js",
+      "toFile": "src/cli/migrate.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/update.js",
+          "reason": "./migrate.js"
+        }
+      ]
+    },
+    {
+      "from": "update",
+      "fromLabel": "update",
+      "to": "prompts",
+      "toLabel": "prompts",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/update.js",
+      "toFile": "src/cli/prompts.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/update.js",
+          "reason": "./prompts.js"
+        }
+      ]
+    },
+    {
+      "from": "update",
+      "fromLabel": "update",
+      "to": "workspace",
+      "toLabel": "workspace",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/update.js",
+      "toFile": "src/cli/workspace.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/update.js",
+          "reason": "./workspace.js"
+        }
+      ]
+    },
+    {
+      "from": "workspace",
+      "fromLabel": "workspace",
+      "to": "editorRegistry",
+      "toLabel": "editorRegistry",
+      "type": "IMPORTS",
+      "fromFile": "src/cli/workspace.js",
+      "toFile": "src/cli/editorRegistry.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/cli/workspace.js",
+          "reason": "./editorRegistry.js"
+        }
+      ]
+    }
+  ]
+}

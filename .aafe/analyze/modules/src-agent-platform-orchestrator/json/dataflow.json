@@ -1,0 +1,1452 @@
+{
+  "module": "src-agent-platform-orchestrator",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:12",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/orchestrator/ExecutionGraph.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:13",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/orchestrator/AgentOrchestrator.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:112",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/index.js",
+        "nodes": [
+          "file:src/agent-platform/index.js",
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/index.js",
+            "to": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/index.js",
+            "reason": "./orchestrator/AgentOrchestrator.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:115",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "reason": "./ExecutionGraph.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:116",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "file:src/agent-platform/state/ExecutionState.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "file:src/agent-platform/state/ExecutionState.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "reason": "../state/ExecutionState.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:117",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "file:src/agent-platform/state/RunStore.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "file:src/agent-platform/state/RunStore.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "reason": "../state/RunStore.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:118",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "file:src/agent-platform/policy/ExecutionPolicy.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "reason": "../policy/ExecutionPolicy.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:119",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "file:src/agent-platform/protocol/request.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "file:src/agent-platform/protocol/request.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "reason": "../protocol/request.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:120",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "reason": "../protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:121",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "file:src/agent-platform/runtime/AgentRuntime.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "file:src/agent-platform/runtime/AgentRuntime.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "reason": "../runtime/AgentRuntime.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:268",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:process.cwd"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:process.cwd",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "process.cwd"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:269",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:createRunId"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:createRunId",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "createRunId"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:270",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:policy.assertWithinBudget"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:policy.assertWithinBudget",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "policy.assertWithinBudget"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:271",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:state.spent"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:state.spent",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "state.spent"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:272",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:state.diagnostics.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:state.diagnostics.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "state.diagnostics.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:273",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:planner.decide"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:planner.decide",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "planner.decide"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:274",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:decisions.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:decisions.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "decisions.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:275",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:onEvent"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:onEvent",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "onEvent"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:276",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:replan"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:replan",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "replan"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:277",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:state.diagnostics.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:state.diagnostics.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "state.diagnostics.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:278",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:updateState"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:updateState",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "updateState"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:279",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:controllers.delete"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:controllers.delete",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "controllers.delete"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:280",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:state.resultFor"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:state.resultFor",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "state.resultFor"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:281",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:graph.toJSON"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:graph.toJSON",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "graph.toJSON"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:282",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:state.toJSON"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:state.toJSON",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "state.toJSON"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:283",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:graph.summary"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:graph.summary",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "graph.summary"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:284",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:Date.now"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:Date.now",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "Date.now"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:285",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:store.writeRun"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:store.writeRun",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "store.writeRun"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:286",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:store.writeContextPackage"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:store.writeContextPackage",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "store.writeContextPackage"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:287",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:Object.fromEntries"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:Object.fromEntries",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "Object.fromEntries"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:288",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:state.record"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:state.record",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "state.record"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:289",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:onEvent"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:onEvent",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "onEvent"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:290",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:state.diagnostics.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:state.diagnostics.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "state.diagnostics.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:291",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:onEvent"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:onEvent",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "onEvent"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:292",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:controllers.get"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:controllers.get",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "controllers.get"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:293",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:prepared.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:prepared.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "prepared.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:294",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:byCapability.set"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:byCapability.set",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "byCapability.set"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:295",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:prepared.filter"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:prepared.filter",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "prepared.filter"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:296",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:results.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:results.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "results.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:297",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "call:pending.splice"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "call:pending.splice",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "symbol": "pending.splice"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:298",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:Object.freeze"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:Object.freeze",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "Object.freeze"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:299",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:reserveNodeId"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:reserveNodeId",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "reserveNodeId"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:300",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:nodes.set"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:nodes.set",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "nodes.set"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:301",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:nodes.get"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:nodes.get",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "nodes.get"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:302",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:nodes.get"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:nodes.get",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "nodes.get"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:303",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:Date.now"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:Date.now",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "Date.now"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:304",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:Date.now"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:Date.now",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "Date.now"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:305",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:Object.assign"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:Object.assign",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "Object.assign"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:306",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:filter"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:filter",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "filter"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:307",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:list"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:list",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "list"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:308",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:node.dependencies.every"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:node.dependencies.every",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "node.dependencies.every"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:309",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:nodes.get"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:nodes.get",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "nodes.get"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:310",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:Array.from"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:Array.from",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "Array.from"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:311",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:nodes.values"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:nodes.values",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "nodes.values"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:312",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:at"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:at",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "at"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:313",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:filter"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:filter",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "filter"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:314",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:list"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:list",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "list"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:315",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:map"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:map",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "map"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:316",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:list"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:list",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "list"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:317",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+          "call:nodes.values"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/ExecutionGraph.js",
+            "to": "call:nodes.values",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "symbol": "nodes.values"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 10,
+      "call": 50
+    }
+  }
+}

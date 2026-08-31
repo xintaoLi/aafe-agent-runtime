@@ -1,0 +1,19 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agents_context_agent_index_js["src/agents/context-agent/index.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agents_context_agent_index_js
+  n_file_src_agents_context_agent_index_js["src/agents/context-agent/index.js"]
+  n_import_node_fs_promises["node:fs/promises"]
+  n_file_src_agents_context_agent_index_js -->|IMPORTS| n_import_node_fs_promises
+  n_file_src_agents_context_agent_index_js["src/agents/context-agent/index.js"]
+  n_import_node_path["node:path"]
+  n_file_src_agents_context_agent_index_js -->|IMPORTS| n_import_node_path
+  n_file_src_agents_context_agent_index_js["src/agents/context-agent/index.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agents_context_agent_index_js -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agents_context_agent_index_js["src/agents/context-agent/index.js"]
+  n_file_src_ide_bridge_context_tokens_js["src/ide-bridge/context/tokens.js"]
+  n_file_src_agents_context_agent_index_js -->|IMPORTS| n_file_src_ide_bridge_context_tokens_js
+  n_file_src_agents_index_js["src/agents/index.js"]
+  n_file_src_agents_context_agent_index_js["src/agents/context-agent/index.js"]
+  n_file_src_agents_index_js -->|IMPORTS| n_file_src_agents_context_agent_index_js

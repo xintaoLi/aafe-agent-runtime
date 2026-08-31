@@ -1,0 +1,180 @@
+{
+  "module": "src-static-analysis-ast",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:449",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/graph.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/graph.js",
+          "file:src/static-analysis/ast/parseFile.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/graph.js",
+            "to": "file:src/static-analysis/ast/parseFile.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/graph.js",
+            "reason": "../ast/parseFile.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:450",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/graph.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/graph.js",
+          "file:src/static-analysis/ast/extractors.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/graph.js",
+            "to": "file:src/static-analysis/ast/extractors.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/graph.js",
+            "reason": "../ast/extractors.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:461",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/ast/parseFile.js",
+        "nodes": [
+          "file:src/static-analysis/ast/parseFile.js",
+          "import:@babel/parser"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/ast/parseFile.js",
+            "to": "import:@babel/parser",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/ast/parseFile.js",
+            "reason": "@babel/parser"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:462",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/ast/parseFile.js",
+        "nodes": [
+          "file:src/static-analysis/ast/parseFile.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/ast/parseFile.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/ast/parseFile.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:475",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/orchestrator.js",
+        "nodes": [
+          "file:src/static-analysis/orchestrator.js",
+          "file:src/static-analysis/ast/extractors.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/orchestrator.js",
+            "to": "file:src/static-analysis/ast/extractors.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/orchestrator.js",
+            "reason": "./ast/extractors.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:486",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/routes/resolveRoutes.js",
+        "nodes": [
+          "file:src/static-analysis/routes/resolveRoutes.js",
+          "file:src/static-analysis/ast/parseFile.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/routes/resolveRoutes.js",
+            "to": "file:src/static-analysis/ast/parseFile.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/routes/resolveRoutes.js",
+            "reason": "../ast/parseFile.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:487",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/routes/resolveRoutes.js",
+        "nodes": [
+          "file:src/static-analysis/routes/resolveRoutes.js",
+          "file:src/static-analysis/ast/extractors.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/routes/resolveRoutes.js",
+            "to": "file:src/static-analysis/ast/extractors.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/routes/resolveRoutes.js",
+            "reason": "../ast/extractors.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 7,
+      "call": 0
+    }
+  }
+}

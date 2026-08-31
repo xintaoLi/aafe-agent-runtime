@@ -1,0 +1,34 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_schema_validate_js["src/agent-platform/schema/validate.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_schema_validate_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_schema_repair_js["src/agent-platform/schema/repair.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_schema_repair_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_schema_loader_js["src/agent-platform/schema/loader.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_schema_loader_js
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agent_platform_schema_loader_js["src/agent-platform/schema/loader.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agent_platform_schema_loader_js
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_schema_loader_js["src/agent-platform/schema/loader.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js -->|IMPORTS| n_file_src_agent_platform_schema_loader_js
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_schema_repair_js["src/agent-platform/schema/repair.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js -->|IMPORTS| n_file_src_agent_platform_schema_repair_js
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_schema_validate_js["src/agent-platform/schema/validate.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js -->|IMPORTS| n_file_src_agent_platform_schema_validate_js
+  n_file_src_agent_platform_schema_loader_js["src/agent-platform/schema/loader.js"]
+  n_import_node_fs_promises["node:fs/promises"]
+  n_file_src_agent_platform_schema_loader_js -->|IMPORTS| n_import_node_fs_promises
+  n_file_src_agent_platform_schema_loader_js["src/agent-platform/schema/loader.js"]
+  n_import_node_path["node:path"]
+  n_file_src_agent_platform_schema_loader_js -->|IMPORTS| n_import_node_path
+  n_file_src_agent_platform_schema_loader_js["src/agent-platform/schema/loader.js"]
+  n_import_node_url["node:url"]
+  n_file_src_agent_platform_schema_loader_js -->|IMPORTS| n_import_node_url
+  n_file_src_agent_platform_schema_repair_js["src/agent-platform/schema/repair.js"]
+  n_file_src_agent_platform_schema_validate_js["src/agent-platform/schema/validate.js"]
+  n_file_src_agent_platform_schema_repair_js -->|IMPORTS| n_file_src_agent_platform_schema_validate_js

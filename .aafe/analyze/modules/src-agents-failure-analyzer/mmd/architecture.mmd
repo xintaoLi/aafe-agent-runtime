@@ -1,0 +1,7 @@
+flowchart TB
+  subgraph n_src_agents_failure_analyzer["src-agents-failure-analyzer"]
+    n_CLASSIFICATIONS["CLASSIFICATIONS"]
+    n_src_agents_failure_analyzer_index_js["failure-analyzer/index.js"]
+  end
+  n_src_agents_failure_analyzer --> n_src_agent_platform_protocol["src-agent-platform-protocol"]
+  n_src_agents_failure_analyzer --> n_src_knowledge_model["src-knowledge-model"]

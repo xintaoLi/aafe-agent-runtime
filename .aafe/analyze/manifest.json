@@ -1,0 +1,49 @@
+{
+  "version": "1",
+  "project": {
+    "name": "@aafe/agent-runtime",
+    "root": ".",
+    "version": "0.2.3"
+  },
+  "analysis": {
+    "version": "0.3.0",
+    "timestamp": 1787228074819,
+    "commit": "0b567c49cf3f",
+    "formats": [
+      "json",
+      "jsonl",
+      "md",
+      "mmd"
+    ]
+  },
+  "analyzers": {
+    "repository": "1.0.0",
+    "graph": "1.0.0",
+    "architecture": "1.0.0",
+    "dataflow": "1.0.0",
+    "feature": "1.0.0",
+    "business": "1.0.0"
+  },
+  "llm": {
+    "enabled": false,
+    "provider": null
+  },
+  "output": ".aafe",
+  "entry": {
+    "agent": "index.json",
+    "human": "README.md",
+    "modules": "modules/index.json",
+    "knowledge": "knowledge/"
+  },
+  "layout": {
+    "root": [
+      "manifest.json",
+      "index.json",
+      "README.md"
+    ],
+    "knowledge": "knowledge/<domain>/{json,mmd,md}/",
+    "modules": "modules/<id>/{index.json,README.md,json/,mmd/}",
+    "agent": "json/jsonl",
+    "human": "mmd/md"
+  }
+}

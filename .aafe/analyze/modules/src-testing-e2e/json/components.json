@@ -1,0 +1,219 @@
+{
+  "module": "src-testing-e2e",
+  "components": [
+    {
+      "name": "DEFAULT_E2E_CONFIG",
+      "kind": "variable",
+      "file": "src/testing/e2e/config.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/testing/e2e/config.js",
+          "symbol": "DEFAULT_E2E_CONFIG"
+        }
+      ]
+    },
+    {
+      "name": "INLINE_TOKEN_REJECTION",
+      "kind": "variable",
+      "file": "src/testing/e2e/pr.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/testing/e2e/pr.js",
+          "symbol": "INLINE_TOKEN_REJECTION"
+        }
+      ]
+    },
+    {
+      "name": "EXIT_CODE",
+      "kind": "variable",
+      "file": "src/testing/e2e/report.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/testing/e2e/report.js",
+          "symbol": "EXIT_CODE"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "compile",
+      "fromLabel": "compile",
+      "to": "DEFAULT_E2E_CONFIG",
+      "toLabel": "DEFAULT_E2E_CONFIG",
+      "type": "IMPORTS",
+      "fromFile": "src/testing/e2e/compile.js",
+      "toFile": "src/testing/e2e/config.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/testing/e2e/compile.js",
+          "reason": "./config.js"
+        }
+      ]
+    },
+    {
+      "from": "compile",
+      "fromLabel": "compile",
+      "to": "yaml",
+      "toLabel": "yaml",
+      "type": "IMPORTS",
+      "fromFile": "src/testing/e2e/compile.js",
+      "toFile": "src/testing/e2e/yaml.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/testing/e2e/compile.js",
+          "reason": "./yaml.js"
+        }
+      ]
+    },
+    {
+      "from": "inventory",
+      "fromLabel": "inventory",
+      "to": "DEFAULT_E2E_CONFIG",
+      "toLabel": "DEFAULT_E2E_CONFIG",
+      "type": "IMPORTS",
+      "fromFile": "src/testing/e2e/inventory.js",
+      "toFile": "src/testing/e2e/config.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/testing/e2e/inventory.js",
+          "reason": "./config.js"
+        }
+      ]
+    },
+    {
+      "from": "inventory",
+      "fromLabel": "inventory",
+      "to": "match",
+      "toLabel": "match",
+      "type": "IMPORTS",
+      "fromFile": "src/testing/e2e/inventory.js",
+      "toFile": "src/testing/e2e/match.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/testing/e2e/inventory.js",
+          "reason": "./match.js"
+        }
+      ]
+    },
+    {
+      "from": "inventory",
+      "fromLabel": "inventory",
+      "to": "yaml",
+      "toLabel": "yaml",
+      "type": "IMPORTS",
+      "fromFile": "src/testing/e2e/inventory.js",
+      "toFile": "src/testing/e2e/yaml.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/testing/e2e/inventory.js",
+          "reason": "./yaml.js"
+        }
+      ]
+    },
+    {
+      "from": "match",
+      "fromLabel": "match",
+      "to": "yaml",
+      "toLabel": "yaml",
+      "type": "IMPORTS",
+      "fromFile": "src/testing/e2e/match.js",
+      "toFile": "src/testing/e2e/yaml.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/testing/e2e/match.js",
+          "reason": "./yaml.js"
+        }
+      ]
+    },
+    {
+      "from": "INLINE_TOKEN_REJECTION",
+      "fromLabel": "INLINE_TOKEN_REJECTION",
+      "to": "DEFAULT_E2E_CONFIG",
+      "toLabel": "DEFAULT_E2E_CONFIG",
+      "type": "IMPORTS",
+      "fromFile": "src/testing/e2e/pr.js",
+      "toFile": "src/testing/e2e/config.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/testing/e2e/pr.js",
+          "reason": "./config.js"
+        }
+      ]
+    },
+    {
+      "from": "runner",
+      "fromLabel": "runner",
+      "to": "DEFAULT_E2E_CONFIG",
+      "toLabel": "DEFAULT_E2E_CONFIG",
+      "type": "IMPORTS",
+      "fromFile": "src/testing/e2e/runner.js",
+      "toFile": "src/testing/e2e/config.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/testing/e2e/runner.js",
+          "reason": "./config.js"
+        }
+      ]
+    },
+    {
+      "from": "runner",
+      "fromLabel": "runner",
+      "to": "compile",
+      "toLabel": "compile",
+      "type": "IMPORTS",
+      "fromFile": "src/testing/e2e/runner.js",
+      "toFile": "src/testing/e2e/compile.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/testing/e2e/runner.js",
+          "reason": "./compile.js"
+        }
+      ]
+    },
+    {
+      "from": "runner",
+      "fromLabel": "runner",
+      "to": "EXIT_CODE",
+      "toLabel": "EXIT_CODE",
+      "type": "IMPORTS",
+      "fromFile": "src/testing/e2e/runner.js",
+      "toFile": "src/testing/e2e/report.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/testing/e2e/runner.js",
+          "reason": "./report.js"
+        }
+      ]
+    },
+    {
+      "from": "runner",
+      "fromLabel": "runner",
+      "to": "yaml",
+      "toLabel": "yaml",
+      "type": "IMPORTS",
+      "fromFile": "src/testing/e2e/runner.js",
+      "toFile": "src/testing/e2e/yaml.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/testing/e2e/runner.js",
+          "reason": "./yaml.js"
+        }
+      ]
+    }
+  ]
+}

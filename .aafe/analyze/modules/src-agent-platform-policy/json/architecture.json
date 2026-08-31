@@ -1,0 +1,29 @@
+{
+  "module": "src-agent-platform-policy",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agent-platform/policy/ExecutionPolicy.js"
+      ],
+      "routes": [],
+      "components": [
+        "FORBIDDEN_COMMAND_PATTERNS"
+      ]
+    },
+    "outboundModules": [
+      "module:src-agent-platform-protocol"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agent-platform/policy/ExecutionPolicy.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-agent-platform-protocol"
+  ],
+  "signals": []
+}

@@ -1,0 +1,27 @@
+{
+  "module": "src-static-analysis-storage",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/static-analysis/storage/persist.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-static-analysis-emit"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/static-analysis/storage/persist.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-static-analysis-emit"
+  ],
+  "signals": []
+}

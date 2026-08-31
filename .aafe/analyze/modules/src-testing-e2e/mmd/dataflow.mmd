@@ -1,0 +1,61 @@
+flowchart TD
+  n_file_scripts_test_e2e_platform_js["scripts/test-e2e-platform.js"]
+  n_file_src_testing_e2e_compile_js["src/testing/e2e/compile.js"]
+  n_file_scripts_test_e2e_platform_js -->|IMPORTS| n_file_src_testing_e2e_compile_js
+  n_file_scripts_test_e2e_platform_js["scripts/test-e2e-platform.js"]
+  n_file_src_testing_e2e_config_js["src/testing/e2e/config.js"]
+  n_file_scripts_test_e2e_platform_js -->|IMPORTS| n_file_src_testing_e2e_config_js
+  n_file_scripts_test_e2e_platform_js["scripts/test-e2e-platform.js"]
+  n_file_src_testing_e2e_inventory_js["src/testing/e2e/inventory.js"]
+  n_file_scripts_test_e2e_platform_js -->|IMPORTS| n_file_src_testing_e2e_inventory_js
+  n_file_scripts_test_e2e_platform_js["scripts/test-e2e-platform.js"]
+  n_file_src_testing_e2e_layers_js["src/testing/e2e/layers.js"]
+  n_file_scripts_test_e2e_platform_js -->|IMPORTS| n_file_src_testing_e2e_layers_js
+  n_file_scripts_test_e2e_platform_js["scripts/test-e2e-platform.js"]
+  n_file_src_testing_e2e_pr_js["src/testing/e2e/pr.js"]
+  n_file_scripts_test_e2e_platform_js -->|IMPORTS| n_file_src_testing_e2e_pr_js
+  n_file_scripts_test_e2e_platform_js["scripts/test-e2e-platform.js"]
+  n_file_src_testing_e2e_report_js["src/testing/e2e/report.js"]
+  n_file_scripts_test_e2e_platform_js -->|IMPORTS| n_file_src_testing_e2e_report_js
+  n_file_scripts_test_e2e_platform_js["scripts/test-e2e-platform.js"]
+  n_file_src_testing_e2e_runner_js["src/testing/e2e/runner.js"]
+  n_file_scripts_test_e2e_platform_js -->|IMPORTS| n_file_src_testing_e2e_runner_js
+  n_file_scripts_test_e2e_platform_js["scripts/test-e2e-platform.js"]
+  n_file_src_testing_e2e_yaml_js["src/testing/e2e/yaml.js"]
+  n_file_scripts_test_e2e_platform_js -->|IMPORTS| n_file_src_testing_e2e_yaml_js
+  n_file_src_agents_test_agent_generate_js["src/agents/test-agent/generate.js"]
+  n_file_src_testing_e2e_yaml_js["src/testing/e2e/yaml.js"]
+  n_file_src_agents_test_agent_generate_js -->|IMPORTS| n_file_src_testing_e2e_yaml_js
+  n_file_src_agents_test_agent_generate_js["src/agents/test-agent/generate.js"]
+  n_file_src_testing_e2e_compile_js["src/testing/e2e/compile.js"]
+  n_file_src_agents_test_agent_generate_js -->|IMPORTS| n_file_src_testing_e2e_compile_js
+  n_file_src_agents_test_agent_generate_js["src/agents/test-agent/generate.js"]
+  n_file_src_testing_e2e_yaml_js["src/testing/e2e/yaml.js"]
+  n_file_src_agents_test_agent_generate_js -->|IMPORTS| n_file_src_testing_e2e_yaml_js
+  n_file_src_agents_test_agent_index_js["src/agents/test-agent/index.js"]
+  n_file_src_testing_e2e_config_js["src/testing/e2e/config.js"]
+  n_file_src_agents_test_agent_index_js -->|IMPORTS| n_file_src_testing_e2e_config_js
+  n_file_src_agents_test_agent_index_js["src/agents/test-agent/index.js"]
+  n_file_src_testing_e2e_runner_js["src/testing/e2e/runner.js"]
+  n_file_src_agents_test_agent_index_js -->|IMPORTS| n_file_src_testing_e2e_runner_js
+  n_file_src_agents_test_agent_index_js["src/agents/test-agent/index.js"]
+  n_file_src_testing_e2e_inventory_js["src/testing/e2e/inventory.js"]
+  n_file_src_agents_test_agent_index_js -->|IMPORTS| n_file_src_testing_e2e_inventory_js
+  n_file_src_agents_test_agent_index_js["src/agents/test-agent/index.js"]
+  n_file_src_testing_e2e_pr_js["src/testing/e2e/pr.js"]
+  n_file_src_agents_test_agent_index_js -->|IMPORTS| n_file_src_testing_e2e_pr_js
+  n_file_src_agents_test_agent_index_js["src/agents/test-agent/index.js"]
+  n_file_src_testing_e2e_layers_js["src/testing/e2e/layers.js"]
+  n_file_src_agents_test_agent_index_js -->|IMPORTS| n_file_src_testing_e2e_layers_js
+  n_file_src_agents_test_agent_plan_js["src/agents/test-agent/plan.js"]
+  n_file_src_testing_e2e_config_js["src/testing/e2e/config.js"]
+  n_file_src_agents_test_agent_plan_js -->|IMPORTS| n_file_src_testing_e2e_config_js
+  n_file_src_agents_test_agent_plan_js["src/agents/test-agent/plan.js"]
+  n_file_src_testing_e2e_inventory_js["src/testing/e2e/inventory.js"]
+  n_file_src_agents_test_agent_plan_js -->|IMPORTS| n_file_src_testing_e2e_inventory_js
+  n_file_src_agents_test_agent_plan_js["src/agents/test-agent/plan.js"]
+  n_file_src_testing_e2e_layers_js["src/testing/e2e/layers.js"]
+  n_file_src_agents_test_agent_plan_js -->|IMPORTS| n_file_src_testing_e2e_layers_js
+  n_file_src_agents_test_agent_plan_js["src/agents/test-agent/plan.js"]
+  n_file_src_testing_e2e_match_js["src/testing/e2e/match.js"]
+  n_file_src_agents_test_agent_plan_js -->|IMPORTS| n_file_src_testing_e2e_match_js

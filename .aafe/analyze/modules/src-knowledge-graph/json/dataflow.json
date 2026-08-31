@@ -1,0 +1,132 @@
+{
+  "module": "src-knowledge-graph",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:22",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/knowledge/graph/relations.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/knowledge/graph/relations.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/knowledge/graph/relations.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:190",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/views.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/views.js",
+          "file:src/knowledge/graph/relations.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/views.js",
+            "to": "file:src/knowledge/graph/relations.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/views.js",
+            "reason": "../../knowledge/graph/relations.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:202",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/failure-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/failure-analyzer/index.js",
+          "file:src/knowledge/graph/relations.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/failure-analyzer/index.js",
+            "to": "file:src/knowledge/graph/relations.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "../../knowledge/graph/relations.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:209",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/impact-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/impact-analyzer/index.js",
+          "file:src/knowledge/graph/relations.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/impact-analyzer/index.js",
+            "to": "file:src/knowledge/graph/relations.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/impact-analyzer/index.js",
+            "reason": "../../knowledge/graph/relations.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:407",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/knowledge/graph/relations.js",
+        "nodes": [
+          "file:src/knowledge/graph/relations.js",
+          "file:src/knowledge/model/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/knowledge/graph/relations.js",
+            "to": "file:src/knowledge/model/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/knowledge/graph/relations.js",
+            "reason": "../model/index.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 5,
+      "call": 0
+    }
+  }
+}

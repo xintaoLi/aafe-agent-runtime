@@ -1,0 +1,8 @@
+flowchart TB
+  subgraph n_src_agent_platform_planner["src-agent-platform-planner"]
+    n_CAPABILITY_PLANS["CAPABILITY_PLANS"]
+    n_PLANNER_ACTIONS["PLANNER_ACTIONS"]
+    n_src_agent_platform_planner_LlmPlanner_js["planner/LlmPlanner.js"]
+    n_src_agent_platform_planner_index_js["planner/index.js"]
+  end
+  n_src_agent_platform_planner --> n_src_llm["src-llm"]

@@ -1,0 +1,12 @@
+{"op":"downgrade","kind":"impact","id":"flow:app:${ctx.path}/${index}:src/agent-platform/schema/repair.js","reason":"flow-traceable: flow has no file-level node","runId":"20260820T035859-yucm","at":1787198340307}
+{"op":"downgrade","kind":"impact","id":"flow:app:${ctx.path}/${key}:src/agent-platform/schema/repair.js","reason":"flow-traceable: flow has no file-level node","runId":"20260820T035859-yucm","at":1787198340307}
+{"op":"downgrade","kind":"impact","id":"flow:app:${ctx.path}/${index}:src/agent-platform/schema/repair.js","reason":"flow-traceable: flow has no file-level node","runId":"20260820T040854-28mu","at":1787198935438}
+{"op":"downgrade","kind":"impact","id":"flow:app:${ctx.path}/${key}:src/agent-platform/schema/repair.js","reason":"flow-traceable: flow has no file-level node","runId":"20260820T040854-28mu","at":1787198935438}
+{"op":"downgrade","kind":"impact","id":"flow:app:${ctx.path}/${index}:src/agent-platform/schema/repair.js","reason":"flow-traceable: flow has no file-level node","runId":"20260820T040859-lewg","at":1787198940180}
+{"op":"downgrade","kind":"impact","id":"flow:app:${ctx.path}/${key}:src/agent-platform/schema/repair.js","reason":"flow-traceable: flow has no file-level node","runId":"20260820T040859-lewg","at":1787198940180}
+{"op":"downgrade","kind":"impact","id":"flow:app:${ctx.path}/${index}:src/agent-platform/schema/repair.js","reason":"flow-traceable: flow has no file-level node","runId":"20260820T040914-xc4u","at":1787198955187}
+{"op":"downgrade","kind":"impact","id":"flow:app:${ctx.path}/${key}:src/agent-platform/schema/repair.js","reason":"flow-traceable: flow has no file-level node","runId":"20260820T040914-xc4u","at":1787198955187}
+{"op":"downgrade","kind":"impact","id":"flow:app:${ctx.path}/${index}:src/agent-platform/schema/repair.js","reason":"flow-traceable: flow has no file-level node","runId":"20260820T064402-kf48","at":1787208243051}
+{"op":"downgrade","kind":"impact","id":"flow:app:${ctx.path}/${key}:src/agent-platform/schema/repair.js","reason":"flow-traceable: flow has no file-level node","runId":"20260820T064402-kf48","at":1787208243051}
+{"op":"downgrade","kind":"impact","id":"flow:app:package.json:src/static-analysis/analyzers/repository.js","reason":"flow-traceable: flow has no file-level node","runId":"20260820T090846-i4h4","at":1787216927065}
+{"op":"downgrade","kind":"impact","id":"flow:app:package.json:src/static-analysis/analyzers/repository.js","reason":"flow-traceable: flow has no file-level node","runId":"20260820T091017-4t91","at":1787217018336}

@@ -1,0 +1,61 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_protocol_request_js["src/agent-platform/protocol/request.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_protocol_request_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_file_src_agent_platform_protocol_request_js["src/agent-platform/protocol/request.js"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|IMPORTS| n_file_src_agent_platform_protocol_request_js
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agent_platform_orchestrator_AgentOrches -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agent_platform_policy_ExecutionPolicy_j["src/agent-platform/policy/ExecutionPolicy.js"]
+  n_file_src_agent_platform_protocol_request_js["src/agent-platform/protocol/request.js"]
+  n_file_src_agent_platform_policy_ExecutionPolicy_j -->|IMPORTS| n_file_src_agent_platform_protocol_request_js
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agent_platform_runtime_providers_CliAge["src/agent-platform/runtime/providers/CliAgentProvider.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agent_platform_runtime_providers_CliAge -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agent_platform_runtime_providers_HttpAg["src/agent-platform/runtime/providers/HttpAgentProvider.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agent_platform_runtime_providers_HttpAg -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agent_platform_runtime_providers_IdeAge["src/agent-platform/runtime/providers/IdeAgentProvider.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agent_platform_runtime_providers_IdeAge -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agent_platform_runtime_providers_LocalA["src/agent-platform/runtime/providers/LocalAgentProvider.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agent_platform_runtime_providers_LocalA -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agent_platform_runtime_providers_McpAge["src/agent-platform/runtime/providers/McpAgentProvider.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agent_platform_runtime_providers_McpAge -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agents_code_intelligence_index_js["src/agents/code-intelligence/index.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agents_code_intelligence_index_js -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agents_context_agent_index_js["src/agents/context-agent/index.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agents_context_agent_index_js -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agents_failure_analyzer_index_js["src/agents/failure-analyzer/index.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agents_failure_analyzer_index_js -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agents_impact_analyzer_index_js["src/agents/impact-analyzer/index.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agents_impact_analyzer_index_js -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agents_knowledge_validator_index_js["src/agents/knowledge-validator/index.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agents_knowledge_validator_index_js -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agents_test_agent_index_js["src/agents/test-agent/index.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agents_test_agent_index_js -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_cli_platform_js["src/cli/platform.js"]
+  n_file_src_agent_platform_protocol_request_js["src/agent-platform/protocol/request.js"]
+  n_file_src_cli_platform_js -->|IMPORTS| n_file_src_agent_platform_protocol_request_js
+  n_file_src_agent_platform_protocol_request_js["src/agent-platform/protocol/request.js"]
+  n_call_toString["toString"]
+  n_file_src_agent_platform_protocol_request_js -->|CALLS| n_call_toString
+  n_file_src_agent_platform_protocol_request_js["src/agent-platform/protocol/request.js"]
+  n_call_Date_now["Date.now"]
+  n_file_src_agent_platform_protocol_request_js -->|CALLS| n_call_Date_now

@@ -1,0 +1,59 @@
+{
+  "module": "src-agent-platform-registry",
+  "components": [
+    {
+      "name": "SCHEMA_MODES",
+      "kind": "variable",
+      "file": "src/agent-platform/registry/definition.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/registry/definition.js",
+          "symbol": "SCHEMA_MODES"
+        }
+      ]
+    },
+    {
+      "name": "BUILTIN_AGENTS",
+      "kind": "variable",
+      "file": "src/agent-platform/registry/definition.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/registry/definition.js",
+          "symbol": "BUILTIN_AGENTS"
+        }
+      ]
+    },
+    {
+      "name": "ALL_CAPABILITIES",
+      "kind": "variable",
+      "file": "src/agent-platform/registry/definition.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/registry/definition.js",
+          "symbol": "ALL_CAPABILITIES"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "AgentRegistry",
+      "fromLabel": "AgentRegistry",
+      "to": "SCHEMA_MODES",
+      "toLabel": "SCHEMA_MODES",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/registry/AgentRegistry.js",
+      "toFile": "src/agent-platform/registry/definition.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/registry/AgentRegistry.js",
+          "reason": "./definition.js"
+        }
+      ]
+    }
+  ]
+}

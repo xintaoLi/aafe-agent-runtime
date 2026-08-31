@@ -1,0 +1,5 @@
+flowchart TB
+  subgraph n_src_static_analysis_storage["src-static-analysis-storage"]
+    n_src_static_analysis_storage_persist_js["storage/persist.js"]
+  end
+  n_src_static_analysis_storage --> n_src_static_analysis_emit["src-static-analysis-emit"]

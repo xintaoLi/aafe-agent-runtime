@@ -1,0 +1,17 @@
+{
+  "module": "route-ai-agent",
+  "routes": [
+    {
+      "name": "",
+      "component": "",
+      "source": "unknown",
+      "evidence": [
+        {
+          "type": "route",
+          "file": ""
+        }
+      ]
+    }
+  ],
+  "summary": "Module route-ai-agent owns 1 routes"
+}

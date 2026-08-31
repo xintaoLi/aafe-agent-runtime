@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/ui/ui-trigger.schema.json",
+  "title": "UI Trigger Decision",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "enabled",
+        "disabled",
+        "ambiguous"
+      ]
+    },
+    "reason": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "full",
+        "partial",
+        "none"
+      ]
+    },
+    "complexity": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "simple",
+        "standard",
+        "full",
+        null
+      ]
+    },
+    "requestedCapabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "clarification": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "enabled",
+    "decision",
+    "reason",
+    "scope"
+  ]
+}

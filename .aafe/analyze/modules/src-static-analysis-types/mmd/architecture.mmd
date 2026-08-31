@@ -1,0 +1,8 @@
+flowchart TB
+  subgraph n_src_static_analysis_types["src-static-analysis-types"]
+    n_src_static_analysis_types_config_js["types/config.js"]
+    n_src_static_analysis_types_context_js["types/context.js"]
+    n_src_static_analysis_types_evidence_js["types/evidence.js"]
+    n_src_static_analysis_types_result_js["types/result.js"]
+  end
+  n_src_static_analysis_types --> n_src_static_analysis_emit["src-static-analysis-emit"]

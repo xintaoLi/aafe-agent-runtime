@@ -1,0 +1,132 @@
+{
+  "module": "src-static-analysis-git",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:201",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/failure-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/failure-analyzer/index.js",
+          "file:src/static-analysis/git/DiffFacts.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/failure-analyzer/index.js",
+            "to": "file:src/static-analysis/git/DiffFacts.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "../../static-analysis/git/DiffFacts.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:207",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/impact-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/impact-analyzer/index.js",
+          "file:src/static-analysis/git/DiffFacts.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/impact-analyzer/index.js",
+            "to": "file:src/static-analysis/git/DiffFacts.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/impact-analyzer/index.js",
+            "reason": "../../static-analysis/git/DiffFacts.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:236",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/index.js",
+        "nodes": [
+          "file:src/agents/test-agent/index.js",
+          "file:src/static-analysis/git/DiffFacts.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/index.js",
+            "to": "file:src/static-analysis/git/DiffFacts.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/index.js",
+            "reason": "../../static-analysis/git/DiffFacts.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:467",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/git/DiffFacts.js",
+        "nodes": [
+          "file:src/static-analysis/git/DiffFacts.js",
+          "import:node:child_process"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/git/DiffFacts.js",
+            "to": "import:node:child_process",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/git/DiffFacts.js",
+            "reason": "node:child_process"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:468",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/git/DiffFacts.js",
+        "nodes": [
+          "file:src/static-analysis/git/DiffFacts.js",
+          "import:node:util"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/git/DiffFacts.js",
+            "to": "import:node:util",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/git/DiffFacts.js",
+            "reason": "node:util"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 5,
+      "call": 0
+    }
+  }
+}

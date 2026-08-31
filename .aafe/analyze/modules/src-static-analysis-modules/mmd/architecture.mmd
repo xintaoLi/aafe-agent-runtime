@@ -1,0 +1,6 @@
+flowchart TB
+  subgraph n_src_static_analysis_modules["src-static-analysis-modules"]
+    n_src_static_analysis_modules_buildBundles_js["modules/buildBundles.js"]
+    n_src_static_analysis_modules_partition_js["modules/partition.js"]
+  end
+  n_src_static_analysis_modules --> n_src_static_analysis_types["src-static-analysis-types"]

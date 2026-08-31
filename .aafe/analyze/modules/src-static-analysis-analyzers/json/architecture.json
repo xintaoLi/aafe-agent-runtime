@@ -1,0 +1,69 @@
+{
+  "module": "src-static-analysis-analyzers",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/static-analysis/analyzers/architecture.js",
+        "src/static-analysis/analyzers/business.js",
+        "src/static-analysis/analyzers/dataflow.js",
+        "src/static-analysis/analyzers/feature.js",
+        "src/static-analysis/analyzers/graph.js",
+        "src/static-analysis/analyzers/repository.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-static-analysis",
+      "module:src-static-analysis-ast",
+      "module:src-static-analysis-modules",
+      "module:src-static-analysis-resolve",
+      "module:src-static-analysis-routes",
+      "module:src-static-analysis-semantic",
+      "module:src-static-analysis-types"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/static-analysis/analyzers/architecture.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/static-analysis/analyzers/business.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/static-analysis/analyzers/dataflow.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/static-analysis/analyzers/feature.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/static-analysis/analyzers/graph.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/static-analysis/analyzers/repository.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-static-analysis",
+    "module:src-static-analysis-ast",
+    "module:src-static-analysis-modules",
+    "module:src-static-analysis-resolve",
+    "module:src-static-analysis-routes",
+    "module:src-static-analysis-semantic",
+    "module:src-static-analysis-types"
+  ],
+  "signals": []
+}

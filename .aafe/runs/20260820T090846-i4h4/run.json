@@ -1,0 +1,401 @@
+{
+  "runId": "20260820T090846-i4h4",
+  "status": "need_user_input",
+  "reason": "required capabilities are unavailable (context-packaging: no-impact-report-available)",
+  "task": {
+    "id": "task-mt1ata4n-1",
+    "kind": "test",
+    "goal": "full functional coverage from analyze",
+    "requirement": "full coverage from analyze",
+    "diffRef": null,
+    "failureRef": null,
+    "scenario": "coverage",
+    "prUrl": null,
+    "e2eWrite": null,
+    "e2eUpdate": false,
+    "e2eForce": false,
+    "inlineToken": null,
+    "dryRun": false
+  },
+  "decisions": [
+    {
+      "action": "invoke_agent",
+      "capability": "project-analysis",
+      "reason": "project knowledge is commit-changed:558505b->db4c836",
+      "input": {
+        "reason": "commit-changed:558505b->db4c836"
+      },
+      "expectedOutput": [
+        "modules",
+        "routes",
+        "features"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "test-planning",
+      "reason": "task kind \"test\" requires test-planning",
+      "input": {
+        "requirement": "full coverage from analyze",
+        "scenario": "coverage",
+        "write": null,
+        "update": false,
+        "force": false
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "test-generation",
+      "reason": "task kind \"test\" requires test-generation",
+      "input": {
+        "requirement": "full coverage from analyze",
+        "scenario": "coverage",
+        "write": null,
+        "update": false,
+        "force": false
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "e2e-execution",
+      "reason": "task kind \"test\" requires e2e-execution",
+      "input": {
+        "requirement": "full coverage from analyze",
+        "scenario": "coverage",
+        "write": null,
+        "update": false,
+        "force": false
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "context-packaging",
+      "reason": "task kind \"test\" requires context-packaging",
+      "input": {
+        "kind": "test",
+        "goal": "full functional coverage from analyze"
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "requirement-impact",
+      "reason": "agent suggested: context packaging needs an impact report",
+      "input": {
+        "requirement": "full coverage from analyze"
+      },
+      "confidence": 0.6
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "knowledge-validation",
+      "reason": "agent suggested: impact claims should be evidence-checked before use",
+      "input": {
+        "source": "impact"
+      },
+      "confidence": 0.6
+    },
+    {
+      "action": "need_user_input",
+      "reason": "required capabilities are unavailable (context-packaging: no-impact-report-available)"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "N1",
+      "agent": "code-intelligence",
+      "capability": "project-analysis",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T090846-i4h4/nodes/N1.input.json",
+      "outputRef": ".aafe/runs/20260820T090846-i4h4/nodes/N1.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787216926368,
+      "finishedAt": 1787216926845,
+      "reason": "semantic enrichment unavailable: static-only"
+    },
+    {
+      "id": "N2",
+      "agent": "test-agent",
+      "capability": "test-planning",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T090846-i4h4/nodes/N2.input.json",
+      "outputRef": ".aafe/runs/20260820T090846-i4h4/nodes/N2.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787216926868,
+      "finishedAt": 1787216926912
+    },
+    {
+      "id": "N3",
+      "agent": "test-agent",
+      "capability": "test-generation",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T090846-i4h4/nodes/N3.input.json",
+      "outputRef": ".aafe/runs/20260820T090846-i4h4/nodes/N3.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787216926934,
+      "finishedAt": 1787216926939,
+      "reason": "no test runner detected; defaulted to playwright/vitest templates"
+    },
+    {
+      "id": "N4",
+      "agent": "test-agent",
+      "capability": "e2e-execution",
+      "status": "skipped",
+      "inputRef": ".aafe/runs/20260820T090846-i4h4/nodes/N4.input.json",
+      "outputRef": ".aafe/runs/20260820T090846-i4h4/nodes/N4.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787216926966,
+      "finishedAt": 1787216926966,
+      "reason": "test-execution-not-allowed"
+    },
+    {
+      "id": "N5",
+      "agent": "context-agent",
+      "capability": "context-packaging",
+      "status": "skipped",
+      "inputRef": ".aafe/runs/20260820T090846-i4h4/nodes/N5.input.json",
+      "outputRef": ".aafe/runs/20260820T090846-i4h4/nodes/N5.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787216926990,
+      "finishedAt": 1787216926990,
+      "reason": "no-impact-report-available"
+    },
+    {
+      "id": "N6",
+      "agent": "impact-analyzer",
+      "capability": "requirement-impact",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T090846-i4h4/nodes/N6.input.json",
+      "outputRef": ".aafe/runs/20260820T090846-i4h4/nodes/N6.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787216927014,
+      "finishedAt": 1787216927018
+    },
+    {
+      "id": "N7",
+      "agent": "knowledge-validator",
+      "capability": "knowledge-validation",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T090846-i4h4/nodes/N7.input.json",
+      "outputRef": ".aafe/runs/20260820T090846-i4h4/nodes/N7.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787216927042,
+      "finishedAt": 1787216927043
+    }
+  ],
+  "state": {
+    "runId": "20260820T090846-i4h4",
+    "task": {
+      "id": "task-mt1ata4n-1",
+      "kind": "test",
+      "goal": "full functional coverage from analyze",
+      "requirement": "full coverage from analyze",
+      "diffRef": null,
+      "failureRef": null,
+      "scenario": "coverage",
+      "prUrl": null,
+      "e2eWrite": null,
+      "e2eUpdate": false,
+      "e2eForce": false,
+      "inlineToken": null,
+      "dryRun": false
+    },
+    "step": 7,
+    "history": [
+      {
+        "step": 1,
+        "node": "N1",
+        "agent": "code-intelligence",
+        "capability": "project-analysis",
+        "status": "partial",
+        "reason": "semantic enrichment unavailable: static-only",
+        "contract": {},
+        "durationMs": 477
+      },
+      {
+        "step": 2,
+        "node": "N2",
+        "agent": "test-agent",
+        "capability": "test-planning",
+        "status": "success",
+        "contract": {
+          "input": "/write: expected boolean, got null"
+        },
+        "durationMs": 44
+      },
+      {
+        "step": 3,
+        "node": "N3",
+        "agent": "test-agent",
+        "capability": "test-generation",
+        "status": "partial",
+        "reason": "no test runner detected; defaulted to playwright/vitest templates",
+        "contract": {
+          "input": "/write: expected boolean, got null"
+        },
+        "durationMs": 5
+      },
+      {
+        "step": 4,
+        "node": "N4",
+        "agent": "test-agent",
+        "capability": "e2e-execution",
+        "status": "skipped",
+        "reason": "test-execution-not-allowed",
+        "contract": {
+          "input": "/write: expected boolean, got null"
+        },
+        "durationMs": 0
+      },
+      {
+        "step": 5,
+        "node": "N5",
+        "agent": "context-agent",
+        "capability": "context-packaging",
+        "status": "skipped",
+        "reason": "no-impact-report-available",
+        "contract": {},
+        "durationMs": 0
+      },
+      {
+        "step": 6,
+        "node": "N6",
+        "agent": "impact-analyzer",
+        "capability": "requirement-impact",
+        "status": "success",
+        "contract": {},
+        "durationMs": 4
+      },
+      {
+        "step": 7,
+        "node": "N7",
+        "agent": "knowledge-validator",
+        "capability": "knowledge-validation",
+        "status": "success",
+        "contract": {},
+        "durationMs": 1
+      }
+    ],
+    "satisfied": [
+      "project-analysis",
+      "test-planning",
+      "test-generation",
+      "requirement-impact",
+      "knowledge-validation"
+    ],
+    "knowledgeUpdates": [
+      {
+        "op": "downgrade",
+        "kind": "impact",
+        "id": "flow:app:package.json:src/static-analysis/analyzers/repository.js",
+        "reason": "flow-traceable: flow has no file-level node"
+      }
+    ],
+    "diagnostics": [],
+    "metrics": {
+      "tokens": 0,
+      "cost": 0,
+      "agentCalls": 7,
+      "agentDurationMs": 514,
+      "byAgent": {
+        "code-intelligence": {
+          "calls": 1,
+          "tokens": 0,
+          "cost": 0,
+          "durationMs": 463
+        },
+        "test-agent": {
+          "calls": 3,
+          "tokens": 0,
+          "cost": 0,
+          "durationMs": 48
+        },
+        "context-agent": {
+          "calls": 1,
+          "tokens": 0,
+          "cost": 0,
+          "durationMs": 0
+        },
+        "impact-analyzer": {
+          "calls": 1,
+          "tokens": 0,
+          "cost": 0,
+          "durationMs": 2
+        },
+        "knowledge-validator": {
+          "calls": 1,
+          "tokens": 0,
+          "cost": 0,
+          "durationMs": 1
+        }
+      }
+    },
+    "replans": 0,
+    "durationMs": 720
+  },
+  "summary": {
+    "pending": 0,
+    "running": 0,
+    "success": 5,
+    "failed": 0,
+    "skipped": 2
+  },
+  "metrics": {
+    "tokens": 0,
+    "cost": 0,
+    "agentCalls": 7,
+    "agentDurationMs": 514,
+    "byAgent": {
+      "code-intelligence": {
+        "calls": 1,
+        "tokens": 0,
+        "cost": 0,
+        "durationMs": 463
+      },
+      "test-agent": {
+        "calls": 3,
+        "tokens": 0,
+        "cost": 0,
+        "durationMs": 48
+      },
+      "context-agent": {
+        "calls": 1,
+        "tokens": 0,
+        "cost": 0,
+        "durationMs": 0
+      },
+      "impact-analyzer": {
+        "calls": 1,
+        "tokens": 0,
+        "cost": 0,
+        "durationMs": 2
+      },
+      "knowledge-validator": {
+        "calls": 1,
+        "tokens": 0,
+        "cost": 0,
+        "durationMs": 1
+      }
+    },
+    "wallClockMs": 720
+  },
+  "knowledgeWrite": {
+    "applied": 1,
+    "upserted": 0,
+    "downgraded": 1,
+    "dropped": 0,
+    "skipped": 0,
+    "ref": ".aafe/knowledge/agent/json/items.json"
+  }
+}

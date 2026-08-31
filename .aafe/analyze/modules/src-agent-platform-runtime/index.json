@@ -1,0 +1,38 @@
+{
+  "id": "src-agent-platform-runtime",
+  "summary": {
+    "routes": 0,
+    "components": 2,
+    "features": 0,
+    "flows": 57,
+    "dependsOn": [
+      "module:src-agent-platform-policy",
+      "module:src-agent-platform-protocol",
+      "module:src-agent-platform-schema"
+    ]
+  },
+  "paths": {
+    "routes": "json/routes.json",
+    "architecture": "json/architecture.json",
+    "components": "json/components.json",
+    "features": "json/features.json",
+    "dataflow": "json/dataflow.json",
+    "mmd": {
+      "routes": "mmd/routes.mmd",
+      "architecture": "mmd/architecture.mmd",
+      "components": "mmd/components.mmd",
+      "dataflow": "mmd/dataflow.mmd"
+    },
+    "readme": "README.md"
+  },
+  "routes": [],
+  "components": [
+    "SCHEMA_FILE",
+    "EVIDENCE_SCHEMA"
+  ],
+  "dependencies": [
+    "module:src-agent-platform-policy",
+    "module:src-agent-platform-protocol",
+    "module:src-agent-platform-schema"
+  ]
+}

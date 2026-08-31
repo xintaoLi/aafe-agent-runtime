@@ -1,0 +1,25 @@
+flowchart TD
+  n_file_src_agent_platform_skill_runtime_AgentRunti["src/agent-platform/skill-runtime/AgentRuntime.js"]
+  n_file_src_memory_MemoryRuntime_js["src/memory/MemoryRuntime.js"]
+  n_file_src_agent_platform_skill_runtime_AgentRunti -->|IMPORTS| n_file_src_memory_MemoryRuntime_js
+  n_file_src_cli_memory_js["src/cli/memory.js"]
+  n_file_src_memory_MemoryStore_js["src/memory/MemoryStore.js"]
+  n_file_src_cli_memory_js -->|IMPORTS| n_file_src_memory_MemoryStore_js
+  n_file_src_cli_memory_js["src/cli/memory.js"]
+  n_file_src_memory_CodeScanner_js["src/memory/CodeScanner.js"]
+  n_file_src_cli_memory_js -->|IMPORTS| n_file_src_memory_CodeScanner_js
+  n_file_src_memory_CodeScanner_js["src/memory/CodeScanner.js"]
+  n_import_node_fs_promises["node:fs/promises"]
+  n_file_src_memory_CodeScanner_js -->|IMPORTS| n_import_node_fs_promises
+  n_file_src_memory_CodeScanner_js["src/memory/CodeScanner.js"]
+  n_import_node_path["node:path"]
+  n_file_src_memory_CodeScanner_js -->|IMPORTS| n_import_node_path
+  n_file_src_memory_MemoryRuntime_js["src/memory/MemoryRuntime.js"]
+  n_file_src_memory_MemoryStore_js["src/memory/MemoryStore.js"]
+  n_file_src_memory_MemoryRuntime_js -->|IMPORTS| n_file_src_memory_MemoryStore_js
+  n_file_src_memory_MemoryStore_js["src/memory/MemoryStore.js"]
+  n_import_node_fs_promises["node:fs/promises"]
+  n_file_src_memory_MemoryStore_js -->|IMPORTS| n_import_node_fs_promises
+  n_file_src_memory_MemoryStore_js["src/memory/MemoryStore.js"]
+  n_import_node_path["node:path"]
+  n_file_src_memory_MemoryStore_js -->|IMPORTS| n_import_node_path

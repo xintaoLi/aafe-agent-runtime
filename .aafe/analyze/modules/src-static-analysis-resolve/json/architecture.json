@@ -1,0 +1,27 @@
+{
+  "module": "src-static-analysis-resolve",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/static-analysis/resolve/ModuleResolver.js"
+      ],
+      "routes": [],
+      "components": [
+        "RESOLVE_EXTENSIONS",
+        "TS_CONFIG_FILES",
+        "BUNDLER_CONFIG_FILES"
+      ]
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/static-analysis/resolve/ModuleResolver.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

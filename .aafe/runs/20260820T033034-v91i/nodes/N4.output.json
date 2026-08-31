@@ -1,0 +1,1145 @@
+{
+  "status": "partial",
+  "result": {
+    "task": {
+      "kind": "failure",
+      "goal": "diagnose failure /tmp/aafe-fix/pw.json",
+      "requirement": null,
+      "diffRef": null
+    },
+    "project": {
+      "name": "@aafe/agent-runtime",
+      "commit": "558505be872d",
+      "knowledgeOutput": ".aafe"
+    },
+    "architecture": {
+      "modules": [
+        {
+          "id": "src-agent-platform-skill-runtime",
+          "files": [
+            "src/agent-platform/skill-runtime/AgentRuntime.js",
+            "src/agent-platform/skill-runtime/GateValidator.js",
+            "src/agent-platform/skill-runtime/HookBus.js",
+            "src/agent-platform/skill-runtime/PipelineExecutor.js",
+            "src/agent-platform/skill-runtime/SkillRegistry.js",
+            "src/agent-platform/skill-runtime/configLoader.js",
+            "src/agent-platform/skill-runtime/defaults.js"
+          ],
+          "routes": [],
+          "components": []
+        },
+        {
+          "id": "src-cli",
+          "files": [
+            "src/cli/analyze.js",
+            "src/cli/bootstrap.js",
+            "src/cli/codebuddyLayer.js",
+            "src/cli/completionImpactRules.js",
+            "src/cli/cursorLayer.js",
+            "src/cli/ddd.js",
+            "src/cli/detect.js",
+            "src/cli/doctor.js",
+            "src/cli/editorLayer.js",
+            "src/cli/editorRegistry.js",
+            "src/cli/fileLicense.js",
+            "src/cli/fileLicenseRules.js"
+          ],
+          "routes": [],
+          "components": []
+        },
+        {
+          "id": "src",
+          "files": [
+            "src/index.js"
+          ],
+          "routes": [],
+          "components": []
+        },
+        {
+          "id": "src-static-analysis-analyzers",
+          "files": [
+            "src/static-analysis/analyzers/architecture.js",
+            "src/static-analysis/analyzers/business.js",
+            "src/static-analysis/analyzers/dataflow.js",
+            "src/static-analysis/analyzers/feature.js",
+            "src/static-analysis/analyzers/graph.js",
+            "src/static-analysis/analyzers/repository.js"
+          ],
+          "routes": [],
+          "components": []
+        },
+        {
+          "id": "src-static-analysis-ast",
+          "files": [
+            "src/static-analysis/ast/extractors.js",
+            "src/static-analysis/ast/parseFile.js"
+          ],
+          "routes": [],
+          "components": []
+        },
+        {
+          "id": "src-static-analysis-emit",
+          "files": [
+            "src/static-analysis/emit/formats.js",
+            "src/static-analysis/emit/mermaid.js"
+          ],
+          "routes": [],
+          "components": []
+        }
+      ],
+      "dependencies": [
+        {
+          "from": "src-agent-platform-skill-runtime",
+          "to": "src-ddd"
+        },
+        {
+          "from": "src-agent-platform-skill-runtime",
+          "to": "src-memory"
+        },
+        {
+          "from": "src-agent-platform-skill-runtime",
+          "to": "src-patterns"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-agent-platform"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-agent-platform-config"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-agent-platform-protocol"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-agent-platform-registry"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-agent-platform-skill-runtime"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-ddd"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-ide-bridge-context"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-memory"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-patterns"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-static-analysis"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-static-analysis-types"
+        },
+        {
+          "from": "src-cli",
+          "to": "src-templates"
+        },
+        {
+          "from": "src-static-analysis-analyzers",
+          "to": "src-static-analysis"
+        },
+        {
+          "from": "src-static-analysis-analyzers",
+          "to": "src-static-analysis-ast"
+        },
+        {
+          "from": "src-static-analysis-analyzers",
+          "to": "src-static-analysis-modules"
+        },
+        {
+          "from": "src-static-analysis-analyzers",
+          "to": "src-static-analysis-routes"
+        },
+        {
+          "from": "src-static-analysis-analyzers",
+          "to": "src-static-analysis-semantic"
+        },
+        {
+          "from": "src-static-analysis-analyzers",
+          "to": "src-static-analysis-types"
+        }
+      ]
+    },
+    "affectedFiles": [
+      {
+        "id": ".ai-agent/memory/file-license-ok.jsonl",
+        "label": ".ai-agent/memory/file-license-ok.jsonl [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/memory/file-license-ok.jsonl",
+            "reason": "modified (+39/-0)"
+          }
+        ]
+      },
+      {
+        "id": ".ai-agent/memory/index.md",
+        "label": ".ai-agent/memory/index.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/memory/index.md",
+            "reason": "modified (+9/-0)"
+          }
+        ]
+      },
+      {
+        "id": ".ai-agent/memory/learnings.jsonl",
+        "label": ".ai-agent/memory/learnings.jsonl [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/memory/learnings.jsonl",
+            "reason": "modified (+1/-0)"
+          }
+        ]
+      },
+      {
+        "id": ".ai-agent/memory/project-architecture.md",
+        "label": ".ai-agent/memory/project-architecture.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/memory/project-architecture.md",
+            "reason": "modified (+1/-1)"
+          }
+        ]
+      },
+      {
+        "id": ".ai-agent/memory/summary.md",
+        "label": ".ai-agent/memory/summary.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/memory/summary.md",
+            "reason": "modified (+1/-1)"
+          }
+        ]
+      },
+      {
+        "id": ".ai-agent/skills/architecture-on-demand.md",
+        "label": ".ai-agent/skills/architecture-on-demand.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/skills/architecture-on-demand.md",
+            "reason": "modified (+33/-13)"
+          }
+        ]
+      },
+      {
+        "id": ".ai-agent/skills/dataflow-on-demand.md",
+        "label": ".ai-agent/skills/dataflow-on-demand.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/skills/dataflow-on-demand.md",
+            "reason": "modified (+32/-12)"
+          }
+        ]
+      },
+      {
+        "id": ".ai-agent/skills/project-architecture-locator.md",
+        "label": ".ai-agent/skills/project-architecture-locator.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/skills/project-architecture-locator.md",
+            "reason": "modified (+33/-13)"
+          }
+        ]
+      },
+      {
+        "id": ".gitignore",
+        "label": ".gitignore [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".gitignore",
+            "reason": "modified (+1/-0)"
+          }
+        ]
+      },
+      {
+        "id": "README.md",
+        "label": "README.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "README.md",
+            "reason": "modified (+196/-52)"
+          }
+        ]
+      },
+      {
+        "id": "aafe.patform.md",
+        "label": "aafe.patform.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "aafe.patform.md",
+            "reason": "modified (+107/-11)"
+          }
+        ]
+      },
+      {
+        "id": "package.json",
+        "label": "package.json [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "package.json",
+            "reason": "modified (+3/-2)"
+          }
+        ]
+      },
+      {
+        "id": "src/agent-platform/skill-runtime/AgentRuntime.js",
+        "label": "src/agent-platform/skill-runtime/AgentRuntime.js [renamed]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/GateValidator.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/HookBus.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/PipelineExecutor.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/SkillRegistry.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/configLoader.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/defaults.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src/agent-platform/skill-runtime/GateValidator.js",
+        "label": "src/agent-platform/skill-runtime/GateValidator.js [renamed]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/GateValidator.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src/agent-platform/skill-runtime/HookBus.js",
+        "label": "src/agent-platform/skill-runtime/HookBus.js [renamed]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/HookBus.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src/agent-platform/skill-runtime/PipelineExecutor.js",
+        "label": "src/agent-platform/skill-runtime/PipelineExecutor.js [renamed]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/PipelineExecutor.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src/agent-platform/skill-runtime/SkillRegistry.js",
+        "label": "src/agent-platform/skill-runtime/SkillRegistry.js [renamed]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/SkillRegistry.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src/agent-platform/skill-runtime/configLoader.js",
+        "label": "src/agent-platform/skill-runtime/configLoader.js [renamed]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/configLoader.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src/agent-platform/skill-runtime/defaults.js",
+        "label": "src/agent-platform/skill-runtime/defaults.js [renamed]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/defaults.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src/analyze/semantic/port.js",
+        "label": "src/analyze/semantic/port.js [deleted]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/analyze/semantic/port.js",
+            "reason": "deleted (+0/-73)"
+          }
+        ]
+      }
+    ],
+    "affectedModules": [
+      {
+        "id": "src-agent-platform-skill-runtime",
+        "label": "src-agent-platform-skill-runtime",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/GateValidator.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/HookBus.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/PipelineExecutor.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/SkillRegistry.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/configLoader.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/skill-runtime/defaults.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src-cli",
+        "label": "src-cli",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/analyze.js",
+            "reason": "modified (+4/-4)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/bootstrap.js",
+            "reason": "modified (+13/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/doctor.js",
+            "reason": "modified (+45/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/index.js",
+            "reason": "modified (+62/-5)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/platform.js",
+            "reason": "added (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src",
+        "label": "src",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/index.js",
+            "reason": "modified (+56/-10)"
+          }
+        ]
+      },
+      {
+        "id": "src-static-analysis-analyzers",
+        "label": "src-static-analysis-analyzers",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/architecture.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/business.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/dataflow.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/feature.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/graph.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src-static-analysis-ast",
+        "label": "src-static-analysis-ast",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/ast/extractors.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/ast/parseFile.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src-static-analysis-emit",
+        "label": "src-static-analysis-emit",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/emit/formats.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/emit/mermaid.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src-static-analysis",
+        "label": "src-static-analysis",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/entryDiscover.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/orchestrator.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/registry.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/renderSkills.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/writeDocs.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src-static-analysis-modules",
+        "label": "src-static-analysis-modules",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/modules/buildBundles.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/modules/partition.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src-static-analysis-routes",
+        "label": "src-static-analysis-routes",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/routes/resolveRoutes.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src-static-analysis-semantic",
+        "label": "src-static-analysis-semantic",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/semantic/port.js",
+            "reason": "added (+153/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src-static-analysis-storage",
+        "label": "src-static-analysis-storage",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/storage/persist.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src-static-analysis-types",
+        "label": "src-static-analysis-types",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/static-analysis/types/config.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/types/context.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/types/evidence.js",
+            "reason": "renamed (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/static-analysis/types/result.js",
+            "reason": "renamed (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform-config",
+        "label": "src-agent-platform-config",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/config/agentsConfig.js",
+            "reason": "added (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform",
+        "label": "src-agent-platform",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/index.js",
+            "reason": "added (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform-orchestrator",
+        "label": "src-agent-platform-orchestrator",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "reason": "added (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "reason": "added (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform-planner",
+        "label": "src-agent-platform-planner",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "reason": "added (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "reason": "added (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/planner/decision.js",
+            "reason": "added (+0/-0)"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/planner/index.js",
+            "reason": "added (+0/-0)"
+          }
+        ]
+      },
+      {
+        "id": "bin-aafe-js",
+        "label": "bin-aafe-js",
+        "score": 0.55,
+        "why": "depends on src-cli (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "bin/aafe.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-code-intelligence",
+        "label": "src-agents-code-intelligence",
+        "score": 0.55,
+        "why": "depends on src-static-analysis (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/agents/code-intelligence/views.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-impact-analyzer",
+        "label": "src-agents-impact-analyzer",
+        "score": 0.55,
+        "why": "depends on src-static-analysis-types (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/impact-analyzer/index.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/agents/impact-analyzer/tokenize.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents",
+        "label": "src-agents",
+        "score": 0.303,
+        "why": "depends on src-agents-code-intelligence (2 hops away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/index.js",
+            "reason": "module membership"
+          }
+        ]
+      }
+    ],
+    "affectedFeatures": [
+      {
+        "id": "feature:ai-agent-memory",
+        "label": "memory",
+        "score": 0.5,
+        "why": "feature lives in affected module src-cli",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/cli/bootstrap.js",
+            "reason": ".ai-agent/memory"
+          }
+        ]
+      },
+      {
+        "id": "feature:package-json",
+        "label": "package",
+        "score": 0.5,
+        "why": "feature lives in affected module src-static-analysis-analyzers",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "package.json"
+          }
+        ]
+      },
+      {
+        "id": "feature:feature",
+        "label": "...",
+        "score": 0.5,
+        "why": "feature lives in affected module src-static-analysis-ast",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/static-analysis/ast/extractors.js",
+            "reason": "..."
+          }
+        ]
+      }
+    ],
+    "dataFlows": [],
+    "businessFlows": [
+      {
+        "id": "business:ai-agent-memory",
+        "label": "memory",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-cli",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/cli/bootstrap.js",
+            "reason": ".ai-agent/memory"
+          }
+        ]
+      },
+      {
+        "id": "business:package-json",
+        "label": "package",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-static-analysis-analyzers",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "package.json"
+          }
+        ]
+      },
+      {
+        "id": "business:feature",
+        "label": "...",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-static-analysis-ast",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/static-analysis/ast/extractors.js",
+            "reason": "..."
+          }
+        ]
+      }
+    ],
+    "tests": [],
+    "risk": "high",
+    "confidence": 1,
+    "constraints": [
+      "AAFE analysis is advisory; verify each claim against the cited file before editing.",
+      "Do not change files outside the affected modules without re-running impact analysis.",
+      "This context was not evidence-validated; treat low-score items with care."
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+        "reason": "renamed (+0/-0)"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/skill-runtime/GateValidator.js",
+        "reason": "renamed (+0/-0)"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/skill-runtime/HookBus.js",
+        "reason": "renamed (+0/-0)"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/skill-runtime/PipelineExecutor.js",
+        "reason": "renamed (+0/-0)"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/skill-runtime/SkillRegistry.js",
+        "reason": "renamed (+0/-0)"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/skill-runtime/configLoader.js",
+        "reason": "renamed (+0/-0)"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/skill-runtime/defaults.js",
+        "reason": "renamed (+0/-0)"
+      },
+      {
+        "type": "source",
+        "file": "src/cli/analyze.js",
+        "reason": "modified (+4/-4)"
+      },
+      {
+        "type": "source",
+        "file": "src/cli/bootstrap.js",
+        "reason": "modified (+13/-0)"
+      },
+      {
+        "type": "source",
+        "file": "src/cli/doctor.js",
+        "reason": "modified (+45/-0)"
+      },
+      {
+        "type": "source",
+        "file": "src/cli/index.js",
+        "reason": "modified (+62/-5)"
+      },
+      {
+        "type": "source",
+        "file": "src/cli/platform.js",
+        "reason": "added (+0/-0)"
+      }
+    ],
+    "recommendedChanges": [
+      {
+        "order": 1,
+        "target": "src-agent-platform-skill-runtime",
+        "action": "implement",
+        "why": "module owns a changed file"
+      },
+      {
+        "order": 2,
+        "target": "src-cli",
+        "action": "implement",
+        "why": "module owns a changed file"
+      },
+      {
+        "order": 3,
+        "target": "src",
+        "action": "implement",
+        "why": "module owns a changed file"
+      },
+      {
+        "order": 4,
+        "target": "src-static-analysis-analyzers",
+        "action": "implement",
+        "why": "module owns a changed file"
+      },
+      {
+        "order": 5,
+        "target": "src-static-analysis-ast",
+        "action": "implement",
+        "why": "module owns a changed file"
+      },
+      {
+        "order": 6,
+        "target": "bin-aafe-js",
+        "action": "review-for-regression",
+        "why": "depends on src-cli (1 hop away)"
+      },
+      {
+        "order": 7,
+        "target": "src-agents-code-intelligence",
+        "action": "review-for-regression",
+        "why": "depends on src-static-analysis (1 hop away)"
+      },
+      {
+        "order": 8,
+        "target": "src-agents-impact-analyzer",
+        "action": "review-for-regression",
+        "why": "depends on src-static-analysis-types (1 hop away)"
+      },
+      {
+        "order": 9,
+        "target": "src-agents",
+        "action": "review-for-regression",
+        "why": "depends on src-agents-code-intelligence (2 hops away)"
+      }
+    ],
+    "failure": {
+      "classification": "mixed",
+      "rootCause": "2 tests failed (mixed); the topmost project frame is src/cli/platform.js:88, which this diff modified.",
+      "status": "failed",
+      "totals": {
+        "total": 3,
+        "passed": 1,
+        "failed": 2,
+        "skipped": 0
+      },
+      "suspects": [
+        {
+          "test": "checkout › pays with card",
+          "file": "tests/checkout.spec.js",
+          "line": null,
+          "inDiff": false,
+          "message": "locator.click: Timeout 5000ms exceeded.\n=========================== waiting for locator('#pay-btn')"
+        },
+        {
+          "test": "checkout › shows total",
+          "file": "src/cli/platform.js",
+          "line": 88,
+          "inDiff": true,
+          "message": "Cannot read properties of undefined (reading 'total')"
+        }
+      ],
+      "fixSuggestions": [
+        "This run failed in 2 different ways (timeout, runtime); treat them as separate problems.",
+        "timeout: Confirm the awaited condition can actually occur; a renamed selector or a state that never settles is the usual cause.",
+        "runtime: Guard or fix the value dereferenced in tests/checkout.spec.js."
+      ],
+      "regressionTests": [
+        "checkout › pays with card",
+        "checkout › shows total"
+      ]
+    },
+    "tokenEstimate": 5157,
+    "truncated": [
+      "evidence 632->12",
+      "affectedFiles 623->20"
+    ]
+  },
+  "knowledgeUpdates": [],
+  "evidence": [],
+  "nextActions": [],
+  "metrics": {
+    "duration": 11,
+    "tokens": 5157
+  },
+  "reason": "trimmed to fit 12000 tokens: evidence 632->12, affectedFiles 623->20"
+}

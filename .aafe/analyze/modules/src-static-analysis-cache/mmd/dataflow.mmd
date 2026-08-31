@@ -1,0 +1,13 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_static_analysis_cache_AnalysisCache_js["src/static-analysis/cache/AnalysisCache.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_static_analysis_cache_AnalysisCache_js
+  n_file_src_static_analysis_cache_AnalysisCache_js["src/static-analysis/cache/AnalysisCache.js"]
+  n_import_node_fs_promises["node:fs/promises"]
+  n_file_src_static_analysis_cache_AnalysisCache_js -->|IMPORTS| n_import_node_fs_promises
+  n_file_src_static_analysis_cache_AnalysisCache_js["src/static-analysis/cache/AnalysisCache.js"]
+  n_import_node_path["node:path"]
+  n_file_src_static_analysis_cache_AnalysisCache_js -->|IMPORTS| n_import_node_path
+  n_file_src_static_analysis_orchestrator_js["src/static-analysis/orchestrator.js"]
+  n_file_src_static_analysis_cache_AnalysisCache_js["src/static-analysis/cache/AnalysisCache.js"]
+  n_file_src_static_analysis_orchestrator_js -->|IMPORTS| n_file_src_static_analysis_cache_AnalysisCache_js

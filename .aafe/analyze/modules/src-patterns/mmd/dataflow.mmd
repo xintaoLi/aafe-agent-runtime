@@ -1,0 +1,61 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_patterns_PatternGate_js["src/patterns/PatternGate.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_patterns_PatternGate_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_patterns_PatternComposer_js["src/patterns/PatternComposer.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_patterns_PatternComposer_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_patterns_PatternProblems_js["src/patterns/PatternProblems.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_patterns_PatternProblems_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_patterns_PatternScore_js["src/patterns/PatternScore.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_patterns_PatternScore_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_patterns_AntiPatternDetector_js["src/patterns/AntiPatternDetector.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_patterns_AntiPatternDetector_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_patterns_catalog_js["src/patterns/catalog.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_patterns_catalog_js
+  n_file_src_agent_platform_skill_runtime_AgentRunti["src/agent-platform/skill-runtime/AgentRuntime.js"]
+  n_file_src_patterns_PatternGate_js["src/patterns/PatternGate.js"]
+  n_file_src_agent_platform_skill_runtime_AgentRunti -->|IMPORTS| n_file_src_patterns_PatternGate_js
+  n_file_src_agent_platform_skill_runtime_defaults_j["src/agent-platform/skill-runtime/defaults.js"]
+  n_file_src_patterns_PatternAdvisor_js["src/patterns/PatternAdvisor.js"]
+  n_file_src_agent_platform_skill_runtime_defaults_j -->|IMPORTS| n_file_src_patterns_PatternAdvisor_js
+  n_file_src_agent_platform_skill_runtime_defaults_j["src/agent-platform/skill-runtime/defaults.js"]
+  n_file_src_patterns_PatternGate_js["src/patterns/PatternGate.js"]
+  n_file_src_agent_platform_skill_runtime_defaults_j -->|IMPORTS| n_file_src_patterns_PatternGate_js
+  n_file_src_cli_patternRuntimeFiles_js["src/cli/patternRuntimeFiles.js"]
+  n_file_src_patterns_catalog_js["src/patterns/catalog.js"]
+  n_file_src_cli_patternRuntimeFiles_js -->|IMPORTS| n_file_src_patterns_catalog_js
+  n_file_src_cli_patternRuntimeFiles_js["src/cli/patternRuntimeFiles.js"]
+  n_file_src_patterns_AntiPatternDetector_js["src/patterns/AntiPatternDetector.js"]
+  n_file_src_cli_patternRuntimeFiles_js -->|IMPORTS| n_file_src_patterns_AntiPatternDetector_js
+  n_file_src_cli_patterns_js["src/cli/patterns.js"]
+  n_file_src_patterns_PatternAdvisor_js["src/patterns/PatternAdvisor.js"]
+  n_file_src_cli_patterns_js -->|IMPORTS| n_file_src_patterns_PatternAdvisor_js
+  n_file_src_cli_patterns_js["src/cli/patterns.js"]
+  n_file_src_patterns_PatternGate_js["src/patterns/PatternGate.js"]
+  n_file_src_cli_patterns_js -->|IMPORTS| n_file_src_patterns_PatternGate_js
+  n_file_src_cli_patterns_js["src/cli/patterns.js"]
+  n_file_src_patterns_catalog_js["src/patterns/catalog.js"]
+  n_file_src_cli_patterns_js -->|IMPORTS| n_file_src_patterns_catalog_js
+  n_file_src_patterns_AntiPatternDetector_js["src/patterns/AntiPatternDetector.js"]
+  n_file_src_patterns_catalog_js["src/patterns/catalog.js"]
+  n_file_src_patterns_AntiPatternDetector_js -->|IMPORTS| n_file_src_patterns_catalog_js
+  n_file_src_patterns_PatternAdvisor_js["src/patterns/PatternAdvisor.js"]
+  n_file_src_patterns_PatternComposer_js["src/patterns/PatternComposer.js"]
+  n_file_src_patterns_PatternAdvisor_js -->|IMPORTS| n_file_src_patterns_PatternComposer_js
+  n_file_src_patterns_PatternAdvisor_js["src/patterns/PatternAdvisor.js"]
+  n_file_src_patterns_PatternProblems_js["src/patterns/PatternProblems.js"]
+  n_file_src_patterns_PatternAdvisor_js -->|IMPORTS| n_file_src_patterns_PatternProblems_js
+  n_file_src_patterns_PatternAdvisor_js["src/patterns/PatternAdvisor.js"]
+  n_file_src_patterns_AntiPatternDetector_js["src/patterns/AntiPatternDetector.js"]
+  n_file_src_patterns_PatternAdvisor_js -->|IMPORTS| n_file_src_patterns_AntiPatternDetector_js
+  n_file_src_patterns_PatternAdvisor_js["src/patterns/PatternAdvisor.js"]
+  n_file_src_patterns_catalog_js["src/patterns/catalog.js"]
+  n_file_src_patterns_PatternAdvisor_js -->|IMPORTS| n_file_src_patterns_catalog_js
+  n_file_src_patterns_PatternComposer_js["src/patterns/PatternComposer.js"]
+  n_file_src_patterns_catalog_js["src/patterns/catalog.js"]
+  n_file_src_patterns_PatternComposer_js -->|IMPORTS| n_file_src_patterns_catalog_js

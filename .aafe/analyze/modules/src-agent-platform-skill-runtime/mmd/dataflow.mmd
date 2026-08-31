@@ -1,0 +1,61 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_skill_runtime_defaults_j["src/agent-platform/skill-runtime/defaults.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_skill_runtime_defaults_j
+  n_file_src_agent_platform_skill_runtime_AgentRunti["src/agent-platform/skill-runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_skill_runtime_SkillRegis["src/agent-platform/skill-runtime/SkillRegistry.js"]
+  n_file_src_agent_platform_skill_runtime_AgentRunti -->|IMPORTS| n_file_src_agent_platform_skill_runtime_SkillRegis
+  n_file_src_agent_platform_skill_runtime_AgentRunti["src/agent-platform/skill-runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_skill_runtime_PipelineEx["src/agent-platform/skill-runtime/PipelineExecutor.js"]
+  n_file_src_agent_platform_skill_runtime_AgentRunti -->|IMPORTS| n_file_src_agent_platform_skill_runtime_PipelineEx
+  n_file_src_agent_platform_skill_runtime_AgentRunti["src/agent-platform/skill-runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_skill_runtime_GateValida["src/agent-platform/skill-runtime/GateValidator.js"]
+  n_file_src_agent_platform_skill_runtime_AgentRunti -->|IMPORTS| n_file_src_agent_platform_skill_runtime_GateValida
+  n_file_src_agent_platform_skill_runtime_AgentRunti["src/agent-platform/skill-runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_skill_runtime_HookBus_js["src/agent-platform/skill-runtime/HookBus.js"]
+  n_file_src_agent_platform_skill_runtime_AgentRunti -->|IMPORTS| n_file_src_agent_platform_skill_runtime_HookBus_js
+  n_file_src_agent_platform_skill_runtime_AgentRunti["src/agent-platform/skill-runtime/AgentRuntime.js"]
+  n_file_src_memory_MemoryRuntime_js["src/memory/MemoryRuntime.js"]
+  n_file_src_agent_platform_skill_runtime_AgentRunti -->|IMPORTS| n_file_src_memory_MemoryRuntime_js
+  n_file_src_agent_platform_skill_runtime_AgentRunti["src/agent-platform/skill-runtime/AgentRuntime.js"]
+  n_file_src_knowledge_store_KnowledgeStore_js["src/knowledge/store/KnowledgeStore.js"]
+  n_file_src_agent_platform_skill_runtime_AgentRunti -->|IMPORTS| n_file_src_knowledge_store_KnowledgeStore_js
+  n_file_src_agent_platform_skill_runtime_AgentRunti["src/agent-platform/skill-runtime/AgentRuntime.js"]
+  n_file_src_ddd_DDDGate_js["src/ddd/DDDGate.js"]
+  n_file_src_agent_platform_skill_runtime_AgentRunti -->|IMPORTS| n_file_src_ddd_DDDGate_js
+  n_file_src_agent_platform_skill_runtime_AgentRunti["src/agent-platform/skill-runtime/AgentRuntime.js"]
+  n_file_src_patterns_PatternGate_js["src/patterns/PatternGate.js"]
+  n_file_src_agent_platform_skill_runtime_AgentRunti -->|IMPORTS| n_file_src_patterns_PatternGate_js
+  n_file_src_agent_platform_skill_runtime_configLoad["src/agent-platform/skill-runtime/configLoader.js"]
+  n_import_node_fs_promises["node:fs/promises"]
+  n_file_src_agent_platform_skill_runtime_configLoad -->|IMPORTS| n_import_node_fs_promises
+  n_file_src_agent_platform_skill_runtime_configLoad["src/agent-platform/skill-runtime/configLoader.js"]
+  n_import_node_path["node:path"]
+  n_file_src_agent_platform_skill_runtime_configLoad -->|IMPORTS| n_import_node_path
+  n_file_src_agent_platform_skill_runtime_configLoad["src/agent-platform/skill-runtime/configLoader.js"]
+  n_file_src_agent_platform_skill_runtime_AgentRunti["src/agent-platform/skill-runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_skill_runtime_configLoad -->|IMPORTS| n_file_src_agent_platform_skill_runtime_AgentRunti
+  n_file_src_agent_platform_skill_runtime_configLoad["src/agent-platform/skill-runtime/configLoader.js"]
+  n_file_src_agent_platform_skill_runtime_defaults_j["src/agent-platform/skill-runtime/defaults.js"]
+  n_file_src_agent_platform_skill_runtime_configLoad -->|IMPORTS| n_file_src_agent_platform_skill_runtime_defaults_j
+  n_file_src_agent_platform_skill_runtime_defaults_j["src/agent-platform/skill-runtime/defaults.js"]
+  n_file_src_ddd_DDDAdvisor_js["src/ddd/DDDAdvisor.js"]
+  n_file_src_agent_platform_skill_runtime_defaults_j -->|IMPORTS| n_file_src_ddd_DDDAdvisor_js
+  n_file_src_agent_platform_skill_runtime_defaults_j["src/agent-platform/skill-runtime/defaults.js"]
+  n_file_src_ddd_DDDGate_js["src/ddd/DDDGate.js"]
+  n_file_src_agent_platform_skill_runtime_defaults_j -->|IMPORTS| n_file_src_ddd_DDDGate_js
+  n_file_src_agent_platform_skill_runtime_defaults_j["src/agent-platform/skill-runtime/defaults.js"]
+  n_file_src_ddd_DDDScope_js["src/ddd/DDDScope.js"]
+  n_file_src_agent_platform_skill_runtime_defaults_j -->|IMPORTS| n_file_src_ddd_DDDScope_js
+  n_file_src_agent_platform_skill_runtime_defaults_j["src/agent-platform/skill-runtime/defaults.js"]
+  n_file_src_patterns_PatternAdvisor_js["src/patterns/PatternAdvisor.js"]
+  n_file_src_agent_platform_skill_runtime_defaults_j -->|IMPORTS| n_file_src_patterns_PatternAdvisor_js
+  n_file_src_agent_platform_skill_runtime_defaults_j["src/agent-platform/skill-runtime/defaults.js"]
+  n_file_src_patterns_PatternGate_js["src/patterns/PatternGate.js"]
+  n_file_src_agent_platform_skill_runtime_defaults_j -->|IMPORTS| n_file_src_patterns_PatternGate_js
+  n_file_src_agent_platform_skill_runtime_defaults_j["src/agent-platform/skill-runtime/defaults.js"]
+  n_file_src_agent_platform_skill_runtime_AgentRunti["src/agent-platform/skill-runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_skill_runtime_defaults_j -->|IMPORTS| n_file_src_agent_platform_skill_runtime_AgentRunti
+  n_file_src_cli_index_js["src/cli/index.js"]
+  n_file_src_agent_platform_skill_runtime_configLoad["src/agent-platform/skill-runtime/configLoader.js"]
+  n_file_src_cli_index_js -->|IMPORTS| n_file_src_agent_platform_skill_runtime_configLoad

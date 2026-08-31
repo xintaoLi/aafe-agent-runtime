@@ -1,0 +1,18 @@
+{
+  "module": "src-agent-platform-protocol",
+  "components": [
+    {
+      "name": "AGENT_STATUS",
+      "kind": "variable",
+      "file": "src/agent-platform/protocol/response.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/protocol/response.js",
+          "symbol": "AGENT_STATUS"
+        }
+      ]
+    }
+  ],
+  "relations": []
+}

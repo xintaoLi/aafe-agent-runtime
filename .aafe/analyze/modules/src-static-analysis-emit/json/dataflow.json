@@ -1,0 +1,84 @@
+{
+  "module": "src-static-analysis-emit",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:492",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/storage/persist.js",
+        "nodes": [
+          "file:src/static-analysis/storage/persist.js",
+          "file:src/static-analysis/emit/formats.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/storage/persist.js",
+            "to": "file:src/static-analysis/emit/formats.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/storage/persist.js",
+            "reason": "../emit/formats.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:493",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/storage/persist.js",
+        "nodes": [
+          "file:src/static-analysis/storage/persist.js",
+          "file:src/static-analysis/emit/mermaid.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/storage/persist.js",
+            "to": "file:src/static-analysis/emit/mermaid.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/storage/persist.js",
+            "reason": "../emit/mermaid.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:496",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/types/config.js",
+        "nodes": [
+          "file:src/static-analysis/types/config.js",
+          "file:src/static-analysis/emit/formats.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/types/config.js",
+            "to": "file:src/static-analysis/emit/formats.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/types/config.js",
+            "reason": "../emit/formats.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 3,
+      "call": 0
+    }
+  }
+}

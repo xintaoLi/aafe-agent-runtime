@@ -1,0 +1,36 @@
+{
+  "module": "src-templates",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:257",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/bootstrap.js",
+        "nodes": [
+          "file:src/cli/bootstrap.js",
+          "file:src/templates/TemplateSystem.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/bootstrap.js",
+            "to": "file:src/templates/TemplateSystem.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/bootstrap.js",
+            "reason": "../templates/TemplateSystem.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 1,
+      "call": 0
+    }
+  }
+}

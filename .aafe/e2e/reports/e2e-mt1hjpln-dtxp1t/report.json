@@ -1,0 +1,21 @@
+{
+  "reportId": "e2e-mt1hjpln-dtxp1t",
+  "verdict": "blocked",
+  "status": "blocked",
+  "statusReason": "请提供本次被测页面的完整 URL（含协议与环境）。测试地址每次可能不同，不要写入固定 e2e.baseUrl，不要猜，不要用 http://localhost:8080。提供后加上 --base-url=<url> 再 --run。",
+  "executionKind": "plan",
+  "e2eExecuted": false,
+  "e2ePassed": false,
+  "startedAt": "2026-08-20T12:17:17.148Z",
+  "finishedAt": "2026-08-20T12:17:17.148Z",
+  "totals": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "blocked": 0,
+    "skipped": 0
+  },
+  "cases": [],
+  "artifacts": [],
+  "reportDir": "/Users/lixintao/github/aafe-agent-runtime/.aafe/e2e/reports/e2e-mt1hjpln-dtxp1t"
+}

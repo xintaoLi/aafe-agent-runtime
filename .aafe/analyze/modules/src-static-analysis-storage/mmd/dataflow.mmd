@@ -1,0 +1,19 @@
+flowchart TD
+  n_file_src_static_analysis_orchestrator_js["src/static-analysis/orchestrator.js"]
+  n_file_src_static_analysis_storage_persist_js["src/static-analysis/storage/persist.js"]
+  n_file_src_static_analysis_orchestrator_js -->|IMPORTS| n_file_src_static_analysis_storage_persist_js
+  n_file_src_static_analysis_storage_persist_js["src/static-analysis/storage/persist.js"]
+  n_import_node_fs_promises["node:fs/promises"]
+  n_file_src_static_analysis_storage_persist_js -->|IMPORTS| n_import_node_fs_promises
+  n_file_src_static_analysis_storage_persist_js["src/static-analysis/storage/persist.js"]
+  n_import_node_path["node:path"]
+  n_file_src_static_analysis_storage_persist_js -->|IMPORTS| n_import_node_path
+  n_file_src_static_analysis_storage_persist_js["src/static-analysis/storage/persist.js"]
+  n_file_src_static_analysis_emit_formats_js["src/static-analysis/emit/formats.js"]
+  n_file_src_static_analysis_storage_persist_js -->|IMPORTS| n_file_src_static_analysis_emit_formats_js
+  n_file_src_static_analysis_storage_persist_js["src/static-analysis/storage/persist.js"]
+  n_file_src_static_analysis_emit_mermaid_js["src/static-analysis/emit/mermaid.js"]
+  n_file_src_static_analysis_storage_persist_js -->|IMPORTS| n_file_src_static_analysis_emit_mermaid_js
+  n_file_src_static_analysis_storage_persist_js["src/static-analysis/storage/persist.js"]
+  n_file_src_static_analysis_modules_buildBundles_js["src/static-analysis/modules/buildBundles.js"]
+  n_file_src_static_analysis_storage_persist_js -->|IMPORTS| n_file_src_static_analysis_modules_buildBundles_js

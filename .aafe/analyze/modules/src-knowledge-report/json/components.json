@@ -1,0 +1,30 @@
+{
+  "module": "src-knowledge-report",
+  "components": [
+    {
+      "name": "SECTIONS",
+      "kind": "variable",
+      "file": "src/knowledge/report/impactMarkdown.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/knowledge/report/impactMarkdown.js",
+          "symbol": "SECTIONS"
+        }
+      ]
+    },
+    {
+      "name": "RISK_LABEL",
+      "kind": "variable",
+      "file": "src/knowledge/report/impactMarkdown.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/knowledge/report/impactMarkdown.js",
+          "symbol": "RISK_LABEL"
+        }
+      ]
+    }
+  ],
+  "relations": []
+}

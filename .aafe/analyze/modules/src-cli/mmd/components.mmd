@@ -1,0 +1,114 @@
+flowchart LR
+  n_bootstrap["bootstrap"]
+  n_migrate["migrate"]
+  n_bootstrap -->|IMPORTS| n_migrate
+  n_hookScripts["hookScripts"]
+  n_bootstrap -->|IMPORTS| n_hookScripts
+  n_editorLayer["editorLayer"]
+  n_bootstrap -->|IMPORTS| n_editorLayer
+  n_codebuddyLayer["codebuddyLayer"]
+  n_bootstrap -->|IMPORTS| n_codebuddyLayer
+  n_editorRegistry["editorRegistry"]
+  n_bootstrap -->|IMPORTS| n_editorRegistry
+  n_completionImpactRules["completionImpactRules"]
+  n_bootstrap -->|IMPORTS| n_completionImpactRules
+  n_requirementAnalysisRules["requirementAnalysisRules"]
+  n_bootstrap -->|IMPORTS| n_requirementAnalysisRules
+  n_tapdSubmitRules["tapdSubmitRules"]
+  n_bootstrap -->|IMPORTS| n_tapdSubmitRules
+  n_fileLicense["fileLicense"]
+  n_bootstrap -->|IMPORTS| n_fileLicense
+  n_fileLicenseRules["fileLicenseRules"]
+  n_bootstrap -->|IMPORTS| n_fileLicenseRules
+  n_ddd["ddd"]
+  n_bootstrap -->|IMPORTS| n_ddd
+  n_dddRuntimeFiles["dddRuntimeFiles"]
+  n_bootstrap -->|IMPORTS| n_dddRuntimeFiles
+  n_patternRuntimeFiles["patternRuntimeFiles"]
+  n_bootstrap -->|IMPORTS| n_patternRuntimeFiles
+  n_e2eFromPrRules["e2eFromPrRules"]
+  n_bootstrap -->|IMPORTS| n_e2eFromPrRules
+  n_submitConfig["submitConfig"]
+  n_bootstrap -->|IMPORTS| n_submitConfig
+  n_platform["platform"]
+  n_bootstrap -->|IMPORTS| n_platform
+  n_codebuddyLayer -->|IMPORTS| n_requirementAnalysisRules
+  n_codebuddyLayer -->|IMPORTS| n_completionImpactRules
+  n_codebuddyLayer -->|IMPORTS| n_tapdSubmitRules
+  n_codebuddyLayer -->|IMPORTS| n_fileLicense
+  n_codebuddyLayer -->|IMPORTS| n_fileLicenseRules
+  n_pathRewrite["pathRewrite"]
+  n_codebuddyLayer -->|IMPORTS| n_pathRewrite
+  n_workspace["workspace"]
+  n_codebuddyLayer -->|IMPORTS| n_workspace
+  n_cursorLayer["cursorLayer"]
+  n_cursorLayer -->|IMPORTS| n_hookScripts
+  n_cursorLayer -->|IMPORTS| n_requirementAnalysisRules
+  n_cursorLayer -->|IMPORTS| n_completionImpactRules
+  n_cursorLayer -->|IMPORTS| n_tapdSubmitRules
+  n_cursorLayer -->|IMPORTS| n_fileLicense
+  n_cursorLayer -->|IMPORTS| n_fileLicenseRules
+  n_cursorLayer -->|IMPORTS| n_e2eFromPrRules
+  n_cursorLayer -->|IMPORTS| n_pathRewrite
+  n_cursorLayer -->|IMPORTS| n_workspace
+  n_knowledge["knowledge"]
+  n_ddd -->|IMPORTS| n_knowledge
+  n_doctor["doctor"]
+  n_doctor -->|IMPORTS| n_editorLayer
+  n_doctor -->|IMPORTS| n_editorRegistry
+  n_doctor -->|IMPORTS| n_platform
+  n_doctor -->|IMPORTS| n_ddd
+  n_doctor -->|IMPORTS| n_dddRuntimeFiles
+  n_doctor -->|IMPORTS| n_patternRuntimeFiles
+  n_PLAYWRIGHT_PACKAGES["PLAYWRIGHT_PACKAGES"]
+  n_doctor -->|IMPORTS| n_PLAYWRIGHT_PACKAGES
+  n_doctor -->|IMPORTS| n_migrate
+  n_detect["detect"]
+  n_PLAYWRIGHT_PACKAGES -->|IMPORTS| n_detect
+  n_editorLayer -->|IMPORTS| n_editorRegistry
+  n_editorLayer -->|IMPORTS| n_requirementAnalysisRules
+  n_editorLayer -->|IMPORTS| n_completionImpactRules
+  n_editorLayer -->|IMPORTS| n_tapdSubmitRules
+  n_editorLayer -->|IMPORTS| n_pathRewrite
+  n_editorLayer -->|IMPORTS| n_cursorLayer
+  n_editorLayer -->|IMPORTS| n_codebuddyLayer
+  n_editorLayer -->|IMPORTS| n_fileLicense
+  n_editorLayer -->|IMPORTS| n_fileLicenseRules
+  n_editorLayer -->|IMPORTS| n_workspace
+  n_fileLicense -->|IMPORTS| n_fileLicenseRules
+  n_index["index"]
+  n_index -->|IMPORTS| n_bootstrap
+  n_analyze["analyze"]
+  n_index -->|IMPORTS| n_analyze
+  n_index -->|IMPORTS| n_ddd
+  n_index -->|IMPORTS| n_detect
+  n_index -->|IMPORTS| n_doctor
+  n_memory["memory"]
+  n_index -->|IMPORTS| n_memory
+  n_index -->|IMPORTS| n_knowledge
+  n_knowledgeWeb["knowledgeWeb"]
+  n_index -->|IMPORTS| n_knowledgeWeb
+  n_taskCompletion["taskCompletion"]
+  n_index -->|IMPORTS| n_taskCompletion
+  n_patterns["patterns"]
+  n_index -->|IMPORTS| n_patterns
+  n_skills["skills"]
+  n_index -->|IMPORTS| n_skills
+  n_index -->|IMPORTS| n_PLAYWRIGHT_PACKAGES
+  n_index -->|IMPORTS| n_fileLicense
+  n_update["update"]
+  n_index -->|IMPORTS| n_update
+  n_index -->|IMPORTS| n_migrate
+  n_index -->|IMPORTS| n_platform
+  n_index -->|IMPORTS| n_workspace
+  n_knowledge -->|IMPORTS| n_analyze
+  n_knowledgeWeb -->|IMPORTS| n_analyze
+  n_migrate -->|IMPORTS| n_platform
+  n_migrate -->|IMPORTS| n_fileLicense
+  n_migrate -->|IMPORTS| n_fileLicenseRules
+  n_patternRuntimeFiles -->|IMPORTS| n_patterns
+  n_patterns -->|IMPORTS| n_knowledge
+  n_platform -->|IMPORTS| n_index
+  n_platform -->|IMPORTS| n_knowledge
+  n_prompts["prompts"]
+  n_prompts -->|IMPORTS| n_workspace

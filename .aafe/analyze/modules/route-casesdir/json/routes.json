@@ -1,0 +1,17 @@
+{
+  "module": "route-casesdir",
+  "routes": [
+    {
+      "name": "",
+      "component": "",
+      "source": "unknown",
+      "evidence": [
+        {
+          "type": "route",
+          "file": ""
+        }
+      ]
+    }
+  ],
+  "summary": "Module route-casesdir owns 1 routes"
+}

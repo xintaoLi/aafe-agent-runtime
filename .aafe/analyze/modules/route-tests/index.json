@@ -1,0 +1,29 @@
+{
+  "id": "route-tests",
+  "summary": {
+    "routes": 1,
+    "components": 0,
+    "features": 3,
+    "flows": 7,
+    "dependsOn": []
+  },
+  "paths": {
+    "routes": "json/routes.json",
+    "architecture": "json/architecture.json",
+    "components": "json/components.json",
+    "features": "json/features.json",
+    "dataflow": "json/dataflow.json",
+    "mmd": {
+      "routes": "mmd/routes.mmd",
+      "architecture": "mmd/architecture.mmd",
+      "components": "mmd/components.mmd",
+      "dataflow": "mmd/dataflow.mmd"
+    },
+    "readme": "README.md"
+  },
+  "routes": [
+    null
+  ],
+  "components": [],
+  "dependencies": []
+}

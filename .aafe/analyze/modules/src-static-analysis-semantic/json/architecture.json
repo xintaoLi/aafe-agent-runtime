@@ -1,0 +1,27 @@
+{
+  "module": "src-static-analysis-semantic",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/static-analysis/semantic/port.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-llm"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/static-analysis/semantic/port.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-llm"
+  ],
+  "signals": []
+}

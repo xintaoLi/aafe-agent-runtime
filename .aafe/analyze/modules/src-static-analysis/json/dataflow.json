@@ -1,0 +1,444 @@
+{
+  "module": "src-static-analysis",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:184",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/index.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/index.js",
+          "file:src/static-analysis/orchestrator.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/index.js",
+            "to": "file:src/static-analysis/orchestrator.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "../../static-analysis/orchestrator.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:251",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/analyze.js",
+        "nodes": [
+          "file:src/cli/analyze.js",
+          "file:src/static-analysis/orchestrator.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/analyze.js",
+            "to": "file:src/static-analysis/orchestrator.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/analyze.js",
+            "reason": "../static-analysis/orchestrator.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:252",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/analyze.js",
+        "nodes": [
+          "file:src/cli/analyze.js",
+          "file:src/static-analysis/renderSkills.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/analyze.js",
+            "to": "file:src/static-analysis/renderSkills.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/analyze.js",
+            "reason": "../static-analysis/renderSkills.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:458",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/repository.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/repository.js",
+          "file:src/static-analysis/entryDiscover.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/repository.js",
+            "to": "file:src/static-analysis/entryDiscover.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "../entryDiscover.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:465",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/entryDiscover.js",
+        "nodes": [
+          "file:src/static-analysis/entryDiscover.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/entryDiscover.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/entryDiscover.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:466",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/entryDiscover.js",
+        "nodes": [
+          "file:src/static-analysis/entryDiscover.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/entryDiscover.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/entryDiscover.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:470",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/orchestrator.js",
+        "nodes": [
+          "file:src/static-analysis/orchestrator.js",
+          "file:src/static-analysis/types/context.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/orchestrator.js",
+            "to": "file:src/static-analysis/types/context.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/orchestrator.js",
+            "reason": "./types/context.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:471",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/orchestrator.js",
+        "nodes": [
+          "file:src/static-analysis/orchestrator.js",
+          "file:src/static-analysis/registry.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/orchestrator.js",
+            "to": "file:src/static-analysis/registry.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/orchestrator.js",
+            "reason": "./registry.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:472",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/orchestrator.js",
+        "nodes": [
+          "file:src/static-analysis/orchestrator.js",
+          "file:src/static-analysis/storage/persist.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/orchestrator.js",
+            "to": "file:src/static-analysis/storage/persist.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/orchestrator.js",
+            "reason": "./storage/persist.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:473",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/orchestrator.js",
+        "nodes": [
+          "file:src/static-analysis/orchestrator.js",
+          "file:src/static-analysis/cache/AnalysisCache.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/orchestrator.js",
+            "to": "file:src/static-analysis/cache/AnalysisCache.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/orchestrator.js",
+            "reason": "./cache/AnalysisCache.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:474",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/orchestrator.js",
+        "nodes": [
+          "file:src/static-analysis/orchestrator.js",
+          "file:src/static-analysis/modules/buildBundles.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/orchestrator.js",
+            "to": "file:src/static-analysis/modules/buildBundles.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/orchestrator.js",
+            "reason": "./modules/buildBundles.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:475",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/orchestrator.js",
+        "nodes": [
+          "file:src/static-analysis/orchestrator.js",
+          "file:src/static-analysis/ast/extractors.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/orchestrator.js",
+            "to": "file:src/static-analysis/ast/extractors.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/orchestrator.js",
+            "reason": "./ast/extractors.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:476",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/registry.js",
+        "nodes": [
+          "file:src/static-analysis/registry.js",
+          "file:src/static-analysis/analyzers/repository.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/registry.js",
+            "to": "file:src/static-analysis/analyzers/repository.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/registry.js",
+            "reason": "./analyzers/repository.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:477",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/registry.js",
+        "nodes": [
+          "file:src/static-analysis/registry.js",
+          "file:src/static-analysis/analyzers/graph.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/registry.js",
+            "to": "file:src/static-analysis/analyzers/graph.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/registry.js",
+            "reason": "./analyzers/graph.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:478",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/registry.js",
+        "nodes": [
+          "file:src/static-analysis/registry.js",
+          "file:src/static-analysis/analyzers/architecture.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/registry.js",
+            "to": "file:src/static-analysis/analyzers/architecture.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/registry.js",
+            "reason": "./analyzers/architecture.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:479",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/registry.js",
+        "nodes": [
+          "file:src/static-analysis/registry.js",
+          "file:src/static-analysis/analyzers/dataflow.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/registry.js",
+            "to": "file:src/static-analysis/analyzers/dataflow.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/registry.js",
+            "reason": "./analyzers/dataflow.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:480",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/registry.js",
+        "nodes": [
+          "file:src/static-analysis/registry.js",
+          "file:src/static-analysis/analyzers/feature.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/registry.js",
+            "to": "file:src/static-analysis/analyzers/feature.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/registry.js",
+            "reason": "./analyzers/feature.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:481",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/registry.js",
+        "nodes": [
+          "file:src/static-analysis/registry.js",
+          "file:src/static-analysis/analyzers/business.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/registry.js",
+            "to": "file:src/static-analysis/analyzers/business.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/registry.js",
+            "reason": "./analyzers/business.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 18,
+      "call": 0
+    }
+  }
+}

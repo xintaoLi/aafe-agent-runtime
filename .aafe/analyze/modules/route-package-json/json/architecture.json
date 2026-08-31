@@ -1,0 +1,25 @@
+{
+  "module": "route-package-json",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/static-analysis/analyzers/repository.js"
+      ],
+      "routes": [
+        null
+      ],
+      "components": []
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/static-analysis/analyzers/repository.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

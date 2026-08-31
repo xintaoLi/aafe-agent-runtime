@@ -1,0 +1,61 @@
+flowchart TD
+  n_file_bin_aafe_js["bin/aafe.js"]
+  n_file_src_cli_index_js["src/cli/index.js"]
+  n_file_bin_aafe_js -->|IMPORTS| n_file_src_cli_index_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_cli_patternRuntimeFiles_js["src/cli/patternRuntimeFiles.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_cli_patternRuntimeFiles_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_cli_migrate_js["src/cli/migrate.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_cli_migrate_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_cli_hookScripts_js["src/cli/hookScripts.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_cli_hookScripts_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_cli_dddRuntimeFiles_js["src/cli/dddRuntimeFiles.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_cli_dddRuntimeFiles_js
+  n_file_scripts_test_completion_tapd_rules_js["scripts/test-completion-tapd-rules.js"]
+  n_file_src_cli_completionImpactRules_js["src/cli/completionImpactRules.js"]
+  n_file_scripts_test_completion_tapd_rules_js -->|IMPORTS| n_file_src_cli_completionImpactRules_js
+  n_file_scripts_test_completion_tapd_rules_js["scripts/test-completion-tapd-rules.js"]
+  n_file_src_cli_tapdSubmitRules_js["src/cli/tapdSubmitRules.js"]
+  n_file_scripts_test_completion_tapd_rules_js -->|IMPORTS| n_file_src_cli_tapdSubmitRules_js
+  n_file_scripts_test_completion_tapd_rules_js["scripts/test-completion-tapd-rules.js"]
+  n_file_src_cli_requirementAnalysisRules_js["src/cli/requirementAnalysisRules.js"]
+  n_file_scripts_test_completion_tapd_rules_js -->|IMPORTS| n_file_src_cli_requirementAnalysisRules_js
+  n_file_scripts_test_e2e_platform_js["scripts/test-e2e-platform.js"]
+  n_file_src_cli_platform_js["src/cli/platform.js"]
+  n_file_scripts_test_e2e_platform_js -->|IMPORTS| n_file_src_cli_platform_js
+  n_file_scripts_test_e2e_platform_js["scripts/test-e2e-platform.js"]
+  n_file_src_cli_e2eFromPrRules_js["src/cli/e2eFromPrRules.js"]
+  n_file_scripts_test_e2e_platform_js -->|IMPORTS| n_file_src_cli_e2eFromPrRules_js
+  n_file_scripts_test_e2e_platform_js["scripts/test-e2e-platform.js"]
+  n_file_src_cli_migrate_js["src/cli/migrate.js"]
+  n_file_scripts_test_e2e_platform_js -->|IMPORTS| n_file_src_cli_migrate_js
+  n_file_scripts_test_e2e_platform_js["scripts/test-e2e-platform.js"]
+  n_file_src_cli_e2eSetup_js["src/cli/e2eSetup.js"]
+  n_file_scripts_test_e2e_platform_js -->|IMPORTS| n_file_src_cli_e2eSetup_js
+  n_file_scripts_test_file_license_rules_js["scripts/test-file-license-rules.js"]
+  n_file_src_cli_fileLicenseRules_js["src/cli/fileLicenseRules.js"]
+  n_file_scripts_test_file_license_rules_js -->|IMPORTS| n_file_src_cli_fileLicenseRules_js
+  n_file_scripts_test_file_license_rules_js["scripts/test-file-license-rules.js"]
+  n_file_src_cli_fileLicense_js["src/cli/fileLicense.js"]
+  n_file_scripts_test_file_license_rules_js -->|IMPORTS| n_file_src_cli_fileLicense_js
+  n_file_scripts_test_submit_config_js["scripts/test-submit-config.js"]
+  n_file_src_cli_submitConfig_js["src/cli/submitConfig.js"]
+  n_file_scripts_test_submit_config_js -->|IMPORTS| n_file_src_cli_submitConfig_js
+  n_file_scripts_test_tapd_config_js["scripts/test-tapd-config.js"]
+  n_file_src_cli_tapdConfig_js["src/cli/tapdConfig.js"]
+  n_file_scripts_test_tapd_config_js -->|IMPORTS| n_file_src_cli_tapdConfig_js
+  n_file_scripts_test_workspace_cursor_js["scripts/test-workspace-cursor.js"]
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_scripts_test_workspace_cursor_js -->|IMPORTS| n_file_src_cli_bootstrap_js
+  n_file_scripts_test_workspace_cursor_js["scripts/test-workspace-cursor.js"]
+  n_file_src_cli_cursorLayer_js["src/cli/cursorLayer.js"]
+  n_file_scripts_test_workspace_cursor_js -->|IMPORTS| n_file_src_cli_cursorLayer_js
+  n_file_scripts_test_workspace_cursor_js["scripts/test-workspace-cursor.js"]
+  n_file_src_cli_detect_js["src/cli/detect.js"]
+  n_file_scripts_test_workspace_cursor_js -->|IMPORTS| n_file_src_cli_detect_js
+  n_file_scripts_test_workspace_cursor_js["scripts/test-workspace-cursor.js"]
+  n_file_src_cli_doctor_js["src/cli/doctor.js"]
+  n_file_scripts_test_workspace_cursor_js -->|IMPORTS| n_file_src_cli_doctor_js

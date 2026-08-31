@@ -1,0 +1,15 @@
+flowchart TB
+  subgraph n_src_agent_platform_skill_runtime["src-agent-platform-skill-runtime"]
+    n_LEGACY_DDD_ALIASES["LEGACY_DDD_ALIASES"]
+    n_DDD_PATTERN_BRIDGE["DDD_PATTERN_BRIDGE"]
+    n_src_agent_platform_skill_runtime_AgentRuntime_js["skill-runtime/AgentRuntime.js"]
+    n_src_agent_platform_skill_runtime_GateValidator_j["skill-runtime/GateValidator.js"]
+    n_src_agent_platform_skill_runtime_HookBus_js["skill-runtime/HookBus.js"]
+    n_src_agent_platform_skill_runtime_PipelineExecuto["skill-runtime/PipelineExecutor.js"]
+    n_src_agent_platform_skill_runtime_SkillRegistry_j["skill-runtime/SkillRegistry.js"]
+    n_src_agent_platform_skill_runtime_configLoader_js["skill-runtime/configLoader.js"]
+  end
+  n_src_agent_platform_skill_runtime --> n_src_ddd["src-ddd"]
+  n_src_agent_platform_skill_runtime --> n_src_knowledge_store["src-knowledge-store"]
+  n_src_agent_platform_skill_runtime --> n_src_memory["src-memory"]
+  n_src_agent_platform_skill_runtime --> n_src_patterns["src-patterns"]

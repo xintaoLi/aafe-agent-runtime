@@ -1,0 +1,204 @@
+{
+  "module": "route-package-json",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:455",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/repository.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/repository.js",
+          "import:node:crypto"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/repository.js",
+            "to": "import:node:crypto",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "node:crypto"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:456",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/repository.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/repository.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/repository.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:457",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/repository.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/repository.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/repository.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:458",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/repository.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/repository.js",
+          "file:src/static-analysis/entryDiscover.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/repository.js",
+            "to": "file:src/static-analysis/entryDiscover.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "../entryDiscover.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:459",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/repository.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/repository.js",
+          "file:src/static-analysis/types/result.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/repository.js",
+            "to": "file:src/static-analysis/types/result.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "../types/result.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:460",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/repository.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/repository.js",
+          "file:src/static-analysis/types/evidence.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/repository.js",
+            "to": "file:src/static-analysis/types/evidence.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "../types/evidence.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:476",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/registry.js",
+        "nodes": [
+          "file:src/static-analysis/registry.js",
+          "file:src/static-analysis/analyzers/repository.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/registry.js",
+            "to": "file:src/static-analysis/analyzers/repository.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/registry.js",
+            "reason": "./analyzers/repository.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:app:package.json:src/static-analysis/analyzers/repository.js",
+        "level": 3,
+        "kind": "application",
+        "entrypoint": "package.json",
+        "nodes": [
+          "route:package.json",
+          "file:src/static-analysis/analyzers/repository.js"
+        ],
+        "edges": [
+          {
+            "from": "route:package.json",
+            "to": "file:src/static-analysis/analyzers/repository.js",
+            "type": "ROUTES_TO"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/static-analysis/analyzers/repository.js",
+            "reason": "package.json"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 1,
+      "import": 7,
+      "call": 0
+    }
+  }
+}

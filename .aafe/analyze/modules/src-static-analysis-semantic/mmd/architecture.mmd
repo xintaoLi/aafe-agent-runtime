@@ -1,0 +1,5 @@
+flowchart TB
+  subgraph n_src_static_analysis_semantic["src-static-analysis-semantic"]
+    n_src_static_analysis_semantic_port_js["semantic/port.js"]
+  end
+  n_src_static_analysis_semantic --> n_src_llm["src-llm"]

@@ -1,0 +1,22 @@
+flowchart LR
+  n_AgentRuntime["AgentRuntime"]
+  n_SCHEMA_FILE["SCHEMA_FILE"]
+  n_AgentRuntime -->|IMPORTS| n_SCHEMA_FILE
+  n_CliAgentProvider["CliAgentProvider"]
+  n_AgentProvider["AgentProvider"]
+  n_CliAgentProvider -->|IMPORTS| n_AgentProvider
+  n_HttpAgentProvider["HttpAgentProvider"]
+  n_HttpAgentProvider -->|IMPORTS| n_AgentProvider
+  n_IdeAgentProvider["IdeAgentProvider"]
+  n_IdeAgentProvider -->|IMPORTS| n_AgentProvider
+  n_LocalAgentProvider["LocalAgentProvider"]
+  n_LocalAgentProvider -->|IMPORTS| n_AgentProvider
+  n_McpAgentProvider["McpAgentProvider"]
+  n_McpAgentProvider -->|IMPORTS| n_AgentProvider
+  n_index["index"]
+  n_index -->|IMPORTS| n_AgentProvider
+  n_index -->|IMPORTS| n_LocalAgentProvider
+  n_index -->|IMPORTS| n_HttpAgentProvider
+  n_index -->|IMPORTS| n_CliAgentProvider
+  n_index -->|IMPORTS| n_IdeAgentProvider
+  n_index -->|IMPORTS| n_McpAgentProvider

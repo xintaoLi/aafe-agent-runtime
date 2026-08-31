@@ -1,0 +1,47 @@
+{
+  "module": "route-ctx-path",
+  "features": [
+    {
+      "id": "feature:ctx-path-index",
+      "name": "${index}",
+      "entrypoints": [
+        "${ctx.path}/${index}"
+      ],
+      "components": [],
+      "apis": [],
+      "stores": [],
+      "dataHints": [],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/agent-platform/schema/repair.js",
+          "reason": "${ctx.path}/${index}"
+        }
+      ],
+      "confidence": 0.6,
+      "source": "static",
+      "status": "candidate"
+    },
+    {
+      "id": "feature:ctx-path-key",
+      "name": "${key}",
+      "entrypoints": [
+        "${ctx.path}/${key}"
+      ],
+      "components": [],
+      "apis": [],
+      "stores": [],
+      "dataHints": [],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/agent-platform/schema/repair.js",
+          "reason": "${ctx.path}/${key}"
+        }
+      ],
+      "confidence": 0.6,
+      "source": "static",
+      "status": "candidate"
+    }
+  ]
+}

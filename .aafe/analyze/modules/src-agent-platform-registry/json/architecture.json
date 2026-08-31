@@ -1,0 +1,33 @@
+{
+  "module": "src-agent-platform-registry",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agent-platform/registry/AgentRegistry.js",
+        "src/agent-platform/registry/definition.js"
+      ],
+      "routes": [],
+      "components": [
+        "SCHEMA_MODES",
+        "BUILTIN_AGENTS",
+        "ALL_CAPABILITIES"
+      ]
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agent-platform/registry/AgentRegistry.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/registry/definition.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

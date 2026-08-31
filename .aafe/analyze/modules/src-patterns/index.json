@@ -1,0 +1,32 @@
+{
+  "id": "src-patterns",
+  "summary": {
+    "routes": 0,
+    "components": 4,
+    "features": 0,
+    "flows": 23,
+    "dependsOn": []
+  },
+  "paths": {
+    "routes": "json/routes.json",
+    "architecture": "json/architecture.json",
+    "components": "json/components.json",
+    "features": "json/features.json",
+    "dataflow": "json/dataflow.json",
+    "mmd": {
+      "routes": "mmd/routes.mmd",
+      "architecture": "mmd/architecture.mmd",
+      "components": "mmd/components.mmd",
+      "dataflow": "mmd/dataflow.mmd"
+    },
+    "readme": "README.md"
+  },
+  "routes": [],
+  "components": [
+    "ANTI_PATTERN_RULES",
+    "ANTI_PATTERN_CATALOG",
+    "PATTERN_DOMAINS",
+    "PATTERN_INDEX"
+  ],
+  "dependencies": []
+}

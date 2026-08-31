@@ -1,0 +1,65 @@
+---
+description: 代码变更任务完成后条件询问影响分析与自测；UI 须先预生成测试路径；自测后按 TAPD 关联进入 Commit/PR/回填。
+alwaysApply: true
+---
+
+# Task Completion Impact & Self-Test
+
+## 任务评估（前置 Gate，必须先做）
+
+任务执行完毕、给出最终回复前，先评估本次任务性质：
+
+### 涉及代码变更 → 有测试潜在需求
+
+满足任一即视为**涉及代码变更**（可进入下方「影响分析询问」）：
+
+- git diff / 实际改动含**可执行代码或运行时配置**（如 `.ts` / `.tsx` / `.vue` / `.js` / `.css` / `.scss` / 影响构建或运行的配置）
+- 用户明确说明改了逻辑、组件、接口、样式行为等
+
+### 不涉及代码变更 → 跳过本 Rule 全流程
+
+以下情况**不要**询问「是否需要分析影响范围并提供测试参考」，也**不要**进入 UI 自测子询问：
+
+- 纯文本：文档、README、说明 Markdown、注释-only（无行为变化）
+- 需求分析、方案讨论、架构评审、问答解释、Review-only（未改代码）
+- 用户明确「只改文档 / 只分析 / 不改代码」
+
+跳过时：正常给出最终回复即可；若用户随后发起提交意图，按 `tapd-submit-backfill` 评估是否有关联 TAPD 单（见该 Rule）。
+
+## 条件询问（仅「涉及代码变更」时）
+
+**仅当任务评估为涉及代码变更**，在最终回复前问：
+
+> 是否需要分析当前任务的影响范围并提供测试参考？
+
+- 用户答「不需要 / 否 / No / 跳过」：简要说明可后续补做，不再追问影响分析。
+- 用户答「是 / Yes / 需要 / Y」：进入 Skills 流程。
+
+## 确认后加载顺序
+
+0. 先跑 `aafe impact --diff --format=md`（`aafe` 不在 `PATH` 时用 `node_modules/.bin/aafe`），把机器算出的影响面作为起点，自己不要从零推断；命令不可用时才退回纯人工分析并说明。
+1. `.ai-agent/skills/architecture-impact-test-forecast.md`
+2. `.ai-agent/skills/minimal-convergent-self-test.md`（最后测试环节：UI/E2E 走 `aafe test --diff`，禁止任务收尾默认 `--coverage`）
+3. 自测结束后：若任务过程中**有关联 TAPD 单**且 `tapd.enabled`，进入 `.ai-agent/skills/tapd-submit-backfill.md`（按 `submit.cli` 执行 Commit/PR → 回填）；无 TAPD 关联则仅可选提交，跳过 TAPD 回填询问
+4. 按需读取 architecture 相关 docs / memory（含 `.ai-agent/skills/knowledge-center-architecture.md` / `.ai-agent/memory/knowledge-center-architecture.md` when present）
+
+## 硬约束
+
+- 自测必须按**本次 diff 影响范围最小收敛**，禁止无关全量回归。
+- 逻辑/数据处理变更：优先 Mock Props / 函数 I/O 单元测试，落盘到安装目录下 `test/`（无则创建）。
+- **E2E**：影响分类含 UI / 页面 / 路由时，在自测环节执行 `aafe test --diff`（生成 `tests/ui-ai/cases/` YAML）；有 `AAFE_E2E_BASE_URL` 或 `.aafe.config.json` `e2e.baseUrl` 再加 `--run`。报告只读 `.aafe/e2e/reports/<runId>/`，禁止散落到 `test/ui/`、`playwright-report/`、`test-results/`。
+- `primary: unit` 时 E2E 标 `NOT_APPLICABLE`，不要为凑覆盖强开浏览器。
+- **禁止猜 URL**；`http://localhost:8080` 占位视为未配置。
+- **UI 自测子询问**（浏览器 MCP）**仅当** E2E blocked（无 Playwright / 无 baseUrl）且用户仍要看 UI。
+- MCP 兜底执行前必须产出完整 `ui_test_paths`；执行阶段只跟路径走。
+
+## 自测完成后的衔接（按 TAPD 关联分流）
+
+自测（或用户明确跳过）结束后：
+
+1. 询问是否 Commit → 同意则按 `.aafe.config.json` → `submit.cli`（`git` 默认 / `gtm`）执行 Commit/PR（见 `tapd-submit-backfill`）
+2. **仅当任务过程中有关联 TAPD 单**且 `tapd.enabled` → 询问是否回填 TAPD；**无 TAPD 关联则跳过回填询问**
+
+## 与 TAPD 回填的关系
+
+有 TAPD 关联时，本流程产出作为评论素材；规则见 `tapd-submit-backfill` / `.ai-agent/skills/tapd-submit-backfill.md`。无 TAPD 关联时不进入回填分支。

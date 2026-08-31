@@ -1,0 +1,121 @@
+flowchart LR
+  n_src_cli["src-cli\n34 files"]
+  n_src_agent_platform_runtime["src-agent-platform-runtime\n9 files"]
+  n_src_testing_e2e["src-testing-e2e\n9 files"]
+  n_src_agent_platform_skill_runtime["src-agent-platform-skill-runtime\n7 files"]
+  n_src_patterns["src-patterns\n7 files"]
+  n_src_static_analysis_analyzers["src-static-analysis-analyzers\n6 files"]
+  n_src_agent_platform_planner["src-agent-platform-planner\n4 files"]
+  n_src_static_analysis["src-static-analysis\n4 files"]
+  n_src_static_analysis_types["src-static-analysis-types\n4 files"]
+  n_src_agent_platform_schema["src-agent-platform-schema\n3 files"]
+  n_src_agents_test_agent["src-agents-test-agent\n3 files"]
+  n_src_ddd["src-ddd\n3 files"]
+  n_src_memory["src-memory\n3 files"]
+  n_src_agent_platform_orchestrator["src-agent-platform-orchestrator\n2 files"]
+  n_src_agent_platform_protocol["src-agent-platform-protocol\n2 files"]
+  n_src_agent_platform_registry["src-agent-platform-registry\n2 files"]
+  n_src_agent_platform_state["src-agent-platform-state\n2 files"]
+  n_src_agents_code_intelligence["src-agents-code-intelligence\n2 files"]
+  n_src_agents_failure_analyzer["src-agents-failure-analyzer\n2 files"]
+  n_src_agents_impact_analyzer["src-agents-impact-analyzer\n2 files"]
+  n_src_ide_bridge_context["src-ide-bridge-context\n2 files"]
+  n_src_static_analysis_ast["src-static-analysis-ast\n2 files"]
+  n_src_static_analysis_emit["src-static-analysis-emit\n2 files"]
+  n_src_static_analysis_modules["src-static-analysis-modules\n2 files"]
+  n_src_testing["src-testing\n2 files"]
+  n_bin_aafe_js["bin-aafe-js\n1 files"]
+  n_route["route\n1 files"]
+  n_route_aafe["route-aafe\n1 files"]
+  n_route_ai_agent["route-ai-agent\n1 files"]
+  n_route_casesdir["route-casesdir\n1 files"]
+  n_route_ctx_path["route-ctx-path\n1 files"]
+  n_route_package_json["route-package-json\n1 files"]
+  n_route_tests["route-tests\n1 files"]
+  n_src["src\n1 files"]
+  n_src_agent_platform["src-agent-platform\n1 files"]
+  n_src_agent_platform_config["src-agent-platform-config\n1 files"]
+  n_src_agent_platform_policy["src-agent-platform-policy\n1 files"]
+  n_src_agents["src-agents\n1 files"]
+  n_src_agents_context_agent["src-agents-context-agent\n1 files"]
+  n_src_agents_knowledge_validator["src-agents-knowledge-validator\n1 files"]
+  n_src_cli --> n_src_agent_platform
+  n_src_cli --> n_src_agent_platform_config
+  n_src_cli --> n_src_agent_platform_protocol
+  n_src_cli --> n_src_agent_platform_registry
+  n_src_cli --> n_src_agent_platform_skill_runtime
+  n_src_cli --> n_src_agent_platform_state
+  n_src_cli --> n_src_ddd
+  n_src_cli --> n_src_ide_bridge_context
+  n_src_cli --> n_src_knowledge_report
+  n_src_cli --> n_src_knowledge_store
+  n_src_cli --> n_src_memory
+  n_src_cli --> n_src_patterns
+  n_src_cli --> n_src_static_analysis
+  n_src_cli --> n_src_static_analysis_types
+  n_src_cli --> n_src_templates
+  n_src_cli --> n_src_testing_e2e
+  n_src_agent_platform_runtime --> n_src_agent_platform_policy
+  n_src_agent_platform_runtime --> n_src_agent_platform_protocol
+  n_src_agent_platform_runtime --> n_src_agent_platform_schema
+  n_src_agent_platform_skill_runtime --> n_src_ddd
+  n_src_agent_platform_skill_runtime --> n_src_knowledge_store
+  n_src_agent_platform_skill_runtime --> n_src_memory
+  n_src_agent_platform_skill_runtime --> n_src_patterns
+  n_src_static_analysis_analyzers --> n_src_static_analysis
+  n_src_static_analysis_analyzers --> n_src_static_analysis_ast
+  n_src_static_analysis_analyzers --> n_src_static_analysis_modules
+  n_src_static_analysis_analyzers --> n_src_static_analysis_resolve
+  n_src_static_analysis_analyzers --> n_src_static_analysis_routes
+  n_src_static_analysis_analyzers --> n_src_static_analysis_semantic
+  n_src_static_analysis_analyzers --> n_src_static_analysis_types
+  n_src_agent_platform_planner --> n_src_llm
+  n_src_static_analysis --> n_src_static_analysis_analyzers
+  n_src_static_analysis --> n_src_static_analysis_ast
+  n_src_static_analysis --> n_src_static_analysis_cache
+  n_src_static_analysis --> n_src_static_analysis_modules
+  n_src_static_analysis --> n_src_static_analysis_storage
+  n_src_static_analysis --> n_src_static_analysis_types
+  n_src_static_analysis_types --> n_src_static_analysis_emit
+  n_src_agents_test_agent --> n_src_agent_platform_protocol
+  n_src_agents_test_agent --> n_src_knowledge_model
+  n_src_agents_test_agent --> n_src_testing
+  n_src_agents_test_agent --> n_src_testing_e2e
+  n_src_agent_platform_orchestrator --> n_src_agent_platform_protocol
+  n_src_agent_platform_orchestrator --> n_src_agent_platform_runtime
+  n_src_agent_platform_orchestrator --> n_src_agent_platform_state
+  n_src_agents_code_intelligence --> n_src_agent_platform_protocol
+  n_src_agents_code_intelligence --> n_src_knowledge_model
+  n_src_agents_code_intelligence --> n_src_static_analysis
+  n_src_agents_code_intelligence --> n_src_static_analysis_types
+  n_src_agents_failure_analyzer --> n_src_agent_platform_protocol
+  n_src_agents_failure_analyzer --> n_src_knowledge_model
+  n_src_agents_impact_analyzer --> n_src_agent_platform_protocol
+  n_src_agents_impact_analyzer --> n_src_knowledge_graph
+  n_src_agents_impact_analyzer --> n_src_knowledge_model
+  n_src_agents_impact_analyzer --> n_src_static_analysis_git
+  n_src_agents_impact_analyzer --> n_src_static_analysis_types
+  n_src_static_analysis_modules --> n_src_static_analysis_types
+  n_bin_aafe_js --> n_src_cli
+  n_src_agent_platform --> n_src_agent_platform_config
+  n_src_agent_platform --> n_src_agent_platform_orchestrator
+  n_src_agent_platform --> n_src_agent_platform_planner
+  n_src_agent_platform --> n_src_agent_platform_registry
+  n_src_agent_platform --> n_src_agent_platform_runtime
+  n_src_agent_platform --> n_src_agent_platform_schema
+  n_src_agent_platform --> n_src_agents
+  n_src_agent_platform --> n_src_knowledge_store
+  n_src_agent_platform_config --> n_src_agent_platform_registry
+  n_src_agent_platform_policy --> n_src_agent_platform_protocol
+  n_src_agents --> n_src_agents_code_intelligence
+  n_src_agents --> n_src_agents_context_agent
+  n_src_agents --> n_src_agents_failure_analyzer
+  n_src_agents --> n_src_agents_impact_analyzer
+  n_src_agents --> n_src_agents_knowledge_validator
+  n_src_agents --> n_src_agents_test_agent
+  n_src_agents_context_agent --> n_src_agent_platform_protocol
+  n_src_agents_context_agent --> n_src_ide_bridge_context
+  n_src_agents_knowledge_validator --> n_src_agent_platform_protocol
+  n_src_agents_knowledge_validator --> n_src_knowledge_model
+  n_src_agents_knowledge_validator --> n_src_knowledge_validator
+  n_src_knowledge_graph --> n_src_knowledge_model

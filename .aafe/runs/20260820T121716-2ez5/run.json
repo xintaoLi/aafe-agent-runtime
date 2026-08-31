@@ -1,0 +1,389 @@
+{
+  "runId": "20260820T121716-2ez5",
+  "status": "complete",
+  "reason": "context package is ready for the IDE agent",
+  "task": {
+    "id": "task-mt1hjp5o-1",
+    "kind": "test",
+    "goal": "verify the current change",
+    "requirement": null,
+    "diffRef": null,
+    "failureRef": null,
+    "scenario": "changes",
+    "prUrl": null,
+    "e2eWrite": null,
+    "e2eUpdate": false,
+    "e2eForce": false,
+    "inlineToken": null,
+    "dryRun": false,
+    "baseUrl": null
+  },
+  "decisions": [
+    {
+      "action": "invoke_agent",
+      "capability": "project-analysis",
+      "reason": "project knowledge is working-tree-dirty",
+      "input": {
+        "reason": "working-tree-dirty"
+      },
+      "expectedOutput": [
+        "modules",
+        "routes",
+        "features"
+      ],
+      "confidence": 0.9
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "change-impact",
+      "reason": "task kind \"test\" requires change-impact",
+      "input": {
+        "diffRef": null
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "knowledge-validation",
+      "reason": "task kind \"test\" requires knowledge-validation",
+      "input": {
+        "source": "impact"
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "test-planning",
+      "reason": "task kind \"test\" requires test-planning",
+      "input": {
+        "requirement": "verify the current change",
+        "scenario": "changes",
+        "write": null,
+        "update": false,
+        "force": false
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "test-generation",
+      "reason": "task kind \"test\" requires test-generation",
+      "input": {
+        "requirement": "verify the current change",
+        "scenario": "changes",
+        "write": null,
+        "update": false,
+        "force": false
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "e2e-execution",
+      "reason": "task kind \"test\" requires e2e-execution",
+      "input": {
+        "requirement": "verify the current change",
+        "scenario": "changes",
+        "write": null,
+        "update": false,
+        "force": false
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "invoke_agent",
+      "capability": "context-packaging",
+      "reason": "task kind \"test\" requires context-packaging",
+      "input": {
+        "kind": "test",
+        "goal": "verify the current change"
+      },
+      "confidence": 0.85
+    },
+    {
+      "action": "complete",
+      "reason": "context package is ready for the IDE agent"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "N1",
+      "agent": "code-intelligence",
+      "capability": "project-analysis",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T121716-2ez5/nodes/N1.input.json",
+      "outputRef": ".aafe/runs/20260820T121716-2ez5/nodes/N1.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787228236622,
+      "finishedAt": 1787228236953,
+      "reason": "semantic enrichment unavailable: static-only"
+    },
+    {
+      "id": "N2",
+      "agent": "impact-analyzer",
+      "capability": "change-impact",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T121716-2ez5/nodes/N2.input.json",
+      "outputRef": ".aafe/runs/20260820T121716-2ez5/nodes/N2.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787228236976,
+      "finishedAt": 1787228237021
+    },
+    {
+      "id": "N3",
+      "agent": "knowledge-validator",
+      "capability": "knowledge-validation",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T121716-2ez5/nodes/N3.input.json",
+      "outputRef": ".aafe/runs/20260820T121716-2ez5/nodes/N3.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787228237044,
+      "finishedAt": 1787228237046
+    },
+    {
+      "id": "N4",
+      "agent": "test-agent",
+      "capability": "test-planning",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T121716-2ez5/nodes/N4.input.json",
+      "outputRef": ".aafe/runs/20260820T121716-2ez5/nodes/N4.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787228237069,
+      "finishedAt": 1787228237100
+    },
+    {
+      "id": "N5",
+      "agent": "test-agent",
+      "capability": "test-generation",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T121716-2ez5/nodes/N5.input.json",
+      "outputRef": ".aafe/runs/20260820T121716-2ez5/nodes/N5.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787228237123,
+      "finishedAt": 1787228237124,
+      "reason": "no test runner detected; defaulted to playwright/vitest templates"
+    },
+    {
+      "id": "N6",
+      "agent": "test-agent",
+      "capability": "e2e-execution",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T121716-2ez5/nodes/N6.input.json",
+      "outputRef": ".aafe/runs/20260820T121716-2ez5/nodes/N6.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787228237147,
+      "finishedAt": 1787228237149,
+      "reason": "请提供本次被测页面的完整 URL（含协议与环境）。测试地址每次可能不同，不要写入固定 e2e.baseUrl，不要猜，不要用 http://localhost:8080。提供后加上 --base-url=<url> 再 --run。"
+    },
+    {
+      "id": "N7",
+      "agent": "context-agent",
+      "capability": "context-packaging",
+      "status": "success",
+      "inputRef": ".aafe/runs/20260820T121716-2ez5/nodes/N7.input.json",
+      "outputRef": ".aafe/runs/20260820T121716-2ez5/nodes/N7.output.json",
+      "parent": null,
+      "dependencies": [],
+      "startedAt": 1787228237170,
+      "finishedAt": 1787228237176
+    }
+  ],
+  "state": {
+    "runId": "20260820T121716-2ez5",
+    "task": {
+      "id": "task-mt1hjp5o-1",
+      "kind": "test",
+      "goal": "verify the current change",
+      "requirement": null,
+      "diffRef": null,
+      "failureRef": null,
+      "scenario": "changes",
+      "prUrl": null,
+      "e2eWrite": null,
+      "e2eUpdate": false,
+      "e2eForce": false,
+      "inlineToken": null,
+      "dryRun": false,
+      "baseUrl": null
+    },
+    "step": 7,
+    "history": [
+      {
+        "step": 1,
+        "node": "N1",
+        "agent": "code-intelligence",
+        "capability": "project-analysis",
+        "status": "partial",
+        "reason": "semantic enrichment unavailable: static-only",
+        "contract": {},
+        "durationMs": 331
+      },
+      {
+        "step": 2,
+        "node": "N2",
+        "agent": "impact-analyzer",
+        "capability": "change-impact",
+        "status": "success",
+        "contract": {},
+        "durationMs": 45
+      },
+      {
+        "step": 3,
+        "node": "N3",
+        "agent": "knowledge-validator",
+        "capability": "knowledge-validation",
+        "status": "success",
+        "contract": {},
+        "durationMs": 2
+      },
+      {
+        "step": 4,
+        "node": "N4",
+        "agent": "test-agent",
+        "capability": "test-planning",
+        "status": "success",
+        "contract": {
+          "input": "/write: expected boolean, got null"
+        },
+        "durationMs": 31
+      },
+      {
+        "step": 5,
+        "node": "N5",
+        "agent": "test-agent",
+        "capability": "test-generation",
+        "status": "partial",
+        "reason": "no test runner detected; defaulted to playwright/vitest templates",
+        "contract": {
+          "input": "/write: expected boolean, got null"
+        },
+        "durationMs": 1
+      },
+      {
+        "step": 6,
+        "node": "N6",
+        "agent": "test-agent",
+        "capability": "e2e-execution",
+        "status": "partial",
+        "reason": "请提供本次被测页面的完整 URL（含协议与环境）。测试地址每次可能不同，不要写入固定 e2e.baseUrl，不要猜，不要用 http://localhost:8080。提供后加上 --base-url=<url> 再 --run。",
+        "contract": {
+          "input": "/write: expected boolean, got null"
+        },
+        "durationMs": 2
+      },
+      {
+        "step": 7,
+        "node": "N7",
+        "agent": "context-agent",
+        "capability": "context-packaging",
+        "status": "success",
+        "contract": {},
+        "durationMs": 6
+      }
+    ],
+    "satisfied": [
+      "project-analysis",
+      "change-impact",
+      "knowledge-validation",
+      "test-planning",
+      "test-generation",
+      "e2e-execution",
+      "context-packaging"
+    ],
+    "knowledgeUpdates": [],
+    "diagnostics": [],
+    "metrics": {
+      "tokens": 9457,
+      "cost": 0,
+      "agentCalls": 7,
+      "agentDurationMs": 382,
+      "byAgent": {
+        "code-intelligence": {
+          "calls": 1,
+          "tokens": 0,
+          "cost": 0,
+          "durationMs": 305
+        },
+        "impact-analyzer": {
+          "calls": 1,
+          "tokens": 0,
+          "cost": 0,
+          "durationMs": 42
+        },
+        "knowledge-validator": {
+          "calls": 1,
+          "tokens": 0,
+          "cost": 0,
+          "durationMs": 0
+        },
+        "test-agent": {
+          "calls": 3,
+          "tokens": 0,
+          "cost": 0,
+          "durationMs": 31
+        },
+        "context-agent": {
+          "calls": 1,
+          "tokens": 9457,
+          "cost": 0,
+          "durationMs": 4
+        }
+      }
+    },
+    "replans": 0,
+    "durationMs": 626
+  },
+  "summary": {
+    "pending": 0,
+    "running": 0,
+    "success": 7,
+    "failed": 0,
+    "skipped": 0
+  },
+  "metrics": {
+    "tokens": 9457,
+    "cost": 0,
+    "agentCalls": 7,
+    "agentDurationMs": 382,
+    "byAgent": {
+      "code-intelligence": {
+        "calls": 1,
+        "tokens": 0,
+        "cost": 0,
+        "durationMs": 305
+      },
+      "impact-analyzer": {
+        "calls": 1,
+        "tokens": 0,
+        "cost": 0,
+        "durationMs": 42
+      },
+      "knowledge-validator": {
+        "calls": 1,
+        "tokens": 0,
+        "cost": 0,
+        "durationMs": 0
+      },
+      "test-agent": {
+        "calls": 3,
+        "tokens": 0,
+        "cost": 0,
+        "durationMs": 31
+      },
+      "context-agent": {
+        "calls": 1,
+        "tokens": 9457,
+        "cost": 0,
+        "durationMs": 4
+      }
+    },
+    "wallClockMs": 626
+  },
+  "knowledgeWrite": null
+}

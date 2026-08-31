@@ -1,0 +1,29 @@
+{
+  "module": "src-agents-context-agent",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agents/context-agent/index.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-agent-platform-protocol",
+      "module:src-ide-bridge-context"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agents/context-agent/index.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-agent-platform-protocol",
+    "module:src-ide-bridge-context"
+  ],
+  "signals": []
+}

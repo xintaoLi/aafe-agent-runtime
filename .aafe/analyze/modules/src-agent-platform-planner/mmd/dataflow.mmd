@@ -1,0 +1,61 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_planner_RulePlanner_js["src/agent-platform/planner/RulePlanner.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_planner_RulePlanner_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_planner_LlmPlanner_js["src/agent-platform/planner/LlmPlanner.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_planner_LlmPlanner_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_planner_decision_js["src/agent-platform/planner/decision.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_planner_decision_js
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agent_platform_planner_index_js["src/agent-platform/planner/index.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agent_platform_planner_index_js
+  n_file_src_agent_platform_planner_LlmPlanner_js["src/agent-platform/planner/LlmPlanner.js"]
+  n_file_src_agent_platform_planner_RulePlanner_js["src/agent-platform/planner/RulePlanner.js"]
+  n_file_src_agent_platform_planner_LlmPlanner_js -->|IMPORTS| n_file_src_agent_platform_planner_RulePlanner_js
+  n_file_src_agent_platform_planner_LlmPlanner_js["src/agent-platform/planner/LlmPlanner.js"]
+  n_file_src_agent_platform_planner_decision_js["src/agent-platform/planner/decision.js"]
+  n_file_src_agent_platform_planner_LlmPlanner_js -->|IMPORTS| n_file_src_agent_platform_planner_decision_js
+  n_file_src_agent_platform_planner_RulePlanner_js["src/agent-platform/planner/RulePlanner.js"]
+  n_file_src_agent_platform_planner_decision_js["src/agent-platform/planner/decision.js"]
+  n_file_src_agent_platform_planner_RulePlanner_js -->|IMPORTS| n_file_src_agent_platform_planner_decision_js
+  n_file_src_agent_platform_planner_index_js["src/agent-platform/planner/index.js"]
+  n_file_src_agent_platform_planner_RulePlanner_js["src/agent-platform/planner/RulePlanner.js"]
+  n_file_src_agent_platform_planner_index_js -->|IMPORTS| n_file_src_agent_platform_planner_RulePlanner_js
+  n_file_src_agent_platform_planner_index_js["src/agent-platform/planner/index.js"]
+  n_file_src_agent_platform_planner_LlmPlanner_js["src/agent-platform/planner/LlmPlanner.js"]
+  n_file_src_agent_platform_planner_index_js -->|IMPORTS| n_file_src_agent_platform_planner_LlmPlanner_js
+  n_file_src_agent_platform_planner_index_js["src/agent-platform/planner/index.js"]
+  n_file_src_llm_LlmClient_js["src/llm/LlmClient.js"]
+  n_file_src_agent_platform_planner_index_js -->|IMPORTS| n_file_src_llm_LlmClient_js
+  n_file_src_agent_platform_planner_LlmPlanner_js["src/agent-platform/planner/LlmPlanner.js"]
+  n_call_map["map"]
+  n_file_src_agent_platform_planner_LlmPlanner_js -->|CALLS| n_call_map
+  n_file_src_agent_platform_planner_LlmPlanner_js["src/agent-platform/planner/LlmPlanner.js"]
+  n_call_filter["filter"]
+  n_file_src_agent_platform_planner_LlmPlanner_js -->|CALLS| n_call_filter
+  n_file_src_agent_platform_planner_LlmPlanner_js["src/agent-platform/planner/LlmPlanner.js"]
+  n_call_Object_entries["Object.entries"]
+  n_file_src_agent_platform_planner_LlmPlanner_js -->|CALLS| n_call_Object_entries
+  n_file_src_agent_platform_planner_LlmPlanner_js["src/agent-platform/planner/LlmPlanner.js"]
+  n_call_startsWith["startsWith"]
+  n_file_src_agent_platform_planner_LlmPlanner_js -->|CALLS| n_call_startsWith
+  n_file_src_agent_platform_planner_LlmPlanner_js["src/agent-platform/planner/LlmPlanner.js"]
+  n_call_String["String"]
+  n_file_src_agent_platform_planner_LlmPlanner_js -->|CALLS| n_call_String
+  n_file_src_agent_platform_planner_LlmPlanner_js["src/agent-platform/planner/LlmPlanner.js"]
+  n_call_client_chatJson["client.chatJson"]
+  n_file_src_agent_platform_planner_LlmPlanner_js -->|CALLS| n_call_client_chatJson
+  n_file_src_agent_platform_planner_LlmPlanner_js["src/agent-platform/planner/LlmPlanner.js"]
+  n_call_JSON_stringify["JSON.stringify"]
+  n_file_src_agent_platform_planner_LlmPlanner_js -->|CALLS| n_call_JSON_stringify
+  n_file_src_agent_platform_planner_LlmPlanner_js["src/agent-platform/planner/LlmPlanner.js"]
+  n_call_normalizeDecision["normalizeDecision"]
+  n_file_src_agent_platform_planner_LlmPlanner_js -->|CALLS| n_call_normalizeDecision
+  n_file_src_agent_platform_planner_LlmPlanner_js["src/agent-platform/planner/LlmPlanner.js"]
+  n_call_has["has"]
+  n_file_src_agent_platform_planner_LlmPlanner_js -->|CALLS| n_call_has
+  n_file_src_agent_platform_planner_LlmPlanner_js["src/agent-platform/planner/LlmPlanner.js"]
+  n_call_ctx_state_attemptedCapabilities["ctx.state.attemptedCapabilities"]
+  n_file_src_agent_platform_planner_LlmPlanner_js -->|CALLS| n_call_ctx_state_attemptedCapabilities

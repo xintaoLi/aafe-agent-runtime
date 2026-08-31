@@ -1,0 +1,900 @@
+{
+  "module": "src-agent-platform-protocol",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:17",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/protocol/request.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/protocol/request.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/protocol/request.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:18",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:119",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "file:src/agent-platform/protocol/request.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "file:src/agent-platform/protocol/request.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "reason": "../protocol/request.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:120",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "nodes": [
+          "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "reason": "../protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:128",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/policy/ExecutionPolicy.js",
+        "nodes": [
+          "file:src/agent-platform/policy/ExecutionPolicy.js",
+          "file:src/agent-platform/protocol/request.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/policy/ExecutionPolicy.js",
+            "to": "file:src/agent-platform/protocol/request.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "reason": "../protocol/request.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:130",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/runtime/AgentRuntime.js",
+        "nodes": [
+          "file:src/agent-platform/runtime/AgentRuntime.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/runtime/AgentRuntime.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/runtime/AgentRuntime.js",
+            "reason": "../protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:141",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/runtime/providers/CliAgentProvider.js",
+        "nodes": [
+          "file:src/agent-platform/runtime/providers/CliAgentProvider.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/runtime/providers/CliAgentProvider.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/runtime/providers/CliAgentProvider.js",
+            "reason": "../../protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:143",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/runtime/providers/HttpAgentProvider.js",
+        "nodes": [
+          "file:src/agent-platform/runtime/providers/HttpAgentProvider.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/runtime/providers/HttpAgentProvider.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/runtime/providers/HttpAgentProvider.js",
+            "reason": "../../protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:145",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/runtime/providers/IdeAgentProvider.js",
+        "nodes": [
+          "file:src/agent-platform/runtime/providers/IdeAgentProvider.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/runtime/providers/IdeAgentProvider.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/runtime/providers/IdeAgentProvider.js",
+            "reason": "../../protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:147",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/runtime/providers/LocalAgentProvider.js",
+        "nodes": [
+          "file:src/agent-platform/runtime/providers/LocalAgentProvider.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/runtime/providers/LocalAgentProvider.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/runtime/providers/LocalAgentProvider.js",
+            "reason": "../../protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:150",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/runtime/providers/McpAgentProvider.js",
+        "nodes": [
+          "file:src/agent-platform/runtime/providers/McpAgentProvider.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/runtime/providers/McpAgentProvider.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/runtime/providers/McpAgentProvider.js",
+            "reason": "../../protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:187",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/index.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/index.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/index.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "../../agent-platform/protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:194",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/context-agent/index.js",
+        "nodes": [
+          "file:src/agents/context-agent/index.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/context-agent/index.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/context-agent/index.js",
+            "reason": "../../agent-platform/protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:199",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/failure-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/failure-analyzer/index.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/failure-analyzer/index.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "../../agent-platform/protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:206",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/impact-analyzer/index.js",
+        "nodes": [
+          "file:src/agents/impact-analyzer/index.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/impact-analyzer/index.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/impact-analyzer/index.js",
+            "reason": "../../agent-platform/protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:219",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/knowledge-validator/index.js",
+        "nodes": [
+          "file:src/agents/knowledge-validator/index.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/knowledge-validator/index.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/knowledge-validator/index.js",
+            "reason": "../../agent-platform/protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:229",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/test-agent/index.js",
+        "nodes": [
+          "file:src/agents/test-agent/index.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/test-agent/index.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/test-agent/index.js",
+            "reason": "../../agent-platform/protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:371",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/platform.js",
+        "nodes": [
+          "file:src/cli/platform.js",
+          "file:src/agent-platform/protocol/request.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/platform.js",
+            "to": "file:src/agent-platform/protocol/request.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/platform.js",
+            "reason": "../agent-platform/protocol/request.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:417",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/request.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/request.js",
+          "call:toString"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/request.js",
+            "to": "call:toString",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/request.js",
+            "symbol": "toString"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:418",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/request.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/request.js",
+          "call:Date.now"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/request.js",
+            "to": "call:Date.now",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/request.js",
+            "symbol": "Date.now"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:419",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/request.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/request.js",
+          "call:defaultConstraints"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/request.js",
+            "to": "call:defaultConstraints",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/request.js",
+            "symbol": "defaultConstraints"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:420",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:Object.freeze"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:Object.freeze",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "Object.freeze"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:421",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:AGENT_STATUS.includes"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:AGENT_STATUS.includes",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "AGENT_STATUS.includes"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:422",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:normalizeNextActions"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:normalizeNextActions",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "normalizeNextActions"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:423",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:createAgentResponse"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:createAgentResponse",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "createAgentResponse"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:424",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:createAgentResponse"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:createAgentResponse",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "createAgentResponse"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:425",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:createAgentResponse"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:createAgentResponse",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "createAgentResponse"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:426",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:createAgentResponse"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:createAgentResponse",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "createAgentResponse"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:427",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:agentFailed"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:agentFailed",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "agentFailed"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:428",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:AGENT_STATUS.includes"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:AGENT_STATUS.includes",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "AGENT_STATUS.includes"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:429",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:agentFailed"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:agentFailed",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "agentFailed"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:430",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:String"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:String",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "String"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:431",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:createAgentResponse"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:createAgentResponse",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "createAgentResponse"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:432",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:Array.isArray"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:Array.isArray",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "Array.isArray"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:433",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:map"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:map",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "map"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:434",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:actions.filter"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:actions.filter",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "actions.filter"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:435",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/protocol/response.js",
+        "nodes": [
+          "file:src/agent-platform/protocol/response.js",
+          "call:String"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/protocol/response.js",
+            "to": "call:String",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/protocol/response.js",
+            "symbol": "String"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 18,
+      "call": 19
+    }
+  }
+}

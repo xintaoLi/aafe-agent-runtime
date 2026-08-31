@@ -1,0 +1,16 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agents_knowledge_validator_index_js["src/agents/knowledge-validator/index.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agents_knowledge_validator_index_js
+  n_file_src_agents_index_js["src/agents/index.js"]
+  n_file_src_agents_knowledge_validator_index_js["src/agents/knowledge-validator/index.js"]
+  n_file_src_agents_index_js -->|IMPORTS| n_file_src_agents_knowledge_validator_index_js
+  n_file_src_agents_knowledge_validator_index_js["src/agents/knowledge-validator/index.js"]
+  n_file_src_agent_platform_protocol_response_js["src/agent-platform/protocol/response.js"]
+  n_file_src_agents_knowledge_validator_index_js -->|IMPORTS| n_file_src_agent_platform_protocol_response_js
+  n_file_src_agents_knowledge_validator_index_js["src/agents/knowledge-validator/index.js"]
+  n_file_src_knowledge_validator_rules_js["src/knowledge/validator/rules.js"]
+  n_file_src_agents_knowledge_validator_index_js -->|IMPORTS| n_file_src_knowledge_validator_rules_js
+  n_file_src_agents_knowledge_validator_index_js["src/agents/knowledge-validator/index.js"]
+  n_file_src_knowledge_model_index_js["src/knowledge/model/index.js"]
+  n_file_src_agents_knowledge_validator_index_js -->|IMPORTS| n_file_src_knowledge_model_index_js

@@ -1,0 +1,5 @@
+flowchart TB
+  subgraph n_src_static_analysis_routes["src-static-analysis-routes"]
+    n_src_static_analysis_routes_resolveRoutes_js["routes/resolveRoutes.js"]
+  end
+  n_src_static_analysis_routes --> n_src_static_analysis_ast["src-static-analysis-ast"]

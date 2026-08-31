@@ -1,0 +1,33 @@
+{
+  "module": "src-static-analysis-modules",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/static-analysis/modules/buildBundles.js",
+        "src/static-analysis/modules/partition.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-static-analysis-types"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/static-analysis/modules/buildBundles.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/static-analysis/modules/partition.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-static-analysis-types"
+  ],
+  "signals": []
+}

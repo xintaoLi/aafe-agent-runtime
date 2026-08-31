@@ -1,0 +1,30 @@
+{
+  "status": "partial",
+  "result": {
+    "source": "requirement",
+    "affectedFiles": [],
+    "affectedModules": [],
+    "affectedFeatures": [],
+    "affectedDataFlows": [],
+    "affectedBusinessFlows": [],
+    "affectedTests": [],
+    "risk": "low",
+    "confidence": 0.4
+  },
+  "knowledgeUpdates": [],
+  "evidence": [],
+  "nextActions": [
+    {
+      "capability": "knowledge-validation",
+      "reason": "impact claims should be evidence-checked before use"
+    },
+    {
+      "capability": "context-packaging",
+      "reason": "the IDE agent needs a minimal context package"
+    }
+  ],
+  "metrics": {
+    "duration": 15
+  },
+  "reason": "requirement did not match any analyzed module"
+}

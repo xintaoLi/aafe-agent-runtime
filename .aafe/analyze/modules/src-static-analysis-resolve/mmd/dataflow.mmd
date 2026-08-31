@@ -1,0 +1,16 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_static_analysis_resolve_ModuleResolver_["src/static-analysis/resolve/ModuleResolver.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_static_analysis_resolve_ModuleResolver_
+  n_file_src_static_analysis_analyzers_graph_js["src/static-analysis/analyzers/graph.js"]
+  n_file_src_static_analysis_resolve_ModuleResolver_["src/static-analysis/resolve/ModuleResolver.js"]
+  n_file_src_static_analysis_analyzers_graph_js -->|IMPORTS| n_file_src_static_analysis_resolve_ModuleResolver_
+  n_file_src_static_analysis_resolve_ModuleResolver_["src/static-analysis/resolve/ModuleResolver.js"]
+  n_import_node_fs_promises["node:fs/promises"]
+  n_file_src_static_analysis_resolve_ModuleResolver_ -->|IMPORTS| n_import_node_fs_promises
+  n_file_src_static_analysis_resolve_ModuleResolver_["src/static-analysis/resolve/ModuleResolver.js"]
+  n_import_node_path["node:path"]
+  n_file_src_static_analysis_resolve_ModuleResolver_ -->|IMPORTS| n_import_node_path
+  n_file_src_static_analysis_routes_resolveRoutes_js["src/static-analysis/routes/resolveRoutes.js"]
+  n_file_src_static_analysis_resolve_ModuleResolver_["src/static-analysis/resolve/ModuleResolver.js"]
+  n_file_src_static_analysis_routes_resolveRoutes_js -->|IMPORTS| n_file_src_static_analysis_resolve_ModuleResolver_

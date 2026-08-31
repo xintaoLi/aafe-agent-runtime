@@ -1,0 +1,39 @@
+{
+  "module": "src-agent-platform-orchestrator",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "src/agent-platform/orchestrator/ExecutionGraph.js"
+      ],
+      "routes": [],
+      "components": [
+        "TRANSITIONS"
+      ]
+    },
+    "outboundModules": [
+      "module:src-agent-platform-protocol",
+      "module:src-agent-platform-runtime",
+      "module:src-agent-platform-state"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-agent-platform-protocol",
+    "module:src-agent-platform-runtime",
+    "module:src-agent-platform-state"
+  ],
+  "signals": []
+}

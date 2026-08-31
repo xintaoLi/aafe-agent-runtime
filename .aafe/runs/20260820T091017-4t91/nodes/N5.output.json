@@ -1,0 +1,22 @@
+{
+  "status": "skipped",
+  "result": null,
+  "knowledgeUpdates": [],
+  "evidence": [],
+  "nextActions": [
+    {
+      "capability": "requirement-impact",
+      "reason": "context packaging needs an impact report"
+    }
+  ],
+  "metrics": {
+    "duration": 0
+  },
+  "reason": "no-impact-report-available",
+  "contract": {
+    "mode": "warn",
+    "repairs": [],
+    "attempts": 1,
+    "input": "ok"
+  }
+}

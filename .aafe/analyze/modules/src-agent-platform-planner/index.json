@@ -1,0 +1,34 @@
+{
+  "id": "src-agent-platform-planner",
+  "summary": {
+    "routes": 0,
+    "components": 2,
+    "features": 0,
+    "flows": 79,
+    "dependsOn": [
+      "module:src-llm"
+    ]
+  },
+  "paths": {
+    "routes": "json/routes.json",
+    "architecture": "json/architecture.json",
+    "components": "json/components.json",
+    "features": "json/features.json",
+    "dataflow": "json/dataflow.json",
+    "mmd": {
+      "routes": "mmd/routes.mmd",
+      "architecture": "mmd/architecture.mmd",
+      "components": "mmd/components.mmd",
+      "dataflow": "mmd/dataflow.mmd"
+    },
+    "readme": "README.md"
+  },
+  "routes": [],
+  "components": [
+    "CAPABILITY_PLANS",
+    "PLANNER_ACTIONS"
+  ],
+  "dependencies": [
+    "module:src-llm"
+  ]
+}

@@ -1,0 +1,28 @@
+flowchart TD
+  n_route_ai_agent_memory[".ai-agent/memory"]
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_route_ai_agent_memory -->|ROUTES_TO| n_file_src_cli_bootstrap_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_import_hookScripts_js["./hookScripts.js"]
+  n_file_src_cli_bootstrap_js -->|REQUESTS| n_import_hookScripts_js
+  n_route["..."]
+  n_file_src_static_analysis_ast_extractors_js["src/static-analysis/ast/extractors.js"]
+  n_route -->|ROUTES_TO| n_file_src_static_analysis_ast_extractors_js
+  n_route_package_json["package.json"]
+  n_file_src_static_analysis_analyzers_repository_js["src/static-analysis/analyzers/repository.js"]
+  n_route_package_json -->|ROUTES_TO| n_file_src_static_analysis_analyzers_repository_js
+  n_route_ctx_path_index["${ctx.path}/${index}"]
+  n_file_src_agent_platform_schema_repair_js["src/agent-platform/schema/repair.js"]
+  n_route_ctx_path_index -->|ROUTES_TO| n_file_src_agent_platform_schema_repair_js
+  n_route_ctx_path_key["${ctx.path}/${key}"]
+  n_file_src_agent_platform_schema_repair_js["src/agent-platform/schema/repair.js"]
+  n_route_ctx_path_key -->|ROUTES_TO| n_file_src_agent_platform_schema_repair_js
+  n_route_casesDir_id_yaml["${casesDir}/${id}.yaml"]
+  n_file_src_agents_test_agent_generate_js["src/agents/test-agent/generate.js"]
+  n_route_casesDir_id_yaml -->|ROUTES_TO| n_file_src_agents_test_agent_generate_js
+  n_route_aafe_e2e_specs_id_spec_js[".aafe/e2e/specs/${id}.spec.js"]
+  n_file_src_agents_test_agent_generate_js["src/agents/test-agent/generate.js"]
+  n_route_aafe_e2e_specs_id_spec_js -->|ROUTES_TO| n_file_src_agents_test_agent_generate_js
+  n_route_tests_aafe_fileStem_plan_spec_js["tests/aafe/${fileStem(plan)}.spec.js"]
+  n_file_src_agents_test_agent_generate_js["src/agents/test-agent/generate.js"]
+  n_route_tests_aafe_fileStem_plan_spec_js -->|ROUTES_TO| n_file_src_agents_test_agent_generate_js

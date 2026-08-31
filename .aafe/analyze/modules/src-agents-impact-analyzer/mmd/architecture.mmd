@@ -1,0 +1,10 @@
+flowchart TB
+  subgraph n_src_agents_impact_analyzer["src-agents-impact-analyzer"]
+    n_src_agents_impact_analyzer_index_js["impact-analyzer/index.js"]
+    n_src_agents_impact_analyzer_tokenize_js["impact-analyzer/tokenize.js"]
+  end
+  n_src_agents_impact_analyzer --> n_src_agent_platform_protocol["src-agent-platform-protocol"]
+  n_src_agents_impact_analyzer --> n_src_knowledge_graph["src-knowledge-graph"]
+  n_src_agents_impact_analyzer --> n_src_knowledge_model["src-knowledge-model"]
+  n_src_agents_impact_analyzer --> n_src_static_analysis_git["src-static-analysis-git"]
+  n_src_agents_impact_analyzer --> n_src_static_analysis_types["src-static-analysis-types"]

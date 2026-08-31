@@ -1,0 +1,21 @@
+{
+  "status": "skipped",
+  "result": {
+    "runner": "playwright",
+    "command": "aafe test --run",
+    "enableWith": ".aafe.agents.json → policies.allowTestExecution = true (or aafe test --run)"
+  },
+  "knowledgeUpdates": [],
+  "evidence": [],
+  "nextActions": [],
+  "metrics": {
+    "duration": 0
+  },
+  "reason": "test-execution-not-allowed",
+  "contract": {
+    "mode": "warn",
+    "repairs": [],
+    "attempts": 1,
+    "input": "/write: expected boolean, got null"
+  }
+}

@@ -1,0 +1,564 @@
+{
+  "module": "src-patterns",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:35",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/patterns/PatternGate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/patterns/PatternGate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/patterns/PatternGate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:36",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/patterns/PatternComposer.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/patterns/PatternComposer.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/patterns/PatternComposer.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:37",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/patterns/PatternProblems.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/patterns/PatternProblems.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/patterns/PatternProblems.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:38",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/patterns/PatternScore.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/patterns/PatternScore.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/patterns/PatternScore.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:39",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/patterns/AntiPatternDetector.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/patterns/AntiPatternDetector.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/patterns/AntiPatternDetector.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:40",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/patterns/catalog.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/patterns/catalog.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/patterns/catalog.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:167",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/skill-runtime/AgentRuntime.js",
+        "nodes": [
+          "file:src/agent-platform/skill-runtime/AgentRuntime.js",
+          "file:src/patterns/PatternGate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/skill-runtime/AgentRuntime.js",
+            "to": "file:src/patterns/PatternGate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+            "reason": "../../patterns/PatternGate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:175",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/skill-runtime/defaults.js",
+        "nodes": [
+          "file:src/agent-platform/skill-runtime/defaults.js",
+          "file:src/patterns/PatternAdvisor.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/skill-runtime/defaults.js",
+            "to": "file:src/patterns/PatternAdvisor.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/skill-runtime/defaults.js",
+            "reason": "../../patterns/PatternAdvisor.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:176",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/skill-runtime/defaults.js",
+        "nodes": [
+          "file:src/agent-platform/skill-runtime/defaults.js",
+          "file:src/patterns/PatternGate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/skill-runtime/defaults.js",
+            "to": "file:src/patterns/PatternGate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/skill-runtime/defaults.js",
+            "reason": "../../patterns/PatternGate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:362",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/patternRuntimeFiles.js",
+        "nodes": [
+          "file:src/cli/patternRuntimeFiles.js",
+          "file:src/patterns/catalog.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/patternRuntimeFiles.js",
+            "to": "file:src/patterns/catalog.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/patternRuntimeFiles.js",
+            "reason": "../patterns/catalog.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:363",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/patternRuntimeFiles.js",
+        "nodes": [
+          "file:src/cli/patternRuntimeFiles.js",
+          "file:src/patterns/AntiPatternDetector.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/patternRuntimeFiles.js",
+            "to": "file:src/patterns/AntiPatternDetector.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/patternRuntimeFiles.js",
+            "reason": "../patterns/AntiPatternDetector.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:364",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/patterns.js",
+        "nodes": [
+          "file:src/cli/patterns.js",
+          "file:src/patterns/PatternAdvisor.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/patterns.js",
+            "to": "file:src/patterns/PatternAdvisor.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/patterns.js",
+            "reason": "../patterns/PatternAdvisor.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:365",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/patterns.js",
+        "nodes": [
+          "file:src/cli/patterns.js",
+          "file:src/patterns/PatternGate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/patterns.js",
+            "to": "file:src/patterns/PatternGate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/patterns.js",
+            "reason": "../patterns/PatternGate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:366",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/patterns.js",
+        "nodes": [
+          "file:src/cli/patterns.js",
+          "file:src/patterns/catalog.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/patterns.js",
+            "to": "file:src/patterns/catalog.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/patterns.js",
+            "reason": "../patterns/catalog.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:424",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/patterns/AntiPatternDetector.js",
+        "nodes": [
+          "file:src/patterns/AntiPatternDetector.js",
+          "file:src/patterns/catalog.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/patterns/AntiPatternDetector.js",
+            "to": "file:src/patterns/catalog.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/patterns/AntiPatternDetector.js",
+            "reason": "./catalog.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:425",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/patterns/PatternAdvisor.js",
+        "nodes": [
+          "file:src/patterns/PatternAdvisor.js",
+          "file:src/patterns/PatternComposer.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/patterns/PatternAdvisor.js",
+            "to": "file:src/patterns/PatternComposer.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/patterns/PatternAdvisor.js",
+            "reason": "./PatternComposer.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:426",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/patterns/PatternAdvisor.js",
+        "nodes": [
+          "file:src/patterns/PatternAdvisor.js",
+          "file:src/patterns/PatternProblems.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/patterns/PatternAdvisor.js",
+            "to": "file:src/patterns/PatternProblems.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/patterns/PatternAdvisor.js",
+            "reason": "./PatternProblems.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:427",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/patterns/PatternAdvisor.js",
+        "nodes": [
+          "file:src/patterns/PatternAdvisor.js",
+          "file:src/patterns/AntiPatternDetector.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/patterns/PatternAdvisor.js",
+            "to": "file:src/patterns/AntiPatternDetector.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/patterns/PatternAdvisor.js",
+            "reason": "./AntiPatternDetector.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:428",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/patterns/PatternAdvisor.js",
+        "nodes": [
+          "file:src/patterns/PatternAdvisor.js",
+          "file:src/patterns/catalog.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/patterns/PatternAdvisor.js",
+            "to": "file:src/patterns/catalog.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/patterns/PatternAdvisor.js",
+            "reason": "./catalog.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:429",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/patterns/PatternComposer.js",
+        "nodes": [
+          "file:src/patterns/PatternComposer.js",
+          "file:src/patterns/catalog.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/patterns/PatternComposer.js",
+            "to": "file:src/patterns/catalog.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/patterns/PatternComposer.js",
+            "reason": "./catalog.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:430",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/patterns/PatternComposer.js",
+        "nodes": [
+          "file:src/patterns/PatternComposer.js",
+          "file:src/patterns/PatternScore.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/patterns/PatternComposer.js",
+            "to": "file:src/patterns/PatternScore.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/patterns/PatternComposer.js",
+            "reason": "./PatternScore.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:431",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/patterns/PatternComposer.js",
+        "nodes": [
+          "file:src/patterns/PatternComposer.js",
+          "file:src/patterns/PatternProblems.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/patterns/PatternComposer.js",
+            "to": "file:src/patterns/PatternProblems.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/patterns/PatternComposer.js",
+            "reason": "./PatternProblems.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:432",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/patterns/PatternScore.js",
+        "nodes": [
+          "file:src/patterns/PatternScore.js",
+          "file:src/patterns/catalog.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/patterns/PatternScore.js",
+            "to": "file:src/patterns/catalog.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/patterns/PatternScore.js",
+            "reason": "./catalog.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 23,
+      "call": 0
+    }
+  }
+}

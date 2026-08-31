@@ -1,0 +1,48 @@
+{
+  "module": "src-agent-platform-planner",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agent-platform/planner/LlmPlanner.js",
+        "src/agent-platform/planner/RulePlanner.js",
+        "src/agent-platform/planner/decision.js",
+        "src/agent-platform/planner/index.js"
+      ],
+      "routes": [],
+      "components": [
+        "CAPABILITY_PLANS",
+        "PLANNER_ACTIONS"
+      ]
+    },
+    "outboundModules": [
+      "module:src-llm"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agent-platform/planner/LlmPlanner.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/planner/RulePlanner.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/planner/decision.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/planner/index.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-llm"
+  ],
+  "signals": []
+}

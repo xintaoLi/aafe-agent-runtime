@@ -1,0 +1,23 @@
+{
+  "module": "src",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/index.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/index.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

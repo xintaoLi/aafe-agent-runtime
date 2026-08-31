@@ -1,0 +1,45 @@
+{
+  "module": "src-static-analysis-types",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/static-analysis/types/config.js",
+        "src/static-analysis/types/context.js",
+        "src/static-analysis/types/evidence.js",
+        "src/static-analysis/types/result.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-static-analysis-emit"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/static-analysis/types/config.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/static-analysis/types/context.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/static-analysis/types/evidence.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/static-analysis/types/result.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-static-analysis-emit"
+  ],
+  "signals": []
+}

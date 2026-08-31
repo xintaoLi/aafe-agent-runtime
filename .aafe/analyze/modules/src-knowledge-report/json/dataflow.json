@@ -1,0 +1,60 @@
+{
+  "module": "src-knowledge-report",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:53",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/knowledge/report/impactMarkdown.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/knowledge/report/impactMarkdown.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/knowledge/report/impactMarkdown.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:373",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/platform.js",
+        "nodes": [
+          "file:src/cli/platform.js",
+          "file:src/knowledge/report/impactMarkdown.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/platform.js",
+            "to": "file:src/knowledge/report/impactMarkdown.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/platform.js",
+            "reason": "../knowledge/report/impactMarkdown.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 2,
+      "call": 0
+    }
+  }
+}

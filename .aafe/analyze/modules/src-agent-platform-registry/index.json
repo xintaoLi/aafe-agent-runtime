@@ -1,0 +1,31 @@
+{
+  "id": "src-agent-platform-registry",
+  "summary": {
+    "routes": 0,
+    "components": 3,
+    "features": 0,
+    "flows": 44,
+    "dependsOn": []
+  },
+  "paths": {
+    "routes": "json/routes.json",
+    "architecture": "json/architecture.json",
+    "components": "json/components.json",
+    "features": "json/features.json",
+    "dataflow": "json/dataflow.json",
+    "mmd": {
+      "routes": "mmd/routes.mmd",
+      "architecture": "mmd/architecture.mmd",
+      "components": "mmd/components.mmd",
+      "dataflow": "mmd/dataflow.mmd"
+    },
+    "readme": "README.md"
+  },
+  "routes": [],
+  "components": [
+    "SCHEMA_MODES",
+    "BUILTIN_AGENTS",
+    "ALL_CAPABILITIES"
+  ],
+  "dependencies": []
+}

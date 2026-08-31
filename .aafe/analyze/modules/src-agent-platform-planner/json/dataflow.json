@@ -1,0 +1,1908 @@
+{
+  "module": "src-agent-platform-planner",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:14",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/planner/RulePlanner.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/planner/RulePlanner.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/planner/RulePlanner.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:15",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/planner/LlmPlanner.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/planner/LlmPlanner.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/planner/LlmPlanner.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:16",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/planner/decision.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/planner/decision.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/planner/decision.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:108",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/index.js",
+        "nodes": [
+          "file:src/agent-platform/index.js",
+          "file:src/agent-platform/planner/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/index.js",
+            "to": "file:src/agent-platform/planner/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/index.js",
+            "reason": "./planner/index.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:122",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "file:src/agent-platform/planner/RulePlanner.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "file:src/agent-platform/planner/RulePlanner.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "reason": "./RulePlanner.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:123",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "file:src/agent-platform/planner/decision.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "file:src/agent-platform/planner/decision.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "reason": "./decision.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:124",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "file:src/agent-platform/planner/decision.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "file:src/agent-platform/planner/decision.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "reason": "./decision.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:125",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/planner/index.js",
+        "nodes": [
+          "file:src/agent-platform/planner/index.js",
+          "file:src/agent-platform/planner/RulePlanner.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/index.js",
+            "to": "file:src/agent-platform/planner/RulePlanner.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/planner/index.js",
+            "reason": "./RulePlanner.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:126",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/planner/index.js",
+        "nodes": [
+          "file:src/agent-platform/planner/index.js",
+          "file:src/agent-platform/planner/LlmPlanner.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/index.js",
+            "to": "file:src/agent-platform/planner/LlmPlanner.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/planner/index.js",
+            "reason": "./LlmPlanner.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:127",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/planner/index.js",
+        "nodes": [
+          "file:src/agent-platform/planner/index.js",
+          "file:src/llm/LlmClient.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/index.js",
+            "to": "file:src/llm/LlmClient.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/planner/index.js",
+            "reason": "../../llm/LlmClient.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:318",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:map"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:map",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "map"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:319",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:filter"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:filter",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "filter"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:320",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:Object.entries"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:Object.entries",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "Object.entries"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:321",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:startsWith"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:startsWith",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "startsWith"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:322",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:String"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:String",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "String"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:323",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:client.chatJson"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:client.chatJson",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "client.chatJson"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:324",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:JSON.stringify"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:JSON.stringify",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "JSON.stringify"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:325",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:normalizeDecision"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:normalizeDecision",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "normalizeDecision"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:326",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:has"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:has",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "has"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:327",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:ctx.state.attemptedCapabilities"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:ctx.state.attemptedCapabilities",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "ctx.state.attemptedCapabilities"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:328",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:fallbackReasons.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:fallbackReasons.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "fallbackReasons.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:329",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:ctx.state.diagnostics.push"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:ctx.state.diagnostics.push",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "ctx.state.diagnostics.push"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:330",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:fallback.decide"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:fallback.decide",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "fallback.decide"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:331",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:Array.from"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:Array.from",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "Array.from"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:332",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:ctx.state.satisfiedCapabilities"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:ctx.state.satisfiedCapabilities",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "ctx.state.satisfiedCapabilities"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:333",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/LlmPlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/LlmPlanner.js",
+          "call:ctx.state.history.map"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/LlmPlanner.js",
+            "to": "call:ctx.state.history.map",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/LlmPlanner.js",
+            "symbol": "ctx.state.history.map"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:334",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:Object.freeze"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:Object.freeze",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "Object.freeze"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:335",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:state.attemptedCapabilities"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:state.attemptedCapabilities",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "state.attemptedCapabilities"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:336",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:attempted.has"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:attempted.has",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "attempted.has"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:337",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:isKnowledgeStale"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:isKnowledgeStale",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "isKnowledgeStale"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:338",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:invokeAgent"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:invokeAgent",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "invokeAgent"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:339",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:resolvePlan"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:resolvePlan",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "resolvePlan"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:340",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:Array.isArray"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:Array.isArray",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "Array.isArray"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:341",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:step.filter"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:step.filter",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "step.filter"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:342",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:attempted.has"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:attempted.has",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "attempted.has"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:343",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:ctx.registry.hasCapability"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:ctx.registry.hasCapability",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "ctx.registry.hasCapability"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:344",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:invokeAgent"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:invokeAgent",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "invokeAgent"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:345",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:parallel"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:parallel",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "parallel"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:346",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:pending.map"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:pending.map",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "pending.map"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:347",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:attempted.has"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:attempted.has",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "attempted.has"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:348",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:invokeAgent"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:invokeAgent",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "invokeAgent"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:349",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:invokeAgent"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:invokeAgent",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "invokeAgent"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:350",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:resolvePlan"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:resolvePlan",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "resolvePlan"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:351",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:state.has"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:state.has",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "state.has"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:352",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:complete"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:complete",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "complete"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:353",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:filter"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:filter",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "filter"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:354",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:map"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:map",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "map"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:355",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:filter"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:filter",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "filter"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:356",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:plan.flat"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:plan.flat",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "plan.flat"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:357",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:OPTIONAL_CAPABILITIES.has"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:OPTIONAL_CAPABILITIES.has",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "OPTIONAL_CAPABILITIES.has"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:358",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:state.history.find"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:state.history.find",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "state.history.find"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:359",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:join"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:join",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "join"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:360",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:blocking.map"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:blocking.map",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "blocking.map"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:361",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:blocking.every"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:blocking.every",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "blocking.every"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:362",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:needUserInput"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:needUserInput",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "needUserInput"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:363",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/RulePlanner.js",
+        "nodes": [
+          "file:src/agent-platform/planner/RulePlanner.js",
+          "call:fail"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/RulePlanner.js",
+            "to": "call:fail",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/RulePlanner.js",
+            "symbol": "fail"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:364",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:Object.freeze"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:Object.freeze",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "Object.freeze"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:365",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:PLANNER_ACTIONS.includes"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:PLANNER_ACTIONS.includes",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "PLANNER_ACTIONS.includes"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:366",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:trim"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:trim",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "trim"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:367",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:String"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:String",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "String"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:368",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:trim"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:trim",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "trim"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:369",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:String"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:String",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "String"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:370",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:availableCapabilities.includes"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:availableCapabilities.includes",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "availableCapabilities.includes"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:371",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:toStringArray"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:toStringArray",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "toStringArray"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:372",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:toConfidence"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:toConfidence",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "toConfidence"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:373",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:filter"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:filter",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "filter"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:374",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:map"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:map",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "map"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:375",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:Array.isArray"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:Array.isArray",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "Array.isArray"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:376",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:trim"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:trim",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "trim"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:377",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:String"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:String",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "String"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:378",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:availableCapabilities.includes"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:availableCapabilities.includes",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "availableCapabilities.includes"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:379",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:toConfidence"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:toConfidence",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "toConfidence"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:380",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:toConfidence"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:toConfidence",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "toConfidence"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:381",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:Array.isArray"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:Array.isArray",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "Array.isArray"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:382",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:value.map"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:value.map",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "value.map"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:383",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:Number.isFinite"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:Number.isFinite",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "Number.isFinite"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:384",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:Math.min"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:Math.min",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "Math.min"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:385",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/decision.js",
+        "nodes": [
+          "file:src/agent-platform/planner/decision.js",
+          "call:Math.max"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/decision.js",
+            "to": "call:Math.max",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/decision.js",
+            "symbol": "Math.max"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:386",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:src/agent-platform/planner/index.js",
+        "nodes": [
+          "file:src/agent-platform/planner/index.js",
+          "call:createLlmClient"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/planner/index.js",
+            "to": "call:createLlmClient",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "src/agent-platform/planner/index.js",
+            "symbol": "createLlmClient"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 10,
+      "call": 69
+    }
+  }
+}

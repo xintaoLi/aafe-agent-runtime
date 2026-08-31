@@ -1,0 +1,300 @@
+{
+  "module": "src-agents-code-intelligence",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:180",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/index.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/index.js",
+          "import:node:child_process"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/index.js",
+            "to": "import:node:child_process",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "node:child_process"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:181",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/index.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/index.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/index.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:182",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/index.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/index.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/index.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:183",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/index.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/index.js",
+          "import:node:util"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/index.js",
+            "to": "import:node:util",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "node:util"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:184",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/index.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/index.js",
+          "file:src/static-analysis/orchestrator.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/index.js",
+            "to": "file:src/static-analysis/orchestrator.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "../../static-analysis/orchestrator.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:185",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/index.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/index.js",
+          "file:src/static-analysis/types/config.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/index.js",
+            "to": "file:src/static-analysis/types/config.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "../../static-analysis/types/config.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:186",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/index.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/index.js",
+          "file:src/static-analysis/types/context.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/index.js",
+            "to": "file:src/static-analysis/types/context.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "../../static-analysis/types/context.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:187",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/index.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/index.js",
+          "file:src/agent-platform/protocol/response.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/index.js",
+            "to": "file:src/agent-platform/protocol/response.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "../../agent-platform/protocol/response.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:188",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/index.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/index.js",
+          "file:src/agents/code-intelligence/views.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/index.js",
+            "to": "file:src/agents/code-intelligence/views.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "./views.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:190",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/views.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/views.js",
+          "file:src/knowledge/graph/relations.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/views.js",
+            "to": "file:src/knowledge/graph/relations.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/views.js",
+            "reason": "../../knowledge/graph/relations.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:191",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/code-intelligence/views.js",
+        "nodes": [
+          "file:src/agents/code-intelligence/views.js",
+          "file:src/knowledge/model/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/code-intelligence/views.js",
+            "to": "file:src/knowledge/model/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/code-intelligence/views.js",
+            "reason": "../../knowledge/model/index.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:213",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agents/index.js",
+        "nodes": [
+          "file:src/agents/index.js",
+          "file:src/agents/code-intelligence/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agents/index.js",
+            "to": "file:src/agents/code-intelligence/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agents/index.js",
+            "reason": "./code-intelligence/index.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 12,
+      "call": 0
+    }
+  }
+}

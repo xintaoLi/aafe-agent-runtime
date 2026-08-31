@@ -1,0 +1,26 @@
+{
+  "module": "route-ctx-path",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agent-platform/schema/repair.js"
+      ],
+      "routes": [
+        null,
+        null
+      ],
+      "components": []
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agent-platform/schema/repair.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

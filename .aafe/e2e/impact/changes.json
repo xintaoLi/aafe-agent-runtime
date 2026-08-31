@@ -1,0 +1,185 @@
+{
+  "scenario": "changes",
+  "layers": {
+    "e2e": [],
+    "component": [
+      "src/agent-platform/protocol/request.js",
+      "src/agents/test-agent/index.js",
+      "src/cli/bootstrap.js",
+      "src/cli/completionImpactRules.js",
+      "src/cli/e2eFromPrRules.js",
+      "src/cli/index.js",
+      "src/cli/platform.js",
+      "src/cli/portableCompletionTapdPack.js",
+      "src/cli/prompts.js",
+      "src/testing/e2e/config.js",
+      "src/testing/e2e/index.js",
+      "src/testing/e2e/runner.js"
+    ],
+    "unit": [
+      ".aafe.config.json",
+      ".cursor/rules/aafe-test-from-pr.mdc",
+      "scripts/test-completion-tapd-rules.js",
+      "scripts/test-e2e-platform.js",
+      "tests/aafe/verify-the-current-change.spec.js"
+    ],
+    "nonCode": [
+      ".ai-agent/skill-index.md",
+      ".ai-agent/skills/aafe-test-from-pr.md",
+      ".ai-agent/skills/architecture-impact-test-forecast.md",
+      ".ai-agent/skills/minimal-convergent-self-test.md",
+      ".cursor/skills/aafe-test-from-pr/SKILL.md",
+      "README.md"
+    ],
+    "primary": "component",
+    "reason": "变更集中在组件与样式 src/agent-platform/protocol/request.js, src/agents/test-agent/index.js, src/cli/bootstrap.js, src/cli/completionImpactRules.js, src/cli/e2eFromPrRules.js，优先组件 / 集成测试。",
+    "routeToUnitChain": false
+  },
+  "pr": null,
+  "scenarios": [
+    {
+      "id": "scenario:feature:feature-ai-agent-memory",
+      "title": "Feature \"memory\" keeps working after the change",
+      "kind": "e2e",
+      "steps": [
+        "Reach the entry point of \"memory\"",
+        "Perform the feature's primary user action",
+        "Verify the resulting state"
+      ],
+      "expected": [
+        "\"memory\" behaves as before the change"
+      ],
+      "priority": "critical",
+      "source": {
+        "type": "feature",
+        "id": "feature:ai-agent-memory",
+        "file": "src/cli/bootstrap.js"
+      }
+    },
+    {
+      "id": "scenario:feature:feature-casesdir-id-yaml",
+      "title": "Feature \"${id}\" keeps working after the change",
+      "kind": "e2e",
+      "steps": [
+        "Reach the entry point of \"${id}\"",
+        "Perform the feature's primary user action",
+        "Verify the resulting state"
+      ],
+      "expected": [
+        "\"${id}\" behaves as before the change"
+      ],
+      "priority": "critical",
+      "source": {
+        "type": "feature",
+        "id": "feature:casesdir-id-yaml",
+        "file": "src/agents/test-agent/generate.js"
+      }
+    },
+    {
+      "id": "scenario:feature:feature-aafe-e2e-specs-id-spec-js",
+      "title": "Feature \"${id}.spec\" keeps working after the change",
+      "kind": "e2e",
+      "steps": [
+        "Reach the entry point of \"${id}.spec\"",
+        "Perform the feature's primary user action",
+        "Verify the resulting state"
+      ],
+      "expected": [
+        "\"${id}.spec\" behaves as before the change"
+      ],
+      "priority": "critical",
+      "source": {
+        "type": "feature",
+        "id": "feature:aafe-e2e-specs-id-spec-js",
+        "file": "src/agents/test-agent/generate.js"
+      }
+    },
+    {
+      "id": "scenario:feature:feature-tests-aafe-filestem-plan-spec-js",
+      "title": "Feature \"${fileStem(plan)}.spec\" keeps working after the change",
+      "kind": "e2e",
+      "steps": [
+        "Reach the entry point of \"${fileStem(plan)}.spec\"",
+        "Perform the feature's primary user action",
+        "Verify the resulting state"
+      ],
+      "expected": [
+        "\"${fileStem(plan)}.spec\" behaves as before the change"
+      ],
+      "priority": "critical",
+      "source": {
+        "type": "feature",
+        "id": "feature:tests-aafe-filestem-plan-spec-js",
+        "file": "src/agents/test-agent/generate.js"
+      }
+    },
+    {
+      "id": "scenario:business:business-ai-agent-memory",
+      "title": "Business rule \"memory\" is still enforced",
+      "kind": "unit",
+      "steps": [
+        "Set up the inputs the rule guards",
+        "Invoke the code path that applies the rule"
+      ],
+      "expected": [
+        "The rule accepts valid input and rejects invalid input as before"
+      ],
+      "priority": "critical",
+      "source": {
+        "type": "business",
+        "id": "business:ai-agent-memory"
+      }
+    },
+    {
+      "id": "scenario:business:business-casesdir-id-yaml",
+      "title": "Business rule \"${id}\" is still enforced",
+      "kind": "unit",
+      "steps": [
+        "Set up the inputs the rule guards",
+        "Invoke the code path that applies the rule"
+      ],
+      "expected": [
+        "The rule accepts valid input and rejects invalid input as before"
+      ],
+      "priority": "critical",
+      "source": {
+        "type": "business",
+        "id": "business:casesdir-id-yaml"
+      }
+    },
+    {
+      "id": "scenario:business:business-aafe-e2e-specs-id-spec-js",
+      "title": "Business rule \"${id}.spec\" is still enforced",
+      "kind": "unit",
+      "steps": [
+        "Set up the inputs the rule guards",
+        "Invoke the code path that applies the rule"
+      ],
+      "expected": [
+        "The rule accepts valid input and rejects invalid input as before"
+      ],
+      "priority": "critical",
+      "source": {
+        "type": "business",
+        "id": "business:aafe-e2e-specs-id-spec-js"
+      }
+    },
+    {
+      "id": "scenario:business:business-tests-aafe-filestem-plan-spec-js",
+      "title": "Business rule \"${fileStem(plan)}.spec\" is still enforced",
+      "kind": "unit",
+      "steps": [
+        "Set up the inputs the rule guards",
+        "Invoke the code path that applies the rule"
+      ],
+      "expected": [
+        "The rule accepts valid input and rejects invalid input as before"
+      ],
+      "priority": "critical",
+      "source": {
+        "type": "business",
+        "id": "business:tests-aafe-filestem-plan-spec-js"
+      }
+    }
+  ]
+}

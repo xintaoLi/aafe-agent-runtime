@@ -1,0 +1,276 @@
+{
+  "module": "src-ddd",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:32",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/ddd/DDDGate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/ddd/DDDGate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/ddd/DDDGate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:33",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/ddd/DDDScope.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/ddd/DDDScope.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/ddd/DDDScope.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:34",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/ddd/DDDAdvisor.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/ddd/DDDAdvisor.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/ddd/DDDAdvisor.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:166",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/skill-runtime/AgentRuntime.js",
+        "nodes": [
+          "file:src/agent-platform/skill-runtime/AgentRuntime.js",
+          "file:src/ddd/DDDGate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/skill-runtime/AgentRuntime.js",
+            "to": "file:src/ddd/DDDGate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/skill-runtime/AgentRuntime.js",
+            "reason": "../../ddd/DDDGate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:172",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/skill-runtime/defaults.js",
+        "nodes": [
+          "file:src/agent-platform/skill-runtime/defaults.js",
+          "file:src/ddd/DDDAdvisor.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/skill-runtime/defaults.js",
+            "to": "file:src/ddd/DDDAdvisor.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/skill-runtime/defaults.js",
+            "reason": "../../ddd/DDDAdvisor.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:173",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/skill-runtime/defaults.js",
+        "nodes": [
+          "file:src/agent-platform/skill-runtime/defaults.js",
+          "file:src/ddd/DDDGate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/skill-runtime/defaults.js",
+            "to": "file:src/ddd/DDDGate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/skill-runtime/defaults.js",
+            "reason": "../../ddd/DDDGate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:174",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/skill-runtime/defaults.js",
+        "nodes": [
+          "file:src/agent-platform/skill-runtime/defaults.js",
+          "file:src/ddd/DDDScope.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/skill-runtime/defaults.js",
+            "to": "file:src/ddd/DDDScope.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/skill-runtime/defaults.js",
+            "reason": "../../ddd/DDDScope.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:288",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/ddd.js",
+        "nodes": [
+          "file:src/cli/ddd.js",
+          "file:src/ddd/DDDAdvisor.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/ddd.js",
+            "to": "file:src/ddd/DDDAdvisor.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/ddd.js",
+            "reason": "../ddd/DDDAdvisor.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:289",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/ddd.js",
+        "nodes": [
+          "file:src/cli/ddd.js",
+          "file:src/ddd/DDDGate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/ddd.js",
+            "to": "file:src/ddd/DDDGate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/ddd.js",
+            "reason": "../ddd/DDDGate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:290",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/cli/ddd.js",
+        "nodes": [
+          "file:src/cli/ddd.js",
+          "file:src/ddd/DDDScope.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/cli/ddd.js",
+            "to": "file:src/ddd/DDDScope.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/cli/ddd.js",
+            "reason": "../ddd/DDDScope.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:406",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/ddd/DDDScope.js",
+        "nodes": [
+          "file:src/ddd/DDDScope.js",
+          "file:src/ddd/DDDGate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/ddd/DDDScope.js",
+            "to": "file:src/ddd/DDDGate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/ddd/DDDScope.js",
+            "reason": "./DDDGate.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 11,
+      "call": 0
+    }
+  }
+}

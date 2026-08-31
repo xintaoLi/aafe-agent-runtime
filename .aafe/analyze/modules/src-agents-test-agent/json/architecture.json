@@ -1,0 +1,45 @@
+{
+  "module": "src-agents-test-agent",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agents/test-agent/generate.js",
+        "src/agents/test-agent/index.js",
+        "src/agents/test-agent/plan.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-agent-platform-protocol",
+      "module:src-knowledge-model",
+      "module:src-testing",
+      "module:src-testing-e2e"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agents/test-agent/generate.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agents/test-agent/index.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agents/test-agent/plan.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-agent-platform-protocol",
+    "module:src-knowledge-model",
+    "module:src-testing",
+    "module:src-testing-e2e"
+  ],
+  "signals": []
+}

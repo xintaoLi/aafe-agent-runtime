@@ -1,0 +1,11 @@
+{
+  "packages": [
+    {
+      "id": "package:root",
+      "name": "@aafe/agent-runtime",
+      "version": "0.2.3",
+      "path": "package.json",
+      "private": false
+    }
+  ]
+}

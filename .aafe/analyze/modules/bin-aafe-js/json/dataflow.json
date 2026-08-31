@@ -1,0 +1,132 @@
+{
+  "module": "bin-aafe-js",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:0",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:bin/aafe.js",
+        "nodes": [
+          "file:bin/aafe.js",
+          "file:src/cli/index.js"
+        ],
+        "edges": [
+          {
+            "from": "file:bin/aafe.js",
+            "to": "file:src/cli/index.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "bin/aafe.js",
+            "reason": "../src/cli/index.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:12",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:bin/aafe.js",
+        "nodes": [
+          "file:bin/aafe.js",
+          "call:catch"
+        ],
+        "edges": [
+          {
+            "from": "file:bin/aafe.js",
+            "to": "call:catch",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "bin/aafe.js",
+            "symbol": "catch"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:13",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:bin/aafe.js",
+        "nodes": [
+          "file:bin/aafe.js",
+          "call:runCli"
+        ],
+        "edges": [
+          {
+            "from": "file:bin/aafe.js",
+            "to": "call:runCli",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "bin/aafe.js",
+            "symbol": "runCli"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:14",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:bin/aafe.js",
+        "nodes": [
+          "file:bin/aafe.js",
+          "call:console.error"
+        ],
+        "edges": [
+          {
+            "from": "file:bin/aafe.js",
+            "to": "call:console.error",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "bin/aafe.js",
+            "symbol": "console.error"
+          }
+        ]
+      },
+      {
+        "id": "flow:call:15",
+        "level": 2,
+        "kind": "call",
+        "entrypoint": "file:bin/aafe.js",
+        "nodes": [
+          "file:bin/aafe.js",
+          "call:String"
+        ],
+        "edges": [
+          {
+            "from": "file:bin/aafe.js",
+            "to": "call:String",
+            "type": "CALLS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "ast",
+            "file": "bin/aafe.js",
+            "symbol": "String"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 1,
+      "call": 4
+    }
+  }
+}

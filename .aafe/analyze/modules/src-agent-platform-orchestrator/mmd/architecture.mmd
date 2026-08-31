@@ -1,0 +1,8 @@
+flowchart TB
+  subgraph n_src_agent_platform_orchestrator["src-agent-platform-orchestrator"]
+    n_TRANSITIONS["TRANSITIONS"]
+    n_src_agent_platform_orchestrator_AgentOrchestrato["orchestrator/AgentOrchestrator.js"]
+  end
+  n_src_agent_platform_orchestrator --> n_src_agent_platform_protocol["src-agent-platform-protocol"]
+  n_src_agent_platform_orchestrator --> n_src_agent_platform_runtime["src-agent-platform-runtime"]
+  n_src_agent_platform_orchestrator --> n_src_agent_platform_state["src-agent-platform-state"]

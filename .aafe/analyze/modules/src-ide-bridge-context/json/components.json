@@ -1,0 +1,18 @@
+{
+  "module": "src-ide-bridge-context",
+  "components": [
+    {
+      "name": "CONTEXT_FORMATS",
+      "kind": "variable",
+      "file": "src/ide-bridge/context/render.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/ide-bridge/context/render.js",
+          "symbol": "CONTEXT_FORMATS"
+        }
+      ]
+    }
+  ],
+  "relations": []
+}

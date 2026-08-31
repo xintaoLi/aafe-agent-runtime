@@ -1,0 +1,143 @@
+{
+  "status": "success",
+  "result": {
+    "status": "failed",
+    "format": "playwright",
+    "source": "/tmp/aafe-fix/pw.json",
+    "totals": {
+      "total": 3,
+      "passed": 1,
+      "failed": 2,
+      "skipped": 0
+    },
+    "classification": "mixed",
+    "rootCause": "2 tests failed (mixed); the topmost project frame is src/cli/platform.js:88, which this diff modified.",
+    "relatedFiles": [
+      "tests/checkout.spec.js",
+      "src/cli/platform.js"
+    ],
+    "relatedModules": [
+      "src-cli"
+    ],
+    "relatedDataFlows": [],
+    "risk": "medium",
+    "fixSuggestions": [
+      "This run failed in 2 different ways (timeout, runtime); treat them as separate problems.",
+      "timeout: Confirm the awaited condition can actually occur; a renamed selector or a state that never settles is the usual cause.",
+      "runtime: Guard or fix the value dereferenced in tests/checkout.spec.js."
+    ],
+    "regressionTests": [
+      "checkout › pays with card",
+      "checkout › shows total"
+    ],
+    "diff": {
+      "ref": "working-tree",
+      "status": "ok",
+      "changedFiles": [
+        ".ai-agent/memory/file-license-ok.jsonl",
+        ".ai-agent/memory/index.md",
+        ".ai-agent/memory/learnings.jsonl",
+        ".ai-agent/memory/project-architecture.md",
+        ".ai-agent/memory/summary.md",
+        ".ai-agent/skills/architecture-on-demand.md",
+        ".ai-agent/skills/dataflow-on-demand.md",
+        ".ai-agent/skills/project-architecture-locator.md",
+        ".gitignore",
+        "README.md",
+        "aafe.patform.md",
+        "package.json",
+        "src/agent-platform/skill-runtime/AgentRuntime.js",
+        "src/agent-platform/skill-runtime/GateValidator.js",
+        "src/agent-platform/skill-runtime/HookBus.js",
+        "src/agent-platform/skill-runtime/PipelineExecutor.js",
+        "src/agent-platform/skill-runtime/SkillRegistry.js",
+        "src/agent-platform/skill-runtime/configLoader.js",
+        "src/agent-platform/skill-runtime/defaults.js",
+        "src/analyze/semantic/port.js",
+        "src/cli/analyze.js",
+        "src/cli/bootstrap.js",
+        "src/cli/doctor.js",
+        "src/cli/index.js",
+        "src/index.js",
+        "src/static-analysis/agents/types.js",
+        "src/static-analysis/analyzers/architecture.js",
+        "src/static-analysis/analyzers/business.js",
+        "src/static-analysis/analyzers/dataflow.js",
+        "src/static-analysis/analyzers/feature.js",
+        "src/static-analysis/analyzers/graph.js",
+        "src/static-analysis/analyzers/repository.js",
+        "src/static-analysis/architecture/buildArchitecture.js",
+        "src/static-analysis/ast/extractors.js",
+        "src/static-analysis/ast/parseFile.js",
+        "src/static-analysis/dataflow/buildDataflow.js",
+        "src/static-analysis/emit/formats.js",
+        "src/static-analysis/emit/mermaid.js",
+        "src/static-analysis/entryDiscover.js",
+        "src/static-analysis/llm/client.js"
+      ]
+    },
+    "failures": [
+      {
+        "title": "checkout › pays with card",
+        "classification": "timeout",
+        "confidence": 0.8,
+        "reason": "the test waited for something that never happened",
+        "message": "locator.click: Timeout 5000ms exceeded.\n=========================== waiting for locator('#pay-btn')",
+        "testFile": "tests/checkout.spec.js",
+        "suspect": {
+          "file": "tests/checkout.spec.js",
+          "line": null,
+          "inDiff": false
+        },
+        "relatedFiles": [
+          "tests/checkout.spec.js"
+        ],
+        "modules": [],
+        "artifacts": {
+          "trace": "trace.zip",
+          "screenshot": "shot.png"
+        }
+      },
+      {
+        "title": "checkout › shows total",
+        "classification": "runtime",
+        "confidence": 0.8,
+        "reason": "the code threw before it could produce a result",
+        "message": "Cannot read properties of undefined (reading 'total')",
+        "testFile": "tests/checkout.spec.js",
+        "suspect": {
+          "file": "src/cli/platform.js",
+          "line": 88,
+          "inDiff": true
+        },
+        "relatedFiles": [
+          "src/cli/platform.js"
+        ],
+        "modules": [
+          "src-cli"
+        ],
+        "artifacts": null
+      }
+    ]
+  },
+  "knowledgeUpdates": [],
+  "evidence": [
+    {
+      "file": "tests/checkout.spec.js",
+      "reason": "appears in the failing stack"
+    },
+    {
+      "file": "src/cli/platform.js",
+      "reason": "appears in the failing stack"
+    }
+  ],
+  "nextActions": [
+    {
+      "capability": "change-impact",
+      "reason": "a fix needs its blast radius re-evaluated"
+    }
+  ],
+  "metrics": {
+    "duration": 43
+  }
+}

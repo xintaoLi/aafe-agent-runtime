@@ -1,0 +1,832 @@
+{
+  "status": "success",
+  "result": {
+    "source": "diff",
+    "affectedFiles": [
+      {
+        "id": ".aafe.config.json",
+        "label": ".aafe.config.json [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".aafe.config.json",
+            "reason": "modified (+1/-1)"
+          }
+        ]
+      },
+      {
+        "id": ".ai-agent/skill-index.md",
+        "label": ".ai-agent/skill-index.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/skill-index.md",
+            "reason": "modified (+1/-1)"
+          }
+        ]
+      },
+      {
+        "id": ".ai-agent/skills/aafe-test-from-pr.md",
+        "label": ".ai-agent/skills/aafe-test-from-pr.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/skills/aafe-test-from-pr.md",
+            "reason": "modified (+5/-3)"
+          }
+        ]
+      },
+      {
+        "id": ".ai-agent/skills/architecture-impact-test-forecast.md",
+        "label": ".ai-agent/skills/architecture-impact-test-forecast.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/skills/architecture-impact-test-forecast.md",
+            "reason": "modified (+1/-1)"
+          }
+        ]
+      },
+      {
+        "id": ".ai-agent/skills/minimal-convergent-self-test.md",
+        "label": ".ai-agent/skills/minimal-convergent-self-test.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".ai-agent/skills/minimal-convergent-self-test.md",
+            "reason": "modified (+7/-6)"
+          }
+        ]
+      },
+      {
+        "id": ".cursor/rules/aafe-test-from-pr.mdc",
+        "label": ".cursor/rules/aafe-test-from-pr.mdc [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".cursor/rules/aafe-test-from-pr.mdc",
+            "reason": "modified (+1/-1)"
+          }
+        ]
+      },
+      {
+        "id": ".cursor/skills/aafe-test-from-pr/SKILL.md",
+        "label": ".cursor/skills/aafe-test-from-pr/SKILL.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": ".cursor/skills/aafe-test-from-pr/SKILL.md",
+            "reason": "modified (+1/-1)"
+          }
+        ]
+      },
+      {
+        "id": "README.md",
+        "label": "README.md [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "README.md",
+            "reason": "modified (+4/-2)"
+          }
+        ]
+      },
+      {
+        "id": "scripts/test-completion-tapd-rules.js",
+        "label": "scripts/test-completion-tapd-rules.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "scripts/test-completion-tapd-rules.js",
+            "reason": "modified (+3/-0)"
+          }
+        ]
+      },
+      {
+        "id": "scripts/test-e2e-platform.js",
+        "label": "scripts/test-e2e-platform.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "scripts/test-e2e-platform.js",
+            "reason": "modified (+38/-5)"
+          }
+        ]
+      },
+      {
+        "id": "src/agent-platform/protocol/request.js",
+        "label": "src/agent-platform/protocol/request.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/protocol/request.js",
+            "reason": "modified (+2/-1)"
+          }
+        ]
+      },
+      {
+        "id": "src/agents/test-agent/index.js",
+        "label": "src/agents/test-agent/index.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/test-agent/index.js",
+            "reason": "modified (+7/-2)"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/bootstrap.js",
+        "label": "src/cli/bootstrap.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/bootstrap.js",
+            "reason": "modified (+2/-2)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/completionImpactRules.js",
+            "reason": "modified (+11/-10)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/e2eFromPrRules.js",
+            "reason": "modified (+7/-5)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/index.js",
+            "reason": "modified (+4/-4)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/platform.js",
+            "reason": "modified (+41/-2)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/portableCompletionTapdPack.js",
+            "reason": "modified (+4/-4)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/prompts.js",
+            "reason": "modified (+2/-4)"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/completionImpactRules.js",
+        "label": "src/cli/completionImpactRules.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/completionImpactRules.js",
+            "reason": "modified (+11/-10)"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/e2eFromPrRules.js",
+        "label": "src/cli/e2eFromPrRules.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/e2eFromPrRules.js",
+            "reason": "modified (+7/-5)"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/index.js",
+        "label": "src/cli/index.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/index.js",
+            "reason": "modified (+4/-4)"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/platform.js",
+        "label": "src/cli/platform.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/platform.js",
+            "reason": "modified (+41/-2)"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/portableCompletionTapdPack.js",
+        "label": "src/cli/portableCompletionTapdPack.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/portableCompletionTapdPack.js",
+            "reason": "modified (+4/-4)"
+          }
+        ]
+      },
+      {
+        "id": "src/cli/prompts.js",
+        "label": "src/cli/prompts.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/prompts.js",
+            "reason": "modified (+2/-4)"
+          }
+        ]
+      },
+      {
+        "id": "src/testing/e2e/config.js",
+        "label": "src/testing/e2e/config.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/testing/e2e/config.js",
+            "reason": "modified (+9/-4)"
+          },
+          {
+            "type": "source",
+            "file": "src/testing/e2e/index.js",
+            "reason": "modified (+1/-1)"
+          },
+          {
+            "type": "source",
+            "file": "src/testing/e2e/runner.js",
+            "reason": "modified (+31/-16)"
+          }
+        ]
+      },
+      {
+        "id": "src/testing/e2e/index.js",
+        "label": "src/testing/e2e/index.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/testing/e2e/index.js",
+            "reason": "modified (+1/-1)"
+          }
+        ]
+      },
+      {
+        "id": "src/testing/e2e/runner.js",
+        "label": "src/testing/e2e/runner.js [modified]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/testing/e2e/runner.js",
+            "reason": "modified (+31/-16)"
+          }
+        ]
+      },
+      {
+        "id": "tests/aafe/verify-the-current-change.spec.js",
+        "label": "tests/aafe/verify-the-current-change.spec.js [added]",
+        "score": 1,
+        "why": "file appears in the diff",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "tests/aafe/verify-the-current-change.spec.js",
+            "reason": "added (+0/-0)"
+          }
+        ]
+      }
+    ],
+    "affectedModules": [
+      {
+        "id": "src-agent-platform-protocol",
+        "label": "src-agent-platform-protocol",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/protocol/request.js",
+            "reason": "modified (+2/-1)"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-test-agent",
+        "label": "src-agents-test-agent",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/test-agent/index.js",
+            "reason": "modified (+7/-2)"
+          }
+        ]
+      },
+      {
+        "id": "src-cli",
+        "label": "src-cli",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/cli/bootstrap.js",
+            "reason": "modified (+2/-2)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/completionImpactRules.js",
+            "reason": "modified (+11/-10)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/e2eFromPrRules.js",
+            "reason": "modified (+7/-5)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/index.js",
+            "reason": "modified (+4/-4)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/platform.js",
+            "reason": "modified (+41/-2)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/portableCompletionTapdPack.js",
+            "reason": "modified (+4/-4)"
+          },
+          {
+            "type": "source",
+            "file": "src/cli/prompts.js",
+            "reason": "modified (+2/-4)"
+          }
+        ]
+      },
+      {
+        "id": "src-testing-e2e",
+        "label": "src-testing-e2e",
+        "score": 1,
+        "why": "module owns a changed file",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/testing/e2e/config.js",
+            "reason": "modified (+9/-4)"
+          },
+          {
+            "type": "source",
+            "file": "src/testing/e2e/index.js",
+            "reason": "modified (+1/-1)"
+          },
+          {
+            "type": "source",
+            "file": "src/testing/e2e/runner.js",
+            "reason": "modified (+31/-16)"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform-runtime",
+        "label": "src-agent-platform-runtime",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/runtime/AgentRuntime.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/runtime/evidenceSchema.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform-orchestrator",
+        "label": "src-agent-platform-orchestrator",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/agent-platform/orchestrator/ExecutionGraph.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-code-intelligence",
+        "label": "src-agents-code-intelligence",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/code-intelligence/index.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/agents/code-intelligence/views.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-failure-analyzer",
+        "label": "src-agents-failure-analyzer",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/failure-analyzer/classify.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/agents/failure-analyzer/index.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-impact-analyzer",
+        "label": "src-agents-impact-analyzer",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/impact-analyzer/index.js",
+            "reason": "module membership"
+          },
+          {
+            "type": "source",
+            "file": "src/agents/impact-analyzer/tokenize.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform-policy",
+        "label": "src-agent-platform-policy",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/policy/ExecutionPolicy.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-context-agent",
+        "label": "src-agents-context-agent",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/context-agent/index.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents-knowledge-validator",
+        "label": "src-agents-knowledge-validator",
+        "score": 0.55,
+        "why": "depends on src-agent-platform-protocol (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/knowledge-validator/index.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agents",
+        "label": "src-agents",
+        "score": 0.55,
+        "why": "depends on src-agents-test-agent (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agents/index.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "bin-aafe-js",
+        "label": "bin-aafe-js",
+        "score": 0.55,
+        "why": "depends on src-cli (1 hop away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "bin/aafe.js",
+            "reason": "module membership"
+          }
+        ]
+      },
+      {
+        "id": "src-agent-platform",
+        "label": "src-agent-platform",
+        "score": 0.303,
+        "why": "depends on src-agent-platform-runtime (2 hops away)",
+        "evidence": [
+          {
+            "type": "source",
+            "file": "src/agent-platform/index.js",
+            "reason": "module membership"
+          }
+        ]
+      }
+    ],
+    "affectedFeatures": [
+      {
+        "id": "feature:ai-agent-memory",
+        "label": "memory",
+        "score": 0.5,
+        "why": "feature lives in affected module src-cli",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/cli/bootstrap.js",
+            "reason": ".ai-agent/memory"
+          }
+        ]
+      },
+      {
+        "id": "feature:casesdir-id-yaml",
+        "label": "${id}",
+        "score": 0.5,
+        "why": "feature lives in affected module src-agents-test-agent",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "${casesDir}/${id}.yaml"
+          }
+        ]
+      },
+      {
+        "id": "feature:aafe-e2e-specs-id-spec-js",
+        "label": "${id}.spec",
+        "score": 0.5,
+        "why": "feature lives in affected module src-agents-test-agent",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": ".aafe/e2e/specs/${id}.spec.js"
+          }
+        ]
+      },
+      {
+        "id": "feature:tests-aafe-filestem-plan-spec-js",
+        "label": "${fileStem(plan)}.spec",
+        "score": 0.5,
+        "why": "feature lives in affected module src-agents-test-agent",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+          }
+        ]
+      }
+    ],
+    "affectedDataFlows": [],
+    "affectedBusinessFlows": [
+      {
+        "id": "business:ai-agent-memory",
+        "label": "memory",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-cli",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/cli/bootstrap.js",
+            "reason": ".ai-agent/memory"
+          }
+        ]
+      },
+      {
+        "id": "business:casesdir-id-yaml",
+        "label": "${id}",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-agents-test-agent",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "${casesDir}/${id}.yaml"
+          }
+        ]
+      },
+      {
+        "id": "business:aafe-e2e-specs-id-spec-js",
+        "label": "${id}.spec",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-agents-test-agent",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": ".aafe/e2e/specs/${id}.spec.js"
+          }
+        ]
+      },
+      {
+        "id": "business:tests-aafe-filestem-plan-spec-js",
+        "label": "${fileStem(plan)}.spec",
+        "score": 0.5,
+        "why": "business rule anchored in affected module src-agents-test-agent",
+        "evidence": [
+          {
+            "type": "route",
+            "file": "src/agents/test-agent/generate.js",
+            "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+          }
+        ]
+      }
+    ],
+    "affectedTests": [
+      "src/testing/e2e/config.js",
+      "src/testing/e2e/index.js",
+      "src/testing/e2e/runner.js",
+      "tests/aafe/verify-the-current-change.spec.js",
+      "src/testing/e2e/compile.js",
+      "src/testing/e2e/inventory.js",
+      "src/testing/e2e/layers.js",
+      "src/testing/e2e/match.js",
+      "src/testing/e2e/pr.js",
+      "src/testing/e2e/report.js",
+      "src/testing/e2e/yaml.js"
+    ],
+    "risk": "high",
+    "confidence": 1
+  },
+  "knowledgeUpdates": [],
+  "evidence": [
+    {
+      "type": "source",
+      "file": "src/agent-platform/protocol/request.js",
+      "reason": "modified (+2/-1)"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/test-agent/index.js",
+      "reason": "modified (+7/-2)"
+    },
+    {
+      "type": "source",
+      "file": "src/cli/bootstrap.js",
+      "reason": "modified (+2/-2)"
+    },
+    {
+      "type": "source",
+      "file": "src/testing/e2e/config.js",
+      "reason": "modified (+9/-4)"
+    },
+    {
+      "type": "source",
+      "file": "src/agent-platform/runtime/AgentRuntime.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agent-platform/orchestrator/AgentOrchestrator.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/code-intelligence/index.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/failure-analyzer/classify.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/impact-analyzer/index.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agent-platform/policy/ExecutionPolicy.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/context-agent/index.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/knowledge-validator/index.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agents/index.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "bin/aafe.js",
+      "reason": "module membership"
+    },
+    {
+      "type": "source",
+      "file": "src/agent-platform/index.js",
+      "reason": "module membership"
+    }
+  ],
+  "nextActions": [
+    {
+      "capability": "knowledge-validation",
+      "reason": "impact claims should be evidence-checked before use"
+    },
+    {
+      "capability": "context-packaging",
+      "reason": "the IDE agent needs a minimal context package"
+    }
+  ],
+  "metrics": {
+    "duration": 43
+  },
+  "contract": {
+    "mode": "warn",
+    "repairs": [],
+    "attempts": 1,
+    "input": "ok",
+    "output": "ok",
+    "evidence": "ok"
+  }
+}

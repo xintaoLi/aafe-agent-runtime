@@ -1,0 +1,194 @@
+{
+  "candidates": [
+    {
+      "id": "business:ai-agent-memory",
+      "featureId": "feature:ai-agent-memory",
+      "name": "memory",
+      "description": "Static business candidate derived from feature memory",
+      "actors": [],
+      "preconditions": [],
+      "postconditions": [],
+      "rules": [],
+      "workflows": [
+        ".ai-agent/memory"
+      ],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/cli/bootstrap.js",
+          "reason": ".ai-agent/memory"
+        }
+      ],
+      "confidence": 0.44999999999999996,
+      "status": "candidate",
+      "source": "static"
+    },
+    {
+      "id": "business:feature",
+      "featureId": "feature:feature",
+      "name": "...",
+      "description": "Static business candidate derived from feature ...",
+      "actors": [],
+      "preconditions": [],
+      "postconditions": [],
+      "rules": [],
+      "workflows": [
+        "..."
+      ],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/static-analysis/ast/extractors.js",
+          "reason": "..."
+        }
+      ],
+      "confidence": 0.44999999999999996,
+      "status": "candidate",
+      "source": "static"
+    },
+    {
+      "id": "business:package-json",
+      "featureId": "feature:package-json",
+      "name": "package",
+      "description": "Static business candidate derived from feature package",
+      "actors": [],
+      "preconditions": [],
+      "postconditions": [],
+      "rules": [],
+      "workflows": [
+        "package.json"
+      ],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/static-analysis/analyzers/repository.js",
+          "reason": "package.json"
+        }
+      ],
+      "confidence": 0.44999999999999996,
+      "status": "candidate",
+      "source": "static"
+    },
+    {
+      "id": "business:ctx-path-index",
+      "featureId": "feature:ctx-path-index",
+      "name": "${index}",
+      "description": "Static business candidate derived from feature ${index}",
+      "actors": [],
+      "preconditions": [],
+      "postconditions": [],
+      "rules": [],
+      "workflows": [
+        "${ctx.path}/${index}"
+      ],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/agent-platform/schema/repair.js",
+          "reason": "${ctx.path}/${index}"
+        }
+      ],
+      "confidence": 0.44999999999999996,
+      "status": "candidate",
+      "source": "static"
+    },
+    {
+      "id": "business:ctx-path-key",
+      "featureId": "feature:ctx-path-key",
+      "name": "${key}",
+      "description": "Static business candidate derived from feature ${key}",
+      "actors": [],
+      "preconditions": [],
+      "postconditions": [],
+      "rules": [],
+      "workflows": [
+        "${ctx.path}/${key}"
+      ],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/agent-platform/schema/repair.js",
+          "reason": "${ctx.path}/${key}"
+        }
+      ],
+      "confidence": 0.44999999999999996,
+      "status": "candidate",
+      "source": "static"
+    },
+    {
+      "id": "business:casesdir-id-yaml",
+      "featureId": "feature:casesdir-id-yaml",
+      "name": "${id}",
+      "description": "Static business candidate derived from feature ${id}",
+      "actors": [],
+      "preconditions": [],
+      "postconditions": [],
+      "rules": [],
+      "workflows": [
+        "${casesDir}/${id}.yaml"
+      ],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "${casesDir}/${id}.yaml"
+        }
+      ],
+      "confidence": 0.44999999999999996,
+      "status": "candidate",
+      "source": "static"
+    },
+    {
+      "id": "business:aafe-e2e-specs-id-spec-js",
+      "featureId": "feature:aafe-e2e-specs-id-spec-js",
+      "name": "${id}.spec",
+      "description": "Static business candidate derived from feature ${id}.spec",
+      "actors": [],
+      "preconditions": [],
+      "postconditions": [],
+      "rules": [],
+      "workflows": [
+        ".aafe/e2e/specs/${id}.spec.js"
+      ],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": ".aafe/e2e/specs/${id}.spec.js"
+        }
+      ],
+      "confidence": 0.44999999999999996,
+      "status": "candidate",
+      "source": "static"
+    },
+    {
+      "id": "business:tests-aafe-filestem-plan-spec-js",
+      "featureId": "feature:tests-aafe-filestem-plan-spec-js",
+      "name": "${fileStem(plan)}.spec",
+      "description": "Static business candidate derived from feature ${fileStem(plan)}.spec",
+      "actors": [],
+      "preconditions": [],
+      "postconditions": [],
+      "rules": [],
+      "workflows": [
+        "tests/aafe/${fileStem(plan)}.spec.js"
+      ],
+      "evidence": [
+        {
+          "type": "route",
+          "file": "src/agents/test-agent/generate.js",
+          "reason": "tests/aafe/${fileStem(plan)}.spec.js"
+        }
+      ],
+      "confidence": 0.44999999999999996,
+      "status": "candidate",
+      "source": "static"
+    }
+  ],
+  "semantic": {
+    "status": "not_available",
+    "source": "static",
+    "candidates": [],
+    "message": "Semantic enrichment is reserved for LLM providers; static pipeline only emits facts/candidates."
+  }
+}

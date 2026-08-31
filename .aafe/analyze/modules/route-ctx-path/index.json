@@ -1,0 +1,30 @@
+{
+  "id": "route-ctx-path",
+  "summary": {
+    "routes": 2,
+    "components": 0,
+    "features": 2,
+    "flows": 5,
+    "dependsOn": []
+  },
+  "paths": {
+    "routes": "json/routes.json",
+    "architecture": "json/architecture.json",
+    "components": "json/components.json",
+    "features": "json/features.json",
+    "dataflow": "json/dataflow.json",
+    "mmd": {
+      "routes": "mmd/routes.mmd",
+      "architecture": "mmd/architecture.mmd",
+      "components": "mmd/components.mmd",
+      "dataflow": "mmd/dataflow.mmd"
+    },
+    "readme": "README.md"
+  },
+  "routes": [
+    null,
+    null
+  ],
+  "components": [],
+  "dependencies": []
+}

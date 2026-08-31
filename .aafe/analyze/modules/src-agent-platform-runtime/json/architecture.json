@@ -1,0 +1,77 @@
+{
+  "module": "src-agent-platform-runtime",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agent-platform/runtime/AgentRuntime.js",
+        "src/agent-platform/runtime/evidenceSchema.js",
+        "src/agent-platform/runtime/providers/AgentProvider.js",
+        "src/agent-platform/runtime/providers/CliAgentProvider.js",
+        "src/agent-platform/runtime/providers/HttpAgentProvider.js",
+        "src/agent-platform/runtime/providers/IdeAgentProvider.js",
+        "src/agent-platform/runtime/providers/LocalAgentProvider.js",
+        "src/agent-platform/runtime/providers/McpAgentProvider.js",
+        "src/agent-platform/runtime/providers/index.js"
+      ],
+      "routes": [],
+      "components": [
+        "SCHEMA_FILE",
+        "EVIDENCE_SCHEMA"
+      ]
+    },
+    "outboundModules": [
+      "module:src-agent-platform-policy",
+      "module:src-agent-platform-protocol",
+      "module:src-agent-platform-schema"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agent-platform/runtime/AgentRuntime.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/runtime/evidenceSchema.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/runtime/providers/AgentProvider.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/runtime/providers/CliAgentProvider.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/runtime/providers/HttpAgentProvider.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/runtime/providers/IdeAgentProvider.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/runtime/providers/LocalAgentProvider.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/agent-platform/runtime/providers/McpAgentProvider.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-agent-platform-policy",
+    "module:src-agent-platform-protocol",
+    "module:src-agent-platform-schema"
+  ],
+  "signals": []
+}

@@ -1,0 +1,25 @@
+{
+  "module": "route-casesdir",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/agents/test-agent/generate.js"
+      ],
+      "routes": [
+        null
+      ],
+      "components": []
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/agents/test-agent/generate.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

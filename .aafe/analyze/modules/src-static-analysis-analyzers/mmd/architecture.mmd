@@ -1,0 +1,16 @@
+flowchart TB
+  subgraph n_src_static_analysis_analyzers["src-static-analysis-analyzers"]
+    n_src_static_analysis_analyzers_architecture_js["analyzers/architecture.js"]
+    n_src_static_analysis_analyzers_business_js["analyzers/business.js"]
+    n_src_static_analysis_analyzers_dataflow_js["analyzers/dataflow.js"]
+    n_src_static_analysis_analyzers_feature_js["analyzers/feature.js"]
+    n_src_static_analysis_analyzers_graph_js["analyzers/graph.js"]
+    n_src_static_analysis_analyzers_repository_js["analyzers/repository.js"]
+  end
+  n_src_static_analysis_analyzers --> n_src_static_analysis["src-static-analysis"]
+  n_src_static_analysis_analyzers --> n_src_static_analysis_ast["src-static-analysis-ast"]
+  n_src_static_analysis_analyzers --> n_src_static_analysis_modules["src-static-analysis-modules"]
+  n_src_static_analysis_analyzers --> n_src_static_analysis_resolve["src-static-analysis-resolve"]
+  n_src_static_analysis_analyzers --> n_src_static_analysis_routes["src-static-analysis-routes"]
+  n_src_static_analysis_analyzers --> n_src_static_analysis_semantic["src-static-analysis-semantic"]
+  n_src_static_analysis_analyzers --> n_src_static_analysis_types["src-static-analysis-types"]

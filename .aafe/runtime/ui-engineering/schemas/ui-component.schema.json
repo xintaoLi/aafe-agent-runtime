@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/ui/ui-component.schema.json",
+  "title": "Component Selection",
+  "type": "object",
+  "properties": {
+    "intent": {
+      "type": "string"
+    },
+    "recommended": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "component": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "alternatives": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rationale": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "intent",
+    "rationale"
+  ]
+}

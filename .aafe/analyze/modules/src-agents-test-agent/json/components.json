@@ -1,0 +1,54 @@
+{
+  "module": "src-agents-test-agent",
+  "components": [],
+  "relations": [
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "plan",
+      "toLabel": "plan",
+      "type": "IMPORTS",
+      "fromFile": "src/agents/test-agent/index.js",
+      "toFile": "src/agents/test-agent/plan.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agents/test-agent/index.js",
+          "reason": "./plan.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "generate",
+      "toLabel": "generate",
+      "type": "IMPORTS",
+      "fromFile": "src/agents/test-agent/index.js",
+      "toFile": "src/agents/test-agent/generate.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agents/test-agent/index.js",
+          "reason": "./generate.js"
+        }
+      ]
+    },
+    {
+      "from": "plan",
+      "fromLabel": "plan",
+      "to": "index",
+      "toLabel": "index",
+      "type": "IMPORTS",
+      "fromFile": "src/agents/test-agent/plan.js",
+      "toFile": "src/agents/test-agent/index.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agents/test-agent/plan.js",
+          "reason": "../../knowledge/model/index.js"
+        }
+      ]
+    }
+  ]
+}

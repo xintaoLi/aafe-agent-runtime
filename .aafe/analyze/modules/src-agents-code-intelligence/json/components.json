@@ -1,0 +1,51 @@
+{
+  "module": "src-agents-code-intelligence",
+  "components": [
+    {
+      "name": "VIEW_CAPABILITIES",
+      "kind": "variable",
+      "file": "src/agents/code-intelligence/views.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agents/code-intelligence/views.js",
+          "symbol": "VIEW_CAPABILITIES"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "VIEW_CAPABILITIES",
+      "toLabel": "VIEW_CAPABILITIES",
+      "type": "IMPORTS",
+      "fromFile": "src/agents/code-intelligence/index.js",
+      "toFile": "src/agents/code-intelligence/views.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agents/code-intelligence/index.js",
+          "reason": "./views.js"
+        }
+      ]
+    },
+    {
+      "from": "VIEW_CAPABILITIES",
+      "fromLabel": "VIEW_CAPABILITIES",
+      "to": "index",
+      "toLabel": "index",
+      "type": "IMPORTS",
+      "fromFile": "src/agents/code-intelligence/views.js",
+      "toFile": "src/agents/code-intelligence/index.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agents/code-intelligence/views.js",
+          "reason": "../../knowledge/model/index.js"
+        }
+      ]
+    }
+  ]
+}

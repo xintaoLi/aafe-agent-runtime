@@ -1,0 +1,111 @@
+{
+  "module": "src-agent-platform-planner",
+  "components": [
+    {
+      "name": "CAPABILITY_PLANS",
+      "kind": "variable",
+      "file": "src/agent-platform/planner/RulePlanner.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/planner/RulePlanner.js",
+          "symbol": "CAPABILITY_PLANS"
+        }
+      ]
+    },
+    {
+      "name": "PLANNER_ACTIONS",
+      "kind": "variable",
+      "file": "src/agent-platform/planner/decision.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/agent-platform/planner/decision.js",
+          "symbol": "PLANNER_ACTIONS"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "LlmPlanner",
+      "fromLabel": "LlmPlanner",
+      "to": "CAPABILITY_PLANS",
+      "toLabel": "CAPABILITY_PLANS",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/planner/LlmPlanner.js",
+      "toFile": "src/agent-platform/planner/RulePlanner.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/planner/LlmPlanner.js",
+          "reason": "./RulePlanner.js"
+        }
+      ]
+    },
+    {
+      "from": "LlmPlanner",
+      "fromLabel": "LlmPlanner",
+      "to": "PLANNER_ACTIONS",
+      "toLabel": "PLANNER_ACTIONS",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/planner/LlmPlanner.js",
+      "toFile": "src/agent-platform/planner/decision.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/planner/LlmPlanner.js",
+          "reason": "./decision.js"
+        }
+      ]
+    },
+    {
+      "from": "CAPABILITY_PLANS",
+      "fromLabel": "CAPABILITY_PLANS",
+      "to": "PLANNER_ACTIONS",
+      "toLabel": "PLANNER_ACTIONS",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/planner/RulePlanner.js",
+      "toFile": "src/agent-platform/planner/decision.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/planner/RulePlanner.js",
+          "reason": "./decision.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "CAPABILITY_PLANS",
+      "toLabel": "CAPABILITY_PLANS",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/planner/index.js",
+      "toFile": "src/agent-platform/planner/RulePlanner.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/planner/index.js",
+          "reason": "./RulePlanner.js"
+        }
+      ]
+    },
+    {
+      "from": "index",
+      "fromLabel": "index",
+      "to": "LlmPlanner",
+      "toLabel": "LlmPlanner",
+      "type": "IMPORTS",
+      "fromFile": "src/agent-platform/planner/index.js",
+      "toFile": "src/agent-platform/planner/LlmPlanner.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/agent-platform/planner/index.js",
+          "reason": "./LlmPlanner.js"
+        }
+      ]
+    }
+  ]
+}

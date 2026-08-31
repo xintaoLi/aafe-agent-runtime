@@ -1,0 +1,13 @@
+flowchart TD
+  n_file_src_static_analysis_analyzers_architecture_["src/static-analysis/analyzers/architecture.js"]
+  n_file_src_static_analysis_modules_partition_js["src/static-analysis/modules/partition.js"]
+  n_file_src_static_analysis_analyzers_architecture_ -->|IMPORTS| n_file_src_static_analysis_modules_partition_js
+  n_file_src_static_analysis_modules_buildBundles_js["src/static-analysis/modules/buildBundles.js"]
+  n_file_src_static_analysis_types_evidence_js["src/static-analysis/types/evidence.js"]
+  n_file_src_static_analysis_modules_buildBundles_js -->|IMPORTS| n_file_src_static_analysis_types_evidence_js
+  n_file_src_static_analysis_orchestrator_js["src/static-analysis/orchestrator.js"]
+  n_file_src_static_analysis_modules_buildBundles_js["src/static-analysis/modules/buildBundles.js"]
+  n_file_src_static_analysis_orchestrator_js -->|IMPORTS| n_file_src_static_analysis_modules_buildBundles_js
+  n_file_src_static_analysis_storage_persist_js["src/static-analysis/storage/persist.js"]
+  n_file_src_static_analysis_modules_buildBundles_js["src/static-analysis/modules/buildBundles.js"]
+  n_file_src_static_analysis_storage_persist_js -->|IMPORTS| n_file_src_static_analysis_modules_buildBundles_js

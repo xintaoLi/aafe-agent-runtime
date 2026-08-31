@@ -1,0 +1,29 @@
+{
+  "id": "route",
+  "summary": {
+    "routes": 1,
+    "components": 0,
+    "features": 1,
+    "flows": 4,
+    "dependsOn": []
+  },
+  "paths": {
+    "routes": "json/routes.json",
+    "architecture": "json/architecture.json",
+    "components": "json/components.json",
+    "features": "json/features.json",
+    "dataflow": "json/dataflow.json",
+    "mmd": {
+      "routes": "mmd/routes.mmd",
+      "architecture": "mmd/architecture.mmd",
+      "components": "mmd/components.mmd",
+      "dataflow": "mmd/dataflow.mmd"
+    },
+    "readme": "README.md"
+  },
+  "routes": [
+    null
+  ],
+  "components": [],
+  "dependencies": []
+}

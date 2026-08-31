@@ -1,0 +1,108 @@
+{
+  "module": "src-static-analysis-cache",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:55",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/static-analysis/cache/AnalysisCache.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/static-analysis/cache/AnalysisCache.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/static-analysis/cache/AnalysisCache.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:463",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/cache/AnalysisCache.js",
+        "nodes": [
+          "file:src/static-analysis/cache/AnalysisCache.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/cache/AnalysisCache.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/cache/AnalysisCache.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:464",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/cache/AnalysisCache.js",
+        "nodes": [
+          "file:src/static-analysis/cache/AnalysisCache.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/cache/AnalysisCache.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/cache/AnalysisCache.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:473",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/orchestrator.js",
+        "nodes": [
+          "file:src/static-analysis/orchestrator.js",
+          "file:src/static-analysis/cache/AnalysisCache.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/orchestrator.js",
+            "to": "file:src/static-analysis/cache/AnalysisCache.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/orchestrator.js",
+            "reason": "./cache/AnalysisCache.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 4,
+      "call": 0
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "requirement": "verify the current change",
+  "scenario": "changes",
+  "write": null,
+  "update": false,
+  "force": false
+}

@@ -1,0 +1,25 @@
+{
+  "module": "route-ai-agent",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/cli/bootstrap.js"
+      ],
+      "routes": [
+        null
+      ],
+      "components": []
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/cli/bootstrap.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

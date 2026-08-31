@@ -1,0 +1,276 @@
+{
+  "module": "src-agent-platform-schema",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:46",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/schema/validate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/schema/validate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/schema/validate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:47",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/schema/repair.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/schema/repair.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/schema/repair.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:48",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:scripts/test-agent-platform.js",
+        "nodes": [
+          "file:scripts/test-agent-platform.js",
+          "file:src/agent-platform/schema/loader.js"
+        ],
+        "edges": [
+          {
+            "from": "file:scripts/test-agent-platform.js",
+            "to": "file:src/agent-platform/schema/loader.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "scripts/test-agent-platform.js",
+            "reason": "../src/agent-platform/schema/loader.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:111",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/index.js",
+        "nodes": [
+          "file:src/agent-platform/index.js",
+          "file:src/agent-platform/schema/loader.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/index.js",
+            "to": "file:src/agent-platform/schema/loader.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/index.js",
+            "reason": "./schema/loader.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:131",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/runtime/AgentRuntime.js",
+        "nodes": [
+          "file:src/agent-platform/runtime/AgentRuntime.js",
+          "file:src/agent-platform/schema/loader.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/runtime/AgentRuntime.js",
+            "to": "file:src/agent-platform/schema/loader.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/runtime/AgentRuntime.js",
+            "reason": "../schema/loader.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:132",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/runtime/AgentRuntime.js",
+        "nodes": [
+          "file:src/agent-platform/runtime/AgentRuntime.js",
+          "file:src/agent-platform/schema/repair.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/runtime/AgentRuntime.js",
+            "to": "file:src/agent-platform/schema/repair.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/runtime/AgentRuntime.js",
+            "reason": "../schema/repair.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:133",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/runtime/AgentRuntime.js",
+        "nodes": [
+          "file:src/agent-platform/runtime/AgentRuntime.js",
+          "file:src/agent-platform/schema/validate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/runtime/AgentRuntime.js",
+            "to": "file:src/agent-platform/schema/validate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/runtime/AgentRuntime.js",
+            "reason": "../schema/validate.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:156",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/schema/loader.js",
+        "nodes": [
+          "file:src/agent-platform/schema/loader.js",
+          "import:node:fs/promises"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/schema/loader.js",
+            "to": "import:node:fs/promises",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/schema/loader.js",
+            "reason": "node:fs/promises"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:157",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/schema/loader.js",
+        "nodes": [
+          "file:src/agent-platform/schema/loader.js",
+          "import:node:path"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/schema/loader.js",
+            "to": "import:node:path",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/schema/loader.js",
+            "reason": "node:path"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:158",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/schema/loader.js",
+        "nodes": [
+          "file:src/agent-platform/schema/loader.js",
+          "import:node:url"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/schema/loader.js",
+            "to": "import:node:url",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/schema/loader.js",
+            "reason": "node:url"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:159",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/agent-platform/schema/repair.js",
+        "nodes": [
+          "file:src/agent-platform/schema/repair.js",
+          "file:src/agent-platform/schema/validate.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/agent-platform/schema/repair.js",
+            "to": "file:src/agent-platform/schema/validate.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/agent-platform/schema/repair.js",
+            "reason": "./validate.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 11,
+      "call": 0
+    }
+  }
+}

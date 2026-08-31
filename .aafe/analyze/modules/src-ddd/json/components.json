@@ -1,0 +1,71 @@
+{
+  "module": "src-ddd",
+  "components": [
+    {
+      "name": "DDD_SKILL_ORDER",
+      "kind": "variable",
+      "file": "src/ddd/DDDScope.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/ddd/DDDScope.js",
+          "symbol": "DDD_SKILL_ORDER"
+        }
+      ]
+    },
+    {
+      "name": "DDD_RULE_ORDER",
+      "kind": "variable",
+      "file": "src/ddd/DDDScope.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/ddd/DDDScope.js",
+          "symbol": "DDD_RULE_ORDER"
+        }
+      ]
+    },
+    {
+      "name": "CAPABILITY_MATRIX",
+      "kind": "variable",
+      "file": "src/ddd/DDDScope.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/ddd/DDDScope.js",
+          "symbol": "CAPABILITY_MATRIX"
+        }
+      ]
+    },
+    {
+      "name": "SKILL_RULES",
+      "kind": "variable",
+      "file": "src/ddd/DDDScope.js",
+      "evidence": [
+        {
+          "type": "ast",
+          "file": "src/ddd/DDDScope.js",
+          "symbol": "SKILL_RULES"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "DDD_SKILL_ORDER",
+      "fromLabel": "DDD_SKILL_ORDER",
+      "to": "DDDGate",
+      "toLabel": "DDDGate",
+      "type": "IMPORTS",
+      "fromFile": "src/ddd/DDDScope.js",
+      "toFile": "src/ddd/DDDGate.js",
+      "evidence": [
+        {
+          "type": "dependency",
+          "file": "src/ddd/DDDScope.js",
+          "reason": "./DDDGate.js"
+        }
+      ]
+    }
+  ]
+}

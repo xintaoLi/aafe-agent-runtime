@@ -1,0 +1,61 @@
+flowchart TD
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_import_node_fs_promises["node:fs/promises"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_import_node_fs_promises
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_import_node_path["node:path"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_import_node_path
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agent_platform_config_agentsConfig_js
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agent_platform_registry_AgentRegistry_j["src/agent-platform/registry/AgentRegistry.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agent_platform_registry_AgentRegistry_j
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agent_platform_planner_index_js["src/agent-platform/planner/index.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agent_platform_planner_index_js
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agent_platform_runtime_providers_index_["src/agent-platform/runtime/providers/index.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agent_platform_runtime_providers_index_
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agent_platform_runtime_AgentRuntime_js["src/agent-platform/runtime/AgentRuntime.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agent_platform_runtime_AgentRuntime_js
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agent_platform_schema_loader_js["src/agent-platform/schema/loader.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agent_platform_schema_loader_js
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agent_platform_orchestrator_AgentOrches["src/agent-platform/orchestrator/AgentOrchestrator.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agent_platform_orchestrator_AgentOrches
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agents_index_js["src/agents/index.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agents_index_js
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_knowledge_store_KnowledgeStore_js["src/knowledge/store/KnowledgeStore.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_knowledge_store_KnowledgeStore_js
+  n_file_src_cli_platform_js["src/cli/platform.js"]
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_cli_platform_js -->|IMPORTS| n_file_src_agent_platform_index_js
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_call_readJson["readJson"]
+  n_file_src_agent_platform_index_js -->|CALLS| n_call_readJson
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_call_path_join["path.join"]
+  n_file_src_agent_platform_index_js -->|CALLS| n_call_path_join
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_call_loadAgentsConfig["loadAgentsConfig"]
+  n_file_src_agent_platform_index_js -->|CALLS| n_call_loadAgentsConfig
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_call_createRegistryFromConfig["createRegistryFromConfig"]
+  n_file_src_agent_platform_index_js -->|CALLS| n_call_createRegistryFromConfig
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_call_createPlanner["createPlanner"]
+  n_file_src_agent_platform_index_js -->|CALLS| n_call_createPlanner
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_call_createDefaultProviders["createDefaultProviders"]
+  n_file_src_agent_platform_index_js -->|CALLS| n_call_createDefaultProviders
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_call_createBuiltinAgents["createBuiltinAgents"]
+  n_file_src_agent_platform_index_js -->|CALLS| n_call_createBuiltinAgents
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_call_JSON_parse["JSON.parse"]
+  n_file_src_agent_platform_index_js -->|CALLS| n_call_JSON_parse

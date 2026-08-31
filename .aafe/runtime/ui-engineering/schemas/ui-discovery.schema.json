@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aafe.dev/ui/ui-discovery.schema.json",
+  "title": "UI Discovery Context",
+  "type": "object",
+  "properties": {
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "frameworks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "designSystem": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "existingComponents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tokens": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidenceBased": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "steps"
+  ]
+}

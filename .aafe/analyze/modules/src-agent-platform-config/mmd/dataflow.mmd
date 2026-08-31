@@ -1,0 +1,61 @@
+flowchart TD
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_config_agentsConfig_js
+  n_file_scripts_test_agent_platform_js["scripts/test-agent-platform.js"]
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_file_scripts_test_agent_platform_js -->|IMPORTS| n_file_src_agent_platform_config_agentsConfig_js
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_import_node_fs_promises["node:fs/promises"]
+  n_file_src_agent_platform_config_agentsConfig_js -->|IMPORTS| n_import_node_fs_promises
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_import_node_path["node:path"]
+  n_file_src_agent_platform_config_agentsConfig_js -->|IMPORTS| n_import_node_path
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_file_src_agent_platform_registry_definition_js["src/agent-platform/registry/definition.js"]
+  n_file_src_agent_platform_config_agentsConfig_js -->|IMPORTS| n_file_src_agent_platform_registry_definition_js
+  n_file_src_agent_platform_index_js["src/agent-platform/index.js"]
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_file_src_agent_platform_index_js -->|IMPORTS| n_file_src_agent_platform_config_agentsConfig_js
+  n_file_src_cli_bootstrap_js["src/cli/bootstrap.js"]
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_file_src_cli_bootstrap_js -->|IMPORTS| n_file_src_agent_platform_config_agentsConfig_js
+  n_file_src_cli_doctor_js["src/cli/doctor.js"]
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_file_src_cli_doctor_js -->|IMPORTS| n_file_src_agent_platform_config_agentsConfig_js
+  n_file_src_cli_migrate_js["src/cli/migrate.js"]
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_file_src_cli_migrate_js -->|IMPORTS| n_file_src_agent_platform_config_agentsConfig_js
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_call_Object_freeze["Object.freeze"]
+  n_file_src_agent_platform_config_agentsConfig_js -->|CALLS| n_call_Object_freeze
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_call_value_replace["value.replace"]
+  n_file_src_agent_platform_config_agentsConfig_js -->|CALLS| n_call_value_replace
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_call_expandEnvRefs["expandEnvRefs"]
+  n_file_src_agent_platform_config_agentsConfig_js -->|CALLS| n_call_expandEnvRefs
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_call_test["test"]
+  n_file_src_agent_platform_config_agentsConfig_js -->|CALLS| n_call_test
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_call_warnings_push["warnings.push"]
+  n_file_src_agent_platform_config_agentsConfig_js -->|CALLS| n_call_warnings_push
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_call_test["test"]
+  n_file_src_agent_platform_config_agentsConfig_js -->|CALLS| n_call_test
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_call_warnings_push["warnings.push"]
+  n_file_src_agent_platform_config_agentsConfig_js -->|CALLS| n_call_warnings_push
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_call_Object_entries["Object.entries"]
+  n_file_src_agent_platform_config_agentsConfig_js -->|CALLS| n_call_Object_entries
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_call_Object_freeze["Object.freeze"]
+  n_file_src_agent_platform_config_agentsConfig_js -->|CALLS| n_call_Object_freeze
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_call_AGENT_PROVIDERS_includes["AGENT_PROVIDERS.includes"]
+  n_file_src_agent_platform_config_agentsConfig_js -->|CALLS| n_call_AGENT_PROVIDERS_includes
+  n_file_src_agent_platform_config_agentsConfig_js["src/agent-platform/config/agentsConfig.js"]
+  n_call_warnings_push["warnings.push"]
+  n_file_src_agent_platform_config_agentsConfig_js -->|CALLS| n_call_warnings_push

@@ -1,0 +1,40 @@
+{
+  "module": "src-ddd",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/ddd/DDDAdvisor.js",
+        "src/ddd/DDDGate.js",
+        "src/ddd/DDDScope.js"
+      ],
+      "routes": [],
+      "components": [
+        "DDD_SKILL_ORDER",
+        "DDD_RULE_ORDER",
+        "CAPABILITY_MATRIX",
+        "SKILL_RULES"
+      ]
+    },
+    "outboundModules": [],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/ddd/DDDAdvisor.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/ddd/DDDGate.js",
+        "reason": "module membership"
+      },
+      {
+        "type": "source",
+        "file": "src/ddd/DDDScope.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [],
+  "signals": []
+}

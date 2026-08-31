@@ -1,0 +1,84 @@
+{
+  "module": "src-static-analysis-semantic",
+  "dataflow": {
+    "flows": [
+      {
+        "id": "flow:import:434",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/architecture.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/architecture.js",
+          "file:src/static-analysis/semantic/port.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/architecture.js",
+            "to": "file:src/static-analysis/semantic/port.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/architecture.js",
+            "reason": "../semantic/port.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:439",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/analyzers/business.js",
+        "nodes": [
+          "file:src/static-analysis/analyzers/business.js",
+          "file:src/static-analysis/semantic/port.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/analyzers/business.js",
+            "to": "file:src/static-analysis/semantic/port.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/analyzers/business.js",
+            "reason": "../semantic/port.js"
+          }
+        ]
+      },
+      {
+        "id": "flow:import:489",
+        "level": 1,
+        "kind": "import",
+        "entrypoint": "file:src/static-analysis/semantic/port.js",
+        "nodes": [
+          "file:src/static-analysis/semantic/port.js",
+          "file:src/llm/LlmClient.js"
+        ],
+        "edges": [
+          {
+            "from": "file:src/static-analysis/semantic/port.js",
+            "to": "file:src/llm/LlmClient.js",
+            "type": "IMPORTS"
+          }
+        ],
+        "evidence": [
+          {
+            "type": "dependency",
+            "file": "src/static-analysis/semantic/port.js",
+            "reason": "../../llm/LlmClient.js"
+          }
+        ]
+      }
+    ],
+    "levels": {
+      "application": 0,
+      "import": 3,
+      "call": 0
+    }
+  }
+}

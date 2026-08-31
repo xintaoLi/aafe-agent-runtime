@@ -1,0 +1,41 @@
+{
+  "id": "src-agents",
+  "summary": {
+    "routes": 0,
+    "components": 0,
+    "features": 0,
+    "flows": 7,
+    "dependsOn": [
+      "module:src-agents-code-intelligence",
+      "module:src-agents-context-agent",
+      "module:src-agents-failure-analyzer",
+      "module:src-agents-impact-analyzer",
+      "module:src-agents-knowledge-validator",
+      "module:src-agents-test-agent"
+    ]
+  },
+  "paths": {
+    "routes": "json/routes.json",
+    "architecture": "json/architecture.json",
+    "components": "json/components.json",
+    "features": "json/features.json",
+    "dataflow": "json/dataflow.json",
+    "mmd": {
+      "routes": "mmd/routes.mmd",
+      "architecture": "mmd/architecture.mmd",
+      "components": "mmd/components.mmd",
+      "dataflow": "mmd/dataflow.mmd"
+    },
+    "readme": "README.md"
+  },
+  "routes": [],
+  "components": [],
+  "dependencies": [
+    "module:src-agents-code-intelligence",
+    "module:src-agents-context-agent",
+    "module:src-agents-failure-analyzer",
+    "module:src-agents-impact-analyzer",
+    "module:src-agents-knowledge-validator",
+    "module:src-agents-test-agent"
+  ]
+}

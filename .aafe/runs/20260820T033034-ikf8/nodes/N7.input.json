@@ -1,0 +1,4 @@
+{
+  "kind": "test",
+  "goal": "优化 CLI plan 命令的输出格式"
+}

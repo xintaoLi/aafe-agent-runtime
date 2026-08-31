@@ -1,0 +1,27 @@
+{
+  "module": "src-knowledge-graph",
+  "architecture": {
+    "kind": "module",
+    "boundaries": {
+      "files": [
+        "src/knowledge/graph/relations.js"
+      ],
+      "routes": [],
+      "components": []
+    },
+    "outboundModules": [
+      "module:src-knowledge-model"
+    ],
+    "evidence": [
+      {
+        "type": "source",
+        "file": "src/knowledge/graph/relations.js",
+        "reason": "module membership"
+      }
+    ]
+  },
+  "dependencies": [
+    "module:src-knowledge-model"
+  ],
+  "signals": []
+}
