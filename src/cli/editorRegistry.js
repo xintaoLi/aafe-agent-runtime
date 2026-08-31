@@ -1,4 +1,4 @@
-export const WORKSPACE_ROOT_EDITORS = ['cursor', 'codebuddy', 'claude', 'codex', 'trace', 'windsurf', 'vscode'];
+export const WORKSPACE_ROOT_EDITORS = ['cursor', 'codebuddy', 'claude', 'codex', 'trace', 'windsurf', 'vscode', 'hermes', 'openclaw'];
 
 export const EDITOR_ADAPTERS = {
   cursor: {
@@ -81,6 +81,28 @@ export const EDITOR_ADAPTERS = {
     migrateKind: 'directory',
     layerPattern: '.vscode/{module}',
     moduleFiles: ['aafe.instructions.md']
+  },
+  hermes: {
+    id: 'hermes',
+    label: 'Hermes Agent',
+    dirName: '.hermes',
+    rootFile: 'AGENTS.md',
+    workspaceRootOnly: true,
+    layered: true,
+    migrateKind: 'root-file',
+    layerPattern: 'AGENTS.md#AAFE-module-{module}',
+    appendMode: true
+  },
+  openclaw: {
+    id: 'openclaw',
+    label: 'OpenClaw',
+    dirName: '.openclaw',
+    rootFile: 'AGENTS.md',
+    workspaceRootOnly: true,
+    layered: true,
+    migrateKind: 'root-file',
+    layerPattern: 'AGENTS.md#AAFE-module-{module}',
+    appendMode: true
   }
 };
 

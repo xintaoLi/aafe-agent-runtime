@@ -28,13 +28,48 @@ async function detectEditors(root) {
     ['claude', 'CLAUDE.md'],
     ['codebuddy', '.codebuddy'],
     ['codex', '.codex'],
-    ['trace', '.trace']
+    ['trace', '.trace'],
+    ['hermes', 'AGENTS.md'],
+    ['openclaw', '.openclaw']
   ];
   const found = [];
   for (const [name, rel] of checks) {
     if (await exists(path.join(root, rel))) found.push(name);
   }
+  // Auto-detect Hermes/OpenClaw runtime environments via env markers.
+  const envEditors = detectEnvironmentEditors();
+  for (const editor of envEditors) {
+    if (!found.includes(editor)) found.push(editor);
+  }
   return found.length ? found : ['cursor'];
+}
+
+/**
+ * Detect Hermes and OpenClaw agent environments via environment variables
+ * and marker files that are present when `aafe init`/`aafe update` runs
+ * inside those agent runtimes.
+ *
+ * Hermes markers:
+ *   - HERMES_AGENT env var (set by Hermes runtime)
+ *   - /data/projects/.hermes/config.yaml (Hermes project config)
+ *   - .hermes/ directory in workspace
+ *
+ * OpenClaw markers:
+ *   - OPENCLAW_SPACE_ID env var (set by OpenClaw platform)
+ *   - .openclaw/ directory in workspace
+ */
+function detectEnvironmentEditors() {
+  const editors = [];
+  if (process.env.HERMES_AGENT ||
+      process.env.HERMES_PROFILE ||
+      process.env.HERMES_SESSION_ID) {
+    editors.push('hermes');
+  }
+  if (process.env.OPENCLAW_SPACE_ID ||
+      process.env.OPENCLAW_AGENT) {
+    editors.push('openclaw');
+  }
+  return editors;
 }
 
 function detectScenarios(deps, packageJson) {

@@ -247,9 +247,24 @@ async function readProjectConfig(root) {
 }
 
 function resolveEditors(options, config, detection) {
-  if (options.editors) return String(options.editors).split(',').map((item) => item.trim()).filter(Boolean);
-  if (Array.isArray(config.editors) && config.editors.length) return config.editors;
-  return detection.editors;
+  let editors;
+  if (options.editors) {
+    editors = String(options.editors).split(',').map((item) => item.trim()).filter(Boolean);
+  } else if (Array.isArray(config.editors) && config.editors.length) {
+    editors = [...config.editors];
+  } else {
+    editors = detection.editors;
+  }
+  // Always merge auto-detected agent environments (Hermes/OpenClaw) into the
+  // resolved editor list, regardless of config. This ensures AAFE adapters for
+  // agent runtimes are generated even when .aafe.config.json pins a specific
+  // editor (e.g. cursor). Detection is additive — it never removes editors.
+  if (Array.isArray(detection.editors)) {
+    for (const e of detection.editors) {
+      if (!editors.includes(e)) editors.push(e);
+    }
+  }
+  return editors;
 }
 
 async function syncCurrentProject(options, syncOptions = {}) {

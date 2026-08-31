@@ -5,6 +5,8 @@ import path from 'node:path';
 import { createTemplatePlan, packageRecommendations } from '../templates/TemplateSystem.js';
 import { writeLayeredEditorAdapters } from './editorLayer.js';
 import { writeFlatCodeBuddyAdapters } from './codebuddyLayer.js';
+import { writeFlatHermesAdapters, writeLayeredHermesAdapters } from './hermesLayer.js';
+import { writeFlatOpenClawAdapters, writeLayeredOpenClawAdapters } from './openclawLayer.js';
 import { getEditorAdapter, getLayeredEditors } from './editorRegistry.js';
 import {
   architectureImpactTestForecastSkillContent,
@@ -314,6 +316,12 @@ async function writeEditorAdapters(root, detection, options, plan) {
   }
   if (editors.has('vscode')) {
     await writeIfAllowed(path.join(root, '.vscode/aafe.instructions.md'), genericEditorRules('VS Code'), options);
+  }
+  if (editors.has('hermes')) {
+    await writeFlatHermesAdapters(root, options);
+  }
+  if (editors.has('openclaw')) {
+    await writeFlatOpenClawAdapters(root, options);
   }
 }
 

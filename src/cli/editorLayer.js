@@ -7,6 +7,8 @@ import { tapdSubmitRuleSection } from './tapdSubmitRules.js';
 import { createCursorPathContext, rewriteCursorContent } from './pathRewrite.js';
 import { writeLayeredCursorAdapters, migrateInstallCursorToWorkspace, buildCursorLayerPaths } from './cursorLayer.js';
 import { writeLayeredCodeBuddyAdapters } from './codebuddyLayer.js';
+import { writeLayeredHermesAdapters } from './hermesLayer.js';
+import { writeLayeredOpenClawAdapters } from './openclawLayer.js';
 import {
   requirementIntakeProjectRuleMdc
 } from './requirementAnalysisRules.js';
@@ -174,6 +176,24 @@ async function writeLayeredGenericEditor({ editorId, workspaceRoot, moduleName, 
   const moduleDir = path.join(workspaceRoot, adapter.dirName, moduleName);
   if (editorId === 'codebuddy') {
     await writeLayeredCodeBuddyAdapters({
+      workspaceRoot,
+      moduleName,
+      moduleRelativePath,
+      options
+    });
+    return;
+  }
+  if (editorId === 'hermes') {
+    await writeLayeredHermesAdapters({
+      workspaceRoot,
+      moduleName,
+      moduleRelativePath,
+      options
+    });
+    return;
+  }
+  if (editorId === 'openclaw') {
+    await writeLayeredOpenClawAdapters({
       workspaceRoot,
       moduleName,
       moduleRelativePath,
