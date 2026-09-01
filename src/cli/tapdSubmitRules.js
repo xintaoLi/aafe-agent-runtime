@@ -141,10 +141,13 @@ export function tapdSubmitRuleSection(ctx = {}) {
     '',
     '有关联且 tapd.enabled 时，自测完成后或用户说 commit/push/submit/提测：',
     '1. 新任务时先检查当前分支 `feat|bug/<slug>/#<short_id>` 是否已关联 TAPD（git 和 gtm 均适用）；未关联则从远程主干创建开发分支（详见 Skill「TAPD Branch Association」）。',
-    '2. 询问 Commit → 同意则按 \`submit.cli\`（\`git\` 默认 / \`gtm\`）执行 Commit/PR → **询问是否回填 TAPD**（无关联则整段跳过）。',
-    '3. 回填内容 **只通过 `comments_create` 追加**；禁止改写 description/test_focus。',
-    '4. 评论回填后按当前状态流转：backlog→todo→doing；已是 todo 则直接 →doing；已是 doing 则跳过。',
-    `5. 详细流程见 \`${agentPrefix}/skills/tapd-submit-backfill.md\`。`,
+    '2. 询问 Commit → 同意则按 \`submit.cli\`（\`git\` 默认 / \`gtm\`）执行 Commit/PR。',
+    '3. **Commit/PR 完成后，必须立即询问「是否回填 TAPD 单子？」** — 这是 Commit 后的强制步骤，不可跳过。',
+    '4. 用户同意 → 加载 \`${agentPrefix}/skills/tapd-submit-backfill.md\` 执行 Phase F（comments_create + 状态流转）。',
+    '5. 用户拒绝 → 在回复中说明「已跳过回填，可稍后手动触发」。',
+    '6. 回填内容 **只通过 `comments_create` 追加**；禁止改写 description/test_focus。',
+    '7. 评论回填后按当前状态流转：backlog→todo→doing；已是 todo 则直接 →doing；已是 doing 则跳过。',
+    `8. 详细流程见 \`${agentPrefix}/skills/tapd-submit-backfill.md\`。`,
     ''
   ].join('\n');
 }
