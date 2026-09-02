@@ -23,6 +23,7 @@ import { appendFile, copyFile, mkdir, readdir, readFile, rename, rm, stat, write
 import path from 'node:path';
 import { AGENTS_CONFIG_FILE } from '../agent-platform/config/agentsConfig.js';
 import { FILE_LICENSE_MEMORY_RELATIVE } from './fileLicenseRules.js';
+import { resolveRepoConfig, stripLegacyE2eRepoTokens } from './repoConfig.js';
 
 const CONFIG_FILE = '.aafe.config.json';
 const RUNTIME_DIR = '.ai-agent';
@@ -209,6 +210,34 @@ export const MIGRATIONS = [
       const file = path.join(root, CONFIG_FILE);
       const config = await readJson(file);
       delete config.analyze.llm.agents;
+      await writeJson(file, config);
+    }
+  },
+
+  {
+    id: 'repo-access-tokens',
+    title: '将 e2e.githubAccessToken / e2e.gongfengAccessToken 提升到 repo（代码仓库配置）',
+    async detect({ root }) {
+      const config = await readJson(path.join(root, CONFIG_FILE));
+      const e2e = config?.e2e;
+      if (!e2e || typeof e2e !== 'object') return null;
+      const hasLegacy = e2e.githubAccessToken != null || e2e.gongfengAccessToken != null;
+      if (!hasLegacy) return null;
+      return {
+        changes: [{
+          action: 'rewrite-config',
+          from: `${CONFIG_FILE} → e2e.githubAccessToken / e2e.gongfengAccessToken`,
+          to: `${CONFIG_FILE} → repo`,
+          detail: '代码提交 / 拉取 / PR / MR 统一读 repo 层 Token'
+        }]
+      };
+    },
+    async apply({ root }) {
+      const file = path.join(root, CONFIG_FILE);
+      const config = await readJson(file);
+      if (!config) return;
+      config.repo = resolveRepoConfig(config);
+      if (config.e2e) config.e2e = stripLegacyE2eRepoTokens(config.e2e);
       await writeJson(file, config);
     }
   },

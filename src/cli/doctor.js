@@ -52,6 +52,7 @@ const requiredFiles = [
   '.ai-agent/skills/minimal-convergent-self-test.md',
   '.ai-agent/skills/aafe-test-from-pr.md',
   '.ai-agent/skills/tapd-submit-backfill.md',
+  '.ai-agent/skills/repo-submit.md',
   '.ai-agent/skills/requirement-intake-analysis.md',
   '.ai-agent/skills/workflow-mode.md',
   '.ai-agent/rules/task-completion-impact.mdc',

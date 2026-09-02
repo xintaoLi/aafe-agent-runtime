@@ -60,8 +60,30 @@ alwaysApply: true
 
 | `submit.cli` | Commit | PR |
 | --- | --- | --- |
-| `git`（默认） | Git CLI（stage + commit） | `gh pr create`（按需 push） |
+| `git`（默认） | Git CLI（stage + commit） | Token API / `aafe repo pr`（不依赖 gh） |
 | `gtm` | `gtm commit` | `gtm pr` |
+
+先读 `.aafe.config.json` → `repo`（代码仓库配置）。提交、拉取、PR、MR 都依赖这里的 Token，不要写进命令行：
+
+| 字段 | 用途 |
+| --- | --- |
+| `repo.githubAccessToken` | GitHub fetch / pull / push / PR（Token API，不依赖 gh）；也可用 `GITHUB_TOKEN` / `${GITHUB_TOKEN}` |
+| `repo.gongfengAccessToken` | 工蜂 fetch / pull / push / MR / `gtm pr`；也可用 `GIT_PRIVATE_TOKEN` / `${GIT_PRIVATE_TOKEN}` |
+
+执行 git / gh / gtm 前，把已配置 Token 注入对应环境变量（已有 shell 值优先）。
+
+创建 / 拉取 / PR / MR 前 Read `.ai-agent/skills/repo-submit.md`。
+
+已配置 `repo.githubAccessToken` 或 `GITHUB_TOKEN` → **必须用该 Token 调 GitHub API**（`aafe repo pr`），**不依赖项目内是否安装 `gh`**。未配置 Token 且本机有 `gh` 才允许 `gh pr create`。
+
+先读 `repo.reviewers` / `repo.labels`（字符串数组，缺省 `[]`）。非空则创建或补写时必须带上；空数组省略。不要猜测人员或标签。
+
+| 字段 | 用途 |
+| --- | --- |
+| `repo.reviewers` | PR/MR Reviewers（GitHub login / 工蜂 username 或数字 id） |
+| `repo.labels` | PR/MR Labels |
+
+**工蜂**（`submit.cli=gtm` 或远程 merge_requests）：`gtm pr` 之后用工蜂 API 写入 `labels` 与 `reviewer_ids`（username 先查用户 id）。鉴权用 `repo.gongfengAccessToken` / `GIT_PRIVATE_TOKEN`。
 
 - `aafe init` / `aafe update --submit-cli=git|gtm` 可写入/更新该配置
 - **分支关联（git 和 gtm 均适用）**：新任务开始时先检查当前分支是否含 `#<tapd_short_id>`；未关联则从远程主干创建开发分支（详见 Skill「TAPD Branch Association」）

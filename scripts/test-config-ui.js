@@ -51,6 +51,12 @@ const existing = {
 const next = applyConfigForm(existing, {
   workflow: 'autonomous',
   submitCli: 'gtm',
+  repo: {
+    githubAccessToken: '${GITHUB_TOKEN}',
+    gongfengAccessToken: 'gf_from_ui',
+    reviewers: 'alice, bob\ncarol',
+    labels: ['frontend', 'bug']
+  },
   agent: {
     enabled: true,
     mode: 'local',
@@ -85,6 +91,11 @@ assert.equal(next.agent.mcp.servers.tapd.command, 'npx');
 assert.deepEqual(next.agent.mcp.servers.tapd.args, ['-y', 'tapd-mcp']);
 assert.equal(next.agent.mcp.servers.old, undefined, 'deleted MCP servers must not be merged back');
 assert.equal(next.e2e.enabled, true);
+assert.equal(next.e2e.githubAccessToken, undefined);
+assert.equal(next.repo.githubAccessToken, '${GITHUB_TOKEN}');
+assert.equal(next.repo.gongfengAccessToken, 'gf_from_ui');
+assert.deepEqual(next.repo.reviewers, ['alice', 'bob', 'carol']);
+assert.deepEqual(next.repo.labels, ['frontend', 'bug']);
 
 const form = buildConfigForm(next);
 assert.equal(form.workflow, 'autonomous');
@@ -169,6 +180,8 @@ assert.ok(models.models.some((item) => item.id === 'grok-4.5'));
 const page = await fetch(`${base}/`).then((res) => res.text());
 assert.match(page, /AAFE 配置/);
 assert.match(page, /刷新列表/);
+assert.match(page, /repo\.reviewers/);
+assert.match(page, /repo\.labels/);
 
 server.close();
 console.log('config ui tests passed');

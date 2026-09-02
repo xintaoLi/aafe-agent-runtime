@@ -145,6 +145,7 @@
       <a href="#workflow">工作流</a>
       <a href="#agent">Agent</a>
       <a href="#mcp">MCP</a>
+      <a href="#repo">代码仓库</a>
       <a href="#submit">提交</a>
       <a href="#tapd">TAPD</a>
       <a href="#e2e">E2E</a>
@@ -237,9 +238,32 @@
         </div>
       </section>
 
+      <section id="repo">
+        <h2>代码仓库配置</h2>
+        <p class="hint">GitHub / 工蜂 Token。配置了 githubAccessToken 后，拉取 / 推送 / PR 用该 Token 调 API，不依赖项目里是否安装 <code>gh</code>。也可写 <code>${GITHUB_TOKEN}</code> / <code>${GIT_PRIVATE_TOKEN}</code>。不要把令牌写进命令行。创建 PR / MR 时带上 Reviewers 与 Labels。</p>
+        <div class="grid">
+          <div>
+            <label for="repoGithubToken">repo.githubAccessToken</label>
+            <input id="repoGithubToken" type="password" placeholder="${GITHUB_TOKEN} 或 gh token">
+          </div>
+          <div>
+            <label for="repoGongfengToken">repo.gongfengAccessToken</label>
+            <input id="repoGongfengToken" type="password" placeholder="${GIT_PRIVATE_TOKEN} 或工蜂 token">
+          </div>
+          <div class="full">
+            <label for="repoReviewers">repo.reviewers</label>
+            <textarea id="repoReviewers" placeholder="一行一个，或逗号分隔。GitHub login / 工蜂 username 或数字 id"></textarea>
+          </div>
+          <div class="full">
+            <label for="repoLabels">repo.labels</label>
+            <textarea id="repoLabels" placeholder="一行一个，或逗号分隔。创建 PR / MR 时写入"></textarea>
+          </div>
+        </div>
+      </section>
+
       <section id="submit">
         <h2>提交 CLI</h2>
-        <p class="hint">Commit / PR 使用的命令行。</p>
+        <p class="hint">Commit / PR 使用的命令行。鉴权依赖上方代码仓库 Token。</p>
         <label for="submitCli">submit.cli</label>
         <select id="submitCli">
           <option value="git">git · Git CLI + gh</option>
@@ -405,6 +429,12 @@
       return {
         workflow: $('workflowMode').value,
         submitCli: $('submitCli').value,
+        repo: {
+          githubAccessToken: $('repoGithubToken').value,
+          gongfengAccessToken: $('repoGongfengToken').value,
+          reviewers: $('repoReviewers').value,
+          labels: $('repoLabels').value
+        },
         agent: {
           enabled: $('agentEnabled').checked,
           provider: 'cursor',
@@ -446,6 +476,10 @@
     function fillForm(form) {
       $('workflowMode').value = form.workflow || 'ask';
       $('submitCli').value = form.submitCli || 'git';
+      $('repoGithubToken').value = form.repo?.githubAccessToken || '';
+      $('repoGongfengToken').value = form.repo?.gongfengAccessToken || '';
+      $('repoReviewers').value = Array.isArray(form.repo?.reviewers) ? form.repo.reviewers.join('\n') : (form.repo?.reviewers || '');
+      $('repoLabels').value = Array.isArray(form.repo?.labels) ? form.repo.labels.join('\n') : (form.repo?.labels || '');
       $('agentEnabled').checked = !!form.agent?.enabled;
       $('agentMode').value = form.agent?.mode || 'local';
       setSelectedModel(form.agent?.model || 'composer-2.5');

@@ -155,9 +155,13 @@
     "impactDir": ".aafe/e2e/impact",
     "baseUrlEnv": "AAFE_E2E_BASE_URL",
     "baseUrl": null,
-    "enabled": true,
+    "enabled": true
+  },
+  "repo": {
     "githubAccessToken": null,
-    "gongfengAccessToken": null
+    "gongfengAccessToken": null,
+    "reviewers": [],
+    "labels": []
   },
   "submit": {
     "cli": "git"

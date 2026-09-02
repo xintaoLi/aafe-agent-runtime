@@ -807,12 +807,23 @@ Playwright E2E 与 Runtime 分开配置。`aafe init` / `aafe update` 之后，*
     "impactDir": ".aafe/e2e/impact",
     "baseUrl": null,
     "baseUrlEnv": "AAFE_E2E_BASE_URL",
-    "githubAccessToken": "${GITHUB_TOKEN}",
-    "gongfengAccessToken": null,
     "auth": {
       "mode": "reuse-or-headed",
       "stateDir": ".aafe/e2e/auth"
     }
+  }
+}
+```
+
+代码提交 / 拉取 / PR / MR 的 Token、Reviewers、Labels 写在根级 `repo`（代码仓库配置），不要再放进 `e2e`：
+
+```json
+{
+  "repo": {
+    "githubAccessToken": "${GITHUB_TOKEN}",
+    "gongfengAccessToken": "${GIT_PRIVATE_TOKEN}",
+    "reviewers": ["alice", "bob"],
+    "labels": ["frontend"]
   }
 }
 ```

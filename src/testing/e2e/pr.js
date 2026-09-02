@@ -19,12 +19,13 @@
  */
 
 import { expandSecretRef, readPrAccessTokenConfig } from './config.js';
+import { pickRepoTokenField } from '../../cli/repoConfig.js';
 
 export const INLINE_TOKEN_REJECTION = [
   '拒绝从命令行读取令牌：--token <值> 会被 ps、shell 历史、CI 日志和 Agent 对话记录留存。',
-  '改为写入环境变量或 `.aafe.config.json`：',
-  '  e2e.githubAccessToken     # GitHub；也可用环境变量 GITHUB_TOKEN / ${GITHUB_TOKEN}',
-  '  e2e.gongfengAccessToken   # 工蜂；也可用环境变量 GIT_PRIVATE_TOKEN / ${GIT_PRIVATE_TOKEN}'
+  '改为写入环境变量或 `.aafe.config.json` → repo（代码仓库配置）：',
+  '  repo.githubAccessToken     # GitHub 提交/拉取/PR；也可用环境变量 GITHUB_TOKEN / ${GITHUB_TOKEN}',
+  '  repo.gongfengAccessToken   # 工蜂 提交/拉取/MR；也可用环境变量 GIT_PRIVATE_TOKEN / ${GIT_PRIVATE_TOKEN}'
 ].join('\n');
 
 const TOKEN_KEYS = {
@@ -102,10 +103,12 @@ export function resolvePrToken({ provider, inlineToken, env = process.env, confi
     const value = String(env[key] ?? '').trim();
     if (value) return { key, token: value, source: 'shell' };
   }
-  const e2e = config?.e2e ?? config ?? {};
   const field = provider === 'gongfeng' ? 'gongfengAccessToken' : 'githubAccessToken';
-  const fromConfig = expandSecretRef(e2e[field], env);
-  if (fromConfig) return { key: `e2e.${field}`, token: fromConfig, source: 'config' };
+  const fromConfig = expandSecretRef(pickRepoTokenField(config, field), env);
+  if (fromConfig) {
+    const sourceKey = config?.repo?.[field] != null ? `repo.${field}` : (config?.e2e?.[field] != null ? `e2e.${field}` : field);
+    return { key: sourceKey, token: fromConfig, source: 'config' };
+  }
   return { source: 'none', token: null };
 }
 
@@ -175,7 +178,7 @@ async function getJson(fetchImpl, url, headers) {
   const response = await fetchImpl(url, { headers });
   if (!response.ok) {
     const hint = response.status === 401 || response.status === 403
-      ? '鉴权失败：在 `.aafe.config.json` 的 e2e.githubAccessToken / e2e.gongfengAccessToken 或环境变量 GITHUB_TOKEN / GIT_PRIVATE_TOKEN 写入令牌后重试，不要把令牌拼进命令。'
+      ? '鉴权失败：在 `.aafe.config.json` 的 repo.githubAccessToken / repo.gongfengAccessToken 或环境变量 GITHUB_TOKEN / GIT_PRIVATE_TOKEN 写入令牌后重试，不要把令牌拼进命令。'
       : `HTTP ${response.status}`;
     throw Object.assign(new Error(`拉取 PR 失败：${hint}`), { code: 'blocked', status: response.status });
   }

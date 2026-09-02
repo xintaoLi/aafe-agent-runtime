@@ -1,3 +1,4 @@
+import { repoPrApplySkillSection } from './repoConfig.js';
 import { workflowModeGatePreamble, workflowModeSkillNote } from './workflowModeRules.js';
 
 export function tapdSubmitRuleMdc(ctx = {}) {
@@ -88,8 +89,19 @@ ${workflowModeGatePreamble(agentPrefix)}
 
 | \`submit.cli\` | Commit | PR |
 | --- | --- | --- |
-| \`git\`（默认） | Git CLI（stage + commit） | \`gh pr create\`（按需 push） |
+| \`git\`（默认） | Git CLI（stage + commit） | Token API / \`aafe repo pr\`（不依赖 gh） |
 | \`gtm\` | \`gtm commit\` | \`gtm pr\` |
+
+先读 \`.aafe.config.json\` → \`repo\`（代码仓库配置）。提交、拉取、PR、MR 都依赖这里的 Token，不要写进命令行：
+
+| 字段 | 用途 |
+| --- | --- |
+| \`repo.githubAccessToken\` | GitHub fetch / pull / push / PR（Token API，不依赖 gh）；也可用 \`GITHUB_TOKEN\` / \`\${GITHUB_TOKEN}\` |
+| \`repo.gongfengAccessToken\` | 工蜂 fetch / pull / push / MR / \`gtm pr\`；也可用 \`GIT_PRIVATE_TOKEN\` / \`\${GIT_PRIVATE_TOKEN}\` |
+
+执行 git / gh / gtm 前，把已配置 Token 注入对应环境变量（已有 shell 值优先）。
+
+${repoPrApplySkillSection(agentPrefix)}
 
 - \`aafe init\` / \`aafe update --submit-cli=git|gtm\` 可写入/更新该配置
 - **分支关联（git 和 gtm 均适用）**：新任务开始时先检查当前分支是否含 \`#<tapd_short_id>\`；未关联则从远程主干创建开发分支（详见 Skill「TAPD Branch Association」）
@@ -170,6 +182,7 @@ ${workflowModeSkillNote(prefix)}
 Companions:
 
 - Hard rule: \`${prefix}/rules/tapd-submit-backfill.mdc\`
+- Repo submit: \`${prefix}/skills/repo-submit.md\`
 - Self-test: \`${prefix}/skills/minimal-convergent-self-test.md\`
 - Impact: \`${prefix}/skills/architecture-impact-test-forecast.md\`
 
@@ -197,10 +210,21 @@ Read \`.aafe.config.json\` → \`submit.cli\`:
 
 | 值 | 含义 |
 | --- | --- |
-| \`git\`（默认） | Phase C/D 走 Git CLI + \`gh\` |
+| \`git\`（默认） | Phase C/D 走 Git CLI + Token API（\`aafe repo pr\`，不依赖 gh） |
 | \`gtm\` | Phase C/D 走 \`gtm commit\` / \`gtm pr\` |
 
 可用 \`aafe update --submit-cli=git|gtm\` 更新配置。
+
+先读 \`.aafe.config.json\` → \`repo\`（代码仓库配置）。提交、拉取、PR、MR 都依赖这里的 Token，不要写进命令行：
+
+| 字段 | 用途 |
+| --- | --- |
+| \`repo.githubAccessToken\` | GitHub fetch / pull / push / PR（Token API，不依赖 gh）；也可用 \`GITHUB_TOKEN\` / \`\${GITHUB_TOKEN}\` |
+| \`repo.gongfengAccessToken\` | 工蜂 fetch / pull / push / MR / \`gtm pr\`；也可用 \`GIT_PRIVATE_TOKEN\` / \`\${GIT_PRIVATE_TOKEN}\` |
+
+执行 git / gh / gtm 前，把已配置 Token 注入对应环境变量（已有 shell 值优先）。
+
+${repoPrApplySkillSection(prefix)}
 
 ---
 
@@ -433,10 +457,11 @@ gtm commit
 
 Commit 成功后尝试 PR：
 
-1. 确认分支相对 base 的提交与远程同步（按 creating-pull-requests 规则）
-2. 需要时 \`git push -u origin HEAD\`
-3. \`gh pr create\`（HEREDOC body），Summary 含变更要点；Test plan 可引用自测表
-4. 记录 \`pr_url\`；失败则报告原因，**不阻断** Phase E
+1. Read \`${prefix}/skills/repo-submit.md\`
+2. 确认分支相对 base 的提交与远程同步（按 creating-pull-requests 规则）
+3. 已配置 \`repo.githubAccessToken\` / \`GITHUB_TOKEN\`：用 Token \`git -c http.extraheader="AUTHORIZATION: bearer $GITHUB_TOKEN" push -u origin HEAD\`（不要把 Token 写进 remote）
+4. 创建 PR：**优先** \`aafe repo pr --title= --body= --base= --head=\`（Token API，附带 \`repo.reviewers\` / \`repo.labels\`）。**不依赖 \`gh\`**。仅无 Token 且本机有 \`gh\` 时才允许 \`gh pr create\`
+5. 记录 \`pr_url\`；失败则报告原因，**不阻断** Phase E
 
 ### D2 when \`submit.cli=gtm\`
 
@@ -444,7 +469,7 @@ Commit 成功后尝试 PR：
 gtm pr
 \`\`\`
 
-- 成功：记录 \`pr_url\`（若输出可见）
+- 成功：记录 \`pr_url\`（若输出可见）；若 \`repo.reviewers\` / \`repo.labels\` 非空，立刻按工蜂规则写入 Reviewers / Labels（见上方 \`repo.reviewers\` / \`repo.labels\`）
 - **失败/异常**：简要报告；项目内处理，**不强制**补救或降级 \`gh\`；**不阻断** Phase E
 
 ---

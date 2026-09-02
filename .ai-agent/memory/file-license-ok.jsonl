@@ -123,3 +123,6 @@
 {"path":"src/cli/config-ui/index.html","ok":true,"fp":"blueking-mit-v1","style":"html","at":"2026-09-02T06:40:25.531Z"}
 {"path":"scripts/test-config-ui.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-02T06:40:25.532Z"}
 {"path":"src/cli/agentModels.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-02T06:43:48.183Z"}
+{"path":"src/cli/repoConfig.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-02T07:42:28.743Z"}
+{"path":"src/cli/repoSubmit.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-02T07:53:01.706Z"}
+{"path":"src/cli/repoSubmitRules.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-02T07:53:01.708Z"}

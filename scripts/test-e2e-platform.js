@@ -180,6 +180,13 @@ const loadedTokens = await loadE2eConfig(process.cwd(), {
 assert.equal(loadedTokens.githubAccessToken, undefined);
 assert.equal(loadedTokens.gongfengAccessToken, undefined);
 assert.equal(loadedTokens.githubAccessTokenConfigured, true);
+
+const repoTokens = await loadE2eConfig(process.cwd(), {
+  repo: { githubAccessToken: 'from-repo', gongfengAccessToken: '${MISSING}' },
+  e2e: { baseUrl: 'https://app.example' }
+});
+assert.equal(repoTokens.githubAccessTokenConfigured, true);
+assert.equal(repoTokens.gongfengAccessTokenConfigured, true);
 assert.equal(loadedTokens.baseUrl, 'https://app.example');
 
 const once = await loadE2eConfig(process.cwd(), { e2e: { baseUrl: null } }, { baseUrl: 'https://preview.example/app' });
@@ -230,8 +237,20 @@ assert.match(INLINE_TOKEN_REJECTION, /githubAccessToken/);
 assert.match(INLINE_TOKEN_REJECTION, /gongfengAccessToken/);
 
 assert.equal(
+  resolvePrToken({ provider: 'github', env: {}, config: { repo: { githubAccessToken: 'ghp_from_repo' } } }).source,
+  'config'
+);
+assert.equal(
   resolvePrToken({ provider: 'github', env: {}, config: { githubAccessToken: 'ghp_from_config' } }).source,
   'config'
+);
+assert.equal(
+  resolvePrToken({
+    provider: 'github',
+    env: {},
+    config: { repo: { githubAccessToken: 'from-repo' }, e2e: { githubAccessToken: 'from-e2e' } }
+  }).token,
+  'from-repo'
 );
 assert.equal(
   resolvePrToken({

@@ -21,6 +21,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { DEFAULT_E2E_AUTH, normalizeAuthMode, resolveAuthStatePath } from './auth.js';
+import { resolveRepoConfig, repoTokenConfigured } from '../../cli/repoConfig.js';
 
 export const PLACEHOLDER_BASE_URLS = new Set([
   '',
@@ -50,8 +51,6 @@ export const DEFAULT_E2E_CONFIG = Object.freeze({
   baseUrlEnv: 'AAFE_E2E_BASE_URL',
   baseUrl: null,
   enabled: true,
-  githubAccessToken: null,
-  gongfengAccessToken: null,
   auth: DEFAULT_E2E_AUTH
 });
 
@@ -71,7 +70,8 @@ export async function loadE2eConfig(root, projectConfig = null, runtime = {}) {
   const baseUrl = fromCli || sanitizeBaseUrl(fromEnv || fromConfig);
   const urlRole = normalizeUrlRole(runtime.urlRole);
   const authMode = normalizeAuthMode(runtime.authMode ?? process.env.AAFE_E2E_AUTH_MODE ?? auth.mode) ?? 'reuse-or-headed';
-  const { githubAccessToken, gongfengAccessToken, ...publicE2e } = e2e;
+  const { githubAccessToken: _github, gongfengAccessToken: _gongfeng, ...publicE2e } = e2e;
+  const repo = resolveRepoConfig(config);
   return {
     ...publicE2e,
     auth,
@@ -88,8 +88,8 @@ export async function loadE2eConfig(root, projectConfig = null, runtime = {}) {
     authEnv: runtime.authEnv ?? process.env.AAFE_E2E_ENV ?? auth.env,
     authStatePath: resolveAuthStatePath(root, auth, runtime),
     enabled: isE2eEnabled(e2e),
-    githubAccessTokenConfigured: Boolean(String(githubAccessToken ?? '').trim()),
-    gongfengAccessTokenConfigured: Boolean(String(gongfengAccessToken ?? '').trim())
+    githubAccessTokenConfigured: repoTokenConfigured({ repo, e2e }, 'githubAccessToken'),
+    gongfengAccessTokenConfigured: repoTokenConfigured({ repo, e2e }, 'gongfengAccessToken')
   };
 }
 
@@ -203,10 +203,7 @@ export function expandSecretRef(value, env = process.env) {
 
 export async function readPrAccessTokenConfig(root) {
   const config = await readProjectConfig(root);
-  return {
-    githubAccessToken: config.e2e?.githubAccessToken ?? null,
-    gongfengAccessToken: config.e2e?.gongfengAccessToken ?? null
-  };
+  return resolveRepoConfig(config);
 }
 
 export async function readProjectConfig(root) {

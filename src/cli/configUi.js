@@ -28,6 +28,7 @@ import { listAgentModels } from './agentModels.js';
 import { normalizeMcpServers, resolveAgentMcpConfig } from './agentMcp.js';
 import { resolveWorkflowModeConfig } from './workflowMode.js';
 import { resolveSubmitConfig } from './submitConfig.js';
+import { resolveRepoConfig, stripLegacyE2eRepoTokens } from './repoConfig.js';
 import { defaultTapdConfigTemplate } from './tapdConfig.js';
 import { DEFAULT_E2E_CONFIG } from '../testing/e2e/config.js';
 
@@ -159,6 +160,7 @@ export function buildConfigForm(projectConfig = {}) {
   return {
     workflow: resolveWorkflowModeConfig(projectConfig).workflow,
     submitCli: resolveSubmitConfig(projectConfig).cli,
+    repo: resolveRepoConfig(projectConfig),
     agent: {
       enabled: agent.enabled === true,
       provider: agent.provider ?? 'cursor',
@@ -194,6 +196,7 @@ export function applyConfigForm(existing = {}, form = {}) {
   const next = { ...existing };
   next.mode = resolveWorkflowModeConfig(existing, { workflow: form.workflow });
   next.submit = resolveSubmitConfig(existing, { cli: form.submitCli ?? form.submit?.cli });
+  next.repo = resolveRepoConfig(existing, form.repo ?? {});
 
   const agentForm = form.agent ?? {};
   const mcpForm = form.mcp ?? {};
@@ -228,13 +231,13 @@ export function applyConfigForm(existing = {}, form = {}) {
     next.tapd = { ...existing.tapd, enabled: false };
   }
 
-  next.e2e = {
+  next.e2e = stripLegacyE2eRepoTokens({
     ...DEFAULT_E2E_CONFIG,
     ...(existing.e2e ?? {}),
     enabled: form.e2e?.enabled !== false,
     baseUrlEnv: String(form.e2e?.baseUrlEnv ?? existing.e2e?.baseUrlEnv ?? DEFAULT_E2E_CONFIG.baseUrlEnv),
     baseUrl: emptyToNull(form.e2e?.baseUrl ?? existing.e2e?.baseUrl)
-  };
+  });
   return next;
 }
 
@@ -259,6 +262,7 @@ function managedPreview(config) {
   return {
     mode: config.mode ?? null,
     submit: config.submit ?? null,
+    repo: config.repo ?? null,
     agent: config.agent ?? null,
     tapd: config.tapd ?? null,
     e2e: config.e2e

@@ -138,7 +138,9 @@ alwaysApply: true
 
 ### Commit / PR（\`submit.cli\`）
 
-\`.aafe.config.json\` → \`submit.cli\`：\`git\`（默认，Git+\`gh\`）或 \`gtm\`（\`gtm commit\`/\`gtm pr\`）。  
+\`.aafe.config.json\` → \`submit.cli\`：\`git\`（默认，Token API / \`aafe repo pr\`，不依赖 gh）或 \`gtm\`（\`gtm commit\`/\`gtm pr\`）。  
+提交 / 拉取 / PR / MR 读 \`.aafe.config.json\` → \`repo.githubAccessToken\` / \`repo.gongfengAccessToken\`（或环境变量 \`GITHUB_TOKEN\` / \`GIT_PRIVATE_TOKEN\`）。  
+已配置 GitHub Token 则用 Token 执行，不要因为没有 \`gh\` 失败。创建 PR / MR 时带上 \`repo.reviewers\` / \`repo.labels\`。
 \`aafe update --submit-cli=git|gtm\` 可更新。
 
 ### 回填
@@ -303,7 +305,8 @@ Submit-backfill status: backlog → todo → doing（已是 doing 则跳过；�
 
 ## Phase C / D — Submit CLI
 
-先读 \`submit.cli\`：\`git\`（默认）用 Git+\`gh\`；\`gtm\` 用 \`gtm commit\`/\`gtm pr\`（异常不强制）。  
+先读 \`submit.cli\`：\`git\`（默认）用 Git + Token API（\`aafe repo pr\`，不依赖 gh）；\`gtm\` 用 \`gtm commit\`/\`gtm pr\`（异常不强制）。  
+创建 PR / MR 时读 \`repo.reviewers\` / \`repo.labels\` 并写入（GitHub Token API；工蜂：创建后写 MR labels / reviewer_ids）。  
 有关联 TAPD 时使用已关联 \`entry_type\` / \`entry_id\`；禁止无关联时编造 ID。
 
 ### TAPD Branch Association（git 和 gtm 均适用）

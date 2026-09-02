@@ -366,7 +366,7 @@ async function replayStoredRun(root, options) {
 export async function runTestCommand(root, args = []) {
   const options = parsePlatformArgs(args);
   if (options.inlineToken !== undefined) {
-    console.error('拒绝从命令行读取令牌：不要使用 --token <值>。请写到 `.aafe.config.json` 的 e2e.githubAccessToken / e2e.gongfengAccessToken，或环境变量 GITHUB_TOKEN / GIT_PRIVATE_TOKEN。');
+    console.error('拒绝从命令行读取令牌：不要使用 --token <值>。请写到 `.aafe.config.json` 的 repo.githubAccessToken / repo.gongfengAccessToken，或环境变量 GITHUB_TOKEN / GIT_PRIVATE_TOKEN。');
     process.exitCode = 3;
     return null;
   }

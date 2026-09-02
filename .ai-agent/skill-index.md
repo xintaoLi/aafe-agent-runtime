@@ -79,6 +79,7 @@ not on `PATH`; if neither resolves, fall back to reading files and say so.
 | A test run failed and the cause is unclear | `aafe diagnose --failure=<report>` |
 | Runtime files look stale or inconsistent | `aafe doctor`, then `aafe migrate --dry-run` |
 | Switching ask vs autonomous workflow | `aafe update --workflow-mode=ask|autonomous` |
+| 创建 GitHub PR（用 repo.githubAccessToken，不依赖 gh） | `aafe repo pr --title= --body= --base= --head=` |
 
 Prefer `aafe knowledge search` over a blind repository grep: it ranks across modules, routes,
 components, features and symbols, and normalizes `userPhoneSearch`, `user-phone-search.js` and

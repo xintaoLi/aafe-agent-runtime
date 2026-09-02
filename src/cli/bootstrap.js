@@ -38,6 +38,8 @@ import {
   AAFE_TEST_FROM_PR_SKILL_DIR
 } from './e2eFromPrRules.js';
 import { resolveSubmitConfig } from './submitConfig.js';
+import { resolveRepoConfig, stripLegacyE2eRepoTokens } from './repoConfig.js';
+import { repoSubmitSkill } from './repoSubmitRules.js';
 import { resolveWorkflowModeConfig } from './workflowMode.js';
 import { resolveAgentModeConfig } from './agentMode.js';
 import {
@@ -194,8 +196,6 @@ async function writeConfig(root, _detection, options, plan) {
       baseUrlEnv: 'AAFE_E2E_BASE_URL',
       baseUrl: null,
       enabled: true,
-      githubAccessToken: null,
-      gongfengAccessToken: null,
       auth: {
         mode: 'reuse-or-headed',
         stateDir: '.aafe/e2e/auth',
@@ -214,6 +214,9 @@ async function writeConfig(root, _detection, options, plan) {
   if (options.e2eConfig) {
     config.e2e = { ...config.e2e, ...options.e2eConfig };
   }
+  if (config.e2e) config.e2e = stripLegacyE2eRepoTokens(config.e2e);
+
+  config.repo = resolveRepoConfig(existingConfig, options.repoConfig ?? {});
 
   if (existingConfig.analyze) {
     config.analyze = {
@@ -435,6 +438,7 @@ function runtimeFiles(_detection, plan) {
     '.ai-agent/skills/minimal-convergent-self-test.md': minimalConvergentSelfTestSkill(),
     '.ai-agent/skills/aafe-test-from-pr.md': aafeTestFromPrSkillContent('.ai-agent'),
     '.ai-agent/skills/tapd-submit-backfill.md': tapdSubmitBackfillSkill(),
+    '.ai-agent/skills/repo-submit.md': repoSubmitSkill(),
     '.ai-agent/skills/workflow-mode.md': workflowModeSkill(),
     '.ai-agent/skills/knowledge-center-updater.md': knowledgeCenterUpdaterSkill(),
     '.ai-agent/skills/adr-generator.md': adrSkill(),
@@ -784,6 +788,7 @@ not on \`PATH\`; if neither resolves, fall back to reading files and say so.
 | A test run failed and the cause is unclear | \`aafe diagnose --failure=<report>\` |
 | Runtime files look stale or inconsistent | \`aafe doctor\`, then \`aafe migrate --dry-run\` |
 | Switching ask vs autonomous workflow | \`aafe update --workflow-mode=ask|autonomous\` |
+| 创建 GitHub PR（用 repo.githubAccessToken，不依赖 gh） | \`aafe repo pr --title= --body= --base= --head=\` |
 
 Prefer \`aafe knowledge search\` over a blind repository grep: it ranks across modules, routes,
 components, features and symbols, and normalizes \`userPhoneSearch\`, \`user-phone-search.js\` and

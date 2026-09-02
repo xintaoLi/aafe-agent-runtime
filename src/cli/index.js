@@ -27,6 +27,7 @@ import {
   runPlatformRunCommand,
   runTestCommand
 } from './platform.js';
+import { runRepoPrCommand } from './repoSubmit.js';
 
 export async function runCli(argv) {
   const command = argv[2] ?? 'help';
@@ -164,6 +165,16 @@ export async function runCli(argv) {
     return;
   }
 
+  if (command === 'repo') {
+    const subcommand = argv[3] ?? 'help';
+    if (subcommand !== 'pr') {
+      throw new Error('Usage: aafe repo pr --title= --body= --base= --head=');
+    }
+    const result = await runRepoPrCommand(process.cwd(), argv.slice(4));
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
   if (command === 'diagnose') {
     await runDiagnoseCommand(process.cwd(), argv.slice(3));
     return;
@@ -274,6 +285,7 @@ Commands:
   pipeline  Run the legacy skill pipeline (former "run" behaviour)
   test      Plan/generate Playwright YAML cases from analyze, diff or PR; --run executes e2e
   e2e       Enable/disable Playwright E2E later (aafe e2e enable|disable|status|install|auth)
+  repo      GitHub PR via repo.githubAccessToken (aafe repo pr). Does not require gh
   diagnose  Turn a failing test report into a located root cause
   update    Refresh installed project .ai-agent capabilities from the current aafe package
   migrate   Move files and config left by older versions to their current locations (--dry-run)
@@ -312,8 +324,13 @@ E2E (init/update interactive, or later):
 
 Submit CLI:
   .aafe.config.json → "submit": { "cli": "git" | "gtm" }
-  git (default): Git CLI + gh for PR
+  git (default): Git CLI + Token API / aafe repo pr (gh optional fallback)
   gtm: gtm commit / gtm pr (project GTM config required; errors not forced)
+
+Code repo:
+  .aafe.config.json → "repo": { "githubAccessToken", "gongfengAccessToken", "reviewers", "labels" }
+  If githubAccessToken / GITHUB_TOKEN is set, GitHub fetch/pull/push/PR use that token (aafe repo pr). gh is not required.
+  reviewers / labels (string arrays) are attached when creating GitHub PR or Gongfeng MR.
 
 Workflow mode:
   .aafe.config.json → "mode": { "workflow": "ask" | "autonomous" }
