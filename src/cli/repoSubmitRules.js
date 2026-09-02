@@ -54,7 +54,7 @@ Hard:
 2. 否则 \`repo.githubAccessToken\`（可写 \`\${GITHUB_TOKEN}\`）
 
 **有 Token（mode=token）→ 走 R2 + R3，禁止因为没有 \`gh\` 而失败。**  
-**无 Token** → 仅当本机 \`command -v gh\` 成功才允许 \`gh\`；否则报告并停下（不阻断 TAPD Phase E）。
+**无 Token** → 明确提示“未解析到 \`repo.githubAccessToken\` / \`GITHUB_TOKEN\`”，然后降级 \`gh pr create\`。若 \`gh\` 未登录，如实报告 gh 登录错误（不阻断 TAPD Phase E）。
 
 ---
 
@@ -90,11 +90,7 @@ aafe repo pr --title="<title>" --body="<body>" --base=<base> --head=<head>
 也可用 curl（\`Authorization: Bearer $GITHUB_TOKEN\`），效果相同。  
 \`--dry-run\` 只打印计划，不发请求。
 
-无 Token 且 \`gh\` 可用时的降级（不要作为默认）：
-
-\`\`\`bash
-gh pr create --reviewer <a,b> --label <x,y> …
-\`\`\`
+若 Token API 创建失败，允许降级到 \`gh pr create\`，但必须先输出降级提示和失败原因。正常情况下 \`.aafe.config.json\` Token 优先于 \`gh\`。
 
 ---
 

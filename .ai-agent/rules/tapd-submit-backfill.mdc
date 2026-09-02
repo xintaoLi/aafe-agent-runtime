@@ -42,14 +42,16 @@ alwaysApply: true
 
 详细步骤见 Skill：`.ai-agent/skills/tapd-submit-backfill.md`
 
-## 强制顺序（有关联 TAPD 时，不可跳步）
+## 动态门禁顺序（有关联 TAPD 时）
 
 ```text
-自测完成（含 UI 路径预生成与执行）
-  → Commit 门禁（ask 询问 / autonomous 判定）
+自测完成或用户触发提交意图
+  → 动态判定是否 Commit/PR/MR（ask 根据回复 / autonomous 根据上下文）
       ├─ 是 / proceed → 按 `.aafe.config.json` → `submit.cli` 执行 Commit/PR → 回填门禁
       └─ 否 / skip → 仍进入回填门禁（仅有关联 TAPD 时）
-  → 回填同意 / proceed → comments_create（+ 可选 PR 字段 / 状态流转）
+  → 动态判定是否回填（ask 根据回复 / autonomous 根据上下文）
+      ├─ 同意 / proceed → comments_create（+ 可选 PR 字段 / 状态流转）
+      └─ 拒绝 / skip → 结束
 ```
 
 无 TAPD 关联时：Commit/PR 可选，**不进入**上述回填。
@@ -74,7 +76,7 @@ alwaysApply: true
 
 创建 / 拉取 / PR / MR 前 Read `.ai-agent/skills/repo-submit.md`。
 
-已配置 `repo.githubAccessToken` 或 `GITHUB_TOKEN` → **必须用该 Token 调 GitHub API**（`aafe repo pr`），**不依赖项目内是否安装 `gh`**。未配置 Token 且本机有 `gh` 才允许 `gh pr create`。
+已配置 `repo.githubAccessToken` 或 `GITHUB_TOKEN` → **必须优先用该 Token 调 GitHub API**（`aafe repo pr`），**不依赖项目内是否安装 `gh`**。未配置 Token 或 Token API 失败时，先提示降级原因，再允许 `gh pr create`。
 
 先读 `repo.reviewers` / `repo.labels`（字符串数组，缺省 `[]`）。非空则创建或补写时必须带上；空数组省略。不要猜测人员或标签。
 

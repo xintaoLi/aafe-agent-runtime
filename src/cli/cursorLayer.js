@@ -26,6 +26,7 @@ import {
   aafeTestFromPrPointerRuleMdc,
   AAFE_TEST_FROM_PR_SKILL_DIR
 } from './e2eFromPrRules.js';
+import { taskSpineHookContext, taskSpinePointerLine } from './taskSpine.js';
 import {
   createCursorPathContext,
   rewriteCursorContent
@@ -316,6 +317,7 @@ function cursorSkillRouterRules(ctx) {
     `1. Read \`${ctx.agentPrefix}/skill-index.md\` first.`,
     `2. If present, read \`${ctx.agentPrefix}/project.md\` for project-specific quick map and domain routing hints.`,
     `3. Read \`.aafe.config.json\` → \`mode.workflow\` (default \`ask\`). Load \`${ctx.agentPrefix}/skills/workflow-mode.md\` before the first interactive gate.`,
+    `3b. ${taskSpinePointerLine(ctx.agentPrefix)}`,
     `4. Only when the task matches a domain, read the matching \`${ctx.agentPrefix}/project-skills/<domain>/SKILL.md\`.`,
     `5. For non-trivial frontend work, then follow \`${ctx.agentPrefix}/runtime/*\` and \`${ctx.agentPrefix}/pipelines/*\`.`,
     '6. Editor directories are pointers only. Do not copy, rewrite, or maintain project knowledge in `.cursor`.',
@@ -346,11 +348,12 @@ function nativeEditorSkill(name, ctx) {
     '',
     `# AAFE Runtime (${name} / ${ctx.moduleName})`,
     '',
-    `1. Read \`${ctx.agentPrefix}/skill-index.md\` first.`,
+    `1. Read \`${ctx.agentPrefix}/skill-index.md\` first and follow **Task Spine**.`,
     `2. Read \`${ctx.agentPrefix}/project.md\` when present.`,
     `3. Load only the matching \`${ctx.agentPrefix}/project-skills/<domain>/SKILL.md\`.`,
-    `4. For non-trivial work, follow \`${ctx.agentPrefix}/runtime/engine.md\`, \`${ctx.agentPrefix}/runtime/router.yaml\` and the selected pipeline.`,
-    `5. Preserve successful decisions and reusable solutions in \`${ctx.agentPrefix}/memory/\`.`,
+    `4. ${taskSpinePointerLine(ctx.agentPrefix)}`,
+    `5. For non-trivial work, follow \`${ctx.agentPrefix}/runtime/engine.md\`, \`${ctx.agentPrefix}/runtime/router.yaml\` and the selected pipeline.`,
+    `6. Preserve successful decisions and reusable solutions in \`${ctx.agentPrefix}/memory/\`.`,
     '',
     `The module \`${ctx.agentPrefix}\` directory is the single source of truth; this file is only the editor discovery entry.`,
     ''
@@ -369,7 +372,8 @@ function cursorRules(ctx) {
     '',
     'For every non-trivial frontend task after the Skill Router step:',
     `0. Read \`.aafe.config.json\` → \`mode.workflow\` (default \`ask\`) and follow \`aafe-workflow-mode.mdc\` / \`${ctx.agentPrefix}/skills/workflow-mode.md\` before the first interactive gate.`,
-    `0b. After concrete requirement (TAPD or user), follow \`aafe-requirement-intake-analysis.mdc\` / \`${ctx.agentPrefix}/skills/requirement-intake-analysis.md\`: clarify → history → scope/root cause → Plan gate if large.`,
+    `0a. ${taskSpinePointerLine(ctx.agentPrefix)}`,
+    `0b. After concrete requirement (TAPD or user), follow \`aafe-requirement-intake-analysis.mdc\` / \`${ctx.agentPrefix}/skills/requirement-intake-analysis.md\`: TAPD pull + branch association → clarify → history → scope/root cause → Plan gate if large.`,
     `1. Read \`${ctx.agentPrefix}/runtime/engine.md\`.`,
     `2. Classify the task using \`${ctx.agentPrefix}/runtime/router.yaml\`.`,
     `3. Follow the selected \`${ctx.agentPrefix}/pipelines/*.yaml\`.`,
@@ -430,7 +434,7 @@ function cursorSessionStartHook(ctx) {
     '',
     'cat <<\'JSON\'',
     '{',
-    `  "additional_context": "<AAFE_SKILL_ROUTER module=\\"${ctx.moduleName}\\">\\n1. Read ${ctx.agentPrefix}/skill-index.md.\\n2. Read ${ctx.agentPrefix}/project.md if present.\\n3. Load matching ${ctx.agentPrefix}/project-skills/*/SKILL.md on demand only.\\n4. For non-trivial tasks, follow ${ctx.agentPrefix}/runtime/* and pipelines.\\n5. Do not copy project knowledge into editor directories.\\n</AAFE_SKILL_ROUTER>"`,
+    `  "additional_context": "${taskSpineHookContext(ctx.agentPrefix, ctx.moduleName)}"`,
     '}',
     'JSON',
     'exit 0',

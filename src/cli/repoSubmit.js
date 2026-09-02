@@ -25,6 +25,7 @@ import path from 'node:path';
 
 const execFileAsync = promisify(execFile);
 import {
+  buildGithubPrCreateArgs,
   expandRepoSecretRef,
   REPO_GITHUB_TOKEN_ENV,
   resolveRepoAccessToken,
@@ -183,15 +184,32 @@ export async function runRepoPrCommand(root, argv = [], {
   const opts = parseRepoPrArgs(argv);
   const projectConfig = await readConfig(root);
   const auth = resolveGithubSubmitToken(projectConfig, env);
-  if (auth.mode !== 'token') {
-    throw Object.assign(new Error('未配置 repo.githubAccessToken / GITHUB_TOKEN。GitHub PR 用 Token 调 API，不依赖 gh。'), { code: 'blocked' });
-  }
   const remote = parseGitRemote(opts.remote) ?? await resolveRemote(root);
   const owner = opts.owner || remote?.owner;
   const repo = opts.repo || remote?.repo;
   const host = opts.host || remote?.host || 'github.com';
   const head = opts.head || await resolveHead(root);
   const meta = resolveRepoPrMeta(projectConfig);
+  const fallbackContext = { opts: { ...opts, head }, meta, env };
+  if (auth.mode !== 'token') {
+    const warning = '未解析到 repo.githubAccessToken / GITHUB_TOKEN，降级使用 gh pr create。若 gh 未登录会失败。';
+    if (opts.dryRun) {
+      return {
+        dryRun: true,
+        mode: 'gh-fallback',
+        warning,
+        owner,
+        repo,
+        host,
+        head,
+        base: opts.base,
+        title: opts.title,
+        reviewers: meta.reviewers,
+        labels: meta.labels
+      };
+    }
+    return runGhPrCreateFallback(root, fallbackContext, warning);
+  }
   const payload = {
     token: auth.token,
     host,
@@ -219,7 +237,40 @@ export async function runRepoPrCommand(root, argv = [], {
       labels: meta.labels
     };
   }
-  return ensureGithubPullRequest({ ...payload, fetchImpl });
+  try {
+    return await ensureGithubPullRequest({ ...payload, fetchImpl });
+  } catch (error) {
+    if (opts.noGhFallback === true) throw error;
+    const warning = `GitHub Token API 创建 PR 失败，降级使用 gh pr create。原因：${error?.message ?? error}`;
+    return runGhPrCreateFallback(root, fallbackContext, warning);
+  }
+}
+
+async function runGhPrCreateFallback(root, { opts, meta, env }, warning) {
+  const args = ['pr', 'create'];
+  if (opts.title) args.push('--title', opts.title);
+  if (opts.body) args.push('--body', opts.body);
+  if (opts.base) args.push('--base', opts.base);
+  if (opts.head) args.push('--head', opts.head);
+  args.push(...buildGithubPrCreateArgs(meta));
+  try {
+    const { stdout, stderr } = await execFileAsync('gh', args, { cwd: root, env });
+    const output = `${stdout ?? ''}\n${stderr ?? ''}`;
+    const url = output.match(/https:\/\/\S+\/pull\/\d+/)?.[0] ?? '';
+    return {
+      provider: 'github',
+      mode: 'gh-fallback',
+      warning,
+      htmlUrl: url,
+      output: output.trim()
+    };
+  } catch (error) {
+    const message = String(error?.stderr || error?.stdout || error?.message || error);
+    throw Object.assign(new Error(`${warning}\n降级 gh 失败：${message.trim()}`), {
+      code: 'blocked',
+      cause: error
+    });
+  }
 }
 
 async function findOpenGithubPull({ api, token, owner, repo, head, base, fetchImpl }) {

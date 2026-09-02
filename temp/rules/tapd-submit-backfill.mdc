@@ -29,13 +29,16 @@ alwaysApply: true
 
 详细步骤：`skills/tapd-submit-backfill.md`
 
-## 强制顺序（有关联 TAPD 时）
+## 动态门禁顺序（有关联 TAPD 时）
 
 ```text
-自测完成 → 询问 Commit？
-  ├─ 是 → 按 submit.cli（git|gtm）执行 Commit/PR → 询问回填 TAPD？
-  └─ 否 → 仍询问回填 TAPD？
-同意回填 → comments_create + 可选 PR 字段 + 状态逐步流转
+自测完成或用户触发提交意图
+  → 动态判定是否 Commit/PR/MR（ask 根据回复 / autonomous 根据上下文）
+      ├─ 是 / proceed → 按 submit.cli（git|gtm）执行 Commit/PR → 回填门禁
+      └─ 否 / skip → 仍进入回填门禁（仅有关联 TAPD 时）
+  → 动态判定是否回填（ask 根据回复 / autonomous 根据上下文）
+      ├─ 同意 / proceed → comments_create + 可选 PR 字段 + 状态逐步流转
+      └─ 拒绝 / skip → 结束
 ```
 
 ### Commit / PR（`submit.cli`）

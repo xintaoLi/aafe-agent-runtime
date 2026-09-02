@@ -142,7 +142,7 @@ Companions:
 
 - Rule: \`${prefix}/rules/workflow-mode.mdc\`
 - Config: \`.aafe.config.json\` → \`mode.workflow\`
-- Downstream: \`${prefix}/skills/requirement-intake-analysis.md\`、\`${prefix}/skills/architecture-impact-test-forecast.md\`、\`${prefix}/skills/minimal-convergent-self-test.md\`、\`${prefix}/skills/tapd-submit-backfill.md\`
+- Downstream: \`${prefix}/skill-index.md\` Task Spine；\`${prefix}/skills/requirement-intake-analysis.md\`、\`${prefix}/skills/architecture-impact-test-forecast.md\`、\`${prefix}/skills/minimal-convergent-self-test.md\`、\`${prefix}/skills/repo-submit.md\`、\`${prefix}/skills/tapd-submit-backfill.md\`
 
 Update: \`aafe update --workflow-mode=ask|autonomous\`
 

@@ -25,7 +25,7 @@ Source of truth:
    - \`${agentPrefix}/skills/minimal-convergent-self-test.md\`
    - 自测后衔接：\`${agentPrefix}/skills/tapd-submit-backfill.md\`
 
-Follow the Rule for task assessment gates and hard constraints; load Skills after ask-mode confirm **or** autonomous \`proceed\`.
+Task Spine **[3]** 是动态决策：有代码变更才评估影响分析 + 自测；ask 模式按用户回复推进或跳过，autonomous 按上下文判定 \`proceed / skip / ask\`；完成或跳过后再动态判定 **[4]** 提交/PR/MR/回填。
 UI/路由自测走 \`aafe test --diff\`；浏览器 MCP 仅当 E2E blocked。MCP 兜底须先预生成 \`ui_test_paths\`。无代码变更或无 UI 影响时不询问浏览器。Do not duplicate project knowledge here.
 `;
 }

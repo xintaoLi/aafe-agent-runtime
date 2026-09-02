@@ -23,7 +23,7 @@ Source of truth:
 1. Rule: \`${agentPrefix}/rules/tapd-submit-backfill.mdc\`
 2. Skill: \`${agentPrefix}/skills/tapd-submit-backfill.md\`
 
-流程：自测完成 → Commit → PR → **仅任务有关联 TAPD 单时**回填。\`ask\` 询问；\`autonomous\` 按 workflow-mode 判定。无 TAPD 关联则跳过回填及新建单等询问。
+Task Spine 是动态决策链：**[1]** 若有 TAPD → 拉单并判定是否新建/切换分支；非 TAPD 新任务也要判定分支；**[4]** 根据提交意图决定 Commit/PR/MR（\`repo-submit\`），仅任务有关联 TAPD 单时进入回填门禁。\`ask\` 根据用户回复推进；\`autonomous\` 按 workflow-mode 自主判定。无 TAPD 关联则跳过 TAPD 回填。
 
 Do not duplicate project knowledge here.
 `;
@@ -71,14 +71,16 @@ ${workflowModeGatePreamble(agentPrefix)}
 
 详细步骤见 Skill：\`${agentPrefix}/skills/tapd-submit-backfill.md\`
 
-## 强制顺序（有关联 TAPD 时，不可跳步）
+## 动态门禁顺序（有关联 TAPD 时）
 
 \`\`\`text
-自测完成（含 UI 路径预生成与执行）
-  → Commit 门禁（ask 询问 / autonomous 判定）
+自测完成或用户触发提交意图
+  → 动态判定是否 Commit/PR/MR（ask 根据回复 / autonomous 根据上下文）
       ├─ 是 / proceed → 按 \`.aafe.config.json\` → \`submit.cli\` 执行 Commit/PR → 回填门禁
       └─ 否 / skip → 仍进入回填门禁（仅有关联 TAPD 时）
-  → 回填同意 / proceed → comments_create（+ 可选 PR 字段 / 状态流转）
+  → 动态判定是否回填（ask 根据回复 / autonomous 根据上下文）
+      ├─ 同意 / proceed → comments_create（+ 可选 PR 字段 / 状态流转）
+      └─ 拒绝 / skip → 结束
 \`\`\`
 
 无 TAPD 关联时：Commit/PR 可选，**不进入**上述回填。
@@ -191,18 +193,19 @@ Companions:
 进入本 Skill 回填分支前，确认任务过程中**已涉及 TAPD 单**（ID/链接/MCP/用户绑定）。  
 **否** → 不执行 Phase E/F；Commit 用常规 message；结束。
 
-## End-to-end pipeline（有关联 TAPD 时）
+## Submit / Backfill decision chain（有关联 TAPD 时）
 
 \`\`\`text
-[A] 确保自测产物齐全（缺则先跑 impact + self-test；代码变更任务才需）
-[B] Commit 门禁（ask 询问 / autonomous 判定）
+[A] 动态确认自测产物是否需要补齐（代码变更任务才需）
+[B] Commit 门禁（ask 根据用户回复；autonomous 根据上下文判定）
     ├─ 是 / proceed → [C]/[D] 按 submit.cli（git|gtm）执行 Commit/PR → [E] 回填门禁
     └─ 否 / skip → [E] 仍进入回填门禁
-[E] 同意 → [F] 评论回填 + 可选 PR 字段 + 状态流转
+[E] 回填门禁（ask 根据用户回复；autonomous 根据上下文判定）
+    同意 / proceed → [F] 评论回填 + 可选 PR 字段 + 状态流转
     拒绝 → 结束
 \`\`\`
 
-**Hard：** 有关联 TAPD 时，即使不 Commit 也必须执行 [E]。**无关联**则整段 [E][F] 跳过。
+**Hard：** 有关联 TAPD 时，即使不 Commit 也要动态进入 [E] 回填门禁；ask 模式尊重用户回复，autonomous 模式按判定表执行。**无关联**则整段 [E][F] 跳过。
 
 ### Submit CLI 选择（强制先读配置）
 
@@ -458,9 +461,9 @@ gtm commit
 Commit 成功后尝试 PR：
 
 1. Read \`${prefix}/skills/repo-submit.md\`
-2. 确认分支相对 base 的提交与远程同步（按 creating-pull-requests 规则）
+2. 确认分支相对 base 的提交与远程同步；优先走 \`.aafe.config.json\` → \`repo.githubAccessToken\`
 3. 已配置 \`repo.githubAccessToken\` / \`GITHUB_TOKEN\`：用 Token \`git -c http.extraheader="AUTHORIZATION: bearer $GITHUB_TOKEN" push -u origin HEAD\`（不要把 Token 写进 remote）
-4. 创建 PR：**优先** \`aafe repo pr --title= --body= --base= --head=\`（Token API，附带 \`repo.reviewers\` / \`repo.labels\`）。**不依赖 \`gh\`**。仅无 Token 且本机有 \`gh\` 时才允许 \`gh pr create\`
+4. 创建 PR：优先 \`aafe repo pr --title= --body= --base= --head=\`（Token API，附带 \`repo.reviewers\` / \`repo.labels\`）。无 Token 或 Token API 失败时，先提示降级原因，再允许 \`gh pr create\`
 5. 记录 \`pr_url\`；失败则报告原因，**不阻断** Phase E
 
 ### D2 when \`submit.cli=gtm\`

@@ -12,6 +12,7 @@ import {
   tapdSubmitRuleMdc,
   tapdSubmitRuleSection
 } from '../src/cli/tapdSubmitRules.js';
+import { taskSpineHookContext, taskSpineMarkdown } from '../src/cli/taskSpine.js';
 
 const layeredImpact = taskCompletionImpactRuleMdc({
   agentPrefix: 'bklog/web/.ai-agent',
@@ -91,10 +92,10 @@ assert.match(tapdSkill, /autonomous mode/);
 assert.match(tapdSkill, /submit\.cli/);
 assert.match(tapdSkill, /gtm commit/);
 assert.match(tapdSkill, /gtm pr/);
-assert.match(tapdSkill, /gh pr create/);
 assert.match(tapdSkill, /aafe repo pr/);
 assert.match(tapdSkill, /repo-submit\.md/);
 assert.match(tapdSkill, /不依赖/);
+assert.match(tapdSkill, /提示降级原因/);
 assert.match(tapdSkill, /aafe update --submit-cli/);
 assert.match(tapdSkill, /repo\.githubAccessToken/);
 assert.match(tapdSkill, /repo\.gongfengAccessToken/);
@@ -135,5 +136,20 @@ assert.match(reqSection, /Requirement Intake/);
 
 const flatReq = requirementIntakeRuleMdc();
 assert.match(flatReq, /requirement-intake-analysis/);
+assert.match(flatReq, /Task Spine/);
+
+const tapdPointer = tapdSubmitRuleMdc();
+assert.match(tapdPointer, /Task Spine/);
+assert.match(tapdPointer, /repo-submit/);
+
+const spine = taskSpineMarkdown('.ai-agent');
+assert.match(spine, /Task Spine/);
+assert.match(spine, /\[1\].*需求与分支决策/);
+assert.match(spine, /非 TAPD/);
+assert.match(spine, /动态路由/);
+assert.match(spine, /\[3\].*自测/);
+assert.match(spine, /\[4\].*PR/);
+assert.match(spine, /repo-submit\.md/);
+assert.match(taskSpineHookContext('.ai-agent'), /Task Spine/);
 
 console.log('completion/tapd rules generator tests passed');

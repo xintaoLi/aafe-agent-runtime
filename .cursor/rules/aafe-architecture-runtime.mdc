@@ -7,7 +7,8 @@ alwaysApply: true
 
 For every non-trivial frontend task after the Skill Router step:
 0. Read `.aafe.config.json` → `mode.workflow` (default `ask`) and follow `aafe-workflow-mode.mdc` / `workflow-mode.md` before the first interactive gate.
-0b. After concrete requirement is obtained (TAPD pull or user spec), follow `aafe-requirement-intake-analysis.mdc` / `requirement-intake-analysis.md`: clarify ambiguities → history search → code scope & root cause → sizing gate (direct fix vs Plan mode).
+0a. Follow `.ai-agent/skill-index.md` **Task Spine** as a dynamic decision chain: [1] 需求/分支判定 → [2] 执行判定 → [3] 影响/自测判定 → [4] 提交/PR/MR/回填判定。
+0b. After concrete requirement is obtained (TAPD pull or user spec), follow `aafe-requirement-intake-analysis.mdc` / `requirement-intake-analysis.md`: dynamically decide TAPD/non-TAPD branch association → clarify ambiguities → history search → code scope & root cause → sizing gate (direct fix vs Plan mode).
 1. Read `.ai-agent/runtime/engine.md`.
 2. Classify the task using `.ai-agent/runtime/router.yaml`.
 3. Follow the selected `.ai-agent/pipelines/*.yaml`.
@@ -19,6 +20,6 @@ For every non-trivial frontend task after the Skill Router step:
 8. For new features, run Pattern Interview before Pattern Selection.
 9. For complex frontend work, select and land patterns per module based on real business responsibility.
 10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.
-11. Before final response, follow `aafe-task-completion-impact.mdc`: task assessment — only ask impact/self-test when code changed (skip docs/requirements-only); UI sub-asks only for code + UI impact; pre-generate `ui_test_paths`.
-12. After self-test or submit intent: follow `aafe-tapd-submit-backfill.mdc` only when task has TAPD association and `tapd.enabled`; else skip TAPD backfill asks.
+11. Before final response, follow `aafe-task-completion-impact.mdc` (Task Spine [3]): dynamically assess whether impact/self-test applies; only code changes enter this branch; UI sub-asks only for code + UI impact; pre-generate `ui_test_paths`.
+12. After self-test or explicit submit intent: dynamically follow `aafe-tapd-submit-backfill.mdc` + `repo-submit.md` (Task Spine [4]). TAPD backfill only when task has TAPD association and `tapd.enabled`; PR/MR still uses repo-submit.
 13. File license: follow `aafe-new-file-license.mdc` — new files add header; edits use local `aafe license ensure <path>` (never AI-Read memory JSONL).

@@ -193,10 +193,23 @@ assert.equal(planned.source, 'repo.githubAccessToken');
 assert.deepEqual(planned.reviewers, ['bob']);
 assert.doesNotMatch(JSON.stringify(planned), /ghp_cfg/);
 
+const fallbackPlan = await runRepoPrCommand('/tmp', [
+  '--title=Fix', '--head=feat/x', '--owner=acme', '--repo=app', '--dry-run'
+], {
+  env: {},
+  readConfig: async () => ({ repo: { reviewers: ['alice'], labels: ['frontend'] } }),
+  resolveRemote: async () => null,
+  resolveHead: async () => ''
+});
+assert.equal(fallbackPlan.mode, 'gh-fallback');
+assert.match(fallbackPlan.warning, /降级使用 gh pr create/);
+assert.deepEqual(fallbackPlan.reviewers, ['alice']);
+
 const repoSkill = repoSubmitSkillContent('.ai-agent');
 assert.match(repoSkill, /不依赖/);
 assert.match(repoSkill, /aafe repo pr/);
 assert.match(repoSkill, /githubAccessToken/);
 assert.match(repoSkill, /AUTHORIZATION: bearer/);
+assert.match(repoSkill, /降级/);
 
 console.log('submit config tests passed');

@@ -29,16 +29,25 @@ alwaysApply: true
 
 详细步骤：`.ai-agent/skills/requirement-intake-analysis.md`
 
-## TAPD 分支关联（git 和 gtm 均适用）
+## 分支决策（TAPD / 非 TAPD 均适用）
 
-新任务且有 TAPD 单时，写代码前：
+写代码前先动态判定任务来源和当前分支是否适合本次任务。
+
+### TAPD 单
 
 1. 通过 TAPD MCP 拉取需求详情，提取 `tapd_short_id`（URL 最后一段数字的末 9 位）
 2. 检查当前分支是否 `feat|bug/<slug>/#<tapd_short_id>` 且 short_id 与 TAPD 单一致
-3. 未关联或关联错误 → 从远程主干创建开发分支：
+3. 未关联、关联错误或当前分支不适合本任务 → 按规则新建或切换开发分支：
    - `git`：`git checkout -b feat|bug/<slug>/#<short_id> upstream/master`
    - `gtm`：`gtm create issue` → 关联已有单据 → 目标分支 `master` → 按 TAPD 标题生成英文短名
 4. 详见 `.ai-agent/skills/tapd-submit-backfill.md`「TAPD Branch Association」
+
+### 非 TAPD 任务
+
+1. 判断是否是新任务：看用户需求、当前分支名、已有 diff 与历史上下文
+2. 当前分支明显对应本任务 → 继续使用
+3. 当前在 `master` / `main`，或分支主题与新任务无关 → 新建或切换任务分支
+4. 无法确定 → `ask` 模式询问；`autonomous` 仅在高置信时自主判定，否则 Hard Ask
 
 ## 阶段 A — 需求分析与澄清
 

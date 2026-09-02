@@ -10,6 +10,6 @@ Source of truth:
 1. Rule: `.ai-agent/rules/tapd-submit-backfill.mdc`
 2. Skill: `.ai-agent/skills/tapd-submit-backfill.md`
 
-流程：自测完成 → Commit → PR → **仅任务有关联 TAPD 单时**回填。`ask` 询问；`autonomous` 按 workflow-mode 判定。无 TAPD 关联则跳过回填及新建单等询问。
+Task Spine 是动态决策链：**[1]** 若有 TAPD → 拉单并判定是否新建/切换分支；非 TAPD 新任务也要判定分支；**[4]** 根据提交意图决定 Commit/PR/MR（`repo-submit`），仅任务有关联 TAPD 单时进入回填门禁。`ask` 根据用户回复推进；`autonomous` 按 workflow-mode 自主判定。无 TAPD 关联则跳过 TAPD 回填。
 
 Do not duplicate project knowledge here.

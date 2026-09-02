@@ -31,6 +31,7 @@ AAFE 自己不改代码。它负责让 IDE Agent 在动手之前，先拿到这�
 - [DDD（显式开启）](#ddd显式开启)
 - [前端设计模式（显式开启）](#前端设计模式显式开启)
 - [Agent Platform](#agent-platform)
+- [任务主流程（Task Spine）](#任务主流程task-spine)
 - [E2E](#e2e)
 - [Agent 作用与配置指南](./AGENTS.CONFIG.md)
 - [Agent 内自主命中](#agent-内自主命中)
@@ -668,6 +669,145 @@ aafe run --replay=<runId>
 ```
 
 加 `--no-write` 可以不落盘运行。`aafe impact --format=md` 输出可直接贴进 PR 或 TAPD 的影响分析报告。
+
+## 任务主流程（Task Spine）
+
+AAFE 的 Task Spine 是**动态决策链**，不是每个任务都固定执行四个阶段。每个节点都先根据任务来源、当前分支、代码变更、用户意图和工作流模式判断是否进入、跳过或询问。
+
+`ask` 模式下，门禁不会自动推进：Agent 需要根据用户回复判断是否进入后续环节；用户拒绝或明确跳过时停止该分支。`autonomous` 模式下，LLM 根据上下文自主判定 `proceed / skip / ask`，只有缺少用户独有事实且会影响方案时才 Hard Ask。
+
+```text
+[1] 需求与分支决策（写代码前）
+    ├─ TAPD 单：拉详情 → 判定当前分支是否关联 → 按需新建/切换
+    ├─ 非 TAPD 新任务：判定是否需要新建/切换分支
+    └─ 无法确定：ask 询问；autonomous 高置信才自主判定
+[2] 任务执行决策
+    ├─ 小改：直接执行
+    ├─ 多方案/大改：Plan Gate
+    └─ 前端非平凡任务：按需进入 runtime / pipelines / project-skill
+[3] 影响范围 + 自测决策
+    ├─ 纯问答/纯文档：skip
+    ├─ 有代码变更：impact + 最小收敛自测
+    └─ UI/E2E：缺 URL 则 Hard Ask，blocked 后才考虑浏览器 MCP
+[4] 提交 / PR / MR / 回填决策
+    ├─ 用户要求提交或判定需要提交：repo-submit
+    ├─ GitHub：优先 repo.githubAccessToken；失败/缺失才提示后降级 gh
+    └─ 有 TAPD 关联：进入回填门禁；无关联则跳过 TAPD 回填
+```
+
+### [1] 需求与分支决策
+
+任务开始后先确认来源与任务性质。若用户给的是 TAPD story / bug 链接或 ID，先通过 TAPD MCP 拉取详情，拿到标题、描述、验收标准、状态，并从 URL 最后一段数字提取末 9 位作为 `tapd_short_id`。若不是 TAPD 单，则按普通需求处理，但仍要澄清目标、范围、验收、约束和依赖。
+
+TAPD 任务的分支判定：
+
+| 当前分支 | 结果 | 下一步 |
+| --- | --- | --- |
+| `feat|bug/<slug>/#<tapd_short_id>` 且 ID 一致 | 已关联 | 进入需求分析 |
+| 有 `#<digits>` 但与当前 TAPD 不一致 | 关联错误 | 按规则新建或切换到正确分支 |
+| `master` / `main` / 无 `#id` | 未关联 | 按规则新建关联分支 |
+| 非 TAPD 任务 | 无需 TAPD 关联 | 跳过分支关联 |
+
+TAPD 分支动作：
+
+| `submit.cli` | 分支动作 |
+| --- | --- |
+| `git` | `git fetch upstream master` → `git checkout -b feat|bug/<slug>/#<short_id> upstream/master` |
+| `gtm` | `gtm create issue` → 关联已有 TAPD 单 → 目标分支 `master` → 按 TAPD 标题生成英文短名 |
+
+非 TAPD 任务也要动态判断是否属于“新任务”。如果当前分支明显已经对应本任务，则继续使用；如果当前在 `master` / `main`，或当前分支主题与新任务无关，应新建或切换任务分支；如果无法从任务描述、分支名、历史上下文判断，`ask` 模式必须询问，`autonomous` 只有高置信时才自主判定。
+
+分支决策闭合后，再查历史积累并做代码范围与根因分析。若预计影响超过小改范围（例如多文件/多函数或外部契约变化），进入 Plan Gate：`ask` 根据用户回复决定是否切到 Plan；`autonomous` 可按上下文直接切换，Hard Ask 只用于无法推断的产品选择。
+
+### [2] 任务执行决策
+
+需求与分支决策闭合后才开始改代码。普通小改按项目既有模式实施；非平凡前端任务进入 `.ai-agent/runtime/engine.md`、`runtime/router.yaml` 和对应 `pipelines/*.yaml`；多方案或高风险改动进入 Plan Gate。DDD 与设计模式包是显式开启，用户没有明确表达时不自动加载。
+
+执行中遵守最小改动原则：只改与需求、根因和影响范围相关的文件；新增源码文件加 License；已有 License 文件用 `aafe license ensure <path>` 校验。
+
+### [3] 影响范围 + 自测决策
+
+任务完成前先判断是否有代码变更，再决定是否进入影响范围与自测：
+
+| 任务类型 | 行为 |
+| --- | --- |
+| 纯问答 / 纯文档 / 需求分析-only | 跳过影响分析与自测 |
+| 代码或运行时配置变更 | 进入影响范围与自测门禁 |
+
+`ask` 模式下，Agent 需要根据用户是否同意影响分析/自测来决定是否继续；用户明确跳过时记录跳过原因。`autonomous` 模式下，LLM 根据代码变更风险、影响面和提交意图自主判定是否 `proceed`。
+
+代码变更流程：
+
+```text
+aafe impact --diff --format=md
+  → architecture-impact-test-forecast.md 生成影响范围与最小测试设计
+  → minimal-convergent-self-test.md 执行最小收敛自测
+```
+
+自测分支：
+
+| 影响类型 | 默认自测 |
+| --- | --- |
+| 纯函数 / 数据处理 / 缓存 / 排序 / 百分比 | 单元测试，Mock 输入输出 |
+| 组件 props / emit / store 契约 | 单元或组件层测试，Mock props/state/API |
+| 可见 UI / 路由 / 图表 / 交互 | `aafe test --diff` 生成 YAML；要执行时必须由用户提供本次 URL |
+
+UI/E2E 的 URL 每次可能不同，缺 URL 时必须停下来问。禁止猜 `http://localhost:8080`，禁止把本次测试地址写死到 `e2e.baseUrl`。若 E2E 因无 Playwright blocked，且用户仍要看 UI，才允许浏览器 MCP 兜底；执行前必须先生成完整 `ui_test_paths`。
+
+### [4] 提交 / PR / MR / 回填决策
+
+自测完成后不固定提交，而是进入提交意图判定。`ask` 模式下，用户同意 Commit/PR/MR 才执行；`autonomous` 模式下，LLM 根据当前 diff、分支、测试结果和工作流上下文判断是否提交。无 TAPD 关联时只做常规 Commit/PR/MR，不问 TAPD 回填；有 TAPD 关联时，在自测结束或用户触发提交后进入“是否回填 TAPD 单子”的门禁。
+
+Commit / PR / MR 读取 `.aafe.config.json`：
+
+```json
+{
+  "submit": { "cli": "git" },
+  "repo": {
+    "githubAccessToken": "${GITHUB_TOKEN}",
+    "gongfengAccessToken": "${GIT_PRIVATE_TOKEN}",
+    "reviewers": ["alice", "bob"],
+    "labels": ["frontend"]
+  }
+}
+```
+
+提交分支：
+
+| `submit.cli` | Commit | PR/MR |
+| --- | --- | --- |
+| `git` | Git CLI stage + commit | `repo-submit`：优先 `repo.githubAccessToken` / `GITHUB_TOKEN` 调 GitHub API |
+| `gtm` | `gtm commit` | `gtm pr`，再用工蜂 Token 写入 reviewers / labels |
+
+GitHub PR 流程：
+
+```text
+有 repo.githubAccessToken / GITHUB_TOKEN
+  → git 使用 http.extraheader 注入 Token push
+  → aafe repo pr --title= --body= --base= --head=
+  → GitHub REST API 创建或复用 PR
+  → repo.reviewers 写 requested_reviewers
+  → repo.labels 写 issue labels
+
+无 Token 或 Token API 失败
+  → 先提示降级原因
+  → 降级 gh pr create
+  → gh 未登录则如实报告，不阻断 TAPD 回填门禁
+```
+
+工蜂 MR 流程：
+
+```text
+submit.cli=gtm
+  → gtm commit
+  → gtm pr
+  → 若 repo.reviewers / repo.labels 非空：
+      - labels 用逗号拼接写入 MR
+      - reviewers：纯数字当 reviewer_ids；username 先查用户 id
+      - 鉴权使用 repo.gongfengAccessToken / GIT_PRIVATE_TOKEN
+```
+
+TAPD 回填只在“任务有关联 TAPD 单且 `tapd.enabled`”时触发。回填内容只能通过 `comments_create` 追加评论，包含处理结果、影响范围、自测结果和 PR/MR 链接；如存在 PR 字段，可用 `stories_update` / `bugs_update` 只更新该字段。状态流转只允许逐步推进：`backlog → todo → doing`；不会自动提到 `for_test`。
 
 ### 知识检索
 

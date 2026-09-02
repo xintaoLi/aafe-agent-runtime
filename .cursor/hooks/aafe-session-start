@@ -3,7 +3,7 @@ set -euo pipefail
 
 cat <<'JSON'
 {
-  "additional_context": "<AAFE_SKILL_ROUTER>\n1. Read .ai-agent/skill-index.md.\n2. Read .ai-agent/project.md if present.\n3. Load matching .ai-agent/project-skills/*/SKILL.md on demand only.\n4. For non-trivial tasks, follow .ai-agent/runtime/* and .ai-agent/pipelines/*.\n5. Do not copy project knowledge into editor directories.\n</AAFE_SKILL_ROUTER>"
+  "additional_context": "<AAFE_SKILL_ROUTER>\n1. Read .ai-agent/skill-index.md and follow dynamic Task Spine.\n2. Decide TAPD vs non-TAPD and whether to create/switch branch before code.\n3. Execute only after requirement/branch decision is closed.\n4. After code changes, decide impact/self-test; then decide submit/PR/MR and TAPD backfill if associated.\n5. Load project.md / project-skills on demand only. Do not copy knowledge into editor directories.\n</AAFE_SKILL_ROUTER>"
 }
 JSON
 exit 0

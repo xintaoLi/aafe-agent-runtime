@@ -26,18 +26,19 @@ Companions:
 进入本 Skill 回填分支前，确认任务过程中**已涉及 TAPD 单**（ID/链接/MCP/用户绑定）。  
 **否** → 不执行 Phase E/F；Commit 用常规 message；结束。
 
-## End-to-end pipeline（有关联 TAPD 时）
+## Submit / Backfill decision chain（有关联 TAPD 时）
 
 ```text
-[A] 确保自测产物齐全（缺则先跑 impact + self-test；代码变更任务才需）
-[B] Commit 门禁（ask 询问 / autonomous 判定）
+[A] 动态确认自测产物是否需要补齐（代码变更任务才需）
+[B] Commit 门禁（ask 根据用户回复；autonomous 根据上下文判定）
     ├─ 是 / proceed → [C]/[D] 按 submit.cli（git|gtm）执行 Commit/PR → [E] 回填门禁
     └─ 否 / skip → [E] 仍进入回填门禁
-[E] 同意 → [F] 评论回填 + 可选 PR 字段 + 状态流转
+[E] 回填门禁（ask 根据用户回复；autonomous 根据上下文判定）
+    同意 / proceed → [F] 评论回填 + 可选 PR 字段 + 状态流转
     拒绝 → 结束
 ```
 
-**Hard：** 有关联 TAPD 时，即使不 Commit 也必须执行 [E]。**无关联**则整段 [E][F] 跳过。
+**Hard：** 有关联 TAPD 时，即使不 Commit 也要动态进入 [E] 回填门禁；ask 模式尊重用户回复，autonomous 模式按判定表执行。**无关联**则整段 [E][F] 跳过。
 
 ### Submit CLI 选择（强制先读配置）
 
@@ -61,7 +62,7 @@ Read `.aafe.config.json` → `submit.cli`:
 
 创建 / 拉取 / PR / MR 前 Read `.ai-agent/skills/repo-submit.md`。
 
-已配置 `repo.githubAccessToken` 或 `GITHUB_TOKEN` → **必须用该 Token 调 GitHub API**（`aafe repo pr`），**不依赖项目内是否安装 `gh`**。未配置 Token 且本机有 `gh` 才允许 `gh pr create`。
+已配置 `repo.githubAccessToken` 或 `GITHUB_TOKEN` → **必须优先用该 Token 调 GitHub API**（`aafe repo pr`），**不依赖项目内是否安装 `gh`**。未配置 Token 或 Token API 失败时，先提示降级原因，再允许 `gh pr create`。
 
 先读 `repo.reviewers` / `repo.labels`（字符串数组，缺省 `[]`）。非空则创建或补写时必须带上；空数组省略。不要猜测人员或标签。
 
@@ -304,9 +305,9 @@ gtm commit
 Commit 成功后尝试 PR：
 
 1. Read `.ai-agent/skills/repo-submit.md`
-2. 确认分支相对 base 的提交与远程同步（按 creating-pull-requests 规则）
+2. 确认分支相对 base 的提交与远程同步；优先走 `.aafe.config.json` → `repo.githubAccessToken`
 3. 已配置 `repo.githubAccessToken` / `GITHUB_TOKEN`：用 Token `git -c http.extraheader="AUTHORIZATION: bearer $GITHUB_TOKEN" push -u origin HEAD`（不要把 Token 写进 remote）
-4. 创建 PR：**优先** `aafe repo pr --title= --body= --base= --head=`（Token API，附带 `repo.reviewers` / `repo.labels`）。**不依赖 `gh`**。仅无 Token 且本机有 `gh` 时才允许 `gh pr create`
+4. 创建 PR：优先 `aafe repo pr --title= --body= --base= --head=`（Token API，附带 `repo.reviewers` / `repo.labels`）。无 Token 或 Token API 失败时，先提示降级原因，再允许 `gh pr create`
 5. 记录 `pr_url`；失败则报告原因，**不阻断** Phase E
 
 ### D2 when `submit.cli=gtm`

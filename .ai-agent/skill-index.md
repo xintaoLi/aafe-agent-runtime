@@ -18,6 +18,25 @@ It is the thin routing protocol for project knowledge. Project-specific knowledg
    - selected `.ai-agent/pipelines/*.yaml`
    - `.ai-agent/runtime/gates.yaml`
 
+## Task Spine（动态决策链）
+
+```text
+[1] 需求与分支决策（写代码前）
+    TAPD 单 → 拉详情 → 校验/新建/切换关联分支 → 需求分析
+    非 TAPD → 判断是否新任务 → 按需新建/切换分支 → 需求分析
+    无法判断 → ask 模式询问；autonomous 模式仅高置信自主判定，否则 Hard Ask
+[2] 任务执行决策
+    小改直接执行；复杂/多方案 → Plan Gate；前端非平凡任务进入 runtime/pipelines
+[3] 影响与自测决策
+    有代码变更 → impact + 最小收敛自测；纯问答/纯文档 → skip
+    UI/E2E 缺 URL → Hard Ask；E2E blocked 且用户仍需要 → 浏览器 MCP 兜底
+[4] 提交 / PR / MR / 回填决策
+    需要提交或用户要求提交 → `.ai-agent/skills/repo-submit.md`
+    有 TAPD 关联 → 回填门禁；无 TAPD 关联 → 跳过 TAPD 回填
+```
+
+Hard：Task Spine 是动态路由，不是固定阶段。每个节点都要先判定适用性；`ask` 模式按用户回复推进或跳过；`autonomous` 模式按上下文自主判定 `proceed / skip / ask`，缺少用户独有事实时必须 Hard Ask。
+
 ## On-demand project skill loading
 
 Load only the domain skill that matches the current task. Common domain hints:

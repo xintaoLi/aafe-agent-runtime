@@ -130,7 +130,7 @@ export function repoPrApplySkillSection(agentPrefix = '.ai-agent') {
   const prefix = String(agentPrefix ?? '.ai-agent').replace(/\/+$/, '') || '.ai-agent';
   return `创建 / 拉取 / PR / MR 前 Read \`${prefix}/skills/repo-submit.md\`。
 
-已配置 \`repo.githubAccessToken\` 或 \`GITHUB_TOKEN\` → **必须用该 Token 调 GitHub API**（\`aafe repo pr\`），**不依赖项目内是否安装 \`gh\`**。未配置 Token 且本机有 \`gh\` 才允许 \`gh pr create\`。
+已配置 \`repo.githubAccessToken\` 或 \`GITHUB_TOKEN\` → **必须优先用该 Token 调 GitHub API**（\`aafe repo pr\`），**不依赖项目内是否安装 \`gh\`**。未配置 Token 或 Token API 失败时，先提示降级原因，再允许 \`gh pr create\`。
 
 先读 \`repo.reviewers\` / \`repo.labels\`（字符串数组，缺省 \`[]\`）。非空则创建或补写时必须带上；空数组省略。不要猜测人员或标签。
 
