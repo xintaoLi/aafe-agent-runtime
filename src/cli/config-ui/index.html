@@ -1,0 +1,512 @@
+<!--
+  Tencent is pleased to support the open source community by making
+  蓝鲸智云PaaS平台 (BlueKing PaaS) available.
+  Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+  蓝鲸智云PaaS平台 (BlueKing PaaS) is licensed under the MIT License.
+-->
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AAFE 配置</title>
+  <style>
+    :root {
+      --bg: #0f141c;
+      --panel: #171e29;
+      --line: #263143;
+      --text: #e8eef7;
+      --muted: #8b97a8;
+      --accent: #3b82f6;
+      --accent-2: #22c55e;
+      --danger: #f87171;
+      --input: #10161f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      padding: 22px 28px 18px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-end;
+    }
+    header h1 { margin: 0 0 4px; font-size: 22px; }
+    header p { margin: 0; color: var(--muted); }
+    .layout { display: grid; grid-template-columns: 200px 1fr; min-height: calc(100vh - 88px); }
+    nav { padding: 18px 12px; border-right: 1px solid var(--line); }
+    nav a {
+      display: block;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 9px 12px;
+      border-radius: 8px;
+    }
+    nav a:hover, nav a.active { background: #1d2736; color: var(--text); }
+    main { padding: 22px 28px 80px; max-width: 980px; }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+    h2 { margin: 0 0 6px; font-size: 16px; }
+    .hint { color: var(--muted); margin: 0 0 16px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .full { grid-column: 1 / -1; }
+    label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+    input, select, textarea {
+      width: 100%;
+      background: var(--input);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      font: inherit;
+    }
+    textarea { min-height: 72px; resize: vertical; font-family: ui-monospace, SFMono-Regular, monospace; }
+    .checks { display: flex; flex-wrap: wrap; gap: 12px 18px; }
+    .check { display: flex; align-items: center; gap: 8px; color: var(--text); }
+    .check input { width: auto; }
+    .row {
+      display: grid;
+      grid-template-columns: 120px 90px 1fr 1fr 1fr 28px;
+      gap: 8px;
+      margin-bottom: 12px;
+      align-items: start;
+    }
+    .row .mcp-env { grid-column: 1 / -1; min-height: 56px; }
+    .row input, .row select { min-width: 0; }
+    .remove {
+      background: transparent;
+      color: var(--danger);
+      border: 0;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .actions { display: flex; gap: 10px; margin-top: 12px; }
+    .model-pick { display: flex; gap: 8px; }
+    .model-pick select { flex: 1; }
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: 0;
+      border-radius: 8px;
+      padding: 9px 14px;
+      cursor: pointer;
+      font: inherit;
+    }
+    button.secondary { background: #2a3648; }
+    .bar {
+      position: sticky;
+      bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 28px;
+      background: #121924;
+      border-top: 1px solid var(--line);
+    }
+    .toast { color: var(--muted); }
+    .toast.ok { color: var(--accent-2); }
+    .toast.err { color: var(--danger); }
+    pre {
+      background: var(--input);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      overflow: auto;
+      font-size: 12px;
+    }
+    @media (max-width: 860px) {
+      .layout { display: block; }
+      .grid, .row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>AAFE 配置</h1>
+      <p>本机可视化写入 <code>.aafe.config.json</code>，覆盖工作流 / Agent / MCP / 提交 / TAPD / E2E。</p>
+    </div>
+    <div id="fileHint" class="hint"></div>
+  </header>
+  <div class="layout">
+    <nav>
+      <a href="#workflow">工作流</a>
+      <a href="#agent">Agent</a>
+      <a href="#mcp">MCP</a>
+      <a href="#submit">提交</a>
+      <a href="#tapd">TAPD</a>
+      <a href="#e2e">E2E</a>
+      <a href="#preview">预览</a>
+    </nav>
+    <main>
+      <section id="workflow">
+        <h2>工作流模式</h2>
+        <p class="hint">ask 每个门禁询问；autonomous 由模型判定，仅 Hard Ask 停下。</p>
+        <label for="workflowMode">mode.workflow</label>
+        <select id="workflowMode">
+          <option value="ask">ask · 询问模式</option>
+          <option value="autonomous">autonomous · 自主判断</option>
+        </select>
+      </section>
+
+      <section id="agent">
+        <h2>Agent mode</h2>
+        <p class="hint">开启后，<code>aafe run</code> 把规划结果交给 Cursor SDK 执行。不影响 context / impact / plan。</p>
+        <div class="grid">
+          <div class="full">
+            <label class="check"><input id="agentEnabled" type="checkbox"> 启用 agent-mode</label>
+          </div>
+          <div>
+            <label for="agentMode">运行时</label>
+            <select id="agentMode">
+              <option value="local">local</option>
+              <option value="cloud">cloud</option>
+            </select>
+          </div>
+          <div class="full">
+            <label for="agentModel">模型</label>
+            <div class="model-pick">
+              <select id="agentModel">
+                <option value="auto">Auto (auto)</option>
+                <option value="composer-2.5" selected>Composer 2.5 (composer-2.5)</option>
+                <option value="__custom__">自定义…</option>
+              </select>
+              <button type="button" class="secondary" id="refreshModels">刷新列表</button>
+            </div>
+            <input id="agentModelCustom" placeholder="自定义模型 ID" hidden>
+            <p id="modelHint" class="hint">有 API Key 时从 Cursor 拉取可用模型；否则显示内置选项。</p>
+          </div>
+          <div>
+            <label for="agentApiKeyEnv">API Key 环境变量</label>
+            <input id="agentApiKeyEnv" placeholder="CURSOR_API_KEY">
+          </div>
+          <div>
+            <label for="agentApiKey">API Key（可选，写入仓库）</label>
+            <input id="agentApiKey" type="password" placeholder="留空则只读环境变量">
+          </div>
+          <div class="full">
+            <label for="agentRepository">Cloud 仓库（可选）</label>
+            <input id="agentRepository" placeholder="owner/repo">
+          </div>
+          <div>
+            <label class="check"><input id="agentAutoPr" type="checkbox"> 自动创建 PR</label>
+          </div>
+          <div>
+            <label class="check"><input id="agentSkipReviewer" type="checkbox"> 跳过 reviewer 请求</label>
+          </div>
+        </div>
+      </section>
+
+      <section id="mcp">
+        <h2>MCP</h2>
+        <p class="hint">只作用于 Cursor 执行步。默认不自动读取 <code>.cursor/mcp.json</code>，除非勾选 setting sources 或填写配置文件。</p>
+        <div class="grid">
+          <div class="full">
+            <label class="check"><input id="mcpEnabled" type="checkbox"> 启用 MCP</label>
+          </div>
+          <div class="full">
+            <label for="mcpConfig">MCP 配置文件</label>
+            <input id="mcpConfig" placeholder=".cursor/mcp.json">
+          </div>
+          <div class="full">
+            <label>settingSources</label>
+            <div class="checks">
+              <label class="check"><input type="checkbox" value="project" class="mcp-source"> project</label>
+              <label class="check"><input type="checkbox" value="user" class="mcp-source"> user</label>
+              <label class="check"><input type="checkbox" value="plugins" class="mcp-source"> plugins</label>
+              <label class="check"><input type="checkbox" value="all" class="mcp-source"> all</label>
+            </div>
+          </div>
+        </div>
+        <p class="hint">内联 servers，同名覆盖文件里的配置。参数用空格分隔，环境变量一行一个 <code>KEY=VALUE</code>。</p>
+        <div id="mcpServers"></div>
+        <div class="actions">
+          <button type="button" class="secondary" id="addServer">添加 MCP Server</button>
+        </div>
+      </section>
+
+      <section id="submit">
+        <h2>提交 CLI</h2>
+        <p class="hint">Commit / PR 使用的命令行。</p>
+        <label for="submitCli">submit.cli</label>
+        <select id="submitCli">
+          <option value="git">git · Git CLI + gh</option>
+          <option value="gtm">gtm · gtm commit / gtm pr</option>
+        </select>
+      </section>
+
+      <section id="tapd">
+        <h2>TAPD</h2>
+        <p class="hint">仅任务关联 TAPD 单且开启后，才走回填。密钥会写入项目配置，请按仓库规范处理。</p>
+        <div class="grid">
+          <div class="full">
+            <label class="check"><input id="tapdEnabled" type="checkbox"> 启用 TAPD</label>
+          </div>
+          <div>
+            <label for="tapdUsername">username</label>
+            <input id="tapdUsername">
+          </div>
+          <div>
+            <label for="tapdPassword">api_password</label>
+            <input id="tapdPassword" type="password">
+          </div>
+          <div class="full">
+            <label for="tapdWorkspace">workspace_id（可选）</label>
+            <input id="tapdWorkspace">
+          </div>
+        </div>
+      </section>
+
+      <section id="e2e">
+        <h2>E2E</h2>
+        <p class="hint">默认不要写死业务环境地址；可用环境变量名。</p>
+        <div class="grid">
+          <div class="full">
+            <label class="check"><input id="e2eEnabled" type="checkbox"> 启用 E2E</label>
+          </div>
+          <div>
+            <label for="e2eBaseUrlEnv">baseUrlEnv</label>
+            <input id="e2eBaseUrlEnv" placeholder="AAFE_E2E_BASE_URL">
+          </div>
+          <div>
+            <label for="e2eBaseUrl">baseUrl（可选）</label>
+            <input id="e2eBaseUrl" placeholder="留空，运行时再传 --base-url">
+          </div>
+        </div>
+      </section>
+
+      <section id="preview">
+        <h2>将写入的片段</h2>
+        <p class="hint">只改这些字段，其它配置保持不动。</p>
+        <pre id="previewJson">{}</pre>
+      </section>
+    </main>
+  </div>
+  <div class="bar">
+    <div id="toast" class="toast">加载中…</div>
+    <div class="actions">
+      <button type="button" class="secondary" id="reload">重新加载</button>
+      <button type="button" id="save">保存到 .aafe.config.json</button>
+    </div>
+  </div>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let currentPreview = {};
+    let knownModels = [];
+
+    function selectedModel() {
+      const value = $('agentModel').value;
+      if (value === '__custom__') return $('agentModelCustom').value.trim();
+      return value;
+    }
+
+    function setSelectedModel(id) {
+      const select = $('agentModel');
+      const custom = $('agentModelCustom');
+      if ([...select.options].some((option) => option.value === id)) {
+        select.value = id;
+        custom.hidden = true;
+        custom.value = '';
+        return;
+      }
+      select.value = '__custom__';
+      custom.hidden = false;
+      custom.value = id || '';
+    }
+
+    function fillModelOptions(models, current) {
+      knownModels = models || [];
+      const select = $('agentModel');
+      const previous = current || selectedModel() || 'composer-2.5';
+      select.innerHTML = '';
+      const ids = new Set();
+      for (const model of knownModels) {
+        if (!model.id || ids.has(model.id)) continue;
+        ids.add(model.id);
+        const option = document.createElement('option');
+        option.value = model.id;
+        option.textContent = model.displayName && model.displayName !== model.id
+          ? `${model.displayName} (${model.id})`
+          : model.id;
+        select.appendChild(option);
+      }
+      const custom = document.createElement('option');
+      custom.value = '__custom__';
+      custom.textContent = '自定义…';
+      select.appendChild(custom);
+      setSelectedModel(previous);
+    }
+
+    async function loadModels() {
+      const res = await fetch('/api/models', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          apiKey: $('agentApiKey').value,
+          apiKeyEnv: $('agentApiKeyEnv').value,
+          current: selectedModel()
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'models-failed');
+      fillModelOptions(data.models, data.current || selectedModel());
+      $('modelHint').textContent = data.source === 'cursor'
+        ? '已从 Cursor 拉取当前账号可用模型。'
+        : (data.warnings && data.warnings[0])
+          ? '未能拉取账号模型，已显示内置选项。填写 API Key 后可刷新。'
+          : '显示内置模型选项。';
+      return data;
+    }
+
+    function toast(message, kind) {
+      const el = $('toast');
+      el.textContent = message;
+      el.className = 'toast' + (kind ? ' ' + kind : '');
+    }
+
+    function mcpRow(server = {}) {
+      const wrap = document.createElement('div');
+      wrap.className = 'row mcp-row';
+      wrap.innerHTML = `
+        <input class="mcp-name" placeholder="name" value="">
+        <select class="mcp-type">
+          <option value="stdio">stdio</option>
+          <option value="http">http</option>
+        </select>
+        <input class="mcp-command" placeholder="command 或留空">
+        <input class="mcp-args" placeholder="args">
+        <input class="mcp-url" placeholder="url">
+        <button type="button" class="remove" title="删除">×</button>
+        <textarea class="mcp-env full" placeholder="ENV=value"></textarea>
+      `;
+      wrap.querySelector('.mcp-name').value = server.name || '';
+      wrap.querySelector('.mcp-type').value = server.type || 'stdio';
+      wrap.querySelector('.mcp-command').value = server.command || '';
+      wrap.querySelector('.mcp-args').value = server.args || '';
+      wrap.querySelector('.mcp-url').value = server.url || '';
+      wrap.querySelector('.mcp-env').value = server.env || '';
+      wrap.querySelector('.remove').onclick = () => wrap.remove();
+      return wrap;
+    }
+
+    function collectForm() {
+      return {
+        workflow: $('workflowMode').value,
+        submitCli: $('submitCli').value,
+        agent: {
+          enabled: $('agentEnabled').checked,
+          provider: 'cursor',
+          mode: $('agentMode').value,
+          model: selectedModel(),
+          apiKeyEnv: $('agentApiKeyEnv').value,
+          apiKey: $('agentApiKey').value,
+          repository: $('agentRepository').value,
+          autoCreatePR: $('agentAutoPr').checked,
+          skipReviewerRequest: $('agentSkipReviewer').checked
+        },
+        mcp: {
+          enabled: $('mcpEnabled').checked,
+          config: $('mcpConfig').value,
+          settingSources: [...document.querySelectorAll('.mcp-source:checked')].map((el) => el.value),
+          servers: [...document.querySelectorAll('.mcp-row')].map((row) => ({
+            name: row.querySelector('.mcp-name').value,
+            type: row.querySelector('.mcp-type').value,
+            command: row.querySelector('.mcp-command').value,
+            args: row.querySelector('.mcp-args').value,
+            url: row.querySelector('.mcp-url').value,
+            env: row.querySelector('.mcp-env').value
+          }))
+        },
+        tapd: {
+          enabled: $('tapdEnabled').checked,
+          username: $('tapdUsername').value,
+          api_password: $('tapdPassword').value,
+          workspace_id: $('tapdWorkspace').value
+        },
+        e2e: {
+          enabled: $('e2eEnabled').checked,
+          baseUrlEnv: $('e2eBaseUrlEnv').value,
+          baseUrl: $('e2eBaseUrl').value
+        }
+      };
+    }
+
+    function fillForm(form) {
+      $('workflowMode').value = form.workflow || 'ask';
+      $('submitCli').value = form.submitCli || 'git';
+      $('agentEnabled').checked = !!form.agent?.enabled;
+      $('agentMode').value = form.agent?.mode || 'local';
+      setSelectedModel(form.agent?.model || 'composer-2.5');
+      $('agentApiKeyEnv').value = form.agent?.apiKeyEnv || 'CURSOR_API_KEY';
+      $('agentApiKey').value = form.agent?.apiKey || '';
+      $('agentRepository').value = form.agent?.repository || '';
+      $('agentAutoPr').checked = !!form.agent?.autoCreatePR;
+      $('agentSkipReviewer').checked = form.agent?.skipReviewerRequest !== false;
+      $('mcpEnabled').checked = form.mcp?.enabled !== false;
+      $('mcpConfig').value = form.mcp?.config || '';
+      document.querySelectorAll('.mcp-source').forEach((el) => {
+        el.checked = (form.mcp?.settingSources || []).includes(el.value);
+      });
+      const box = $('mcpServers');
+      box.innerHTML = '';
+      (form.mcp?.servers || []).forEach((server) => box.appendChild(mcpRow(server)));
+      $('tapdEnabled').checked = !!form.tapd?.enabled;
+      $('tapdUsername').value = form.tapd?.username || '';
+      $('tapdPassword').value = form.tapd?.api_password || '';
+      $('tapdWorkspace').value = form.tapd?.workspace_id || '';
+      $('e2eEnabled').checked = form.e2e?.enabled !== false;
+      $('e2eBaseUrlEnv').value = form.e2e?.baseUrlEnv || 'AAFE_E2E_BASE_URL';
+      $('e2eBaseUrl').value = form.e2e?.baseUrl || '';
+    }
+
+    async function loadConfig() {
+      toast('正在读取配置…');
+      const res = await fetch('/api/config');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'load-failed');
+      fillForm(data.form);
+      currentPreview = data.preview;
+      $('previewJson').textContent = JSON.stringify(data.preview, null, 2);
+      $('fileHint').textContent = data.exists ? '已读取 ' + data.file : '尚未有配置文件，保存时会创建';
+      toast(data.exists ? '已加载当前配置' : '空配置，可直接填写后保存');
+    }
+
+    async function saveConfig() {
+      toast('正在保存…');
+      const res = await fetch('/api/config', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ form: collectForm() })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'save-failed');
+      fillForm(data.form);
+      currentPreview = data.preview;
+      $('previewJson').textContent = JSON.stringify(data.preview, null, 2);
+      $('fileHint').textContent = '已写入 ' + data.file;
+      toast('已保存', 'ok');
+    }
+
+    $('agentModel').onchange = () => {
+      $('agentModelCustom').hidden = $('agentModel').value !== '__custom__';
+    };
+    $('addServer').onclick = () => $('mcpServers').appendChild(mcpRow());
+    $('reload').onclick = () => loadConfig().then(loadModels).catch((error) => toast(error.message, 'err'));
+    $('refreshModels').onclick = () => loadModels().then(() => toast('模型列表已更新', 'ok')).catch((error) => toast(error.message, 'err'));
+    $('save').onclick = () => saveConfig().catch((error) => toast(error.message, 'err'));
+    loadConfig().then(loadModels).catch((error) => toast(error.message, 'err'));
+  </script>
+</body>
+</html>

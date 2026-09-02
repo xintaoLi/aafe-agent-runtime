@@ -5,6 +5,17 @@ alwaysApply: true
 
 # Requirement Intake & Analysis
 
+## 全局工作流模式
+
+先读 `.aafe.config.json` → `mode.workflow`（缺省 `ask`）。详见 `.ai-agent/skills/workflow-mode.md`。
+
+| 值 | 行为 |
+| --- | --- |
+| `ask` | 询问模式：各门禁向用户确认后再继续 |
+| `autonomous` | 自主判断模式：LLM 按判定表决定是否进入下一步；仅 Hard Ask 才停下来问 |
+
+`aafe init` / `aafe update --workflow-mode=ask|autonomous` 可写入。
+
 ## 触发（需求已到手）
 
 在**开始改代码之前**，必须先完成本 Rule。需求来源：
@@ -18,24 +29,26 @@ alwaysApply: true
 
 详细步骤：`.ai-agent/skills/requirement-intake-analysis.md`
 
-## GTM 分支关联（仅 `submit.cli=gtm`）
+## TAPD 分支关联（git 和 gtm 均适用）
 
 新任务且有 TAPD 单时，写代码前：
 
-1. 检查当前分支是否 `feat|bug/<slug>/#<tapd_full_id>`
-2. 未关联 → `gtm create issue` → 关联已有单据（短 ID = TAPD 链接最后 9 位）→ 目标分支 `master` → 按 TAPD 标题生成英文短名
-3. 详见 `.ai-agent/skills/tapd-submit-backfill.md`「GTM Task Start」
+1. 通过 TAPD MCP 拉取需求详情，提取 `tapd_short_id`（URL 最后一段数字的末 9 位）
+2. 检查当前分支是否 `feat|bug/<slug>/#<tapd_short_id>` 且 short_id 与 TAPD 单一致
+3. 未关联或关联错误 → 从远程主干创建开发分支：
+   - `git`：`git checkout -b feat|bug/<slug>/#<short_id> upstream/master`
+   - `gtm`：`gtm create issue` → 关联已有单据 → 目标分支 `master` → 按 TAPD 标题生成英文短名
+4. 详见 `.ai-agent/skills/tapd-submit-backfill.md`「TAPD Branch Association」
 
 ## 阶段 A — 需求分析与澄清
 
 1. 解析需求：目标、范围、验收标准、约束、依赖、风险
 2. 列出**不明确项**（歧义、缺失边界、多解路径、未定义异常/兼容策略）
-3. 对每项不明确点**必须交互**获取明确答复，输出形式任选或组合：
-   - **方案选择**：A / B / C + 推荐与 tradeoff
-   - **问题明确**：结构化追问（Who/What/When/边界/反例）
-   - **需详细答复**：请用户补充完整说明或示例
+3. 对每项不明确点按工作流模式闭合：
+   - **ask**：必须交互获取明确答复（方案选择 / 追问 / 要详细答复）
+   - **autonomous**：能从 TAPD / 代码 / 历史高置信推断则写下 assumption 并关闭；会改变方案且无法推断 → Hard Ask，禁止猜测
 
-**Hard：** 存在未决不明确项时，禁止进入阶段 B（历史检索）及之后写代码。
+**Hard：** 存在未决且无法闭合的不明确项时，禁止进入阶段 B（历史检索）及之后写代码。
 
 ## 阶段 B — 历史积累检索（需求已明确后）
 
@@ -80,12 +93,10 @@ alwaysApply: true
 - 预计涉及 **> 5 个文件**
 - 预计**新增代码 > 300 行**（含新功能）
 
-→ **必须先询问用户**：
+→ 按工作流模式处理 Plan 门禁：
 
-> 本次变更规模较大，是否切换 Plan 模式先制定详细实施计划？
-
-- 用户 **确认 / 同意 / Yes / 是 / Y** → 调用 **SwitchMode**（`target_mode_id: plan`），在 Plan 中输出分步计划后再实施
-- 用户拒绝 → 仍可实施，但须在回复中说明风险与未 plan 的 tradeoff
+- **ask**：必须先询问用户是否切换 Plan 模式；确认后 **SwitchMode**（`target_mode_id: plan`）；拒绝则实施并记录 `plan_skipped: true`
+- **autonomous**：大改直接调用 **SwitchMode**（无需再问 chat yes/no）；SwitchMode 不可用则实施并记录风险与 `plan_skipped: true`
 
 ### Plan 模式内
 
@@ -109,5 +120,5 @@ alwaysApply: true
 
 - 未澄清需求就写代码
 - 跳过历史检索直接大改
-- 大规模变更不询问就 silent 全量实施
+- 询问模式下大规模变更不询问就 silent 全量实施；自主模式须产出判定记录
 - 将「需求分析阶段」与「任务完成影响分析」混淆（后者在**实施完成后**）

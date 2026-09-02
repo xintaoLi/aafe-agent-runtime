@@ -1,0 +1,16 @@
+---
+description: AAFE Workflow Mode — ask vs autonomous gates
+alwaysApply: true
+---
+
+# AAFE 全局工作流模式（Pointer）
+
+Source of truth:
+
+1. Config: `.aafe.config.json` → `mode.workflow`（缺省 `ask`）
+2. Rule: `.ai-agent/rules/workflow-mode.mdc`
+3. Skill: `.ai-agent/skills/workflow-mode.md`
+
+**先读配置再走门禁。** `ask` 保持向用户确认；`autonomous` 由 LLM 按 Skill 判定表决定是否进入下一步（Commit / PR / 回填 / Plan / 影响分析），仅 Hard Ask 才停下来问。
+
+`aafe init` / `aafe update --workflow-mode=ask|autonomous` 可写入。Do not duplicate project knowledge here.

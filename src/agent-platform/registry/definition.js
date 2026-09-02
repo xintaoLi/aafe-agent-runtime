@@ -38,10 +38,13 @@
  * @property {string} name
  * @property {string} description
  * @property {string[]} capabilities
- * @property {'local'|'http'|'cli'|'mcp'|'ide'} provider
+ * @property {'local'|'http'|'cli'|'mcp'|'ide'|'cursor'} provider
  * @property {string} [ref]           Provider-specific locator (builtin:<id>, URL, argv template).
  * @property {string|null} [endpoint] Canonical address for remote agents; `ref` is derived from it.
  * @property {string} [model]
+ * @property {string} [runtime]       Cursor runtime hint (`local` or `cloud`) when provider is `cursor`.
+ * @property {string} [apiKeyEnv]     Environment variable that carries the Cursor API key.
+ * @property {string|string[]} [repository] Cloud repository locator(s) when provider is `cursor`.
  * @property {boolean} enabled
  * @property {object} [execution]     Per-agent timeout/retry overrides.
  * @property {string|null} [prompt]       Prompt reference (`builtin:<id>` or a project path).
@@ -143,6 +146,17 @@ export function createAgentDefinition(id, partial = {}) {
     endpoint,
     ref: partial.ref ?? endpoint ?? `builtin:${id}`,
     model: partial.model ?? null,
+    runtime: partial.runtime ?? null,
+    apiKeyEnv: partial.apiKeyEnv ?? null,
+    apiKey: partial.apiKey ?? null,
+    repository: partial.repository ?? partial.repositories ?? partial.repo ?? null,
+    repositories: partial.repositories ?? null,
+    repo: partial.repo ?? null,
+    cwd: partial.cwd ?? null,
+    settingSources: Array.isArray(partial.settingSources) ? [...partial.settingSources] : null,
+    mcpServers: partial.mcpServers && typeof partial.mcpServers === 'object' ? { ...partial.mcpServers } : null,
+    autoCreatePR: partial.autoCreatePR ?? null,
+    skipReviewerRequest: partial.skipReviewerRequest ?? null,
     enabled: partial.enabled ?? builtin.enabled ?? false,
     execution: partial.execution ?? {},
     prompt: partial.prompt ?? `builtin:${id}`,

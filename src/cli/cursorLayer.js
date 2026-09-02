@@ -18,6 +18,10 @@ import {
   fileLicenseRuleMdc
 } from './fileLicenseRules.js';
 import {
+  workflowModePointerRuleMdc,
+  workflowModeProjectRuleMdc
+} from './workflowModeRules.js';
+import {
   aafeTestFromPrCursorSkill,
   aafeTestFromPrPointerRuleMdc,
   AAFE_TEST_FROM_PR_SKILL_DIR
@@ -84,6 +88,11 @@ export async function writeLayeredCursorAdapters({
       fileLicenseProjectRuleMdc({ agentPrefix: ctx.agentPrefix }),
       { ...options, force: false }
     );
+    await writeIfAllowed(
+      path.join(options.installRoot, '.ai-agent/rules/workflow-mode.mdc'),
+      workflowModeProjectRuleMdc({ agentPrefix: ctx.agentPrefix }),
+      { ...options, force: false }
+    );
   }
 
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-skill-router.mdc'), cursorSkillRouterRules(ctx), options);
@@ -91,6 +100,7 @@ export async function writeLayeredCursorAdapters({
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-task-completion-impact.mdc'), taskCompletionImpactRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-requirement-intake-analysis.mdc'), requirementIntakeRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-tapd-submit-backfill.mdc'), tapdSubmitRuleMdc(ctx), options);
+  await writeIfAllowed(path.join(paths.rulesDir, 'aafe-workflow-mode.mdc'), workflowModePointerRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-new-file-license.mdc'), fileLicenseRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-test-from-pr.mdc'), aafeTestFromPrPointerRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.skillsDir, 'aafe-runtime', 'SKILL.md'), nativeEditorSkill('Cursor', ctx), options);
@@ -305,10 +315,11 @@ function cursorSkillRouterRules(ctx) {
     'For every task in this repository module:',
     `1. Read \`${ctx.agentPrefix}/skill-index.md\` first.`,
     `2. If present, read \`${ctx.agentPrefix}/project.md\` for project-specific quick map and domain routing hints.`,
-    `3. Only when the task matches a domain, read the matching \`${ctx.agentPrefix}/project-skills/<domain>/SKILL.md\`.`,
-    `4. For non-trivial frontend work, then follow \`${ctx.agentPrefix}/runtime/*\` and \`${ctx.agentPrefix}/pipelines/*\`.`,
-    '5. Editor directories are pointers only. Do not copy, rewrite, or maintain project knowledge in `.cursor`.',
-    '6. Do not eagerly read all project skills.',
+    `3. Read \`.aafe.config.json\` → \`mode.workflow\` (default \`ask\`). Load \`${ctx.agentPrefix}/skills/workflow-mode.md\` before the first interactive gate.`,
+    `4. Only when the task matches a domain, read the matching \`${ctx.agentPrefix}/project-skills/<domain>/SKILL.md\`.`,
+    `5. For non-trivial frontend work, then follow \`${ctx.agentPrefix}/runtime/*\` and \`${ctx.agentPrefix}/pipelines/*\`.`,
+    '6. Editor directories are pointers only. Do not copy, rewrite, or maintain project knowledge in `.cursor`.',
+    '7. Do not eagerly read all project skills.',
     ''
   ].join('\n');
 }
@@ -357,7 +368,8 @@ function cursorRules(ctx) {
     `# AAFE Architecture Runtime (${ctx.moduleName})`,
     '',
     'For every non-trivial frontend task after the Skill Router step:',
-    `0. After concrete requirement (TAPD or user), follow \`aafe-requirement-intake-analysis.mdc\` / \`${ctx.agentPrefix}/skills/requirement-intake-analysis.md\`: clarify → history → scope/root cause → Plan gate if large.`,
+    `0. Read \`.aafe.config.json\` → \`mode.workflow\` (default \`ask\`) and follow \`aafe-workflow-mode.mdc\` / \`${ctx.agentPrefix}/skills/workflow-mode.md\` before the first interactive gate.`,
+    `0b. After concrete requirement (TAPD or user), follow \`aafe-requirement-intake-analysis.mdc\` / \`${ctx.agentPrefix}/skills/requirement-intake-analysis.md\`: clarify → history → scope/root cause → Plan gate if large.`,
     `1. Read \`${ctx.agentPrefix}/runtime/engine.md\`.`,
     `2. Classify the task using \`${ctx.agentPrefix}/runtime/router.yaml\`.`,
     `3. Follow the selected \`${ctx.agentPrefix}/pipelines/*.yaml\`.`,

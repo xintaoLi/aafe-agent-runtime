@@ -8,7 +8,7 @@ import { doctorProject } from './doctor.js';
 import { syncKnowledgeArtifacts } from './knowledge.js';
 import { runMigrations } from './migrate.js';
 import { executeAnalyze } from './analyze.js';
-import { prepareWorkspaceLayoutForCommand, prepareTapdConfigForCommand, prepareSubmitConfigForCommand, prepareE2eConfigForCommand, prepareForceAnalyzeForCommand } from './prompts.js';
+import { prepareWorkspaceLayoutForCommand, prepareTapdConfigForCommand, prepareSubmitConfigForCommand, prepareWorkflowModeConfigForCommand, prepareAgentModeConfigForCommand, prepareE2eConfigForCommand, prepareForceAnalyzeForCommand } from './prompts.js';
 import { resolveWorkspaceLayout } from './workspace.js';
 
 const execFileAsync = promisify(execFile);
@@ -63,6 +63,14 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
         preserveMemory: true,
         idempotentWrites: true,
         submitCli: options.submitCli ?? null,
+        workflowMode: options.workflowMode ?? null,
+        agentMode: options.agentMode ?? null,
+        cursorRuntime: options.cursorRuntime ?? null,
+        cursorModel: options.cursorModel ?? null,
+        cursorApiKeyEnv: options.cursorApiKeyEnv ?? null,
+        mcpConfig: options.mcpConfig ?? null,
+        mcpSettingSources: options.mcpSettingSources ?? null,
+        mcpEnabled: options.mcpEnabled ?? null,
         e2e: options.e2e ?? null,
         forceAnalyze
       },
@@ -90,6 +98,8 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
   );
   const tapdConfig = await prepareTapdConfigForCommand(nonInteractiveOptions, configured);
   const submitConfig = await prepareSubmitConfigForCommand(nonInteractiveOptions, configured);
+  const workflowModeConfig = await prepareWorkflowModeConfigForCommand(nonInteractiveOptions, configured);
+  const agentModeConfig = await prepareAgentModeConfigForCommand(nonInteractiveOptions, configured);
   const e2eConfig = await prepareE2eConfigForCommand({
     ...nonInteractiveOptions,
     promptE2e: options.interactive === true
@@ -104,6 +114,8 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
     workspaceLayout,
     tapdConfig,
     submitConfig,
+    workflowModeConfig,
+    agentModeConfig,
     e2eConfig
   });
   const analyze = forceAnalyze
@@ -218,6 +230,17 @@ export function parseUpdateOptions(args) {
     if (arg === '--migrate-cursor' || arg === '--migrate-editors') options.migrateInstallEditors = true;
     if (arg === '--no-migrate-cursor' || arg === '--no-migrate-editors') options.migrateInstallEditors = false;
     if (arg.startsWith('--submit-cli=')) options.submitCli = arg.slice('--submit-cli='.length);
+    if (arg.startsWith('--workflow-mode=')) options.workflowMode = arg.slice('--workflow-mode='.length);
+    if (arg.startsWith('--agent-mode=')) options.agentMode = arg.slice('--agent-mode='.length);
+    if (arg === '--agent-mode') options.agentMode = true;
+    if (arg === '--no-agent-mode') options.agentMode = false;
+    if (arg.startsWith('--cursor-api-key-env=')) options.cursorApiKeyEnv = arg.slice('--cursor-api-key-env='.length);
+    if (arg.startsWith('--cursor-model=')) options.cursorModel = arg.slice('--cursor-model='.length);
+    if (arg.startsWith('--cursor-runtime=')) options.cursorRuntime = arg.slice('--cursor-runtime='.length);
+    if (arg.startsWith('--cursor-repository=')) options.cursorRepository = arg.slice('--cursor-repository='.length);
+    if (arg.startsWith('--mcp-config=')) options.mcpConfig = arg.slice('--mcp-config='.length);
+    if (arg.startsWith('--mcp-setting-sources=')) options.mcpSettingSources = arg.slice('--mcp-setting-sources='.length);
+    if (arg === '--no-mcp') options.mcpEnabled = false;
     if (arg === '--interactive') options.interactive = true;
     if (arg === '--e2e') options.e2e = true;
     if (arg === '--no-e2e') options.e2e = false;

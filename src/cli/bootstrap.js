@@ -38,6 +38,13 @@ import {
   AAFE_TEST_FROM_PR_SKILL_DIR
 } from './e2eFromPrRules.js';
 import { resolveSubmitConfig } from './submitConfig.js';
+import { resolveWorkflowModeConfig } from './workflowMode.js';
+import { resolveAgentModeConfig } from './agentMode.js';
+import {
+  workflowModePointerRuleMdc,
+  workflowModeProjectRuleMdc,
+  workflowModeSkill
+} from './workflowModeRules.js';
 import { AGENTS_CONFIG_FILE, defaultAgentsConfig } from '../agent-platform/config/agentsConfig.js';
 
 export async function bootstrapProject(root, detection, options = {}) {
@@ -79,6 +86,11 @@ async function writeRuntime(root, detection, options, plan) {
     await writeIfAllowed(
       path.join(root, '.ai-agent/rules/new-file-license.mdc'),
       fileLicenseProjectRuleMdc(),
+      { ...options, force: false }
+    );
+    await writeIfAllowed(
+      path.join(root, '.ai-agent/rules/workflow-mode.mdc'),
+      workflowModeProjectRuleMdc(),
       { ...options, force: false }
     );
   }
@@ -232,6 +244,23 @@ async function writeConfig(root, _detection, options, plan) {
     cli: options.submitConfig?.cli ?? options.submitCli
   });
 
+  config.mode = resolveWorkflowModeConfig(existingConfig, {
+    workflow: options.workflowModeConfig?.workflow ?? options.workflowMode
+  });
+
+  config.agent = resolveAgentModeConfig(existingConfig, {
+    ...(options.agentModeConfig ?? {}),
+    enabled: options.agentModeConfig?.enabled ?? options.agentMode,
+    mode: options.agentModeConfig?.mode ?? options.cursorRuntime,
+    model: options.agentModeConfig?.model ?? options.cursorModel,
+    apiKeyEnv: options.agentModeConfig?.apiKeyEnv ?? options.cursorApiKeyEnv,
+    repository: options.agentModeConfig?.repository ?? options.cursorRepository,
+    mcp: options.agentModeConfig?.mcp,
+    mcpEnabled: options.mcpEnabled,
+    mcpConfig: options.mcpConfig,
+    mcpSettingSources: options.mcpSettingSources
+  });
+
   if (existingConfig.taskCompletion && !config.taskCompletion) {
     config.taskCompletion = existingConfig.taskCompletion;
   }
@@ -331,6 +360,7 @@ async function writeFlatCursorAdapters(root, options) {
   await writeIfAllowed(path.join(root, '.cursor/rules/aafe-task-completion-impact.mdc'), taskCompletionImpactRuleMdc(), options);
   await writeIfAllowed(path.join(root, '.cursor/rules/aafe-requirement-intake-analysis.mdc'), requirementIntakeRuleMdc(), options);
   await writeIfAllowed(path.join(root, '.cursor/rules/aafe-tapd-submit-backfill.mdc'), tapdSubmitRuleMdc(), options);
+  await writeIfAllowed(path.join(root, '.cursor/rules/aafe-workflow-mode.mdc'), workflowModePointerRuleMdc(), options);
   await writeIfAllowed(path.join(root, '.cursor/rules/aafe-new-file-license.mdc'), fileLicenseRuleMdc(), options);
   await writeIfAllowed(path.join(root, '.cursor/rules/aafe-ddd-gate.mdc'), dddPointerRuleMdc(), options);
   await writeIfAllowed(path.join(root, '.cursor/rules/aafe-pattern-gate.mdc'), patternPointerRuleMdc(), options);
@@ -405,6 +435,7 @@ function runtimeFiles(_detection, plan) {
     '.ai-agent/skills/minimal-convergent-self-test.md': minimalConvergentSelfTestSkill(),
     '.ai-agent/skills/aafe-test-from-pr.md': aafeTestFromPrSkillContent('.ai-agent'),
     '.ai-agent/skills/tapd-submit-backfill.md': tapdSubmitBackfillSkill(),
+    '.ai-agent/skills/workflow-mode.md': workflowModeSkill(),
     '.ai-agent/skills/knowledge-center-updater.md': knowledgeCenterUpdaterSkill(),
     '.ai-agent/skills/adr-generator.md': adrSkill(),
     '.ai-agent/pipelines/feature.yaml': featurePipeline(),
@@ -682,6 +713,8 @@ It is the thin routing protocol for project knowledge. Project-specific knowledg
 
 1. Read this file first: \`.ai-agent/skill-index.md\`.
 2. If present, read \`.ai-agent/project.md\` for the project quick map and domain routing hints.
+2b. Read \`.aafe.config.json\` → \`mode.workflow\` (default \`ask\`). Load \`.ai-agent/skills/workflow-mode.md\`
+   before the first interactive gate (需求澄清 / Plan / 影响分析 / Commit / PR / TAPD 回填).
 3. If the task is about architecture, self-update, project rules, or knowledge maintenance, load the matching
    project skill from \`.ai-agent/project-skills/<domain>/SKILL.md\` when it exists.
 4. For non-trivial frontend feature/refactor/bugfix/performance work, then enter the AAFE runtime:
@@ -750,6 +783,7 @@ not on \`PATH\`; if neither resolves, fall back to reading files and say so.
 | 采集 SSO 登录态供 E2E 复用 | \`aafe e2e auth --base-url=<url>\`；\`--run\` 先探测地址，200 且非登录跳转则跳过 SSO，否则校验/续期登录 |
 | A test run failed and the cause is unclear | \`aafe diagnose --failure=<report>\` |
 | Runtime files look stale or inconsistent | \`aafe doctor\`, then \`aafe migrate --dry-run\` |
+| Switching ask vs autonomous workflow | \`aafe update --workflow-mode=ask|autonomous\` |
 
 Prefer \`aafe knowledge search\` over a blind repository grep: it ranks across modules, routes,
 components, features and symbols, and normalizes \`userPhoneSearch\`, \`user-phone-search.js\` and
@@ -1874,7 +1908,7 @@ Module pattern map:
 }
 
 function cursorSkillRouterRules() {
-  return '---\ndescription: AAFE Skill Index On-Demand Router\nalwaysApply: true\n---\n\n# AAFE Skill Index On-Demand Router\n\nFor every task in this repository:\n1. Read `.ai-agent/skill-index.md` first.\n2. If present, read `.ai-agent/project.md` for project-specific quick map and domain routing hints.\n3. Only when the task matches a domain, read the matching `.ai-agent/project-skills/<domain>/SKILL.md`.\n4. For non-trivial frontend work, then follow `.ai-agent/runtime/*` and `.ai-agent/pipelines/*`.\n5. Editor directories are pointers only. Do not copy, rewrite, or maintain project knowledge in `.cursor`.\n6. Do not eagerly read all project skills.\n7. `aafe` is runnable from this repo (`node_modules/.bin/aafe` when not on `PATH`). See the\n   "Commands you may run yourself" table in `.ai-agent/skill-index.md` and run them yourself\n   instead of asking the user to. Prefer `aafe knowledge search` over a blind grep when locating code.\n';
+  return '---\ndescription: AAFE Skill Index On-Demand Router\nalwaysApply: true\n---\n\n# AAFE Skill Index On-Demand Router\n\nFor every task in this repository:\n1. Read `.ai-agent/skill-index.md` first.\n2. If present, read `.ai-agent/project.md` for project-specific quick map and domain routing hints.\n3. Read `.aafe.config.json` → `mode.workflow` (default `ask`). Load `.ai-agent/skills/workflow-mode.md` before the first interactive gate.\n4. Only when the task matches a domain, read the matching `.ai-agent/project-skills/<domain>/SKILL.md`.\n5. For non-trivial frontend work, then follow `.ai-agent/runtime/*` and `.ai-agent/pipelines/*`.\n6. Editor directories are pointers only. Do not copy, rewrite, or maintain project knowledge in `.cursor`.\n7. Do not eagerly read all project skills.\n8. `aafe` is runnable from this repo (`node_modules/.bin/aafe` when not on `PATH`). See the\n   "Commands you may run yourself" table in `.ai-agent/skill-index.md` and run them yourself\n   instead of asking the user to. Prefer `aafe knowledge search` over a blind grep when locating code.\n';
 }
 
 function editorSkillEntry(name) {
@@ -1902,7 +1936,7 @@ function nativeEditorSkill(name) {
 }
 
 function cursorRules() {
-  return '---\ndescription: AAFE Architecture Runtime\nalwaysApply: true\n---\n\n# AAFE Architecture Runtime\n\nFor every non-trivial frontend task after the Skill Router step:\n0. After concrete requirement is obtained (TAPD pull or user spec), follow `aafe-requirement-intake-analysis.mdc` / `requirement-intake-analysis.md`: clarify ambiguities → history search → code scope & root cause → sizing gate (direct fix vs ask Plan mode).\n1. Read `.ai-agent/runtime/engine.md`.\n2. Classify the task using `.ai-agent/runtime/router.yaml`.\n3. Follow the selected `.ai-agent/pipelines/*.yaml`.\n4. Enforce `.ai-agent/runtime/gates.yaml` before implementation.\n5. Read `.ai-agent/skills/project-architecture-locator.md` first when locating routes, components, modules or design docs.\n5b. For deep architecture/dataflow, use `.ai-agent/skills/architecture-on-demand.md` / `dataflow-on-demand.md` against the configured analyze output (default `.aafe/`, never the full tree).\n6. Use framework, DDD, design-pattern and scenario packs when relevant.\n7. For business-heavy features, run DDD Discovery before module decomposition.\n8. For new features, run Pattern Interview before Pattern Selection.\n9. For complex frontend work, select and land patterns per module based on real business responsibility.\n10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.\n11. Before final response, follow `aafe-task-completion-impact.mdc`: task assessment — only ask impact/self-test when code changed (skip docs/requirements-only); UI sub-asks only for code + UI impact; pre-generate `ui_test_paths`.\n12. After self-test or submit intent: follow `aafe-tapd-submit-backfill.mdc` only when task has TAPD association and `tapd.enabled`; else skip TAPD backfill asks.\n13. File license: follow `aafe-new-file-license.mdc` — new files add header; edits use local `aafe license ensure <path>` (never AI-Read memory JSONL).\n';
+  return '---\ndescription: AAFE Architecture Runtime\nalwaysApply: true\n---\n\n# AAFE Architecture Runtime\n\nFor every non-trivial frontend task after the Skill Router step:\n0. Read `.aafe.config.json` → `mode.workflow` (default `ask`) and follow `aafe-workflow-mode.mdc` / `workflow-mode.md` before the first interactive gate.\n0b. After concrete requirement is obtained (TAPD pull or user spec), follow `aafe-requirement-intake-analysis.mdc` / `requirement-intake-analysis.md`: clarify ambiguities → history search → code scope & root cause → sizing gate (direct fix vs Plan mode).\n1. Read `.ai-agent/runtime/engine.md`.\n2. Classify the task using `.ai-agent/runtime/router.yaml`.\n3. Follow the selected `.ai-agent/pipelines/*.yaml`.\n4. Enforce `.ai-agent/runtime/gates.yaml` before implementation.\n5. Read `.ai-agent/skills/project-architecture-locator.md` first when locating routes, components, modules or design docs.\n5b. For deep architecture/dataflow, use `.ai-agent/skills/architecture-on-demand.md` / `dataflow-on-demand.md` against the configured analyze output (default `.aafe/`, never the full tree).\n6. Use framework, DDD, design-pattern and scenario packs when relevant.\n7. For business-heavy features, run DDD Discovery before module decomposition.\n8. For new features, run Pattern Interview before Pattern Selection.\n9. For complex frontend work, select and land patterns per module based on real business responsibility.\n10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.\n11. Before final response, follow `aafe-task-completion-impact.mdc`: task assessment — only ask impact/self-test when code changed (skip docs/requirements-only); UI sub-asks only for code + UI impact; pre-generate `ui_test_paths`.\n12. After self-test or submit intent: follow `aafe-tapd-submit-backfill.mdc` only when task has TAPD association and `tapd.enabled`; else skip TAPD backfill asks.\n13. File license: follow `aafe-new-file-license.mdc` — new files add header; edits use local `aafe license ensure <path>` (never AI-Read memory JSONL).\n';
 }
 
 function cursorHooks() {
@@ -1965,9 +1999,9 @@ function cursorSessionStartHook() {
 }
 
 function claudeRules() {
-  return '# AAFE Architecture Runtime\n\n## Requirement intake (before code)\n\nAfter concrete requirement: clarify → history search → scope & root cause → Plan gate if large (>5 fn/files or >300 new lines). See `.ai-agent/skills/requirement-intake-analysis.md`.\n\n## Task completion impact and test (conditional)\n\nTask assessment: only ask impact/self-test for code changes (skip docs/requirements-only). UI MCP asks only for code + UI impact. After self-test: TAPD backfill only if task has TAPD association.\n\n## TAPD submit backfill\n\nOnly with TAPD association + tapd.enabled: Commit → PR → ask comment-only backfill. No TAPD link in task → skip all TAPD asks. See `.ai-agent/skills/tapd-submit-backfill.md`.\n\n## Mandatory completion review\n\nAfter user confirms impact analysis, report scope, tests, and unverified risks.\n\n## AAFE Skill Router\n\nFor every task, read `.ai-agent/skill-index.md` first, then `.ai-agent/project.md` if present, then only the matching `.ai-agent/project-skills/<domain>/SKILL.md` on demand. Do not copy project knowledge into editor directories and do not eagerly read all project skills.\n\n## Runtime Pipeline\n\nFor non-trivial frontend engineering tasks, load `.ai-agent/runtime/engine.md`, classify requests with `.ai-agent/runtime/router.yaml`, follow the matching pipeline, run DDD discovery for business-heavy features, run pattern interview for new features, select patterns per module for complex frontend work, enforce gates, and only implement after DDD, architecture and pattern gates pass.\n';
+  return '# AAFE Architecture Runtime\n\n## Workflow mode\n\nRead `.aafe.config.json` → `mode.workflow` (default `ask`). `ask` keeps confirm-at-gate. `autonomous` lets the LLM decide Commit / PR / backfill / Plan / impact per `.ai-agent/skills/workflow-mode.md`. Hard Ask still stops for missing user-only facts.\n\n## Requirement intake (before code)\n\nAfter concrete requirement: clarify → history search → scope & root cause → Plan gate if large (>5 fn/files or >300 new lines). See `.ai-agent/skills/requirement-intake-analysis.md`.\n\n## Task completion impact and test (conditional)\n\nTask assessment: only ask impact/self-test for code changes (skip docs/requirements-only). UI MCP asks only for code + UI impact. After self-test: TAPD backfill only if task has TAPD association.\n\n## TAPD submit backfill\n\nOnly with TAPD association + tapd.enabled: Commit → PR → comment-only backfill (ask or autonomous per workflow mode). No TAPD link in task → skip all TAPD asks. See `.ai-agent/skills/tapd-submit-backfill.md`.\n\n## Mandatory completion review\n\nAfter impact analysis is confirmed or autonomously started, report scope, tests, and unverified risks.\n\n## AAFE Skill Router\n\nFor every task, read `.ai-agent/skill-index.md` first, then `.ai-agent/project.md` if present, then only the matching `.ai-agent/project-skills/<domain>/SKILL.md` on demand. Do not copy project knowledge into editor directories and do not eagerly read all project skills.\n\n## Runtime Pipeline\n\nFor non-trivial frontend engineering tasks, load `.ai-agent/runtime/engine.md`, classify requests with `.ai-agent/runtime/router.yaml`, follow the matching pipeline, run DDD discovery for business-heavy features, run pattern interview for new features, select patterns per module for complex frontend work, enforce gates, and only implement after DDD, architecture and pattern gates pass.\n';
 }
 
 function genericEditorRules(name) {
-  return '# AAFE Architecture Runtime for __NAME__\n\n## Requirement intake\n\nBefore code: clarify requirement → history → scope/root cause → ask Plan if large. See `.ai-agent/skills/requirement-intake-analysis.md`.\n\n## Task completion impact and test (conditional)\n\nOnly ask impact/self-test for code changes. UI MCP only for code + UI impact. TAPD backfill only if task has TAPD association.\n\n## TAPD submit backfill\n\nTAPD association required for backfill asks. See `.ai-agent/skills/tapd-submit-backfill.md`.\n\n## AAFE Skill Router\n\nFor every task, read `.ai-agent/skill-index.md` first, then `.ai-agent/project.md` if present, then only the matching `.ai-agent/project-skills/<domain>/SKILL.md` on demand. Editor adapter files are pointers only; do not copy project knowledge into editor directories and do not eagerly read all project skills.\n\n## Runtime Pipeline\n\nUse `.ai-agent` as the project architecture runtime. For non-trivial frontend work, route requests through `runtime/router.yaml`, run DDD discovery for business-heavy features, run pattern interview for new features, select patterns per module for complex frontend work, execute pipeline steps, enforce gates, and run refactor critique before finalizing code.\n'.replace('__NAME__', name);
+  return '# AAFE Architecture Runtime for __NAME__\n\n## Workflow mode\n\nRead `.aafe.config.json` → `mode.workflow` (default `ask`). See `.ai-agent/skills/workflow-mode.md`.\n\n## Requirement intake\n\nBefore code: clarify requirement → history → scope/root cause → Plan if large. See `.ai-agent/skills/requirement-intake-analysis.md`.\n\n## Task completion impact and test (conditional)\n\nOnly run impact/self-test for code changes. UI MCP only for code + UI impact. TAPD backfill only if task has TAPD association.\n\n## TAPD submit backfill\n\nTAPD association required for backfill. See `.ai-agent/skills/tapd-submit-backfill.md`.\n\n## AAFE Skill Router\n\nFor every task, read `.ai-agent/skill-index.md` first, then `.ai-agent/project.md` if present, then only the matching `.ai-agent/project-skills/<domain>/SKILL.md` on demand. Editor adapter files are pointers only; do not copy project knowledge into editor directories and do not eagerly read all project skills.\n\n## Runtime Pipeline\n\nUse `.ai-agent` as the project architecture runtime. For non-trivial frontend work, route requests through `runtime/router.yaml`, run DDD discovery for business-heavy features, run pattern interview for new features, select patterns per module for complex frontend work, execute pipeline steps, enforce gates, and run refactor critique before finalizing code.\n'.replace('__NAME__', name);
 }

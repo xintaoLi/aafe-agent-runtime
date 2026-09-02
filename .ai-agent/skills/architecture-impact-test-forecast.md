@@ -2,9 +2,16 @@
 
 Trigger: **同时满足**：
 1. 任务评估为**涉及代码变更**（非纯文档/需求分析-only）
-2. 用户回答 **是 / Yes / 需要 / Y** 至影响分析条件询问
+2. **ask**：用户回答 **是 / Yes / 需要 / Y** 至影响分析条件询问；**autonomous**：LLM 判定 `proceed`（见 `workflow-mode.md`）
 
 （Rule: `.ai-agent/rules/task-completion-impact.mdc` when present）
+
+## Workflow mode
+
+Read `.aafe.config.json` → `mode.workflow` (default `ask`). See `.ai-agent/skills/workflow-mode.md`.
+
+- `ask`: follow the ask / confirm steps in this skill.
+- `autonomous`: decide this skill's gates per that skill; do **not** ask unless Hard Ask. Record the decision.
 
 Next skill for execution: `minimal-convergent-self-test.md`.
 

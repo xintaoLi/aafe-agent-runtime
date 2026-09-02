@@ -31,7 +31,8 @@ assert.match(flatImpact, /\.ai-agent\/rules\/task-completion-impact\.mdc/);
 const projectImpact = taskCompletionImpactProjectRuleMdc({ agentPrefix: '.ai-agent' });
 assert.match(projectImpact, /aafe test --diff/);
 assert.match(projectImpact, /ui_test_paths/);
-assert.match(projectImpact, /询问是否 Commit/);
+assert.match(projectImpact, /询问是否 Commit|Commit 门禁|workflow-mode/);
+assert.match(projectImpact, /mode\.workflow|自主判断/);
 assert.match(projectImpact, /submit\.cli/);
 assert.match(projectImpact, /仅当任务过程中有关联 TAPD 单/);
 assert.match(projectImpact, /任务评估/);
@@ -85,7 +86,8 @@ assert.match(tapdSection, /Commit\/PR Gate|询问 Commit/);
 
 const tapdSkill = tapdSubmitBackfillSkillContent('.ai-agent');
 assert.match(tapdSkill, /Commit\/PR Gate/);
-assert.match(tapdSkill, /Phase B — Ask Commit/);
+assert.match(tapdSkill, /Phase B — Commit gate/);
+assert.match(tapdSkill, /autonomous mode/);
 assert.match(tapdSkill, /submit\.cli/);
 assert.match(tapdSkill, /gtm commit/);
 assert.match(tapdSkill, /gtm pr/);
@@ -97,7 +99,7 @@ assert.match(tapdSkill, /gtm create issue/);
 assert.match(tapdSkill, /upstream\/master/);
 assert.match(tapdSkill, /末 9 位/);
 assert.match(tapdSkill, /Phase D — Try PR/);
-assert.match(tapdSkill, /Phase E — Ask TAPD backfill/);
+assert.match(tapdSkill, /Phase E — TAPD backfill gate/);
 assert.match(tapdSkill, /有关联 TAPD 时/);
 
 import {
@@ -114,6 +116,7 @@ assert.match(projectReq, /SwitchMode/);
 assert.match(projectReq, /> 5 个函数/);
 
 const reqSkill = requirementIntakeAnalysisSkillContent('.ai-agent');
+assert.match(reqSkill, /Workflow mode/);
 assert.match(reqSkill, /Phase 1 — Analyze & clarify/);
 assert.match(reqSkill, /Phase 2 — Historical/);
 assert.match(reqSkill, /target_mode_id: \"plan\"/);

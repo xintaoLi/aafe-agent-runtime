@@ -1,3 +1,5 @@
+import { workflowModeGatePreamble, workflowModeSkillNote } from './workflowModeRules.js';
+
 export function tapdSubmitRuleMdc(ctx = {}) {
   // Editor adapters are thin pointers; detailed protocol lives in `.ai-agent/rules/` + skills.
   return tapdSubmitPointerRuleMdc(ctx);
@@ -20,7 +22,7 @@ Source of truth:
 1. Rule: \`${agentPrefix}/rules/tapd-submit-backfill.mdc\`
 2. Skill: \`${agentPrefix}/skills/tapd-submit-backfill.md\`
 
-流程：自测完成 → Commit → PR → **仅任务有关联 TAPD 单时**询问回填。无 TAPD 关联则跳过回填及新建单等询问。
+流程：自测完成 → Commit → PR → **仅任务有关联 TAPD 单时**回填。\`ask\` 询问；\`autonomous\` 按 workflow-mode 判定。无 TAPD 关联则跳过回填及新建单等询问。
 
 Do not duplicate project knowledge here.
 `;
@@ -39,6 +41,8 @@ ${tapdSubmitProjectRuleBody(agentPrefix)}
 
 function tapdSubmitProjectRuleBody(agentPrefix = '.ai-agent') {
   return `# TAPD Submit Backfill（Comment-Only + Commit/PR Gate）
+
+${workflowModeGatePreamble(agentPrefix)}
 
 ## TAPD 关联评估（前置 Gate）
 
@@ -70,13 +74,13 @@ function tapdSubmitProjectRuleBody(agentPrefix = '.ai-agent') {
 
 \`\`\`text
 自测完成（含 UI 路径预生成与执行）
-  → 询问：是否执行 Commit？
-      ├─ 是 → 按 \`.aafe.config.json\` → \`submit.cli\` 执行 Commit/PR → 询问：是否回填 TAPD？
-      └─ 否 → 仍询问：是否回填 TAPD？（仅有关联 TAPD 时）
-  → 用户同意回填 → comments_create（+ 可选 PR 字段 / 状态流转）
+  → Commit 门禁（ask 询问 / autonomous 判定）
+      ├─ 是 / proceed → 按 \`.aafe.config.json\` → \`submit.cli\` 执行 Commit/PR → 回填门禁
+      └─ 否 / skip → 仍进入回填门禁（仅有关联 TAPD 时）
+  → 回填同意 / proceed → comments_create（+ 可选 PR 字段 / 状态流转）
 \`\`\`
 
-无 TAPD 关联时：Commit/PR 可选，**不进入**上述回填询问。
+无 TAPD 关联时：Commit/PR 可选，**不进入**上述回填。
 
 ### Commit / PR（\`submit.cli\`）
 
@@ -95,12 +99,10 @@ function tapdSubmitProjectRuleBody(agentPrefix = '.ai-agent') {
 
 ### 回填询问（仅有关联 TAPD 时）
 
-有关联 TAPD 且自测/提交链到达时，无论是否 Commit / 是否产出 PR，都要问：
+有关联 TAPD 且自测/提交链到达时，无论是否 Commit / 是否产出 PR：
 
-> 是否回填 TAPD 单子？
-
-同意词示例：\`是\` / \`Yes\` / \`Y\` / \`需要\` / \`同意\` / \`回填\` / \`好的\` / \`可以\` / \`ok\`。  
-否定则跳过，不自动回填。
+- **ask**：必须问「是否回填 TAPD 单子？」同意词：\`是\` / \`Yes\` / \`Y\` / \`需要\` / \`同意\` / \`回填\` / \`好的\` / \`可以\` / \`ok\`。否定则跳过。
+- **autonomous**：按 \`workflow-mode.md\` 判定；\`proceed\` 则回填，\`skip\` 则说明原因。有关联但解析不到 entry_id → Hard Ask。
 
 ## 回填方式（强制）
 
@@ -141,10 +143,10 @@ export function tapdSubmitRuleSection(ctx = {}) {
     '',
     '有关联且 tapd.enabled 时，自测完成后或用户说 commit/push/submit/提测：',
     '1. 新任务时先检查当前分支 `feat|bug/<slug>/#<short_id>` 是否已关联 TAPD（git 和 gtm 均适用）；未关联则从远程主干创建开发分支（详见 Skill「TAPD Branch Association」）。',
-    '2. 询问 Commit → 同意则按 \`submit.cli\`（\`git\` 默认 / \`gtm\`）执行 Commit/PR。',
-    '3. **Commit/PR 完成后，必须立即询问「是否回填 TAPD 单子？」** — 这是 Commit 后的强制步骤，不可跳过。',
-    '4. 用户同意 → 加载 `' + agentPrefix + '/skills/tapd-submit-backfill.md` 执行 Phase F（comments_create + 状态流转）。',
-    '5. 用户拒绝 → 在回复中说明「已跳过回填，可稍后手动触发」。',
+    '2. Commit 门禁：`ask` 询问 / `autonomous` 判定 → 同意或 proceed 则按 \`submit.cli\`（\`git\` 默认 / \`gtm\`）执行 Commit/PR。',
+    '3. **Commit/PR 完成后进入回填门禁**（仅有关联 TAPD 时）：`ask` 必须问「是否回填 TAPD 单子？」；`autonomous` 按 workflow-mode 判定。',
+    '4. 同意 / proceed → 加载 \`${agentPrefix}/skills/tapd-submit-backfill.md\` 执行 Phase F（comments_create + 状态流转）。',
+    '5. 拒绝 / skip → 在回复中说明已跳过回填。',
     '6. 回填内容 **只通过 `comments_create` 追加**；禁止改写 description/test_focus。',
     '7. 评论回填后按当前状态流转：backlog→todo→doing；已是 todo 则直接 →doing；已是 doing 则跳过。',
     `8. 详细流程见 \`${agentPrefix}/skills/tapd-submit-backfill.md\`。`,
@@ -163,6 +165,8 @@ Trigger（\`.aafe.config.json\` → \`tapd.enabled === true\` **且任务过程�
 
 **无 TAPD 关联**：跳过 Phase E/F 及 C1 新建/关联询问；可常规 Commit/PR。
 
+${workflowModeSkillNote(prefix)}
+
 Companions:
 
 - Hard rule: \`${prefix}/rules/tapd-submit-backfill.mdc\`
@@ -178,9 +182,9 @@ Companions:
 
 \`\`\`text
 [A] 确保自测产物齐全（缺则先跑 impact + self-test；代码变更任务才需）
-[B] 询问是否 Commit
-    ├─ 是 → [C]/[D] 按 submit.cli（git|gtm）执行 Commit/PR → [E] 询问回填 TAPD
-    └─ 否 → [E] 仍询问回填 TAPD
+[B] Commit 门禁（ask 询问 / autonomous 判定）
+    ├─ 是 / proceed → [C]/[D] 按 submit.cli（git|gtm）执行 Commit/PR → [E] 回填门禁
+    └─ 否 / skip → [E] 仍进入回填门禁
 [E] 同意 → [F] 评论回填 + 可选 PR 字段 + 状态流转
     拒绝 → 结束
 \`\`\`
@@ -363,9 +367,9 @@ Ensure before Commit/回填询问：
 
 ---
 
-## Phase B — Ask Commit
+## Phase B — Commit gate
 
-问：
+**ask mode** — 问：
 
 > 自测已完成。是否执行 Commit？
 
@@ -374,11 +378,13 @@ Ensure before Commit/回填询问：
 | 是 / Yes / Y / 需要 / 提交 / commit / 好的 / 可以 / ok | → Phase C |
 | 否 / No / N / 不需要 / 跳过 | → Phase E（**仅有关联 TAPD 时**；否则结束） |
 
+**autonomous mode** — 按 \`workflow-mode.md\` 判定：有相关 diff、无 secret、自测完成或 skipped → \`proceed\` 进 Phase C；否则 \`skip\` 进 Phase E（有关联 TAPD 时）。输出判定记录，不要再问 chat yes/no。用户本轮已禁止提交 → 视为 skip。
+
 ---
 
 ## Phase C — Commit
 
-先确认 \`submit.cli\`（见上表），再执行对应分支。仅在用户同意 Phase B 后执行。
+先确认 \`submit.cli\`（见上表），再执行对应分支。仅在 Phase B 同意或 autonomous \`proceed\` 后执行。
 
 ### C1 Resolve TAPD entry（**仅有关联 TAPD 时**）
 
@@ -443,20 +449,24 @@ gtm pr
 
 ---
 
-## Phase E — Ask TAPD backfill（**仅有关联 TAPD 时**）
+## Phase E — TAPD backfill gate（**仅有关联 TAPD 时**）
 
 无 TAPD 关联 → **跳过本 Phase**，不向用户问回填。
 
-有关联时，**无论** B 选否、C/D 成功或失败，都要问：
+有关联时，**无论** B 选否、C/D 成功或失败：
+
+**ask mode** — 必须问：
 
 > 是否回填 TAPD 单子？（将追加评论：处理结果 / 影响范围 / 自测结果；若有 PR 且存在 PR 字段则写入链接）
 
 同意词：\`是\` / \`Yes\` / \`Y\` / \`需要\` / \`同意\` / \`回填\` / \`好的\` / \`可以\` / \`ok\` 及明显同义肯定。  
 否定：跳过并说明可稍后手动触发本 Skill。
 
+**autonomous mode** — 有关联 + \`tapd.enabled\` + 有产物（或 skipped 标注）→ \`proceed\` 进 Phase F；entry_id 无法解析 → Hard Ask。输出判定记录。
+
 ---
 
-## Phase F — Backfill（同意后）
+## Phase F — Backfill（同意或 autonomous proceed 后）
 
 ### F1 Resolve entry
 

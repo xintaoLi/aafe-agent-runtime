@@ -22,6 +22,9 @@ import {
   fileLicenseProjectRuleMdc,
   fileLicenseRuleSection
 } from './fileLicenseRules.js';
+import {
+  workflowModeProjectRuleMdc
+} from './workflowModeRules.js';
 import { RETAIN_IN_INSTALL_DIR } from './workspace.js';
 
 export async function writeLayeredEditorAdapters({
@@ -55,6 +58,11 @@ export async function writeLayeredEditorAdapters({
     await writeIfAllowed(
       path.join(options.installRoot, '.ai-agent/rules/new-file-license.mdc'),
       fileLicenseProjectRuleMdc({ agentPrefix: ctx.agentPrefix }),
+      { ...options, force: false }
+    );
+    await writeIfAllowed(
+      path.join(options.installRoot, '.ai-agent/rules/workflow-mode.mdc'),
+      workflowModeProjectRuleMdc({ agentPrefix: ctx.agentPrefix }),
       { ...options, force: false }
     );
   }

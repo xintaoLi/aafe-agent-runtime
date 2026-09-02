@@ -4,6 +4,15 @@ Trigger: after impact analysis (code-change tasks only), or when TAPD backfill n
 
 Companion: `.ai-agent/skills/architecture-impact-test-forecast.md` (impact) → this skill (tests) → **完成后** 若任务有关联 TAPD 单 → `.ai-agent/skills/tapd-submit-backfill.md`.
 
+## Workflow mode
+
+Read `.aafe.config.json` → `mode.workflow` (default `ask`). See `.ai-agent/skills/workflow-mode.md`.
+
+- `ask`: follow the ask / confirm steps in this skill.
+- `autonomous`: decide this skill's gates per that skill; do **not** ask unless Hard Ask. Record the decision.
+
+E2E / 浏览器缺本次 URL 时，即使 `mode.workflow=autonomous` 也必须 Hard Ask，禁止猜地址。
+
 ## Goal
 
 按**本次变更影响范围**做最小收敛自测：能 Mock 则 Mock；UI/路由变更在最后测试环节走 `aafe test --diff`（Playwright YAML）。浏览器 MCP 仅作 E2E blocked 时的兜底。

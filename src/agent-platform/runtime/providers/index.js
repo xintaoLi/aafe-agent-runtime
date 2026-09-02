@@ -23,9 +23,10 @@ import { HttpAgentProvider } from './HttpAgentProvider.js';
 import { CliAgentProvider } from './CliAgentProvider.js';
 import { IdeAgentProvider } from './IdeAgentProvider.js';
 import { McpAgentProvider } from './McpAgentProvider.js';
+import { CursorSdkAgentProvider } from './CursorSdkAgentProvider.js';
 
 export { AgentProvider } from './AgentProvider.js';
-export { LocalAgentProvider, HttpAgentProvider, CliAgentProvider, IdeAgentProvider, McpAgentProvider };
+export { LocalAgentProvider, HttpAgentProvider, CliAgentProvider, IdeAgentProvider, McpAgentProvider, CursorSdkAgentProvider };
 
 /**
  * @param {object} options
@@ -40,6 +41,7 @@ export function createDefaultProviders({ implementations = {}, cwd = process.cwd
     http: new HttpAgentProvider(),
     cli: new CliAgentProvider({ cwd }),
     mcp: new McpAgentProvider({ cwd }),
-    ide: new IdeAgentProvider({ mode: developer.mode ?? 'current' })
+    ide: new IdeAgentProvider({ mode: developer.mode ?? 'current' }),
+    cursor: new CursorSdkAgentProvider({ cwd })
   };
 }

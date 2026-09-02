@@ -1,3 +1,5 @@
+import { workflowModeGatePreamble, workflowModeSkillNote } from './workflowModeRules.js';
+
 export function requirementIntakeRuleMdc(ctx = {}) {
   return requirementIntakePointerRuleMdc(ctx);
 }
@@ -39,6 +41,8 @@ ${requirementIntakeProjectRuleBody(agentPrefix)}
 function requirementIntakeProjectRuleBody(agentPrefix = '.ai-agent') {
   return `# Requirement Intake & Analysis
 
+${workflowModeGatePreamble(agentPrefix)}
+
 ## 触发（需求已到手）
 
 在**开始改代码之前**，必须先完成本 Rule。需求来源：
@@ -67,12 +71,11 @@ function requirementIntakeProjectRuleBody(agentPrefix = '.ai-agent') {
 
 1. 解析需求：目标、范围、验收标准、约束、依赖、风险
 2. 列出**不明确项**（歧义、缺失边界、多解路径、未定义异常/兼容策略）
-3. 对每项不明确点**必须交互**获取明确答复，输出形式任选或组合：
-   - **方案选择**：A / B / C + 推荐与 tradeoff
-   - **问题明确**：结构化追问（Who/What/When/边界/反例）
-   - **需详细答复**：请用户补充完整说明或示例
+3. 对每项不明确点按工作流模式闭合：
+   - **ask**：必须交互获取明确答复（方案选择 / 追问 / 要详细答复）
+   - **autonomous**：能从 TAPD / 代码 / 历史高置信推断则写下 assumption 并关闭；会改变方案且无法推断 → Hard Ask，禁止猜测
 
-**Hard：** 存在未决不明确项时，禁止进入阶段 B（历史检索）及之后写代码。
+**Hard：** 存在未决且无法闭合的不明确项时，禁止进入阶段 B（历史检索）及之后写代码。
 
 ## 阶段 B — 历史积累检索（需求已明确后）
 
@@ -117,12 +120,10 @@ function requirementIntakeProjectRuleBody(agentPrefix = '.ai-agent') {
 - 预计涉及 **> 5 个文件**
 - 预计**新增代码 > 300 行**（含新功能）
 
-→ **必须先询问用户**：
+→ 按工作流模式处理 Plan 门禁：
 
-> 本次变更规模较大，是否切换 Plan 模式先制定详细实施计划？
-
-- 用户 **确认 / 同意 / Yes / 是 / Y** → 调用 **SwitchMode**（\`target_mode_id: plan\`），在 Plan 中输出分步计划后再实施
-- 用户拒绝 → 仍可实施，但须在回复中说明风险与未 plan 的 tradeoff
+- **ask**：必须先询问用户是否切换 Plan 模式；确认后 **SwitchMode**（\`target_mode_id: plan\`）；拒绝则实施并记录 \`plan_skipped: true\`
+- **autonomous**：大改直接调用 **SwitchMode**（无需再问 chat yes/no）；SwitchMode 不可用则实施并记录风险与 \`plan_skipped: true\`
 
 ### Plan 模式内
 
@@ -146,7 +147,7 @@ function requirementIntakeProjectRuleBody(agentPrefix = '.ai-agent') {
 
 - 未澄清需求就写代码
 - 跳过历史检索直接大改
-- 大规模变更不询问就 silent 全量实施
+- 询问模式下大规模变更不询问就 silent 全量实施；自主模式须产出判定记录
 - 将「需求分析阶段」与「任务完成影响分析」混淆（后者在**实施完成后**）`;
 }
 
@@ -157,10 +158,10 @@ export function requirementIntakeRuleSection(ctx = {}) {
     '',
     '拿到具体需求后（TAPD 拉取或用户描述）、写代码前：',
     '0. TAPD MCP 拉取需求详情并核对分支关联（git 和 gtm 均适用）：检查当前分支 `feat|bug/<slug>/#<short_id>` 是否与 TAPD 单一致；未关联或错误则从远程主干创建开发分支（见 `tapd-submit-backfill`「TAPD Branch Association」）。',
-    `1. 澄清不明确项（方案选择 / 追问 / 要详细答复）；未明确禁止写代码。`,
+    `1. 澄清不明确项（方案选择 / 追问 / 要详细答复）；未明确禁止写代码。自主模式可按 workflow-mode 用证据闭合 AMB。`,
     `2. 需求明确后查历史：\`${agentPrefix}/skills/memory-recaller.md\` + experience/learnings。`,
     '3. 分析代码范围与根因，再定实施策略。',
-    '4. 单函数或纯样式小改 → 直接修；>5 函数 / >5 文件 / >300 行新增或多文件交叉 → 询问是否 SwitchMode 到 plan。',
+    '4. 单函数或纯样式小改 → 直接修；>5 函数 / >5 文件 / >300 行新增或多文件交叉 → ask 询问 SwitchMode；autonomous 自行判定。',
     '5. 实施后：task-completion-impact + tapd-submit-backfill 流程不变。',
     `6. 详见 \`${agentPrefix}/skills/requirement-intake-analysis.md\`。`,
     ''
@@ -176,6 +177,8 @@ Trigger: **具体需求已获取**（TAPD 单据内容已拉取，或用户给�
 Rule: \`${prefix}/rules/requirement-intake-analysis.mdc\`
 
 Post-implementation (unchanged): \`${prefix}/rules/task-completion-impact.mdc\` → \`${prefix}/rules/tapd-submit-backfill.mdc\`
+
+${workflowModeSkillNote(prefix)}
 
 ---
 
@@ -225,7 +228,9 @@ For each unclear item, create \`AMB-001\`… with:
 | Risk if guessed | Wrong fix cost |
 | Resolution type | \`choice\` \\| \`question\` \\| \`detail_needed\` |
 
-### 1.3 Interactive resolution (mandatory)
+### 1.3 Resolution
+
+**ask mode** — Interactive resolution (mandatory):
 
 **choice** — present 2–4 options + recommendation:
 
@@ -240,6 +245,8 @@ For each unclear item, create \`AMB-001\`… with:
 **question** — numbered precise questions.
 
 **detail_needed** — ask for example, screenshot, API contract, edge case list.
+
+**autonomous mode** — Close AMB if TAPD / code / history can infer it with high confidence; record \`assumption\`. If it would change the solution and cannot be inferred → Hard Ask (stop). Do not invent product requirements.
 
 **Hard:** \`ambiguity_register\` 非空且未关闭 → **stop**；不得进入 Phase 2。
 
@@ -264,7 +271,7 @@ Output \`history_hits\`:
 | --- | --- | --- | --- |
 | H-001 | experience.md | … | full / partial / none |
 
-If **full reuse** possible: propose applying historical path; confirm with user before skipping new design.
+If **full reuse** possible: \`ask\` 先确认再跳过新设计；\`autonomous\` 证据充分则直接复用并记录判定。
 
 ---
 
@@ -320,7 +327,7 @@ Estimate **before** coding:
 - m > 5
 - L > 300 (new feature / substantial addition)
 
-Ask:
+**ask mode** — Ask:
 
 > 本次变更规模较大（约 n 个函数 / m 个文件 / L 行新增）。是否切换 **Plan 模式** 先制定详细实施计划？
 
@@ -332,6 +339,8 @@ Affirmative: \`确认\` / \`同意\` / \`Yes\` / \`是\` / \`Y\` / \`切换plan\
 - Get user approval before returning to Agent for code
 
 If user declines Plan: document risk; may proceed in Agent with explicit \`plan_skipped: true\`.
+
+**autonomous mode** — Do not wait for chat yes/no. Invoke **SwitchMode** when large. If SwitchMode is unavailable, proceed in Agent with \`plan_skipped: true\` and document risk. Record the decision per \`workflow-mode.md\`.
 
 ---
 
@@ -378,7 +387,7 @@ direct fix | plan mode | blocked (waiting user)
 
 - Coding with open AMB items
 - Skipping history on recurring bug classes
-- >5 files change without plan ask
+- >5 files change without plan ask (ask mode) or without a recorded autonomous decision
 - Confusing this skill with post-task impact analysis (\`architecture-impact-test-forecast.md\`)
 `;
 }

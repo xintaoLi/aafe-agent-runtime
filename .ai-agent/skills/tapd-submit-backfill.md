@@ -7,6 +7,13 @@ Trigger（`.aafe.config.json` → `tapd.enabled === true` **且任务过程中�
 
 **无 TAPD 关联**：跳过 Phase E/F 及 C1 新建/关联询问；可常规 Commit/PR。
 
+## Workflow mode
+
+Read `.aafe.config.json` → `mode.workflow` (default `ask`). See `.ai-agent/skills/workflow-mode.md`.
+
+- `ask`: follow the ask / confirm steps in this skill.
+- `autonomous`: decide this skill's gates per that skill; do **not** ask unless Hard Ask. Record the decision.
+
 Companions:
 
 - Hard rule: `.ai-agent/rules/tapd-submit-backfill.mdc`
@@ -22,9 +29,9 @@ Companions:
 
 ```text
 [A] 确保自测产物齐全（缺则先跑 impact + self-test；代码变更任务才需）
-[B] 询问是否 Commit
-    ├─ 是 → [C]/[D] 按 submit.cli（git|gtm）执行 Commit/PR → [E] 询问回填 TAPD
-    └─ 否 → [E] 仍询问回填 TAPD
+[B] Commit 门禁（ask 询问 / autonomous 判定）
+    ├─ 是 / proceed → [C]/[D] 按 submit.cli（git|gtm）执行 Commit/PR → [E] 回填门禁
+    └─ 否 / skip → [E] 仍进入回填门禁
 [E] 同意 → [F] 评论回填 + 可选 PR 字段 + 状态流转
     拒绝 → 结束
 ```
@@ -44,45 +51,83 @@ Read `.aafe.config.json` → `submit.cli`:
 
 ---
 
-## GTM Task Start — 分支与 TAPD 关联（仅 `submit.cli=gtm`）
+## TAPD Branch Association — 分支关联与 TAPD 详情核对（git 和 gtm 均适用）
 
-**触发**：新任务开始（已拿到具体 TAPD 单 / 需求，准备改代码前）。`submit.cli=git` 时跳过本节。
+**触发**：新任务开始（已拿到具体 TAPD 单 / 需求，准备改代码前），无论 `submit.cli` 是 `git` 还是 `gtm`。
 
-### G0 检查当前分支是否已关联 TAPD
+### T0 拉取 TAPD 需求详情
+
+通过 TAPD MCP 拉取单据详情，确认任务内容：
+
+```text
+1. 从用户提供的 TAPD URL 提取 ID（URL 最后一段数字的末 9 位 = short_id）
+2. tapd_id_get → 确认 story / bug 类型和完整信息
+3. stories_get / bugs_get → 拉取标题、描述、验收标准、当前状态
+4. 记录 tapd_entry_type / tapd_entry_id / tapd_short_id / tapd_title
+```
+
+TAPD URL 与 ID 示例：
+
+```text
+https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081137629063
+→ URL 最后一段 = 1010158081137629063
+→ short_id = 末 9 位 = 137629063
+→ entry_type = story
+```
+
+### T1 检查当前分支是否已关联该 TAPD 单
 
 ```bash
 git branch --show-current
 ```
 
-GTM 关联分支命名约定：
+分支命名约定（git 和 gtm 统一）：
 
 ```text
-{type}/{feature-slug}/#{tapd_full_id}
+{type}/{feature-slug}/#{tapd_short_id}
 ```
 
-示例：`feat/search-tag/#1010158081136674445`
+示例：`feat/search-tag/#137629063`
 
 | 段 | 含义 |
 | --- | --- |
 | `feat` / `feature` | 需求（story） |
 | `bug` / `fix` | 缺陷（bug） |
-| `search-tag` | 当前分支功能短名（可读英文） |
-| `#1010158081136674445` | TAPD 链接最后一段数字 ID |
-
-TAPD 链接示例：
-
-```text
-https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081136674445
-→ full id = 1010158081136674445
-→ GTM 单据短 ID = 最后 9 位 = 136674445
-```
+| `search-tag` | 当前分支功能短名（可读英文，kebab-case） |
+| `#137629063` | TAPD URL 最后一段数字的**末 9 位** |
 
 **判定**：
 
-- 当前分支匹配 `{type}/{slug}/#{digits}` → **已关联**，记录 `tapd_entry_type` / `tapd_entry_id` / `tapd_short_id`，进入需求分析/开发
-- 不匹配（如 `master` / `main` / 无 `#id` 后缀）→ **未关联**，执行 G1
+- 当前分支匹配 `{type}/{slug}/#{short_id}` 且 `short_id` **与 T0 拉取的 TAPD 单一致** → **已正确关联**，进入需求分析/开发
+- 当前分支匹配 `{type}/{slug}/#{digits}` 但 `digits` **与 TAPD 单不一致** → **关联了错误的单**，需执行 T2 创建新分支
+- 不匹配（如 `master` / `main` / 无 `#id` 后缀）→ **未关联**，执行 T2
 
-### G1 未关联时：`gtm create issue` 关联已有单据并建开发分支
+### T2 未关联或关联错误时：从远程主干创建开发分支
+
+#### T2a `submit.cli=git`（默认）
+
+从远程 `upstream/master` 创建新分支：
+
+```bash
+# 1. 确保远程主干为最新
+git fetch upstream master
+
+# 2. 基于 upstream/master 创建开发分支
+git checkout -b {type}/{slug}/#{short_id} upstream/master
+```
+
+- `{type}`：story → `feat`；bug → `bug`
+- `{slug}`：根据 TAPD 标题生成可读英文短名（kebab-case，如 `search-tag`）
+- `{short_id}`：T0 提取的 TAPD short_id（末 9 位）
+
+示例：
+
+```bash
+git fetch upstream master
+git checkout -b feat/search-tag/#137629063 upstream/master
+```
+
+#### T2b `submit.cli=gtm`
 
 ```bash
 gtm create issue
@@ -91,16 +136,17 @@ gtm create issue
 按交互提示依次操作：
 
 1. 选择 **关联已有单据**
-2. **输入单据 ID**：TAPD 地址最后一段数字的**最后 9 位**  
-   - 例：`.../detail/1010158081136674445` → 输入 `136674445`
+2. **输入单据 ID**：TAPD short_id（URL 最后一段数字的末 9 位）  
+   - 例：`.../detail/1010158081137629063` → 输入 `137629063`
 3. **请输入目标分支**：`master`（或项目约定的主干名）
 4. **请输入新的开发分支名称**：根据 TAPD 单据标题生成**可读英文短名**（kebab-case，如 `search-tag`）  
-   - 只需输入功能短名；**系统会自动补充前缀（feat/bug）与后缀（`#fullId`）**
-   - 不要手写完整 `feat/.../#...`，避免与 GTM 自动规则冲突
+   - 只需输入功能短名；**系统会自动补充前缀（feat/bug）与后缀（`#short_id`）**
 
-完成后再次 `git branch --show-current`，确认已变为 `feat|bug/<slug>/#<fullId>`，再继续写代码。
+### T3 确认关联成功
 
-**失败/异常**：简要报告；由项目 GTM 侧处理，本 Skill 不强制降级；未关联成功时提醒用户手动完成后继续。
+完成后再次 `git branch --show-current`，确认已变为 `feat|bug/<slug>/#<short_id>`，再继续写代码。
+
+**失败/异常**：简要报告；由项目侧处理，本 Skill 不强制降级；未关联成功时提醒用户手动完成后继续。
 
 ---
 
@@ -138,8 +184,10 @@ Common tools: `stories_get`, `stories_create`, `stories_update`, `bugs_*`, `comm
 
 ### `tapd`
 
-Use `workspace_id`, `milestone_id`, `tapd_story.*`, `tapd_bug.*` status values.
+Use `tapd_story.*`, `tapd_bug.*` status values.
 Submit-backfill story target is `status_doing` (first token if comma-separated); do **not** auto-advance to `status_done`.
+
+`workspace_id` **不在配置中硬编码**；回填时从 TAPD 链接或 MCP 查询动态提取（见 F1）。
 
 Optional PR field keys（任一存在且非空即用）:
 
@@ -166,9 +214,9 @@ Ensure before Commit/回填询问：
 
 ---
 
-## Phase B — Ask Commit
+## Phase B — Commit gate
 
-问：
+**ask mode** — 问：
 
 > 自测已完成。是否执行 Commit？
 
@@ -177,20 +225,22 @@ Ensure before Commit/回填询问：
 | 是 / Yes / Y / 需要 / 提交 / commit / 好的 / 可以 / ok | → Phase C |
 | 否 / No / N / 不需要 / 跳过 | → Phase E（**仅有关联 TAPD 时**；否则结束） |
 
+**autonomous mode** — 按 `workflow-mode.md` 判定：有相关 diff、无 secret、自测完成或 skipped → `proceed` 进 Phase C；否则 `skip` 进 Phase E（有关联 TAPD 时）。输出判定记录，不要再问 chat yes/no。用户本轮已禁止提交 → 视为 skip。
+
 ---
 
 ## Phase C — Commit
 
-先确认 `submit.cli`（见上表），再执行对应分支。仅在用户同意 Phase B 后执行。
+先确认 `submit.cli`（见上表），再执行对应分支。仅在 Phase B 同意或 autonomous `proceed` 后执行。
 
 ### C1 Resolve TAPD entry（**仅有关联 TAPD 时**）
 
 | Source | Action |
 | --- | --- |
-| TAPD-origin task | Use known `entry_type`, `entry_id`, `workspace_id`, title |
+| TAPD-origin task | Use known `entry_type`, `entry_id`, title; `workspace_id` 从 TAPD 链接提取 |
 | User provides ID | Short ID → `tapd_id_get`；确认 story vs bug；`stories_get` / `bugs_get` 取标题 |
 
-**无 TAPD 关联**：不询问新建/关联单、不索取 `workspace_id` / `milestone_id`。
+**无 TAPD 关联**：不询问新建/关联单、不索取 `workspace_id`（回填时从 TAPD 链接动态提取）。
 
 **禁止**在无 TAPD 关联时瞎编 `--bug=` / `--story=` ID。
 
@@ -198,11 +248,13 @@ Ensure before Commit/回填询问：
 
 ```text
 # bug
-bug: {TAPD标题} --bug={bug_id}
+bug: {功能或缺陷描述} --bug={tapd_short_id}
 
 # story / 需求
-feat: {TAPD标题} --story={story_id}
+feat: {功能描述} --story={tapd_short_id}
 ```
+
+其中 `{tapd_short_id}` 为 TAPD URL 最后一段数字的末 9 位（如 `137629063`）。
 
 若 `submit.cli=gtm` 且项目 GTM 已自动注入 TAPD ID，可直接执行。
 
@@ -244,25 +296,30 @@ gtm pr
 
 ---
 
-## Phase E — Ask TAPD backfill（**仅有关联 TAPD 时**）
+## Phase E — TAPD backfill gate（**仅有关联 TAPD 时**）
 
 无 TAPD 关联 → **跳过本 Phase**，不向用户问回填。
 
-有关联时，**无论** B 选否、C/D 成功或失败，都要问：
+有关联时，**无论** B 选否、C/D 成功或失败：
+
+**ask mode** — 必须问：
 
 > 是否回填 TAPD 单子？（将追加评论：处理结果 / 影响范围 / 自测结果；若有 PR 且存在 PR 字段则写入链接）
 
 同意词：`是` / `Yes` / `Y` / `需要` / `同意` / `回填` / `好的` / `可以` / `ok` 及明显同义肯定。  
 否定：跳过并说明可稍后手动触发本 Skill。
 
+**autonomous mode** — 有关联 + `tapd.enabled` + 有产物（或 skipped 标注）→ `proceed` 进 Phase F；entry_id 无法解析 → Hard Ask。输出判定记录。
+
 ---
 
-## Phase F — Backfill（同意后）
+## Phase F — Backfill（同意或 autonomous proceed 后）
 
 ### F1 Resolve entry
 
-使用任务过程中已关联的 `entry_type` / `entry_id` / `workspace_id`。  
-**禁止**在无 TAPD 关联时进入 F1–F6 或询问新建单 / `workspace_id` / `milestone_id`。
+使用任务过程中已关联的 `entry_type` / `entry_id`。  
+`workspace_id` 从 TAPD 链接或 MCP 查询动态获取（不在配置中硬编码）：`https://tapd.woa.com/tapd_fe/{workspace_id}/story|bug/detail/{full_id}` → 提取 `workspace_id`；或 `tapd_id_get` / `stories_get` / `bugs_get` 返回值获取。  
+**禁止**在无 TAPD 关联时进入 F1–F6 或询问新建单 / `workspace_id`。
 
 ### F2 Upload UI screenshots（optional）
 
@@ -372,5 +429,5 @@ Algorithm:
 If `tapd` absent, `enabled: false`, or **任务无 TAPD 关联**：
 
 - 仍可按 `submit.cli` 走 Commit/PR（`git` 默认 / `gtm`）
-- **不询问** TAPD 回填、新建单、`workspace_id` / `milestone_id`
+- **不询问** TAPD 回填、新建单、`workspace_id`
 - 用户**主动**要求关联 TAPD 时，可单独走本 Skill 并先确认 entry

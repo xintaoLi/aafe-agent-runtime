@@ -21,7 +21,12 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createAgentPlatform } from '../agent-platform/index.js';
-import { createTask } from '../agent-platform/protocol/request.js';
+import { createAgentRequest, createTask } from '../agent-platform/protocol/request.js';
+import { createAgentDefinition } from '../agent-platform/registry/definition.js';
+import { agentFailed, agentSkipped } from '../agent-platform/protocol/response.js';
+import { ExecutionPolicy } from '../agent-platform/policy/ExecutionPolicy.js';
+import { isAgentModeEnabled } from './agentMode.js';
+import { resolveCursorMcpForRun, toCursorMcpServers } from './agentMcp.js';
 import { CONTEXT_FORMATS, renderContextPackage } from '../ide-bridge/context/render.js';
 import { renderImpactMarkdown } from '../knowledge/report/impactMarkdown.js';
 import { listRuns, replayRun } from '../agent-platform/state/RunStore.js';
@@ -170,9 +175,11 @@ export async function runPlatformRunCommand(root, args = []) {
   const task = taskFromOptions(options);
   if (!task) return usageError('run');
 
-  const { result, warnings } = await executeTask(root, task, options);
+  const { result, warnings, platform } = await executeTask(root, task, options);
+  const developerExecution = await runDeveloperAgent(root, task, result, options, platform);
+  const runPassed = result.status === 'complete' && (!developerExecution || ['success', 'partial', 'skipped'].includes(developerExecution.status));
   console.log(JSON.stringify({
-    status: result.status === 'complete' ? 'pass' : 'fail',
+    status: runPassed ? 'pass' : 'fail',
     command: 'aafe run',
     runId: result.runId,
     runStatus: result.status,
@@ -184,10 +191,120 @@ export async function runPlatformRunCommand(root, args = []) {
     knowledgeWrite: result.knowledgeWrite,
     contextRef: result.contextRef,
     tokenEstimate: result.contextPackage?.tokenEstimate ?? null,
+    developerExecution,
     warnings
   }, null, 2));
-  if (result.status !== 'complete') process.exitCode = 1;
+  if (!runPassed) process.exitCode = 1;
   return result;
+}
+
+async function runDeveloperAgent(root, task, result, options, platform) {
+  if (result.status !== 'complete' || !result.contextPackage) return null;
+  const effectiveRoot = platform.orchestrator.root ?? root;
+
+  const developer = platform.agentsConfig.developer ?? {};
+  const overlay = platform.agentsConfig.agent ?? {};
+  const provider = resolveDeveloperProvider(options, developer, overlay);
+  if (!provider) return null;
+  if (provider !== 'cursor') {
+    return agentSkipped(`developer-provider-not-executable:${provider}`);
+  }
+
+  const mcp = await resolveCursorMcpForRun(overlay.mcp ?? {}, {
+    root: effectiveRoot,
+    env: process.env,
+    enabled: options.mcp === false ? false : undefined,
+    config: options.mcpConfig,
+    settingSources: options.mcpSettingSources
+  });
+  const mcpServers = toCursorMcpServers(mcp.servers);
+
+  const definition = createAgentDefinition('developer-agent', {
+    name: 'AAFE Cursor Developer Agent',
+    description: 'Executes the implementation phase through Cursor SDK.',
+    provider: 'cursor',
+    ref: options.agentRuntime ?? overlay.mode ?? developer.ref ?? developer.runtime ?? 'local',
+    runtime: options.agentRuntime ?? overlay.mode ?? developer.runtime ?? null,
+    model: options.model ?? overlay.model ?? developer.model ?? null,
+    apiKeyEnv: options.cursorApiKeyEnv ?? overlay.apiKeyEnv ?? developer.apiKeyEnv ?? 'CURSOR_API_KEY',
+    apiKey: overlay.apiKey ?? developer.apiKey ?? null,
+    repository: options.cursorRepository ?? overlay.repository ?? developer.repository ?? developer.repositories ?? developer.repo ?? null,
+    repositories: overlay.repositories ?? developer.repositories ?? null,
+    repo: overlay.repo ?? developer.repo ?? null,
+    cwd: overlay.cwd ?? developer.cwd ?? effectiveRoot,
+    settingSources: mcp.settingSources.length
+      ? mcp.settingSources
+      : (overlay.settingSources ?? developer.settingSources),
+    mcpServers,
+    autoCreatePR: overlay.autoCreatePR ?? developer.autoCreatePR,
+    skipReviewerRequest: overlay.skipReviewerRequest ?? developer.skipReviewerRequest,
+    capabilities: ['implementation'],
+    enabled: true,
+    prompt: null,
+    inputSchema: null,
+    outputSchema: null,
+    schemaMode: 'off'
+  });
+
+  // Network is allowed only for this post-plan Cursor step, not the planner loop.
+  const cursorPolicy = new ExecutionPolicy({ ...platform.orchestrator.policy.base, allowNetwork: true });
+  const denied = cursorPolicy.assertProviderAllowed(definition);
+  if (denied) return agentFailed(denied);
+
+  const execution = await platform.runtime.invoke(definition, createAgentRequest({
+    taskId: task.id,
+    runId: result.runId,
+    agentId: definition.id,
+    capability: 'implementation',
+    goal: task.goal,
+    input: {
+      prompt: buildCursorImplementationPrompt(task, result.contextPackage)
+    },
+    context: {
+      root: effectiveRoot,
+      output: platform.output,
+      task,
+      contextPackage: result.contextPackage,
+      priorResults: result.results ?? {}
+    },
+    constraints: platform.orchestrator.policy.base
+  }));
+  if (!execution || typeof execution !== 'object') return execution;
+  return {
+    ...execution,
+    mcp: {
+      enabled: mcp.enabled,
+      servers: Object.keys(mcp.servers),
+      settingSources: mcp.settingSources,
+      warnings: mcp.warnings
+    }
+  };
+}
+
+function resolveDeveloperProvider(options, developer, overlay = {}) {
+  if (options.agent === 'off') return null;
+  if (options.agent) return options.agent;
+  if (isAgentModeEnabled(overlay) && (overlay.provider ?? 'cursor') === 'cursor') return 'cursor';
+  return developer.provider === 'cursor' ? 'cursor' : null;
+}
+
+function buildCursorImplementationPrompt(task, contextPackage) {
+  return [
+    'You are the implementation agent of AAFE.',
+    '',
+    '## Task',
+    task.requirement ?? task.goal,
+    '',
+    '## AAFE Context Package',
+    renderContextPackage(contextPackage, 'ai'),
+    '',
+    '## Execution',
+    '1. Inspect the identified files before editing.',
+    '2. Implement the smallest change that satisfies the task.',
+    '3. Preserve unrelated user changes.',
+    '4. Run focused verification when appropriate.',
+    '5. Report changed files and verification results.'
+  ].join('\n');
 }
 
 /**
@@ -502,6 +619,17 @@ export function parsePlatformArgs(args = []) {
     if (arg === '--dry-run') { options.dryRun = true; continue; }
     if (arg === '--no-write') { options.write = false; continue; }
     if (arg === '--no-ide-agent') { options.ideAgent = false; continue; }
+    if (arg === '--cursor') { options.agent = 'cursor'; continue; }
+    if (arg.startsWith('--agent=')) { options.agent = arg.slice('--agent='.length).toLowerCase(); continue; }
+    if (arg.startsWith('--model=')) { options.model = arg.slice('--model='.length); continue; }
+    if (arg.startsWith('--cursor-model=')) { options.model = arg.slice('--cursor-model='.length); continue; }
+    if (arg.startsWith('--agent-runtime=')) { options.agentRuntime = arg.slice('--agent-runtime='.length).toLowerCase(); continue; }
+    if (arg.startsWith('--agentRuntime=')) { options.agentRuntime = arg.slice('--agentRuntime='.length).toLowerCase(); continue; }
+    if (arg.startsWith('--cursor-api-key-env=')) { options.cursorApiKeyEnv = arg.slice('--cursor-api-key-env='.length); continue; }
+    if (arg.startsWith('--cursor-repository=')) { options.cursorRepository = arg.slice('--cursor-repository='.length); continue; }
+    if (arg.startsWith('--mcp-config=')) { options.mcpConfig = arg.slice('--mcp-config='.length); continue; }
+    if (arg.startsWith('--mcp-setting-sources=')) { options.mcpSettingSources = arg.slice('--mcp-setting-sources='.length); continue; }
+    if (arg === '--no-mcp') { options.mcp = false; continue; }
     if (arg.startsWith('--host=')) { options.host = arg.slice('--host='.length).toLowerCase(); continue; }
     if (arg.startsWith('--project-root=')) { options.projectRoot = arg.slice('--project-root='.length); continue; }
     if (arg.startsWith('--workspace-root=')) { options.workspaceRoot = arg.slice('--workspace-root='.length); continue; }

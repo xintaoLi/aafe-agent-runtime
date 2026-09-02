@@ -4,6 +4,7 @@ import { requirementIntakeRuleSection } from './requirementAnalysisRules.js';
 import { taskCompletionImpactRuleSection } from './completionImpactRules.js';
 import { tapdSubmitRuleSection } from './tapdSubmitRules.js';
 import { fileLicenseRuleSection } from './fileLicenseRules.js';
+import { workflowModeRuleSection } from './workflowModeRules.js';
 import { createCursorPathContext } from './pathRewrite.js';
 import { RETAIN_IN_INSTALL_DIR } from './workspace.js';
 
@@ -116,6 +117,7 @@ export function buildCodeBuddyRules(ctx, paths = null) {
   return [
     `# AAFE Architecture Runtime (${ctx.moduleName})`,
     '',
+    workflowModeRuleSection(ctx).trimEnd(),
     requirementIntakeRuleSection(ctx).trimEnd(),
     taskCompletionImpactRuleSection(ctx).trimEnd(),
     tapdSubmitRuleSection(ctx).trimEnd(),

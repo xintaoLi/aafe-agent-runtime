@@ -11,6 +11,16 @@ import {
   defaultSubmitConfig,
   resolveSubmitConfig
 } from './submitConfig.js';
+import {
+  buildWorkflowModeConfigFromAnswers,
+  defaultWorkflowModeConfig,
+  resolveWorkflowModeConfig
+} from './workflowMode.js';
+import {
+  buildAgentModeConfigFromAnswers,
+  resolveAgentModeConfig
+} from './agentMode.js';
+import { formatModelChoices, listAgentModels, resolveModelChoice } from './agentModels.js';
 import { detectProject } from './detect.js';
 import { inspectPlaywrightSetup, installPlaywrightDeps } from './e2eSetup.js';
 import { isE2eEnabled } from '../testing/e2e/config.js';
@@ -31,6 +41,19 @@ export async function collectInitOptions(detection, options, workspaceLayout = n
     const submitConfig = resolveSubmitConfig(options.existingConfig ?? {}, {
       cli: options.submitCli ?? options.submitConfig?.cli
     });
+    const workflowModeConfig = resolveWorkflowModeConfig(options.existingConfig ?? {}, {
+      workflow: options.workflowMode ?? options.workflowModeConfig?.workflow
+    });
+    const agentModeConfig = resolveAgentModeConfig(options.existingConfig ?? {}, {
+      enabled: options.agentMode ?? options.agentModeConfig?.enabled,
+      mode: options.cursorRuntime ?? options.agentModeConfig?.mode,
+      model: options.cursorModel ?? options.agentModeConfig?.model,
+      apiKeyEnv: options.cursorApiKeyEnv ?? options.agentModeConfig?.apiKeyEnv,
+      repository: options.cursorRepository ?? options.agentModeConfig?.repository,
+      mcpEnabled: options.mcpEnabled ?? options.agentModeConfig?.mcp?.enabled,
+      mcpConfig: options.mcpConfig ?? options.agentModeConfig?.mcp?.config,
+      mcpSettingSources: options.mcpSettingSources ?? options.agentModeConfig?.mcp?.settingSources
+    });
     const e2eConfig = resolveNonInteractiveE2eConfig(options, options.existingConfig?.e2e);
     if (e2eConfig.enabled && options.installPlaywright) {
       const root = options.root ?? process.cwd();
@@ -41,6 +64,8 @@ export async function collectInitOptions(detection, options, workspaceLayout = n
       workspaceLayout: enrichedLayout ?? workspaceLayout,
       tapdConfig: options.tapdConfig ?? null,
       submitConfig,
+      workflowModeConfig,
+      agentModeConfig,
       e2eConfig
     };
   }
@@ -56,6 +81,8 @@ export async function collectInitOptions(detection, options, workspaceLayout = n
       ? await collectWorkspaceLayoutOptions(rl, workspaceLayout, options)
       : workspaceLayout;
     const submitConfig = await collectSubmitConfigOptions(rl, options.existingConfig?.submit, options);
+    const workflowModeConfig = await collectWorkflowModeConfigOptions(rl, options.existingConfig?.mode, options);
+    const agentModeConfig = await collectAgentModeConfigOptions(rl, options.existingConfig?.agent, options);
     const tapdConfig = await collectTapdConfigOptions(rl, options.existingConfig?.tapd);
     const e2eConfig = await collectE2eConfigOptions(rl, options.existingConfig?.e2e, {
       root: options.root ?? process.cwd(),
@@ -72,6 +99,8 @@ export async function collectInitOptions(detection, options, workspaceLayout = n
       force: /^y/i.test(forceText),
       workspaceLayout: workspaceOptions,
       submitConfig,
+      workflowModeConfig,
+      agentModeConfig,
       tapdConfig,
       e2eConfig
     };
@@ -148,6 +177,64 @@ export async function prepareTapdConfigForCommand(options = {}, existingConfig =
   const rl = createInterface({ input, output });
   try {
     return await collectTapdConfigOptions(rl, existingConfig.tapd);
+  } finally {
+    rl.close();
+  }
+}
+
+export async function prepareWorkflowModeConfigForCommand(options = {}, existingConfig = {}) {
+  if (options.workflowModeConfig) {
+    return resolveWorkflowModeConfig(existingConfig, {
+      workflow: options.workflowModeConfig.workflow ?? options.workflowMode
+    });
+  }
+  if (options.workflowMode) {
+    return resolveWorkflowModeConfig(existingConfig, { workflow: options.workflowMode });
+  }
+  if (options.yes || options.nonInteractive) {
+    return resolveWorkflowModeConfig(existingConfig);
+  }
+
+  const rl = createInterface({ input, output });
+  try {
+    return await collectWorkflowModeConfigOptions(rl, existingConfig.mode, options);
+  } finally {
+    rl.close();
+  }
+}
+
+export async function prepareAgentModeConfigForCommand(options = {}, existingConfig = {}) {
+  if (options.agentModeConfig) {
+    return resolveAgentModeConfig(existingConfig, options.agentModeConfig);
+  }
+  if (
+    options.agentMode !== undefined
+    || options.cursorRuntime
+    || options.cursorModel
+    || options.cursorApiKeyEnv
+    || options.cursorRepository
+    || options.mcpConfig
+    || options.mcpSettingSources
+    || options.mcpEnabled !== undefined
+  ) {
+    return resolveAgentModeConfig(existingConfig, {
+      enabled: options.agentMode,
+      mode: options.cursorRuntime,
+      model: options.cursorModel,
+      apiKeyEnv: options.cursorApiKeyEnv,
+      repository: options.cursorRepository,
+      mcpEnabled: options.mcpEnabled,
+      mcpConfig: options.mcpConfig,
+      mcpSettingSources: options.mcpSettingSources
+    });
+  }
+  if (options.yes || options.nonInteractive) {
+    return resolveAgentModeConfig(existingConfig);
+  }
+
+  const rl = createInterface({ input, output });
+  try {
+    return await collectAgentModeConfigOptions(rl, existingConfig.agent, options);
   } finally {
     rl.close();
   }
@@ -300,6 +387,87 @@ async function ensurePlaywrightForPrompt(root, { yes, dryRun }) {
   if (!setup.missing || !yes) return setup;
   const detection = await detectProject(root);
   return installPlaywrightDeps(root, { packageManager: detection.packageManager, dryRun, browsers: true });
+}
+
+export async function collectWorkflowModeConfigOptions(rl, existingMode = null, options = {}) {
+  const current = resolveWorkflowModeConfig({ mode: existingMode }, { workflow: options.workflowMode });
+  console.log('');
+  console.log('Workflow mode: choose how AAFE gates ask vs auto-decide.');
+  console.log('  ask         — 询问模式：各环节向用户确认后再继续  [default]');
+  console.log('  autonomous  — 自主判断模式：LLM 判定是否 Commit / PR / 回填 / Plan / 影响分析');
+  console.log('');
+
+  const answer = await ask(
+    rl,
+    `Workflow mode (ask|autonomous) [${current.workflow}]: `,
+    current.workflow
+  );
+  return buildWorkflowModeConfigFromAnswers({ workflow: answer }, existingMode ?? defaultWorkflowModeConfig());
+}
+
+export async function collectAgentModeConfigOptions(rl, existingAgent = null, options = {}) {
+  const current = resolveAgentModeConfig({ agent: existingAgent }, {
+    enabled: options.agentMode,
+    mode: options.cursorRuntime,
+    model: options.cursorModel,
+    apiKeyEnv: options.cursorApiKeyEnv,
+    repository: options.cursorRepository,
+    mcpEnabled: options.mcpEnabled,
+    mcpConfig: options.mcpConfig,
+    mcpSettingSources: options.mcpSettingSources
+  });
+  console.log('');
+  console.log('Agent mode: when enabled, `aafe run` executes the context package through Cursor SDK.');
+  console.log('The API key value is not prompted here; keep it in an environment variable or fill config.agent.apiKey manually.');
+  console.log('MCP servers can be pointed at a mcp.json, listed under agent.mcp.servers, or loaded from Cursor setting sources.');
+  console.log('');
+
+  const enabled = await ask(
+    rl,
+    `Enable Cursor Agent mode? (y/N) [${current.enabled ? 'Y' : 'N'}]: `,
+    current.enabled ? 'Y' : 'N'
+  );
+  if (!isAffirmative(enabled)) {
+    return buildAgentModeConfigFromAnswers({ enabled: false }, existingAgent ?? current);
+  }
+
+  const mode = await ask(rl, `Cursor runtime (local|cloud) [${current.mode}]: `, current.mode);
+  const apiKeyEnv = await ask(rl, `Cursor API key env [${current.apiKeyEnv}]: `, current.apiKeyEnv);
+  const listed = await listAgentModels({
+    apiKeyEnv,
+    current: current.model
+  });
+  if (listed.models.length > 0) {
+    console.log('Available Cursor models (number or id):');
+    console.log(formatModelChoices(listed.models));
+    if (listed.source !== 'cursor') {
+      console.log('Live model list unavailable; showing built-in choices. Set the API key env to refresh.');
+    }
+  }
+  const modelAnswer = await ask(rl, `Cursor model [${current.model}]: `, current.model);
+  const model = resolveModelChoice(modelAnswer, listed.models) ?? current.model;
+  const repository = await ask(rl, `Cursor cloud repository (optional) [${current.repository ?? ''}]: `, current.repository ?? '');
+  const mcpConfig = await ask(
+    rl,
+    `MCP config file (optional, Cursor mcp.json) [${current.mcp.config ?? ''}]: `,
+    current.mcp.config ?? ''
+  );
+  const mcpSettingSources = await ask(
+    rl,
+    `MCP setting sources (optional, project|user|plugins|all) [${current.mcp.settingSources.join(',') || ''}]: `,
+    current.mcp.settingSources.join(',') || ''
+  );
+
+  return buildAgentModeConfigFromAnswers({
+    enabled: true,
+    mode,
+    model,
+    apiKeyEnv,
+    repository: repository || null,
+    mcpEnabled: true,
+    mcpConfig: mcpConfig || null,
+    mcpSettingSources: mcpSettingSources || []
+  }, existingAgent ?? current);
 }
 
 export async function collectSubmitConfigOptions(rl, existingSubmit = null, options = {}) {

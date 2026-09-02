@@ -113,3 +113,13 @@
 {"path":"scripts/test-route-analyze.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-08-21T02:04:37.111Z"}
 {"path":"src/testing/e2e/auth.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-08-21T02:43:17.046Z"}
 {"path":"scripts/test-update-analyze.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-08-21T03:40:41.154Z"}
+{"path":"src/cli/workflowMode.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-01T12:28:43.305Z"}
+{"path":"src/cli/workflowModeRules.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-01T12:28:43.306Z"}
+{"path":"src/cli/agentMcp.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-02T06:32:58.958Z"}
+{"path":"src/cli/agentMode.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-02T06:32:59.042Z"}
+{"path":"src/agent-platform/runtime/providers/CursorSdkAgentProvider.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-02T06:32:59.045Z"}
+{"path":"scripts/test-agent-mode.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-02T06:32:59.046Z"}
+{"path":"src/cli/configUi.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-02T06:40:25.529Z"}
+{"path":"src/cli/config-ui/index.html","ok":true,"fp":"blueking-mit-v1","style":"html","at":"2026-09-02T06:40:25.531Z"}
+{"path":"scripts/test-config-ui.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-02T06:40:25.532Z"}
+{"path":"src/cli/agentModels.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-02T06:43:48.183Z"}

@@ -1,6 +1,6 @@
 {
   "name": "@aafe/agent-runtime",
-  "version": "0.2.19",
+  "version": "0.2.20",
   "description": "Universal Frontend Architecture Runtime for architecture-aware AI coding agents.",
   "type": "module",
   "bin": {
@@ -42,8 +42,10 @@
     "ddd:analyze": "node ./bin/aafe.js ddd analyze",
     "update": "node ./bin/aafe.js update",
     "refresh": "node ./bin/aafe.js refresh",
-    "test": "node ./scripts/test-agent-platform.js && node ./scripts/test-submit-config.js && node ./scripts/test-file-license-rules.js && node ./scripts/test-completion-tapd-rules.js && node ./scripts/test-tapd-config.js && node ./scripts/test-workspace-cursor.js && node ./scripts/test-e2e-platform.js && node ./scripts/test-route-analyze.js && node ./scripts/test-update-analyze.js && node ./bin/aafe.js doctor",
+    "test": "node ./scripts/test-agent-platform.js && node ./scripts/test-submit-config.js && node ./scripts/test-workflow-mode.js && node ./scripts/test-agent-mode.js && node ./scripts/test-config-ui.js && node ./scripts/test-file-license-rules.js && node ./scripts/test-completion-tapd-rules.js && node ./scripts/test-tapd-config.js && node ./scripts/test-workspace-cursor.js && node ./scripts/test-e2e-platform.js && node ./scripts/test-route-analyze.js && node ./scripts/test-update-analyze.js && node ./bin/aafe.js doctor",
+    "test:config-ui": "node ./scripts/test-config-ui.js",
     "test:agent-platform": "node ./scripts/test-agent-platform.js",
+    "test:agent-mode": "node ./scripts/test-agent-mode.js",
     "test:project-context": "node ./scripts/test-project-context.js"
   },
   "keywords": [
@@ -58,10 +60,11 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@babel/parser": "^7.29.8"
+    "@babel/parser": "^7.29.8",
+    "@cursor/sdk": "^1.0.18"
   },
   "optionalDependencies": {
-    "playwright": "^1.48.0",
-    "@playwright/test": "^1.48.0"
+    "@playwright/test": "^1.48.0",
+    "playwright": "^1.48.0"
   }
 }

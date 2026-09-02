@@ -30,7 +30,7 @@ export const AGENTS_CONFIG_FILE = '.aafe.agents.json';
  * expanded; expanding everything would make a prompt containing `${...}`
  * silently disappear.
  */
-const ENV_EXPANDED_FIELDS = Object.freeze(['endpoint', 'ref', 'model', 'prompt', 'inputSchema', 'outputSchema']);
+const ENV_EXPANDED_FIELDS = Object.freeze(['endpoint', 'ref', 'model', 'prompt', 'inputSchema', 'outputSchema', 'runtime', 'repository', 'repo', 'cwd']);
 
 export function expandEnvRefs(value, env = process.env) {
   if (typeof value !== 'string') return value;
@@ -122,7 +122,7 @@ export function defaultAgentsConfig() {
  * @param {object} projectConfig Parsed `.aafe.config.json`, for deprecated keys.
  * @returns {{ config: object, warnings: string[] }}
  */
-export const AGENT_PROVIDERS = Object.freeze(['local', 'http', 'cli', 'mcp', 'ide']);
+export const AGENT_PROVIDERS = Object.freeze(['local', 'http', 'cli', 'mcp', 'ide', 'cursor']);
 
 /**
  * A `ref` that the provider cannot parse only fails at invocation time, deep
@@ -146,6 +146,9 @@ function validateProvider(id, agent) {
   if (provider === 'cli' && !ref.trim()) {
     warnings.push(`agent "${id}" is a cli agent but declares no ref (command to run)`);
   }
+  if (provider === 'cursor' && agent.model === null) {
+    warnings.push(`agent "${id}" is a cursor agent without an explicit model; the provider will use composer-2.5`);
+  }
   if (agent.schemaMode !== undefined && !SCHEMA_MODES.includes(agent.schemaMode)) {
     warnings.push(`agent "${id}" has an unknown schemaMode "${agent.schemaMode}"; falling back to "${defaultSchemaMode(provider)}"`);
   }
@@ -158,6 +161,7 @@ function validateProvider(id, agent) {
 export function resolveAgentsConfig(raw = {}, projectConfig = {}, { env = process.env } = {}) {
   const defaults = defaultAgentsConfig();
   const warnings = [];
+  const globalAgent = resolveGlobalAgentConfig(projectConfig.agent ?? projectConfig.agentMode);
 
   const agents = { ...defaults.agents };
   for (const [id, entry] of Object.entries(raw.agents ?? {})) {
@@ -207,6 +211,8 @@ export function resolveAgentsConfig(raw = {}, projectConfig = {}, { env = proces
     warnings.push('planner.provider is "llm" but planner.llm.endpoint is not set; the planner will fall back to rules');
   }
 
+  // Agent mode is an overlay on `aafe run` only. It must not rewrite developer /
+  // ideAgent / allowNetwork, or context / impact / plan / IDE fallback change.
   const developer = { ...defaults.developer, ...(raw.developer ?? {}) };
 
   return {
@@ -215,11 +221,57 @@ export function resolveAgentsConfig(raw = {}, projectConfig = {}, { env = proces
       planner,
       agents,
       developer,
+      agent: globalAgent,
       ideAgent: resolveIdeAgent(raw, defaults, developer, env, warnings),
       policies: { ...defaults.policies, ...(raw.policies ?? {}) }
     },
     warnings
   };
+}
+
+function resolveGlobalAgentConfig(raw) {
+  const config = raw && typeof raw === 'object' ? raw : {};
+  const enabled = normalizeBoolean(config.enabled ?? (typeof raw === 'boolean' || typeof raw === 'string' ? raw : false), false);
+  return {
+    enabled,
+    provider: String(config.provider ?? 'cursor').trim().toLowerCase(),
+    mode: String(config.mode ?? config.runtime ?? 'local').trim().toLowerCase() === 'cloud' ? 'cloud' : 'local',
+    model: nonEmpty(config.model) ?? 'composer-2.5',
+    apiKeyEnv: nonEmpty(config.apiKeyEnv) ?? 'CURSOR_API_KEY',
+    apiKey: config.apiKey ?? null,
+    repository: config.repository ?? config.repositories ?? config.repo ?? null,
+    repositories: config.repositories ?? null,
+    repo: config.repo ?? null,
+    autoCreatePR: normalizeBoolean(config.autoCreatePR, false),
+    skipReviewerRequest: normalizeBoolean(config.skipReviewerRequest, true),
+    mcp: resolveOverlayMcp(config.mcp)
+  };
+}
+
+function resolveOverlayMcp(raw) {
+  const mcp = raw && typeof raw === 'object' ? raw : {};
+  return {
+    enabled: normalizeBoolean(mcp.enabled, true),
+    config: nonEmpty(mcp.config) ?? null,
+    settingSources: Array.isArray(mcp.settingSources)
+      ? mcp.settingSources.map((item) => String(item).trim()).filter(Boolean)
+      : [],
+    servers: mcp.servers ?? mcp.mcpServers ?? {}
+  };
+}
+
+function normalizeBoolean(value, fallback) {
+  if (typeof value === 'boolean') return value;
+  const raw = String(value ?? '').trim().toLowerCase();
+  if (!raw) return fallback;
+  if (/^(1|true|yes|y|on|enable|enabled|开启|启用)$/.test(raw)) return true;
+  if (/^(0|false|no|n|off|disable|disabled|关闭|禁用)$/.test(raw)) return false;
+  return fallback;
+}
+
+function nonEmpty(value) {
+  const text = String(value ?? '').trim();
+  return text || null;
 }
 
 /** Values that read as "off" for the environment switch. */

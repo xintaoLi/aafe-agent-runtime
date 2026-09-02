@@ -6,6 +6,7 @@ import { doctorProject } from './doctor.js';
 import { runMemoryCommand } from './memory.js';
 import { runKnowledgeCommand } from './knowledge.js';
 import { runKnowledgeWebCommand } from './knowledgeWeb.js';
+import { runConfigUiCommand } from './configUi.js';
 import { runTaskCompletion } from './taskCompletion.js';
 import { runPatternCommand } from './patterns.js';
 import { runSkillsCommand } from './skills.js';
@@ -103,6 +104,11 @@ export async function runCli(argv) {
 
   if (command === 'knowledge-web') {
     await runKnowledgeWebCommand(process.cwd(), argv.slice(3));
+    return;
+  }
+
+  if (command === 'config' || command === 'ui') {
+    await runConfigUiCommand(process.cwd(), argv.slice(3));
     return;
   }
 
@@ -221,6 +227,17 @@ function parseOptions(args) {
     if (arg === '--no-migrate-cursor') options.migrateInstallEditors = false;
     if (arg === '--no-migrate-editors') options.migrateInstallEditors = false;
     if (arg.startsWith('--submit-cli=')) options.submitCli = arg.slice('--submit-cli='.length);
+    if (arg.startsWith('--workflow-mode=')) options.workflowMode = arg.slice('--workflow-mode='.length);
+    if (arg.startsWith('--agent-mode=')) options.agentMode = arg.slice('--agent-mode='.length);
+    if (arg === '--agent-mode') options.agentMode = true;
+    if (arg === '--no-agent-mode') options.agentMode = false;
+    if (arg.startsWith('--cursor-api-key-env=')) options.cursorApiKeyEnv = arg.slice('--cursor-api-key-env='.length);
+    if (arg.startsWith('--cursor-model=')) options.cursorModel = arg.slice('--cursor-model='.length);
+    if (arg.startsWith('--cursor-runtime=')) options.cursorRuntime = arg.slice('--cursor-runtime='.length);
+    if (arg.startsWith('--cursor-repository=')) options.cursorRepository = arg.slice('--cursor-repository='.length);
+    if (arg.startsWith('--mcp-config=')) options.mcpConfig = arg.slice('--mcp-config='.length);
+    if (arg.startsWith('--mcp-setting-sources=')) options.mcpSettingSources = arg.slice('--mcp-setting-sources='.length);
+    if (arg === '--no-mcp') options.mcpEnabled = false;
     if (arg === '--e2e') options.e2e = true;
     if (arg === '--no-e2e') options.e2e = false;
     if (arg === '--install-playwright') options.installPlaywright = true;
@@ -245,6 +262,7 @@ Commands:
   license   Local fast BlueKing license check/ensure/mark (no AI; do not Read memory file)
   knowledge  Initialize or update project Knowledge views in .docs
   knowledge-web  Generate or serve the Knowledge Web visualization
+  config    Local visual UI for CLI config (alias: ui)
   task-completion  Run automatic post-task Knowledge update, Runtime update and doctor
   skills    List or install downloadable AAFE Agent Skills from GitHub
   pattern   Interview and select design patterns for features
@@ -273,6 +291,14 @@ Init options:
   --no-migrate-editors     Skip editor adapter migration during init/update
   --no-migrate-cursor      Alias of --no-migrate-editors
   --submit-cli=git|gtm     Commit/PR provider written to .aafe.config.json → submit.cli (default: git)
+  --workflow-mode=ask|autonomous  Gate interaction: ask user (default) or LLM auto-decide Commit/PR/backfill
+  --agent-mode[=on|off]    Enable Cursor SDK execution for aafe run via .aafe.config.json → agent.enabled
+  --cursor-api-key-env=CURSOR_API_KEY  Env var name used by Cursor SDK (default)
+  --cursor-model=<id>      Cursor model for agent mode (default: composer-2.5)
+  --cursor-runtime=local|cloud  Cursor SDK runtime for agent mode
+  --mcp-config=<path>     Write agent.mcp.config (Cursor mcp.json) for aafe run
+  --mcp-setting-sources=project,user  Load Cursor MCP/settings sources (default: none)
+  --no-mcp                Disable MCP for agent-mode execution
   --e2e                    Enable Playwright E2E in .aafe.config.json (default)
   --no-e2e                 Disable E2E
   --install-playwright     When enabling E2E, install playwright + @playwright/test (and Chromium)
@@ -288,6 +314,20 @@ Submit CLI:
   .aafe.config.json → "submit": { "cli": "git" | "gtm" }
   git (default): Git CLI + gh for PR
   gtm: gtm commit / gtm pr (project GTM config required; errors not forced)
+
+Workflow mode:
+  .aafe.config.json → "mode": { "workflow": "ask" | "autonomous" }
+  ask (default): confirm at each gate (requirement / Plan / impact / Commit / PR / TAPD backfill)
+  autonomous: LLM decides those gates per .ai-agent/skills/workflow-mode.md; Hard Ask still stops for missing user-only facts
+
+Agent mode:
+  .aafe.config.json → agent.enabled / agent.mcp
+  Overlay on aafe run only: analyze / context / impact / plan / test / IDE handoff stay unchanged.
+  When enabled (or --agent=cursor), the generated context package is then executed via Cursor SDK.
+  MCP is attached only to that Cursor step: agent.mcp.servers, agent.mcp.config, or --mcp-config=.
+  Ambient Cursor MCP is off unless agent.mcp.settingSources / --mcp-setting-sources is set.
+  A real key may stay in the env var, or be set manually as agent.apiKey.
+  One-shot override: aafe run "<task>" --agent=off keeps the existing planner-only path.
 
 Analyze options:
   --output=.aafe               Analysis knowledge output (default; also analyze.output)
@@ -310,6 +350,7 @@ Agent platform (context / impact / plan / run):
   aafe impact  --requirement="..." | --diff[=<ref>]  [--format=json|md]
   aafe plan    --requirement="..." [--dry-run]
   aafe run     "<task>"            Planner + Orchestrator full loop
+  aafe run     "<task>" --agent=cursor [--model=<id>|--cursor-model=<id>] [--cursor-api-key-env=CURSOR_API_KEY] [--mcp-config=<path>] Execute via Cursor SDK
   aafe run     --list [--limit=20] List stored runs under <output>/runs/
   aafe run     --replay=<runId>    Read-only replay of a stored run, with node payloads
   aafe test    --requirement="..." | --diff[=<ref>] | --coverage | --pr=<url>  [--run] [--base-url=<url>] [--url-role=A|B|C] [--auth-mode=none|reuse|headed|auto|reuse-or-headed] [--update]
@@ -336,6 +377,11 @@ Skills options:
   --dry-run
   --force
 
+Config UI:
+  aafe config              Start local visual config at http://127.0.0.1:4318/
+  aafe ui                  Alias of aafe config
+  --port=4318 --host=127.0.0.1 --no-open --background
+
 Knowledge options:
   aafe knowledge init|update|sync
   aafe knowledge-web --serve
@@ -352,6 +398,11 @@ Update options:
   --sync-force
   --editors=cursor|codebuddy|cursor,codebuddy
   --submit-cli=git|gtm   Update .aafe.config.json submit.cli without full interactive prompts
+  --workflow-mode=ask|autonomous  Update .aafe.config.json mode.workflow without full interactive prompts
+  --agent-mode[=on|off]  Update .aafe.config.json agent.enabled
+  --mcp-config=<path>    Update agent.mcp.config (Cursor mcp.json)
+  --mcp-setting-sources=project,user  Update agent.mcp.settingSources
+  --no-mcp               Disable agent.mcp.enabled
   --interactive          Allow interactive prompts during update (e.g. submit CLI / TAPD / E2E)
   --e2e / --no-e2e       Enable or disable Playwright E2E without full interactive prompts
   --install-playwright   Install playwright deps when enabling E2E

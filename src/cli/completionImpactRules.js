@@ -1,3 +1,5 @@
+import { workflowModeGatePreamble, workflowModeSkillNote } from './workflowModeRules.js';
+
 export function taskCompletionImpactRuleMdc(ctx = {}) {
   // Editor adapters are thin pointers; detailed protocol lives in `.ai-agent/rules/` + skills.
   return taskCompletionImpactPointerRuleMdc(ctx);
@@ -23,7 +25,7 @@ Source of truth:
    - \`${agentPrefix}/skills/minimal-convergent-self-test.md\`
    - 自测后衔接：\`${agentPrefix}/skills/tapd-submit-backfill.md\`
 
-Follow the Rule for task assessment gates and hard constraints; load Skills only after user confirms code-change impact analysis.
+Follow the Rule for task assessment gates and hard constraints; load Skills after ask-mode confirm **or** autonomous \`proceed\`.
 UI/路由自测走 \`aafe test --diff\`；浏览器 MCP 仅当 E2E blocked。MCP 兜底须先预生成 \`ui_test_paths\`。无代码变更或无 UI 影响时不询问浏览器。Do not duplicate project knowledge here.
 `;
 }
@@ -41,6 +43,8 @@ ${taskCompletionImpactProjectRuleBody(agentPrefix)}
 
 function taskCompletionImpactProjectRuleBody(agentPrefix = '.ai-agent') {
   return `# Task Completion Impact & Self-Test
+
+${workflowModeGatePreamble(agentPrefix)}
 
 ## 任务评估（前置 Gate，必须先做）
 
@@ -65,12 +69,10 @@ function taskCompletionImpactProjectRuleBody(agentPrefix = '.ai-agent') {
 
 ## 条件询问（仅「涉及代码变更」时）
 
-**仅当任务评估为涉及代码变更**，在最终回复前问：
+**仅当任务评估为涉及代码变更**：
 
-> 是否需要分析当前任务的影响范围并提供测试参考？
-
-- 用户答「不需要 / 否 / No / 跳过」：简要说明可后续补做，不再追问影响分析。
-- 用户答「是 / Yes / 需要 / Y」：进入 Skills 流程。
+- **ask**：在最终回复前问「是否需要分析当前任务的影响范围并提供测试参考？」是 → 进入 Skills；否 → 不再追问。
+- **autonomous**：不询问，直接进入 Skills（产出判定记录）。纯文档任务仍跳过。
 
 ## 确认后加载顺序
 
@@ -94,8 +96,8 @@ function taskCompletionImpactProjectRuleBody(agentPrefix = '.ai-agent') {
 
 自测（或用户明确跳过）结束后：
 
-1. 询问是否 Commit → 同意则按 \`.aafe.config.json\` → \`submit.cli\`（\`git\` 默认 / \`gtm\`）执行 Commit/PR（见 \`tapd-submit-backfill\`）
-2. **仅当任务过程中有关联 TAPD 单**且 \`tapd.enabled\` → 询问是否回填 TAPD；**无 TAPD 关联则跳过回填询问**
+1. **ask** 询问是否 Commit；**autonomous** 按 \`workflow-mode.md\` 判定。同意 / proceed 则按 \`.aafe.config.json\` → \`submit.cli\`（\`git\` 默认 / \`gtm\`）执行 Commit/PR（见 \`tapd-submit-backfill\`）
+2. **仅当任务过程中有关联 TAPD 单**且 \`tapd.enabled\` → **ask** 询问是否回填 / **autonomous** 自行判定；**无 TAPD 关联则跳过回填**
 
 ## 与 TAPD 回填的关系
 
@@ -107,15 +109,15 @@ export function taskCompletionImpactRuleSection(ctx = {}) {
   return [
     '## AAFE 任务完成影响分析与测试（条件触发）',
     '',
-    '任务结束前先做**任务评估**：仅当本次涉及**可执行代码变更**（非纯文档/需求分析）时，才询问：是否需要分析当前任务的影响范围并提供测试参考？',
+    '任务结束前先做**任务评估**：仅当本次涉及**可执行代码变更**（非纯文档/需求分析）时，才进入影响分析。`ask` 先询问；`autonomous` 直接进入（见 workflow-mode）。',
     '',
-    '若用户确认（是/Yes/需要），则：',
+    '进入 Skills 后：',
     `1. Read \`${agentPrefix}/skills/architecture-impact-test-forecast.md\` 与 \`${agentPrefix}/skills/minimal-convergent-self-test.md\`；`,
     '2. 输出影响范围报告（直接/间接/潜在影响 + 影响分类 + 架构依据）；',
     '3. 按 diff 最小收敛设计测试：逻辑优先 Mock Props/I/O，落盘到 `test/`；',
     '4. UI/页面/路由变更：跑 `aafe test --diff`；要执行时询问本次测试 URL，等待输入后 `--run --base-url=<url>`（不要写死 e2e.baseUrl）；',
     '5. 浏览器 MCP 仅当 E2E blocked 且用户仍要看 UI；MCP 兜底须先预生成 `ui_test_paths`；禁止猜环境地址；禁止虚假声称通过；',
-    `6. 自测结束后：仅当任务过程中**有关联 TAPD 单**且 tapd.enabled → 按 submit.cli 执行 Commit/PR → 询问 TAPD 回填；无 TAPD 关联则跳过回填。`,
+    `6. 自测结束后：仅当任务过程中**有关联 TAPD 单**且 tapd.enabled → 按 submit.cli 执行 Commit/PR → ask 询问 / autonomous 判定 TAPD 回填；无 TAPD 关联则跳过回填。`,
     ''
   ].join('\n');
 }
@@ -126,9 +128,11 @@ export function architectureImpactTestForecastSkillContent(agentPrefix = '.ai-ag
 
 Trigger: **同时满足**：
 1. 任务评估为**涉及代码变更**（非纯文档/需求分析-only）
-2. 用户回答 **是 / Yes / 需要 / Y** 至影响分析条件询问
+2. **ask**：用户回答 **是 / Yes / 需要 / Y** 至影响分析条件询问；**autonomous**：LLM 判定 \`proceed\`（见 \`workflow-mode.md\`）
 
 （Rule: \`${prefix}/rules/task-completion-impact.mdc\` when present）
+
+${workflowModeSkillNote(prefix)}
 
 Next skill for execution: \`minimal-convergent-self-test.md\`.
 
@@ -252,6 +256,10 @@ export function minimalConvergentSelfTestSkillContent(agentPrefix = '.ai-agent')
 Trigger: after impact analysis (code-change tasks only), or when TAPD backfill needs self-test results.
 
 Companion: \`${prefix}/skills/architecture-impact-test-forecast.md\` (impact) → this skill (tests) → **完成后** 若任务有关联 TAPD 单 → \`${prefix}/skills/tapd-submit-backfill.md\`.
+
+${workflowModeSkillNote(prefix)}
+
+E2E / 浏览器缺本次 URL 时，即使 \`mode.workflow=autonomous\` 也必须 Hard Ask，禁止猜地址。
 
 ## Goal
 

@@ -161,5 +161,25 @@
   },
   "submit": {
     "cli": "git"
+  },
+  "mode": {
+    "workflow": "ask"
+  },
+  "agent": {
+    "enabled": false,
+    "provider": "cursor",
+    "mode": "local",
+    "model": "composer-2.5",
+    "apiKeyEnv": "CURSOR_API_KEY",
+    "apiKey": null,
+    "repository": null,
+    "autoCreatePR": false,
+    "skipReviewerRequest": true,
+    "mcp": {
+      "enabled": true,
+      "config": null,
+      "settingSources": [],
+      "servers": {}
+    }
   }
 }

@@ -8,6 +8,8 @@ It is the thin routing protocol for project knowledge. Project-specific knowledg
 
 1. Read this file first: `.ai-agent/skill-index.md`.
 2. If present, read `.ai-agent/project.md` for the project quick map and domain routing hints.
+2b. Read `.aafe.config.json` → `mode.workflow` (default `ask`). Load `.ai-agent/skills/workflow-mode.md`
+   before the first interactive gate (需求澄清 / Plan / 影响分析 / Commit / PR / TAPD 回填).
 3. If the task is about architecture, self-update, project rules, or knowledge maintenance, load the matching
    project skill from `.ai-agent/project-skills/<domain>/SKILL.md` when it exists.
 4. For non-trivial frontend feature/refactor/bugfix/performance work, then enter the AAFE runtime:
@@ -76,6 +78,7 @@ not on `PATH`; if neither resolves, fall back to reading files and say so.
 | 采集 SSO 登录态供 E2E 复用 | `aafe e2e auth --base-url=<url>`；`--run` 先探测地址，200 且非登录跳转则跳过 SSO，否则校验/续期登录 |
 | A test run failed and the cause is unclear | `aafe diagnose --failure=<report>` |
 | Runtime files look stale or inconsistent | `aafe doctor`, then `aafe migrate --dry-run` |
+| Switching ask vs autonomous workflow | `aafe update --workflow-mode=ask|autonomous` |
 
 Prefer `aafe knowledge search` over a blind repository grep: it ranks across modules, routes,
 components, features and symbols, and normalizes `userPhoneSearch`, `user-phone-search.js` and

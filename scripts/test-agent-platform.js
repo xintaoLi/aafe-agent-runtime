@@ -14,6 +14,7 @@ import { normalizeDecision } from '../src/agent-platform/planner/decision.js';
 import { createTask } from '../src/agent-platform/protocol/request.js';
 import { agentSkipped, agentSuccess, normalizeAgentResponse } from '../src/agent-platform/protocol/response.js';
 import { LocalAgentProvider } from '../src/agent-platform/runtime/providers/LocalAgentProvider.js';
+import { CursorSdkAgentProvider } from '../src/agent-platform/runtime/providers/CursorSdkAgentProvider.js';
 import { parseJsonLoose } from '../src/llm/LlmClient.js';
 import { KnowledgeStore } from '../src/knowledge/store/KnowledgeStore.js';
 import { buildModuleGraph, propagateImpact } from '../src/knowledge/graph/relations.js';
@@ -116,6 +117,21 @@ const envMissing = resolveAgentsConfig(
 );
 assert.equal(envMissing.config.agents['code-intelligence'].endpoint, null);
 assert.match(envMissing.warnings.join(' '), /environment variable that is not set/);
+
+const cursorConfig = resolveAgentsConfig({
+  agents: {
+    'developer-agent': {
+      enabled: true,
+      provider: 'cursor',
+      ref: 'local',
+      model: 'auto',
+      capabilities: ['implementation']
+    }
+  }
+}, {});
+assert.equal(cursorConfig.config.agents['developer-agent'].provider, 'cursor');
+assert.doesNotMatch(cursorConfig.warnings.join(' '), /unknown provider/);
+assert.equal(createAgentDefinition('developer-agent', cursorConfig.config.agents['developer-agent']).runtime, null);
 
 // --- schema validation, coercion and contracts -------------------------------
 const personSchema = {
@@ -256,6 +272,11 @@ assert.match(
   policy.assertProviderAllowed({ id: 'x', provider: 'http' }),
   /network-disabled-for-http-agent/
 );
+assert.match(
+  policy.assertProviderAllowed({ id: 'x', provider: 'cursor' }),
+  /network-disabled-for-cursor-agent/
+);
+assert.equal(new ExecutionPolicy({ allowNetwork: true }).assertProviderAllowed({ id: 'x', provider: 'cursor' }), null);
 assert.match(
   policy.assertNotDestructive({ id: 'x', provider: 'cli', ref: 'rm -rf {{root}}' }),
   /destructive-operation-denied/
@@ -862,6 +883,97 @@ try {
   assert.equal(overspent.status, 'failed');
   assert.match(overspent.reason, /token-budget-exhausted/);
   assert.equal(overspent.metrics.tokens, 1800, 'the check runs between steps, not mid-call');
+
+  // --- Cursor SDK provider ---------------------------------------------------
+  {
+    const seen = {};
+    const cursorProvider = new CursorSdkAgentProvider({
+      cwd: fixture,
+      env: { CURSOR_API_KEY: 'cursor_test' },
+      importSdk: async () => ({
+        Agent: {
+          create: async (options) => {
+            seen.options = options;
+            return {
+              agentId: 'agent-1',
+              send: async (prompt) => {
+                seen.prompt = prompt;
+                return {
+                  id: 'run-1',
+                  stream: async function* stream() {
+                    yield { type: 'assistant', message: { content: [{ type: 'text', text: 'implemented' }] } };
+                  },
+                  wait: async () => ({ id: 'run-1', status: 'finished', usage: { tokens: 3 }, result: 'ok' })
+                };
+              },
+              [Symbol.asyncDispose]: async () => { seen.disposed = true; }
+            };
+          }
+        }
+      })
+    });
+
+    const cursorResponse = await cursorProvider.invoke(
+      createAgentDefinition('developer-agent', {
+        provider: 'cursor',
+        ref: 'local',
+        model: 'auto',
+        enabled: true,
+        prompt: null,
+        inputSchema: null,
+        outputSchema: null,
+        schemaMode: 'off',
+        mcpServers: {
+          tapd: { type: 'stdio', command: 'npx', args: ['-y', 'tapd-mcp'] }
+        }
+      }),
+      { capability: 'implementation', goal: 'g', input: { prompt: 'do it' }, context: { root: fixture }, constraints: {} }
+    );
+    assert.equal(cursorResponse.status, 'success');
+    assert.equal(seen.options.local.cwd, fixture);
+    assert.deepEqual(seen.options.model, { id: 'auto' });
+    assert.deepEqual(seen.options.mcpServers, {
+      tapd: { type: 'stdio', command: 'npx', args: ['-y', 'tapd-mcp'] }
+    });
+    assert.equal(seen.prompt, 'do it');
+    assert.equal(cursorResponse.result.text, 'implemented');
+    assert.equal(cursorResponse.metrics.tokens, 3);
+    assert.equal(seen.disposed, true);
+
+    const seenWithoutMcp = {};
+    await new CursorSdkAgentProvider({
+      cwd: fixture,
+      env: { CURSOR_API_KEY: 'cursor_test' },
+      importSdk: async () => ({
+        Agent: {
+          create: async (options) => {
+            seenWithoutMcp.options = options;
+            return {
+              send: async () => ({
+                wait: async () => ({ id: 'run-2', status: 'finished', result: 'ok' })
+              }),
+              [Symbol.asyncDispose]: async () => {}
+            };
+          }
+        }
+      })
+    }).invoke(
+      createAgentDefinition('developer-agent', { provider: 'cursor', ref: 'local', enabled: true, schemaMode: 'off' }),
+      { capability: 'implementation', goal: 'g', input: { prompt: 'x' }, context: { root: fixture }, constraints: {} }
+    );
+    assert.equal(seenWithoutMcp.options.mcpServers, undefined);
+
+    const missingKey = await new CursorSdkAgentProvider({ env: {}, importSdk: async () => ({}) })
+      .invoke(createAgentDefinition('developer-agent', { provider: 'cursor', enabled: true }), {
+        capability: 'implementation',
+        goal: 'g',
+        input: { prompt: 'x' },
+        context: {},
+        constraints: {}
+      });
+    assert.equal(missingKey.status, 'failed');
+    assert.match(missingKey.reason, /cursor-sdk-api-key-missing/);
+  }
 
   // --- knowledge write-back --------------------------------------------------
   const written = await knowledge.applyKnowledgeUpdates([

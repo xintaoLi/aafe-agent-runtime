@@ -6,6 +6,13 @@ Rule: `.ai-agent/rules/requirement-intake-analysis.mdc`
 
 Post-implementation (unchanged): `.ai-agent/rules/task-completion-impact.mdc` → `.ai-agent/rules/tapd-submit-backfill.mdc`
 
+## Workflow mode
+
+Read `.aafe.config.json` → `mode.workflow` (default `ask`). See `.ai-agent/skills/workflow-mode.md`.
+
+- `ask`: follow the ask / confirm steps in this skill.
+- `autonomous`: decide this skill's gates per that skill; do **not** ask unless Hard Ask. Record the decision.
+
 ---
 
 ## Phase 0 — Confirm requirement source
@@ -17,16 +24,18 @@ Post-implementation (unchanged): `.ai-agent/rules/task-completion-impact.mdc` �
 
 Record: `requirement_source`, `requirement_summary`, `tapd_entry_id`（若有）
 
-### Phase 0.5 — GTM branch association（仅 `submit.cli=gtm`）
+### Phase 0.5 — TAPD branch association（git 和 gtm 均适用）
 
-若 `.aafe.config.json` → `submit.cli=gtm` 且本任务有 TAPD 单：
+若本任务有 TAPD 单：
 
-1. `git branch --show-current`：是否匹配 `feat|bug/<slug>/#<fullId>`
-2. **已匹配** → 记录 `tapd_entry_id` / 短 ID（fullId 最后 9 位），继续 Phase 1
-3. **未匹配** → 按 `.ai-agent/skills/tapd-submit-backfill.md`「GTM Task Start」执行：  
-   `gtm create issue` → 关联已有单据 → 短 ID（TAPD URL 最后 9 位）→ 目标分支 `master` → 按 TAPD 标题生成英文短名建开发分支
+1. 通过 TAPD MCP 拉取需求详情（`tapd_id_get` → `stories_get` / `bugs_get`），提取 `tapd_short_id`（URL 最后一段数字的末 9 位）
+2. `git branch --show-current`：是否匹配 `feat|bug/<slug>/#<short_id>` 且 `short_id` 与 TAPD 单一致
+3. **已匹配且一致** → 记录 `tapd_entry_type` / `tapd_entry_id` / `tapd_short_id`，继续 Phase 1
+4. **未匹配或不一致** → 按 `.ai-agent/skills/tapd-submit-backfill.md`「TAPD Branch Association」执行：
+   - `submit.cli=git`：`git fetch upstream master` → `git checkout -b feat|bug/<slug>/#<short_id> upstream/master`
+   - `submit.cli=gtm`：`gtm create issue` → 关联已有单据 → 短 ID → 目标分支 `master` → 按 TAPD 标题生成英文短名建开发分支
 
-`submit.cli=git` 或无 TAPD 单时跳过本小节。
+无 TAPD 单时跳过本小节。
 
 ---
 
@@ -52,7 +61,9 @@ For each unclear item, create `AMB-001`… with:
 | Risk if guessed | Wrong fix cost |
 | Resolution type | `choice` \| `question` \| `detail_needed` |
 
-### 1.3 Interactive resolution (mandatory)
+### 1.3 Resolution
+
+**ask mode** — Interactive resolution (mandatory):
 
 **choice** — present 2–4 options + recommendation:
 
@@ -67,6 +78,8 @@ For each unclear item, create `AMB-001`… with:
 **question** — numbered precise questions.
 
 **detail_needed** — ask for example, screenshot, API contract, edge case list.
+
+**autonomous mode** — Close AMB if TAPD / code / history can infer it with high confidence; record `assumption`. If it would change the solution and cannot be inferred → Hard Ask (stop). Do not invent product requirements.
 
 **Hard:** `ambiguity_register` 非空且未关闭 → **stop**；不得进入 Phase 2。
 
@@ -91,7 +104,7 @@ Output `history_hits`:
 | --- | --- | --- | --- |
 | H-001 | experience.md | … | full / partial / none |
 
-If **full reuse** possible: propose applying historical path; confirm with user before skipping new design.
+If **full reuse** possible: `ask` 先确认再跳过新设计；`autonomous` 证据充分则直接复用并记录判定。
 
 ---
 
@@ -147,7 +160,7 @@ Estimate **before** coding:
 - m > 5
 - L > 300 (new feature / substantial addition)
 
-Ask:
+**ask mode** — Ask:
 
 > 本次变更规模较大（约 n 个函数 / m 个文件 / L 行新增）。是否切换 **Plan 模式** 先制定详细实施计划？
 
@@ -159,6 +172,8 @@ Affirmative: `确认` / `同意` / `Yes` / `是` / `Y` / `切换plan` / `好`
 - Get user approval before returning to Agent for code
 
 If user declines Plan: document risk; may proceed in Agent with explicit `plan_skipped: true`.
+
+**autonomous mode** — Do not wait for chat yes/no. Invoke **SwitchMode** when large. If SwitchMode is unavailable, proceed in Agent with `plan_skipped: true` and document risk. Record the decision per `workflow-mode.md`.
 
 ---
 
@@ -205,5 +220,5 @@ direct fix | plan mode | blocked (waiting user)
 
 - Coding with open AMB items
 - Skipping history on recurring bug classes
-- >5 files change without plan ask
+- >5 files change without plan ask (ask mode) or without a recorded autonomous decision
 - Confusing this skill with post-task impact analysis (`architecture-impact-test-forecast.md`)

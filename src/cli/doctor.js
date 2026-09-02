@@ -53,9 +53,11 @@ const requiredFiles = [
   '.ai-agent/skills/aafe-test-from-pr.md',
   '.ai-agent/skills/tapd-submit-backfill.md',
   '.ai-agent/skills/requirement-intake-analysis.md',
+  '.ai-agent/skills/workflow-mode.md',
   '.ai-agent/rules/task-completion-impact.mdc',
   '.ai-agent/rules/requirement-intake-analysis.mdc',
   '.ai-agent/rules/tapd-submit-backfill.mdc',
+  '.ai-agent/rules/workflow-mode.mdc',
   '.ai-agent/rules/new-file-license.mdc',
   '.ai-agent/skills/knowledge-center-updater.md',
   '.aafe.config.json'
@@ -77,6 +79,7 @@ export async function doctorProject(root) {
         path.join('.cursor', 'rules', moduleName, 'aafe-requirement-intake-analysis.mdc'),
         path.join('.cursor', 'rules', moduleName, 'aafe-task-completion-impact.mdc'),
         path.join('.cursor', 'rules', moduleName, 'aafe-tapd-submit-backfill.mdc'),
+        path.join('.cursor', 'rules', moduleName, 'aafe-workflow-mode.mdc'),
         path.join('.cursor', 'rules', moduleName, 'aafe-new-file-license.mdc'),
         path.join('.cursor', 'skills', moduleName, 'aafe-runtime', 'SKILL.md'),
         path.join('.cursor', 'skills', moduleName, 'aafe-test-from-pr', 'SKILL.md'),
@@ -90,7 +93,7 @@ export async function doctorProject(root) {
         files.push(path.join('.cursor', 'hooks', moduleName, 'aafe-task-completion'));
       }
     } else {
-      files.push('.cursor/rules/aafe-skill-router.mdc', '.cursor/rules/aafe-architecture-runtime.mdc', '.cursor/rules/aafe-requirement-intake-analysis.mdc', '.cursor/rules/aafe-task-completion-impact.mdc', '.cursor/rules/aafe-tapd-submit-backfill.mdc', '.cursor/rules/aafe-new-file-license.mdc', '.cursor/rules/aafe-test-from-pr.mdc', '.cursor/skills/aafe-runtime/SKILL.md', '.cursor/skills/aafe-test-from-pr/SKILL.md', '.cursor/hooks.json', '.cursor/hooks/run-hook.cmd', '.cursor/hooks/aafe-session-start');
+      files.push('.cursor/rules/aafe-skill-router.mdc', '.cursor/rules/aafe-architecture-runtime.mdc', '.cursor/rules/aafe-requirement-intake-analysis.mdc', '.cursor/rules/aafe-task-completion-impact.mdc', '.cursor/rules/aafe-tapd-submit-backfill.mdc', '.cursor/rules/aafe-workflow-mode.mdc', '.cursor/rules/aafe-new-file-license.mdc', '.cursor/rules/aafe-test-from-pr.mdc', '.cursor/skills/aafe-runtime/SKILL.md', '.cursor/skills/aafe-test-from-pr/SKILL.md', '.cursor/hooks.json', '.cursor/hooks/run-hook.cmd', '.cursor/hooks/aafe-session-start');
       if (projectConfig.taskCompletion?.enabled) files.push('.cursor/hooks/aafe-task-completion');
     }
   }
@@ -227,6 +230,7 @@ export async function doctorProject(root) {
     }
   }
   if (skillIndex && !skillIndex.includes('architecture-on-demand')) warnings.push('.ai-agent/skill-index.md does not mention architecture-on-demand loading');
+  if (skillIndex && !skillIndex.includes('workflow-mode')) warnings.push('.ai-agent/skill-index.md does not mention workflow-mode; run aafe update');
   if (skillIndex && /npx uitest|@aafe\/ai-test/.test(skillIndex) && !skillIndex.includes('Do not install or run')) {
     warnings.push('.ai-agent/skill-index.md still points at uitest; run aafe update so PR E2E uses aafe test --pr');
   }

@@ -5,6 +5,17 @@ alwaysApply: true
 
 # TAPD Submit Backfill（Comment-Only + Commit/PR Gate）
 
+## 全局工作流模式
+
+先读 `.aafe.config.json` → `mode.workflow`（缺省 `ask`）。详见 `.ai-agent/skills/workflow-mode.md`。
+
+| 值 | 行为 |
+| --- | --- |
+| `ask` | 询问模式：各门禁向用户确认后再继续 |
+| `autonomous` | 自主判断模式：LLM 按判定表决定是否进入下一步；仅 Hard Ask 才停下来问 |
+
+`aafe init` / `aafe update --workflow-mode=ask|autonomous` 可写入。
+
 ## TAPD 关联评估（前置 Gate）
 
 **仅当任务过程中已涉及 TAPD 单**，才进入本 Rule 的回填分支（Phase E/F 及关联条件询问）。
@@ -14,12 +25,12 @@ alwaysApply: true
 - 任务来自 TAPD（story/bug/task ID、链接、TAPD MCP 已用于本任务）
 - 用户在本任务中明确引用/绑定 TAPD 单号
 - 会话或元数据记录 `tapd_entry_id` / `tapd_entry_type`
-- `submit.cli=gtm` 且当前分支名为 `feat|bug/<slug>/#<tapd_full_id>`（GTM 已关联）
+- 当前分支名为 `feat|bug/<slug>/#<tapd_short_id>`（已关联，git 和 gtm 均适用）
 
 **无 TAPD 关联** → **跳过**：
 
 - 「是否回填 TAPD 单子？」及 Phase F 全部步骤
-- 新建单、`workspace_id` / `milestone_id` 索取、PR 字段探测等**回填专用**条件询问
+- 新建单、`workspace_id` 索取、PR 字段探测等**回填专用**条件询问
 - 仍可走常规 Commit/PR（无 `--bug=` / `--story=` 强制格式）
 
 ## 触发
@@ -35,13 +46,13 @@ alwaysApply: true
 
 ```text
 自测完成（含 UI 路径预生成与执行）
-  → 询问：是否执行 Commit？
-      ├─ 是 → 按 `.aafe.config.json` → `submit.cli` 执行 Commit/PR → 询问：是否回填 TAPD？
-      └─ 否 → 仍询问：是否回填 TAPD？（仅有关联 TAPD 时）
-  → 用户同意回填 → comments_create（+ 可选 PR 字段 / 状态流转）
+  → Commit 门禁（ask 询问 / autonomous 判定）
+      ├─ 是 / proceed → 按 `.aafe.config.json` → `submit.cli` 执行 Commit/PR → 回填门禁
+      └─ 否 / skip → 仍进入回填门禁（仅有关联 TAPD 时）
+  → 回填同意 / proceed → comments_create（+ 可选 PR 字段 / 状态流转）
 ```
 
-无 TAPD 关联时：Commit/PR 可选，**不进入**上述回填询问。
+无 TAPD 关联时：Commit/PR 可选，**不进入**上述回填。
 
 ### Commit / PR（`submit.cli`）
 
@@ -53,18 +64,17 @@ alwaysApply: true
 | `gtm` | `gtm commit` | `gtm pr` |
 
 - `aafe init` / `aafe update --submit-cli=git|gtm` 可写入/更新该配置
-- `gtm`：项目 GTM 已配置完毕；抛错由项目侧处理，**不强制**重试或降级
-- `gtm` 新任务开始：先检查分支是否含 `#<tapd_id>`；未关联则 `gtm create issue` → 关联已有单据（短 ID=链接最后 9 位）→ 目标分支 `master` → 按 TAPD 标题取英文短名建开发分支（详见 Skill「GTM Task Start」）
-- 有关联 TAPD 时，尽量保证 commit message 含 `--bug=` / `--story=`
+- **分支关联（git 和 gtm 均适用）**：新任务开始时先检查当前分支是否含 `#<tapd_short_id>`；未关联则从远程主干创建开发分支（详见 Skill「TAPD Branch Association」）
+  - `git`：`git checkout -b feat|bug/<slug>/#<short_id> upstream/master`
+  - `gtm`：`gtm create issue` → 关联已有单据（短 ID = URL 最后 9 位）→ 目标分支 `master` → 按 TAPD 标题取英文短名建开发分支
+- 有关联 TAPD 时，commit message 必须含 `--bug=` / `--story=`
 
 ### 回填询问（仅有关联 TAPD 时）
 
-有关联 TAPD 且自测/提交链到达时，无论是否 Commit / 是否产出 PR，都要问：
+有关联 TAPD 且自测/提交链到达时，无论是否 Commit / 是否产出 PR：
 
-> 是否回填 TAPD 单子？
-
-同意词示例：`是` / `Yes` / `Y` / `需要` / `同意` / `回填` / `好的` / `可以` / `ok`。  
-否定则跳过，不自动回填。
+- **ask**：必须问「是否回填 TAPD 单子？」同意词：`是` / `Yes` / `Y` / `需要` / `同意` / `回填` / `好的` / `可以` / `ok`。否定则跳过。
+- **autonomous**：按 `workflow-mode.md` 判定；`proceed` 则回填，`skip` 则说明原因。有关联但解析不到 entry_id → Hard Ask。
 
 ## 回填方式（强制）
 
@@ -83,7 +93,7 @@ alwaysApply: true
 - 禁止跳过中间状态（如 backlog → doing）
 - 提交回填状态流转目标为 `doing`，禁止自动流转到 `for_test` / `status_done`
 - 禁止伪造 MCP / 测试结果；禁止未拿到用户指定 URL 时自动探测环境
-- **禁止**在无 TAPD 关联时主动询问回填、新建 TAPD 单或索取 `workspace_id` / `milestone_id`
+- **禁止**在无 TAPD 关联时主动询问回填、新建 TAPD 单或索取 `workspace_id`
 
 ## 与自测的衔接
 
