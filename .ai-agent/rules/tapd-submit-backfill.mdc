@@ -25,7 +25,7 @@ alwaysApply: true
 - 任务来自 TAPD（story/bug/task ID、链接、TAPD MCP 已用于本任务）
 - 用户在本任务中明确引用/绑定 TAPD 单号
 - 会话或元数据记录 `tapd_entry_id` / `tapd_entry_type`
-- 当前分支名为 `feat|bug/<slug>/#<tapd_short_id>`（已关联，git 和 gtm 均适用）
+- 当前分支名为 `feat|bug/<slug>/#<tapd_short_id>` 且 short_id 与本任务 TAPD 单一致（已关联，git 和 gtm 均适用）
 
 **无 TAPD 关联** → **跳过**：
 
@@ -88,7 +88,7 @@ alwaysApply: true
 **工蜂**（`submit.cli=gtm` 或远程 merge_requests）：`gtm pr` 之后用工蜂 API 写入 `labels` 与 `reviewer_ids`（username 先查用户 id）。鉴权用 `repo.gongfengAccessToken` / `GIT_PRIVATE_TOKEN`。
 
 - `aafe init` / `aafe update --submit-cli=git|gtm` 可写入/更新该配置
-- **分支关联（git 和 gtm 均适用）**：新任务开始时先检查当前分支是否含 `#<tapd_short_id>`；未关联则从远程主干创建开发分支（详见 Skill「TAPD Branch Association」）
+- **分支关联（git 和 gtm 均适用）**：新任务开始时先检查当前分支是否含 `#<tapd_short_id>` 且与本任务 TAPD 单一致；未关联或 ID 不匹配则从远程主干创建/切换开发分支（详见 Skill「TAPD Branch Association」）。除非用户此前已明确确认当前分支可用，否则不得因当前分支已有相关提交或存在未提交改动而放行继续实现。
   - `git`：`git checkout -b feat|bug/<slug>/#<short_id> upstream/master`
   - `gtm`：`gtm create issue` → 关联已有单据（短 ID = URL 最后 9 位）→ 目标分支 `master` → 按 TAPD 标题取英文短名建开发分支
 - 有关联 TAPD 时，commit message 必须含 `--bug=` / `--story=`
@@ -118,6 +118,7 @@ alwaysApply: true
 - 提交回填状态流转目标为 `doing`，禁止自动流转到 `for_test` / `status_done`
 - 禁止伪造 MCP / 测试结果；禁止未拿到用户指定 URL 时自动探测环境
 - **禁止**在无 TAPD 关联时主动询问回填、新建 TAPD 单或索取 `workspace_id`
+- **禁止**在 TAPD ID 不匹配时，将相关提交、半成品实现或会话前未提交改动视为当前分支可用；未获明确确认前必须执行分支切换/创建逻辑
 
 ## 与自测的衔接
 

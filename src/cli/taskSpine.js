@@ -29,7 +29,7 @@ export function taskSpineMarkdown(agentPrefix = '.ai-agent') {
 
 \`\`\`text
 [1] 需求与分支决策（写代码前）
-    TAPD 单 → 拉详情 → 校验/新建/切换关联分支 → 若含 Figma 则获取结构化设计/截图 → 需求分析
+    TAPD 单 → 拉详情 → 校验/新建/切换关联分支；ID 不匹配且用户未明确确认当前分支可用 → 继续切换/创建分支 → 若含 Figma 则获取结构化设计/截图 → 需求分析
     非 TAPD → 判断是否新任务 → 按需新建/切换分支 → 需求分析
     无法判断 → ask 模式询问；autonomous 模式仅高置信自主判定，否则 Hard Ask
 [2] 任务执行决策
@@ -50,7 +50,7 @@ export function taskSpineHookLines(agentPrefix = '.ai-agent') {
   const p = normalizePrefix(agentPrefix);
   return [
     `1. Read ${p}/skill-index.md and follow dynamic Task Spine.`,
-    '2. Decide TAPD vs non-TAPD and whether to create/switch branch before code; if TAPD includes Figma, fetch structured design and screenshot before UI implementation.',
+    '2. Decide TAPD vs non-TAPD and whether to create/switch branch before code; TAPD ID mismatch must continue branch switch/create unless the user already confirmed current branch; if TAPD includes Figma, fetch structured design and screenshot before UI implementation.',
     '3. Execute only after requirement/branch decision is closed.',
     '4. After code changes, decide impact/self-test; TAPD+Figma uses local diff plus Figma evidence to narrow impact/tests; then decide submit/PR/MR and TAPD backfill if associated.',
     '5. Load project.md / project-skills on demand only. Do not copy knowledge into editor directories.'
@@ -64,5 +64,5 @@ export function taskSpineHookContext(agentPrefix = '.ai-agent', moduleName = '')
 
 export function taskSpinePointerLine(agentPrefix = '.ai-agent') {
   const p = normalizePrefix(agentPrefix);
-  return `Follow \`${p}/skill-index.md\` **Task Spine** as a dynamic decision chain: [1] 需求/分支判定（TAPD 含 Figma 时先取结构化设计/截图）→ [2] 执行判定 → [3] 影响/自测判定（TAPD+Figma 用 diff+设计稿收敛）→ [4] 提交/PR/MR/回填判定。`;
+  return `Follow \`${p}/skill-index.md\` **Task Spine** as a dynamic decision chain: [1] 需求/分支判定（TAPD ID 不匹配且用户未确认当前分支可用时必须继续切换/创建分支；TAPD 含 Figma 时先取结构化设计/截图）→ [2] 执行判定 → [3] 影响/自测判定（TAPD+Figma 用 diff+设计稿收敛）→ [4] 提交/PR/MR/回填判定。`;
 }

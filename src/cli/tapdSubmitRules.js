@@ -23,7 +23,7 @@ Source of truth:
 1. Rule: \`${agentPrefix}/rules/tapd-submit-backfill.mdc\`
 2. Skill: \`${agentPrefix}/skills/tapd-submit-backfill.md\`
 
-Task Spine 是动态决策链：**[1]** 若有 TAPD → 拉单并判定是否新建/切换分支；非 TAPD 新任务也要判定分支；**[4]** 根据提交意图决定 Commit/PR/MR（\`repo-submit\`），仅任务有关联 TAPD 单时进入回填门禁。\`ask\` 根据用户回复推进；\`autonomous\` 按 workflow-mode 自主判定。无 TAPD 关联则跳过 TAPD 回填。
+Task Spine 是动态决策链：**[1]** 若有 TAPD → 拉单并判定是否新建/切换分支；TAPD ID 不匹配时，除非此前已明确确认当前分支可用，否则必须继续执行分支切换/创建逻辑；非 TAPD 新任务也要判定分支；**[4]** 根据提交意图决定 Commit/PR/MR（\`repo-submit\`），仅任务有关联 TAPD 单时进入回填门禁。\`ask\` 根据用户回复推进；\`autonomous\` 按 workflow-mode 自主判定。无 TAPD 关联则跳过 TAPD 回填。
 
 Do not duplicate project knowledge here.
 `;
@@ -54,7 +54,7 @@ ${workflowModeGatePreamble(agentPrefix)}
 - 任务来自 TAPD（story/bug/task ID、链接、TAPD MCP 已用于本任务）
 - 用户在本任务中明确引用/绑定 TAPD 单号
 - 会话或元数据记录 \`tapd_entry_id\` / \`tapd_entry_type\`
-- 当前分支名为 \`feat|bug/<slug>/#<tapd_short_id>\`（已关联，git 和 gtm 均适用）
+- 当前分支名为 \`feat|bug/<slug>/#<tapd_short_id>\` 且 short_id 与本任务 TAPD 单一致（已关联，git 和 gtm 均适用）
 
 **无 TAPD 关联** → **跳过**：
 
@@ -106,7 +106,7 @@ ${workflowModeGatePreamble(agentPrefix)}
 ${repoPrApplySkillSection(agentPrefix)}
 
 - \`aafe init\` / \`aafe update --submit-cli=git|gtm\` 可写入/更新该配置
-- **分支关联（git 和 gtm 均适用）**：新任务开始时先检查当前分支是否含 \`#<tapd_short_id>\`；未关联则从远程主干创建开发分支（详见 Skill「TAPD Branch Association」）
+- **分支关联（git 和 gtm 均适用）**：新任务开始时先检查当前分支是否含 \`#<tapd_short_id>\` 且与本任务 TAPD 单一致；未关联或 ID 不匹配则从远程主干创建/切换开发分支（详见 Skill「TAPD Branch Association」）。除非用户此前已明确确认当前分支可用，否则不得因当前分支已有相关提交或存在未提交改动而放行继续实现。
   - \`git\`：\`git checkout -b feat|bug/<slug>/#<short_id> upstream/master\`
   - \`gtm\`：\`gtm create issue\` → 关联已有单据（短 ID = URL 最后 9 位）→ 目标分支 \`master\` → 按 TAPD 标题取英文短名建开发分支
 - 有关联 TAPD 时，commit message 必须含 \`--bug=\` / \`--story=\`
@@ -156,7 +156,7 @@ export function tapdSubmitRuleSection(ctx = {}) {
     '**前置**：任务过程中须**已关联 TAPD 单**；无关联则跳过回填及新建单/workspace_id 等条件询问。',
     '',
     '有关联且 tapd.enabled 时，自测完成后或用户说 commit/push/submit/提测：',
-    '1. 新任务时先检查当前分支 `feat|bug/<slug>/#<short_id>` 是否已关联 TAPD（git 和 gtm 均适用）；未关联则从远程主干创建开发分支（详见 Skill「TAPD Branch Association」）。',
+    '1. 新任务时先检查当前分支 `feat|bug/<slug>/#<short_id>` 是否已关联且 ID 与本任务 TAPD 一致（git 和 gtm 均适用）；未关联或 ID 不匹配则从远程主干创建/切换开发分支（详见 Skill「TAPD Branch Association」）。除非用户此前已明确确认当前分支可用，否则不得因当前分支已有相关提交或未提交改动而放行。',
     '2. Commit 门禁：`ask` 询问 / `autonomous` 判定 → 同意或 proceed 则按 \`submit.cli\`（\`git\` 默认 / \`gtm\`）执行 Commit/PR。',
     '3. **Commit 成功后必须继续尝试 PR/MR**；PR 成功则记录 `pr_url`，失败只报告原因，不阻断回填判断。',
     '4. **Commit/PR 完成后进入回填门禁**（仅有关联 TAPD 时）：`ask` 必须问「是否回填 TAPD 单子？将追加评论、写入 PR 字段（如配置）并按状态映射逐步流转到 doing」；`autonomous` 按 workflow-mode 判定。',
@@ -280,8 +280,10 @@ git branch --show-current
 **判定**：
 
 - 当前分支匹配 \`{type}/{slug}/#{short_id}\` 且 \`short_id\` **与 T0 拉取的 TAPD 单一致** → **已正确关联**，进入需求分析/开发
-- 当前分支匹配 \`{type}/{slug}/#{digits}\` 但 \`digits\` **与 TAPD 单不一致** → **关联了错误的单**，需执行 T2 创建新分支
+- 当前分支匹配 \`{type}/{slug}/#{digits}\` 但 \`digits\` **与 TAPD 单不一致** → **关联了错误的单**；除非用户此前已明确确认当前分支可用于本 TAPD 单，否则必须继续执行 T2 创建/切换新分支
 - 不匹配（如 \`master\` / \`main\` / 无 \`#id\` 后缀）→ **未关联**，执行 T2
+
+**Hard：** TAPD ID 不匹配不是可忽略警告；当前分支包含相关提交、已有半成品实现或工作区存在未提交改动，都不能替代“用户已明确确认当前分支可用”。若未提交改动导致无法 checkout，应先停下报告并确认保护/迁移方式，禁止继续实现。
 
 ### T2 未关联或关联错误时：从远程主干创建开发分支
 

@@ -21,7 +21,7 @@ Source of truth:
 1. Rule: \`${agentPrefix}/rules/requirement-intake-analysis.mdc\`
 2. Skill: \`${agentPrefix}/skills/requirement-intake-analysis.md\`
 
-Task Spine **[1]** 是动态决策：若是 TAPD 单，先拉详情并按规则判定是否新建/切换关联分支；若单据含 Figma 设计稿，必须提取设计链接并用 Figma MCP 获取结构化设计与截图作为 UI 还原依据；非 TAPD 新任务也需判定是否新建/切换分支；无法确定则 ask 询问，autonomous 仅高置信自主判定。闭合后再进入执行。
+Task Spine **[1]** 是动态决策：若是 TAPD 单，先拉详情并按规则判定是否新建/切换关联分支；TAPD ID 不匹配时，除非此前已明确确认当前分支可用，否则必须继续执行分支切换/创建逻辑；若单据含 Figma 设计稿，必须提取设计链接并用 Figma MCP 获取结构化设计与截图作为 UI 还原依据；非 TAPD 新任务也需判定是否新建/切换分支；无法确定则 ask 询问，autonomous 仅高置信自主判定。闭合后再进入执行。
 
 Do not duplicate project knowledge here.
 `;
@@ -64,7 +64,7 @@ ${workflowModeGatePreamble(agentPrefix)}
 
 1. 通过 TAPD MCP 拉取需求详情，提取 \`tapd_short_id\`（URL 最后一段数字的末 9 位）
 2. 检查当前分支是否 \`feat|bug/<slug>/#<tapd_short_id>\` 且 short_id 与 TAPD 单一致
-3. 未关联、关联错误或当前分支不适合本任务 → 按规则新建或切换开发分支：
+3. TAPD ID 不匹配、未关联或当前分支不适合本任务 → 按规则新建或切换开发分支；除非用户此前已明确确认当前分支可用，否则不得因当前分支已有相关提交或未提交改动而放行继续实现：
    - \`git\`：\`git checkout -b feat|bug/<slug>/#<short_id> upstream/master\`
    - \`gtm\`：\`gtm create issue\` → 关联已有单据 → 目标分支 \`master\` → 按 TAPD 标题生成英文短名
 4. 详见 \`${agentPrefix}/skills/tapd-submit-backfill.md\`「TAPD Branch Association」
@@ -178,7 +178,7 @@ export function requirementIntakeRuleSection(ctx = {}) {
     '## AAFE 需求分析阶段（Requirement Intake）',
     '',
     '拿到具体需求后（TAPD 拉取或用户描述）、写代码前：',
-    '0. TAPD MCP 拉取需求详情并核对分支关联（git 和 gtm 均适用）：检查当前分支 `feat|bug/<slug>/#<short_id>` 是否与 TAPD 单一致；未关联或错误则从远程主干创建开发分支（见 `tapd-submit-backfill`「TAPD Branch Association」）。',
+    '0. TAPD MCP 拉取需求详情并核对分支关联（git 和 gtm 均适用）：检查当前分支 `feat|bug/<slug>/#<short_id>` 是否与 TAPD 单一致；未关联或 ID 错误则从远程主干创建/切换开发分支（见 `tapd-submit-backfill`「TAPD Branch Association」）。除非用户此前已明确确认当前分支可用，否则不得因当前分支已有相关提交或未提交改动而放行。',
     '1. TAPD 单若含 Figma 链接，必须通过 Figma MCP 获取结构化设计和截图；UI 还原以 Figma 尺寸、间距、颜色、字体、资源和交互状态为准。',
     `2. 澄清不明确项（方案选择 / 追问 / 要详细答复）；未明确禁止写代码。自主模式可按 workflow-mode 用证据闭合 AMB。`,
     `3. 需求明确后查历史：\`${agentPrefix}/skills/memory-recaller.md\` + experience/learnings。`,
@@ -220,9 +220,11 @@ Record: \`requirement_source\`, \`requirement_summary\`, \`tapd_entry_id\`（若
 1. 通过 TAPD MCP 拉取需求详情（\`tapd_id_get\` → \`stories_get\` / \`bugs_get\`），提取 \`tapd_short_id\`（URL 最后一段数字的末 9 位）
 2. \`git branch --show-current\`：是否匹配 \`feat|bug/<slug>/#<short_id>\` 且 \`short_id\` 与 TAPD 单一致
 3. **已匹配且一致** → 记录 \`tapd_entry_type\` / \`tapd_entry_id\` / \`tapd_short_id\`，继续 Phase 1
-4. **未匹配或不一致** → 按 \`${prefix}/skills/tapd-submit-backfill.md\`「TAPD Branch Association」执行：
+4. **未匹配或不一致** → 按 \`${prefix}/skills/tapd-submit-backfill.md\`「TAPD Branch Association」执行；除非用户此前已明确确认当前分支可用，否则不得因当前分支已有相关提交或未提交改动而继续实现：
    - \`submit.cli=git\`：\`git fetch upstream master\` → \`git checkout -b feat|bug/<slug>/#<short_id> upstream/master\`
    - \`submit.cli=gtm\`：\`gtm create issue\` → 关联已有单据 → 短 ID → 目标分支 \`master\` → 按 TAPD 标题生成英文短名建开发分支
+
+**Hard：** TAPD ID 不匹配时，分支关联门禁未关闭；相关提交、半成品实现、package 变更或其它会话前未提交改动都不能视为“当前分支可用”。若这些改动阻塞 checkout，应先报告并确认保护/迁移方式，禁止继续 Phase 1 或写代码。
 
 无 TAPD 单时跳过本小节。
 

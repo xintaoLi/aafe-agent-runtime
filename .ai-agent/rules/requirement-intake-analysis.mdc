@@ -37,7 +37,7 @@ alwaysApply: true
 
 1. 通过 TAPD MCP 拉取需求详情，提取 `tapd_short_id`（URL 最后一段数字的末 9 位）
 2. 检查当前分支是否 `feat|bug/<slug>/#<tapd_short_id>` 且 short_id 与 TAPD 单一致
-3. 未关联、关联错误或当前分支不适合本任务 → 按规则新建或切换开发分支：
+3. TAPD ID 不匹配、未关联或当前分支不适合本任务 → 按规则新建或切换开发分支；除非用户此前已明确确认当前分支可用，否则不得因当前分支已有相关提交或未提交改动而放行继续实现：
    - `git`：`git checkout -b feat|bug/<slug>/#<short_id> upstream/master`
    - `gtm`：`gtm create issue` → 关联已有单据 → 目标分支 `master` → 按 TAPD 标题生成英文短名
 4. 详见 `.ai-agent/skills/tapd-submit-backfill.md`「TAPD Branch Association」
@@ -142,6 +142,7 @@ alwaysApply: true
 - 未澄清需求就写代码
 - UI 还原类 TAPD 已给 Figma 却未拉取结构化设计和截图
 - TAPD 已提供 Figma 时，仅按本地 diff 生成 UI 影响范围或测试用例
+- TAPD ID 不匹配时，将相关提交、半成品实现或会话前未提交改动视为当前分支可用
 - 跳过历史检索直接大改
 - 询问模式下大规模变更不询问就 silent 全量实施；自主模式须产出判定记录
 - 将「需求分析阶段」与「任务完成影响分析」混淆（后者在**实施完成后**）

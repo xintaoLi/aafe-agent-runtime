@@ -373,7 +373,7 @@ function cursorRules(ctx) {
     'For every non-trivial frontend task after the Skill Router step:',
     `0. Read \`.aafe.config.json\` → \`mode.workflow\` (default \`ask\`) and follow \`aafe-workflow-mode.mdc\` / \`${ctx.agentPrefix}/skills/workflow-mode.md\` before the first interactive gate.`,
     `0a. ${taskSpinePointerLine(ctx.agentPrefix)}`,
-    `0b. After concrete requirement (TAPD or user), follow \`aafe-requirement-intake-analysis.mdc\` / \`${ctx.agentPrefix}/skills/requirement-intake-analysis.md\`: TAPD pull + branch association → if TAPD contains Figma, fetch structured design + screenshot via Figma MCP → clarify → history → scope/root cause → Plan gate if large.`,
+    `0b. After concrete requirement (TAPD or user), follow \`aafe-requirement-intake-analysis.mdc\` / \`${ctx.agentPrefix}/skills/requirement-intake-analysis.md\`: TAPD pull + branch association (ID mismatch must continue branch switch/create unless user already confirmed current branch) → if TAPD contains Figma, fetch structured design + screenshot via Figma MCP → clarify → history → scope/root cause → Plan gate if large.`,
     `1. Read \`${ctx.agentPrefix}/runtime/engine.md\`.`,
     `2. Classify the task using \`${ctx.agentPrefix}/runtime/router.yaml\`.`,
     `3. Follow the selected \`${ctx.agentPrefix}/pipelines/*.yaml\`.`,

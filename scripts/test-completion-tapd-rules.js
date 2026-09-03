@@ -95,12 +95,15 @@ assert.match(projectTapd, /PR 链接字段/);
 assert.match(projectTapd, /Commit 成功后必须继续尝试 PR/);
 assert.match(projectTapd, /状态映射逐步流转到 doing/);
 assert.match(projectTapd, /临时注入/);
+assert.match(projectTapd, /ID 不匹配/);
+assert.match(projectTapd, /不得因当前分支已有相关提交或存在未提交改动而放行继续实现/);
 
 const tapdSection = tapdSubmitRuleSection();
 assert.match(tapdSection, /comments_create/);
 assert.match(tapdSection, /submit\.cli/);
 assert.match(tapdSection, /Commit\/PR Gate|询问 Commit/);
 assert.match(tapdSection, /Commit 成功后必须继续尝试 PR/);
+assert.match(tapdSection, /未关联或 ID 不匹配/);
 
 const tapdSkill = tapdSubmitBackfillSkillContent('.ai-agent');
 assert.match(tapdSkill, /Commit\/PR Gate/);
@@ -130,6 +133,8 @@ assert.match(tapdSkill, /有关联 TAPD 时/);
 assert.match(tapdSkill, /Commit 成功后必须尝试 PR/);
 assert.match(tapdSkill, /临时注入 `GITHUB_TOKEN`/);
 assert.match(tapdSkill, /按配置状态映射逐步流转到 doing/);
+assert.match(tapdSkill, /TAPD ID 不匹配不是可忽略警告/);
+assert.match(tapdSkill, /不能替代“用户已明确确认当前分支可用”/);
 
 import {
   requirementIntakeAnalysisSkillContent,
@@ -146,6 +151,8 @@ assert.match(projectReq, /> 5 个函数/);
 assert.match(projectReq, /TAPD Figma 设计稿 Gate/);
 assert.match(projectReq, /get_design_context/);
 assert.match(projectReq, /get_full_bundle/);
+assert.match(projectReq, /TAPD ID 不匹配/);
+assert.match(projectReq, /不得因当前分支已有相关提交或未提交改动而放行继续实现/);
 
 const reqSkill = requirementIntakeAnalysisSkillContent('.ai-agent');
 assert.match(reqSkill, /Workflow mode/);
@@ -156,6 +163,7 @@ assert.match(reqSkill, /memory-recaller/);
 assert.match(reqSkill, /Phase 0\.6 — TAPD Figma design intake/);
 assert.match(reqSkill, /figma_ui_constraints/);
 assert.match(reqSkill, /design_deviation/);
+assert.match(reqSkill, /TAPD ID 不匹配时，分支关联门禁未关闭/);
 
 const reqSection = requirementIntakeRuleSection({ agentPrefix: '.ai-agent' });
 assert.match(reqSection, /Requirement Intake/);
