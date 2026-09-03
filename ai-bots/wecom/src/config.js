@@ -18,9 +18,11 @@
  * IN THE SOFTWARE.
  */
 
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { resolveAgentModeConfig } from '../../../src/cli/agentMode.js';
+import { resolveWeComLogConfig, normalizeLogValue } from './logger.js';
+import { parseWorkspaces } from './workspace.js';
 
 const DEFAULT_WS_URL = 'wss://openws.work.weixin.qq.com';
 
@@ -54,18 +56,30 @@ export async function loadWeComBotConfig({
   }
 
   const apiKey = firstNonEmpty(env[apiKeyEnv], env.CURSOR_API_KEY, agent.apiKey, local.apiKey);
+  const model = firstNonEmpty(env.AAFE_WECOM_MODEL, env.WECOM_MODEL, local.model) ?? agent.model ?? null;
+  const repository = firstNonEmpty(env.AAFE_WECOM_REPOSITORY, local.repository) ?? agent.repository ?? null;
+  const baseBranch = firstNonEmpty(env.AAFE_WECOM_BASE_BRANCH, local.baseBranch) ?? 'main';
+  const workspaces = parseWorkspaces(local.workspaces ?? agent.workspaces, {
+    root: projectRoot,
+    repository,
+    baseBranch
+  });
   return {
     root: projectRoot,
     botId,
     secret,
     apiKey,
     wsUrl: firstNonEmpty(env.WECOM_WS_URL, local.wsUrl) ?? DEFAULT_WS_URL,
-    repository: firstNonEmpty(env.AAFE_WECOM_REPOSITORY, local.repository) ?? agent.repository ?? null,
-    baseBranch: firstNonEmpty(env.AAFE_WECOM_BASE_BRANCH, local.baseBranch) ?? 'main',
+    repository,
+    baseBranch,
+    workspaces,
+    currentWorkspace: firstNonEmpty(local.currentWorkspace, env.AAFE_WECOM_WORKSPACE) ?? workspaces[0]?.id ?? null,
     localConfigPath: local.path ?? null,
+    log: resolveWeComLogConfig({ env, local, root: projectRoot }),
     agent: {
       ...agent,
-      apiKey: apiKey ?? agent.apiKey ?? null
+      apiKey: apiKey ?? agent.apiKey ?? null,
+      model: model ?? agent.model ?? null
     }
   };
 }
@@ -73,7 +87,15 @@ export async function loadWeComBotConfig({
 export function createTaskManagerOptions(config, extra = {}) {
   const agent = config.agent ?? {};
   const manager = agent.manager ?? {};
-  const repository = extra.repository ?? config.repository ?? agent.repository ?? null;
+  const active = extra.workspace
+    ?? config.workspaces?.find((item) => item.id === config.currentWorkspace)
+    ?? config.workspaces?.[0]
+    ?? null;
+  const repository = extra.repository
+    ?? active?.repository
+    ?? config.repository
+    ?? agent.repository
+    ?? null;
   const useCloud = Boolean(repository);
   return {
     root: config.root,
@@ -87,7 +109,7 @@ export function createTaskManagerOptions(config, extra = {}) {
       apiKeyEnv: agent.apiKeyEnv,
       model: extra.model ?? agent.model,
       repository,
-      cwd: extra.cwd ?? config.root,
+      cwd: extra.cwd ?? active?.cwd ?? config.root,
       mode: useCloud ? 'cloud' : 'local',
       autoCreatePR: agent.autoCreatePR,
       skipReviewerRequest: agent.skipReviewerRequest,
@@ -150,8 +172,25 @@ export function normalizeLocalWeComValues(raw = {}) {
     apiKey: raw.apiKey ?? raw.CURSOR_API_KEY ?? raw.cursorApiKey,
     wsUrl: raw.wsUrl ?? raw.WECOM_WS_URL,
     repository: raw.repository ?? raw.AAFE_WECOM_REPOSITORY,
-    baseBranch: raw.baseBranch ?? raw.AAFE_WECOM_BASE_BRANCH
+    baseBranch: raw.baseBranch ?? raw.AAFE_WECOM_BASE_BRANCH,
+    currentWorkspace: raw.currentWorkspace ?? raw.AAFE_WECOM_WORKSPACE,
+    model: raw.model ?? raw.AAFE_WECOM_MODEL ?? raw.WECOM_MODEL,
+    workspaces: raw.workspaces,
+    log: normalizeLogValue(raw.log ?? raw.WECOM_LOG)
   });
+}
+
+export async function persistCurrentWorkspace(configPath, workspaceId) {
+  if (!configPath || !workspaceId || !configPath.endsWith('.json')) return false;
+  let parsed;
+  try {
+    parsed = JSON.parse(await readFile(configPath, 'utf8'));
+  } catch {
+    return false;
+  }
+  parsed.currentWorkspace = workspaceId;
+  await writeFile(configPath, `${JSON.stringify(parsed, null, 2)}\n`, 'utf8');
+  return true;
 }
 
 async function readProjectConfig(root) {

@@ -1,5 +1,23 @@
 {
   "botId": "your-wecom-bot-id",
   "secret": "your-wecom-bot-secret",
-  "apiKey": "crsr_your-cursor-api-key"
+  "apiKey": "crsr_your-cursor-api-key",
+  "model": "grok-4.6",
+  "currentWorkspace": "local",
+  "workspaces": [
+    {
+      "id": "local",
+      "name": "当前目录",
+      "cwd": "."
+    },
+    {
+      "id": "demo",
+      "name": "示例远程仓",
+      "repository": "owner/repo",
+      "baseBranch": "main"
+    }
+  ],
+  "log": {
+    "enabled": false
+  }
 }

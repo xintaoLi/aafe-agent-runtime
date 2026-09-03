@@ -4,4 +4,5 @@ wecom.local.json
 .env.*
 !.env.example
 !wecom.local.json.example
+logs/
 

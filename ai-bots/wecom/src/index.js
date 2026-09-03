@@ -21,11 +21,15 @@
 import { pathToFileURL } from 'node:url';
 import { createTaskManager } from '../../../src/agent-platform/tasks/index.js';
 import { resolveCursorMcpForRun, toCursorMcpServers } from '../../../src/cli/agentMcp.js';
-import { createTaskManagerOptions, loadWeComBotConfig } from './config.js';
+import { createTaskManagerOptions, loadWeComBotConfig, persistCurrentWorkspace } from './config.js';
+import { createWeComLogger, resolveWeComLogConfig } from './logger.js';
 import { createMessageDedup } from './dedup.js';
 import { createWeComGateway } from './gateway.js';
-import { handleWeComMedia, handleWeComMessage } from './handler.js';
+import { handleWeComCard, handleWeComMedia, handleWeComMessage } from './handler.js';
 import { attachWeComNotifier } from './notify.js';
+import { createPendingStore } from './pending.js';
+import { createWeComProgressHub } from './progress.js';
+import { createWorkspaceStore } from './workspace.js';
 
 export { loadWeComBotConfig, createTaskManagerOptions } from './config.js';
 export { parseWeComCommand, stripMentions } from './commands.js';
@@ -33,15 +37,27 @@ export { analyzeWeComIntent } from './intent.js';
 export { createMessageDedup } from './dedup.js';
 export { resolveWeComAction } from './resolver.js';
 export { attachWeComNotifier, formatTaskNotify } from './notify.js';
-export { handleWeComMessage } from './handler.js';
+export { createWeComProgressHub, formatProgressEvent, renderProgressView } from './progress.js';
+export { handleWeComMessage, handleWeComCard, handleWeComMedia } from './handler.js';
 export { createWeComGateway } from './gateway.js';
+export { createWorkspaceStore, classifyWorkspaceTarget } from './workspace.js';
+export { parseCardEvent, buildCancelledCard } from './cards.js';
+export { createWeComLogger, resolveWeComLogConfig } from './logger.js';
+export { parseWeComMedia, mediaRequirement, inferMediaType } from './media.js';
 
 /**
  * Resident WeCom process. Must not reuse `aafe task`'s manager.close() on idle.
  */
 export async function startWeComBot(options = {}) {
-  const logger = options.logger ?? console;
   const config = options.config ?? await loadWeComBotConfig(options);
+  const logConfig = config.log ?? resolveWeComLogConfig({
+    env: options.env ?? process.env,
+    root: config.root
+  });
+  const logger = options.logger ?? createWeComLogger({
+    ...logConfig,
+    sink: console
+  });
   const mcp = options.mcpServers
     ? { servers: options.mcpServers }
     : await resolveCursorMcpForRun(config.agent?.mcp, {
@@ -69,18 +85,56 @@ export async function startWeComBot(options = {}) {
   });
 
   const dedup = options.dedup ?? createMessageDedup();
+  const pending = options.pending ?? createPendingStore();
+  const workspaces = options.workspaces ?? createWorkspaceStore(config, {
+    persistCurrent: (id) => persistCurrentWorkspace(config.localConfigPath, id)
+  });
   const replyAck = (frame, content, extra) => gateway.replyAck(frame, content, extra);
+  const replyCard = (frame, card) => gateway.replyCard(frame, card);
+  const progress = options.progress ?? createWeComProgressHub({
+    replyProgress: (frame, streamId, content, finish) => gateway.replyProgress(frame, streamId, content, finish),
+    logger
+  });
   attachWeComNotifier({
     manager,
     sendMessage: (chatid, body) => gateway.sendMessage(chatid, body),
+    sendMedia: (chatid, type, mediaId, extra) => gateway.sendMedia(chatid, type, mediaId, extra),
+    uploadMedia: (buffer, options) => gateway.uploadMedia(buffer, options),
+    progress,
     logger
   });
 
   gateway.onText((frame) => {
-    void handleWeComMessage(frame, { manager, replyAck, config, dedup, logger });
+    void handleWeComMessage(frame, {
+      manager, replyAck, replyCard, progress, pending, workspaces, config, dedup, logger
+    });
+  });
+  gateway.onCard?.((frame) => {
+    void handleWeComCard(frame, {
+      manager,
+      replyAck,
+      replyCard,
+      updateCard: (cardFrame, card) => gateway.updateCard(cardFrame, card),
+      progress,
+      pending,
+      workspaces,
+      config,
+      logger
+    });
   });
   gateway.onMedia((frame) => {
-    void handleWeComMedia(frame, { replyAck, dedup });
+    void handleWeComMedia(frame, {
+      manager,
+      replyAck,
+      replyCard,
+      progress,
+      pending,
+      workspaces,
+      config,
+      dedup,
+      logger,
+      downloadFile: (url, aeskey) => gateway.downloadFile(url, aeskey)
+    });
   });
   gateway.onEnterChat((frame) => {
     void gateway.replyWelcome(frame).catch((error) => {
@@ -93,6 +147,9 @@ export async function startWeComBot(options = {}) {
     if (shuttingDown) return;
     shuttingDown = true;
     logger.info?.(`wecom-bot shutdown:${reason}`);
+    logger.event?.('bot.shutdown', { reason });
+    try { await progress.close?.(); } catch { /* ignore */ }
+    try { await logger.flush?.(); } catch { /* ignore */ }
     try { gateway.disconnect(); } catch { /* ignore */ }
     try { await manager.close(); } catch { /* ignore */ }
     if (options.exitOnShutdown !== false) process.exit(reason === 'kicked' ? 1 : 0);
@@ -100,6 +157,7 @@ export async function startWeComBot(options = {}) {
 
   gateway.onKicked(() => {
     logger.error?.('wecom-bot kicked by another connection; exiting to keep a single socket');
+    logger.event?.('bot.kicked', {});
     void shutdown('kicked');
   });
 
@@ -109,6 +167,15 @@ export async function startWeComBot(options = {}) {
   }
 
   gateway.connect();
+  if (logger.enabled) {
+    logger.info?.(`wecom-log enabled dir=${logger.dir}`);
+  }
+  logger.event?.('bot.start', {
+    wsUrl: config.wsUrl,
+    workspace: config.currentWorkspace ?? null,
+    logEnabled: Boolean(logger.enabled),
+    logDir: logger.dir ?? null
+  });
   logger.info?.(`wecom-bot connecting ${config.wsUrl}`);
 
   if (options.keepAlive === false) return { manager, gateway, config, shutdown };

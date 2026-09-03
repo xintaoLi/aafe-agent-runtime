@@ -18,6 +18,9 @@
  * IN THE SOFTWARE.
  */
 
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { inferMediaType } from './media.js';
 import { notifyTargetFromSource } from './session.js';
 
 const NOTIFY_EVENTS = new Set(['task.finished', 'task.failed', 'task.cancelled']);
@@ -52,8 +55,23 @@ export function formatTaskNotify(task, event = {}) {
   }
   const pr = extractPr(task);
   if (pr) lines.push('', `PR：${pr}`);
-  const error = task.error ?? event.error ?? null;
+  // A retry that succeeded must not carry the previous attempt's error.
+  const error = status === 'completed' ? null : (task.error ?? event.error ?? null);
   if (error) lines.push('', `错误：${error}`);
+  const footer = formatTaskFooter(task.id);
+  if (footer) lines.push('', footer);
+  return lines.join('\n');
+}
+
+/**
+ * Inline code is the only copy-friendly affordance in WeCom markdown, so the
+ * id sits alone on its own line for a clean long-press select.
+ */
+export function formatTaskFooter(taskId, { running = false } = {}) {
+  const id = String(taskId ?? '').trim();
+  if (!id) return '';
+  const lines = [`对话 ID：\`${id}\``];
+  if (running) lines.push(`终止：发送 \`终止 ${id}\``);
   return lines.join('\n');
 }
 
@@ -71,27 +89,43 @@ export function formatStatusReply(task, scheduler = null) {
 
 export function formatListReply(tasks) {
   if (!tasks.length) return '当前没有未结束的任务。';
-  return ['未结束任务：', ...tasks.map((task) => `- ${task.id}（${task.status}）${task.goal ? ` ${task.goal}` : ''}`)].join('\n');
+  return ['未结束任务：', ...tasks.map((task) => {
+    const owner = task.source?.userId ? ` · ${task.source.userId}` : '';
+    const goal = task.goal ? ` ${task.goal}` : '';
+    return `- ${task.id}（${task.status}${owner}）${goal}`;
+  })].join('\n');
 }
 
 export function attachWeComNotifier({
   manager,
   sendMessage,
+  sendMedia,
+  uploadMedia,
+  progress,
   limiter = createRateLimiter(),
   logger = console
 } = {}) {
   if (!manager?.subscribe) return () => {};
   return manager.subscribe(async (event) => {
-    if (!NOTIFY_EVENTS.has(event?.type)) return;
-    let task = event.task ?? null;
-    if (!task && event.taskId && manager.get) {
+    let task = event?.task ?? null;
+    if (!task && event?.taskId && manager.get) {
       try { task = await manager.get(event.taskId); } catch { /* notify must not throw */ }
     }
+    if (progress && event?.taskId && (task?.source?.type === 'wecom' || progress.has?.(event.taskId))) {
+      try {
+        const streamed = await progress.handle(event, { task });
+        if (streamed && NOTIFY_EVENTS.has(event.type)) return;
+      } catch (error) {
+        logger.error?.(`wecom-progress-handle-failed:${event.taskId}:${error instanceof Error ? error.message : error}`);
+      }
+    }
+    if (!NOTIFY_EVENTS.has(event?.type)) return;
     if (!task || task.source?.type !== 'wecom') return;
     const target = notifyTargetFromSource(task.source);
     if (!target) return;
     if (!limiter.allow(target.chatid)) {
       logger.warn?.(`wecom-notify-rate-limited:${target.chatid}`);
+      logger.event?.('notify.skip', { taskId: task.id, type: event.type, reason: 'rate-limited' });
       return;
     }
     const content = formatTaskNotify(task, event);
@@ -101,8 +135,15 @@ export function attachWeComNotifier({
         markdown: { content },
         chat_type: target.chatType
       });
+      logger.event?.('notify.out', { taskId: task.id, type: event.type, chatid: target.chatid });
+      await sendResultMedia(task, { sendMedia, uploadMedia, logger, chatid: target.chatid });
     } catch (error) {
       logger.error?.(`wecom-notify-failed:${task.id}:${error instanceof Error ? error.message : error}`);
+      logger.event?.('notify.failed', {
+        taskId: task.id,
+        type: event.type,
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 }
@@ -130,4 +171,27 @@ function extractPr(task) {
     ?? task.repository?.prUrl
     ?? (Array.isArray(git?.prs) ? git.prs[0]?.url : null)
     ?? null;
+}
+
+async function sendResultMedia(task, {
+  sendMedia,
+  uploadMedia,
+  logger = console,
+  chatid,
+  read = readFile
+} = {}) {
+  const items = task?.result?.media ?? task?.result?.wecomMedia ?? [];
+  if (!items.length || !sendMedia || !uploadMedia || !chatid) return;
+  for (const item of items.slice(0, 5)) {
+    try {
+      const buffer = item.buffer ?? await read(item.path);
+      const filename = item.filename ?? path.basename(item.path ?? 'file');
+      const type = item.type ?? inferMediaType(filename);
+      const uploaded = await uploadMedia(buffer, { type, filename });
+      await sendMedia(chatid, type, uploaded.media_id, item.videoOptions);
+      logger.event?.('notify.media', { taskId: task.id, type, filename });
+    } catch (error) {
+      logger.error?.(`wecom-send-media-failed:${task.id}:${error instanceof Error ? error.message : error}`);
+    }
+  }
 }

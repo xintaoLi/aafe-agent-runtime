@@ -18,45 +18,32 @@
  * IN THE SOFTWARE.
  */
 
-export function conversationIdFromFrame(frame = {}) {
-  const body = frame.body ?? {};
-  const chattype = body.chattype === 'group' ? 'group' : 'single';
-  if (chattype === 'group') return String(body.chatid ?? '').trim();
-  return String(body.from?.userid ?? body.chatid ?? '').trim();
-}
+const DEFAULT_TTL_MS = 30 * 60 * 1000;
 
-export function sourceFromFrame(frame = {}) {
-  const body = frame.body ?? {};
-  const chattype = body.chattype === 'group' ? 'group' : 'single';
-  const userId = String(body.from?.userid ?? '').trim();
-  return {
-    type: 'wecom',
-    conversationId: conversationIdFromFrame(frame),
-    chattype,
-    messageId: String(body.msgid ?? '').trim() || null,
-    userId,
-    chatbotId: String(body.aibotid ?? '').trim() || null
-  };
-}
+export function createPendingStore({ ttlMs = DEFAULT_TTL_MS, now = () => Date.now() } = {}) {
+  const items = new Map();
 
-export function sessionKeyFromSource(source = {}) {
-  const conversationId = String(source.conversationId ?? '').trim();
-  const userId = String(source.userId ?? '').trim();
-  if (source.chattype === 'group' && conversationId && userId) {
-    return `${conversationId}::${userId}`;
+  function purge() {
+    const ts = now();
+    for (const [key, item] of items) {
+      if (ts - item.createdAt > ttlMs) items.delete(key);
+    }
   }
-  return conversationId || userId;
-}
 
-export function notifyTargetFromSource(source = {}) {
-  const conversationId = String(source.conversationId ?? '').trim();
-  if (!conversationId) return null;
   return {
-    chatid: conversationId,
-    chatType: source.chattype === 'group' ? 2 : 1
+    get(conversationId) {
+      purge();
+      return items.get(String(conversationId ?? '')) ?? null;
+    },
+    set(conversationId, value) {
+      const key = String(conversationId ?? '');
+      if (!key) return null;
+      const item = { ...value, createdAt: now() };
+      items.set(key, item);
+      return item;
+    },
+    clear(conversationId) {
+      items.delete(String(conversationId ?? ''));
+    }
   };
-}
-
-export function isTerminalStatus(status) {
-  return ['completed', 'failed', 'cancelled'].includes(status);
 }

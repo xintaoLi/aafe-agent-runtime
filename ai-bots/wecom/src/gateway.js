@@ -19,7 +19,10 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import { freshCardTaskId } from './cards.js';
 import { WELCOME_TEXT } from './help.js';
+import { describeWeComError } from './logger.js';
+import { notifyTargetFromSource, sourceFromFrame } from './session.js';
 
 export function createWeComGateway({
   botId,
@@ -82,6 +85,21 @@ export function createWeComGateway({
     onEnterChat(handler) {
       client.on?.('event.enter_chat', handler);
     },
+    onCard(handler) {
+      const seen = new Set();
+      const wrap = (frame) => {
+        if (!isTemplateCardEvent(frame)) return;
+        const id = frame?.body?.msgid ?? frame?.headers?.req_id;
+        if (id) {
+          if (seen.has(id)) return;
+          seen.add(id);
+          if (seen.size > 200) seen.clear();
+        }
+        handler(frame);
+      };
+      client.on?.('event.template_card_event', wrap);
+      client.on?.('event', wrap);
+    },
     onKicked(handler) {
       onKicked.push(handler);
     },
@@ -96,8 +114,63 @@ export function createWeComGateway({
       await client.replyStream(frame, streamId, content, finish);
       return streamId;
     },
+    async replyCard(frame, card) {
+      if (!card) return null;
+      if (typeof client.replyTemplateCard === 'function') {
+        try {
+          return await client.replyTemplateCard(frame, card);
+        } catch (error) {
+          logger.warn?.(`wecom-reply-card-failed:${describeWeComError(error)}`);
+        }
+      }
+      const target = notifyTargetFromSource(sourceFromFrame(frame));
+      if (!target) throw new Error('wecom-card-chat-missing');
+      return client.sendMessage(target.chatid, {
+        msgtype: 'template_card',
+        // The reply attempt already consumed this task_id on the WeCom side.
+        template_card: { ...card, task_id: freshCardTaskId('run', card.task_id) },
+        chat_type: target.chatType
+      });
+    },
+    async updateCard(frame, card, userids) {
+      return client.updateTemplateCard(frame, card, userids);
+    },
+    async replyProgress(frame, streamId, content, finish = false) {
+      if (!finish && typeof client.replyStreamNonBlocking === 'function') {
+        return client.replyStreamNonBlocking(frame, streamId, content, finish);
+      }
+      return client.replyStream(frame, streamId, content, finish);
+    },
     async sendMessage(chatid, body) {
+      return client.sendMessage(chatid, body);
+    },
+    async downloadFile(url, aeskey) {
+      if (!url) throw new Error('wecom-media-url-missing');
+      if (typeof client.downloadFile !== 'function') throw new Error('wecom-download-unavailable');
+      return client.downloadFile(url, aeskey);
+    },
+    async uploadMedia(buffer, options) {
+      if (typeof client.uploadMedia !== 'function') throw new Error('wecom-upload-unavailable');
+      return client.uploadMedia(buffer, options);
+    },
+    async replyMedia(frame, mediaType, mediaId, videoOptions) {
+      if (typeof client.replyMedia !== 'function') throw new Error('wecom-reply-media-unavailable');
+      return client.replyMedia(frame, mediaType, mediaId, videoOptions);
+    },
+    async sendMedia(chatid, mediaType, mediaId, videoOptions) {
+      if (typeof client.sendMediaMessage === 'function') {
+        return client.sendMediaMessage(chatid, mediaType, mediaId, videoOptions);
+      }
+      if (typeof client.sendMessage !== 'function') throw new Error('wecom-send-media-unavailable');
+      const body = { msgtype: mediaType, [mediaType]: { media_id: mediaId } };
+      if (mediaType === 'video' && videoOptions) Object.assign(body.video, videoOptions);
       return client.sendMessage(chatid, body);
     }
   };
+}
+
+function isTemplateCardEvent(frame) {
+  const event = frame?.body?.event ?? {};
+  return event.eventtype === 'template_card_event'
+    || Boolean(event.event_key ?? event.eventKey ?? event.EventKey);
 }

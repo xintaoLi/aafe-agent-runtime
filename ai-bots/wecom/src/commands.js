@@ -63,11 +63,21 @@ export function parseWeComCommand(raw) {
   if (match) return { type: 'status', taskId: match[1] };
   if (/^状态$/.test(body)) return { type: 'implicit-status' };
 
-  match = body.match(new RegExp(`^取消\\s+(${TASK_ID})\\s*$`));
+  match = body.match(new RegExp(`^(?:取消|终止|停止)\\s+(${TASK_ID})\\s*$`));
   if (match) return { type: 'cancel', taskId: match[1] };
-  if (/^取消$/.test(body)) return { type: 'implicit-cancel' };
+  if (/^(?:取消|终止|停止)(?:一下|当前)?(?:任务)?[。.!！]?$/.test(body)) {
+    return { type: 'implicit-cancel' };
+  }
 
   if (/^列表$/.test(body)) return { type: 'list' };
+
+  if (/^(?:仓库|工作区|当前仓库)$/.test(body)) return { type: 'workspace-list' };
+  match = body.match(/^切换\s+(.+)$/s);
+  if (match) {
+    const target = match[1].trim();
+    return target ? { type: 'workspace-switch', target } : { type: 'workspace-pick' };
+  }
+  if (/^切换$/.test(body)) return { type: 'workspace-pick' };
 
   return { type: 'freeform', text: body };
 }

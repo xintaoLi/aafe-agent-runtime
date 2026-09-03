@@ -18,64 +18,343 @@
  * IN THE SOFTWARE.
  */
 
+import {
+  buildCancelledCard,
+  buildWorkspacePickerCard,
+  buildWorkspaceSwitchedCard,
+  parseCardEvent
+} from './cards.js';
 import { HELP_TEXT, MEDIA_UNSUPPORTED_TEXT } from './help.js';
 import { analyzeWeComIntent } from './intent.js';
-import { formatListReply, formatStatusReply } from './notify.js';
+import { describeWeComError, summarizeWeComFrame } from './logger.js';
+import {
+  formatAttachmentNote,
+  materializeWeComMedia,
+  mediaRequirement,
+  parseWeComMedia,
+  weComMediaDir
+} from './media.js';
+import { formatListReply, formatStatusReply, formatTaskFooter } from './notify.js';
 import { resolveWeComAction } from './resolver.js';
-import { sourceFromFrame } from './session.js';
+import { sessionKeyFromSource, sourceFromFrame } from './session.js';
+import { formatWorkspaceList } from './workspace.js';
+
+const CONTROL_TYPES = new Set([
+  'help',
+  'list',
+  'cancel',
+  'implicit-cancel',
+  'status',
+  'implicit-status',
+  'workspace-list',
+  'workspace-pick'
+]);
+const TERMINAL_TASK = new Set(['completed', 'failed', 'cancelled']);
 
 export async function handleWeComMessage(frame, {
   manager,
   replyAck,
+  replyCard,
+  progress,
+  pending,
+  workspaces,
   config,
   dedup,
+  attachments = [],
   logger = console
 } = {}) {
   const msgid = frame?.body?.msgid;
   if (msgid && dedup && !dedup.accept(msgid)) {
+    logger.event?.('message.skip', { msgid, reason: 'duplicate' });
     return { skipped: true, reason: 'duplicate' };
   }
 
-  const command = analyzeWeComIntent(frame?.body?.text?.content);
   const source = sourceFromFrame(frame);
-  const action = await resolveWeComAction(command, {
+  const sessionKey = sessionKeyFromSource(source);
+  logger.event?.('message.in', {
+    ...summarizeWeComFrame(frame),
+    conversationId: source.conversationId,
+    userId: source.userId,
+    sessionKey
+  });
+  const command = bindPendingCommand(
+    analyzeWeComIntent(frame?.body?.text?.content),
+    pending?.get(sessionKey)
+  );
+  const action = await resolveWeComAction(command, buildActionContext({
     source,
-    repository: config?.repository ?? null,
-    baseBranch: config?.baseBranch ?? 'main'
-  }, manager);
+    config,
+    workspaces,
+    attachments
+  }), manager);
 
-  const reply = await replyForAction(action, command);
-  await replyAck(frame, reply, { finish: true });
+  if (action.type === 'need-workspace') {
+    pending?.set(sessionKey, {
+      type: 'need-workspace',
+      requirement: action.requirement,
+      source,
+      attachments
+    });
+  } else if (action.type === 'created' || action.type === 'workspace-switched') {
+    pending?.clear(sessionKey);
+  }
+
+  const reply = replyForAction(action, command, { workspaces, config, attachments });
+  const keepOpen = action.type === 'created' || action.type === 'continue';
+  const card = cardForAction(action, { workspaces: workspaces?.list?.() ?? config?.workspaces ?? [] });
+  // The live view appends the footer itself, so the header it reuses stays clean.
+  const ack = withTaskFooter(reply, action.task);
+  const streamId = await replyAck(frame, ack, { finish: !keepOpen });
+  if (card) {
+    try {
+      await replyCard?.(frame, card);
+    } catch (error) {
+      logger.error?.(`wecom-reply-card-failed:${describeWeComError(error)}`);
+    }
+  }
+  if (keepOpen && progress && action.task?.id) {
+    progress.open({
+      taskId: action.task.id,
+      frame,
+      streamId,
+      header: reply
+    });
+  }
 
   if (action.type === 'created' && action.start) {
     void Promise.resolve(manager.start(action.task.id)).catch((error) => {
       logger.error?.(`wecom-task-start-failed:${action.task.id}:${error instanceof Error ? error.message : error}`);
+      logger.event?.('task.start.failed', {
+        taskId: action.task.id,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      void progress?.fail?.(action.task.id, error);
     });
   }
   if (action.type === 'continue') {
-    void Promise.resolve(manager.continue(action.task.id, action.message)).catch((error) => {
-      logger.error?.(`wecom-task-continue-failed:${action.task.id}:${error instanceof Error ? error.message : error}`);
+    const followUp = [action.message, formatAttachmentNote(attachments)].filter(Boolean).join('\n\n');
+    void Promise.resolve(manager.continue(action.task.id, followUp)).catch((error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      if (/task-already-active/.test(message)) {
+        logger.event?.('task.followup.queued', { taskId: action.task.id });
+        return;
+      }
+      logger.error?.(`wecom-task-continue-failed:${action.task.id}:${message}`);
+      logger.event?.('task.continue.failed', {
+        taskId: action.task.id,
+        error: message
+      });
+      void progress?.fail?.(action.task.id, error);
     });
   }
 
-  return { skipped: false, command, action, reply };
+  logger.event?.('message.out', {
+    msgid,
+    conversationId: source.conversationId,
+    command: command?.type ?? null,
+    action: action?.type ?? null,
+    taskId: action?.task?.id ?? null,
+    streamId
+  });
+  return { skipped: false, command, action, reply: ack };
 }
 
-export async function handleWeComMedia(frame, { replyAck, dedup } = {}) {
+export async function handleWeComCard(frame, {
+  manager,
+  replyAck,
+  replyCard,
+  updateCard,
+  progress,
+  pending,
+  workspaces,
+  config,
+  logger = console
+} = {}) {
+  const parsed = parseCardEvent(frame);
+  const source = sourceFromFrame(frame);
+  const sessionKey = sessionKeyFromSource(source);
+  const waiting = pending?.get(sessionKey);
+  const attachments = waiting?.attachments ?? [];
+  logger.event?.('card.in', {
+    ...summarizeWeComFrame(frame),
+    conversationId: source.conversationId,
+    action: parsed.action,
+    value: parsed.value ?? null
+  });
+
+  if (parsed.action === 'cancel' && parsed.value) {
+    if (updateCard) {
+      try {
+        await updateCard(frame, buildCancelledCard(parsed.value, parsed.cardTaskId));
+      } catch (error) {
+        logger.error?.(`wecom-card-update-failed:${parsed.value}:${describeWeComError(error)}`);
+      }
+    }
+    void progress?.cancel?.(parsed.value);
+    try {
+      await manager.cancel(parsed.value);
+    } catch (error) {
+      logger.error?.(`wecom-card-cancel-failed:${parsed.value}:${describeWeComError(error)}`);
+    }
+    if (!updateCard) {
+      await replyAck(frame, `已取消任务 **${parsed.value}**`, { finish: true });
+    }
+    return { skipped: false, command: { type: 'cancel', taskId: parsed.value }, action: { type: 'cancelled' } };
+  }
+
+  if (parsed.action === 'ws') {
+    const command = waiting?.type === 'need-workspace'
+      ? { type: 'workspace-choice', target: parsed.value, requirement: waiting.requirement }
+      : { type: 'workspace-switch', target: parsed.value };
+    const action = await resolveWeComAction(command, buildActionContext({
+      source,
+      config,
+      workspaces,
+      attachments
+    }), manager);
+    if (action.type === 'created') pending?.clear(sessionKey);
+    const reply = replyForAction(action, command, { workspaces, config, attachments });
+    if (updateCard) {
+      const workspace = action.workspace ?? action.task?.workspace ?? null;
+      await updateCard(frame, buildWorkspaceSwitchedCard(workspace, parsed.cardTaskId));
+    }
+    const keepOpen = action.type === 'created';
+    const ack = withTaskFooter(reply, action.task);
+    const streamId = await replyAck(frame, ack, { finish: !keepOpen });
+    if (keepOpen && progress && action.task?.id) {
+      progress.open({ taskId: action.task.id, frame, streamId, header: reply });
+      void Promise.resolve(manager.start(action.task.id)).catch((error) => {
+        logger.error?.(`wecom-task-start-failed:${action.task.id}:${error instanceof Error ? error.message : error}`);
+        logger.event?.('task.start.failed', {
+          taskId: action.task.id,
+          error: error instanceof Error ? error.message : String(error)
+        });
+        void progress?.fail?.(action.task.id, error);
+      });
+    }
+    logger.event?.('card.out', {
+      conversationId: source.conversationId,
+      command: command?.type ?? null,
+      action: action?.type ?? null,
+      taskId: action?.task?.id ?? null
+    });
+    return { skipped: false, command, action, reply: ack };
+  }
+
+  await replyAck(frame, HELP_TEXT, { finish: true });
+  return { skipped: false, command: { type: 'help' } };
+}
+
+export async function handleWeComMedia(frame, deps = {}) {
+  const {
+    replyAck,
+    dedup,
+    downloadFile,
+    config,
+    logger = console
+  } = deps;
   const msgid = frame?.body?.msgid;
   if (msgid && dedup && !dedup.accept(msgid)) {
+    logger.event?.('message.skip', { msgid, reason: 'duplicate' });
     return { skipped: true, reason: 'duplicate' };
   }
-  await replyAck(frame, MEDIA_UNSUPPORTED_TEXT, { finish: true });
-  return { skipped: false, command: { type: 'media' } };
+
+  const parsed = parseWeComMedia(frame);
+  logger.event?.('message.media', {
+    ...summarizeWeComFrame(frame),
+    mediaType: parsed.type,
+    assets: parsed.assets.length
+  });
+  if (parsed.type === 'unknown') {
+    await replyAck?.(frame, MEDIA_UNSUPPORTED_TEXT, { finish: true });
+    return { skipped: false, command: { type: 'media' }, parsed };
+  }
+
+  let attachments = [];
+  try {
+    attachments = await materializeWeComMedia(parsed, {
+      downloadFile,
+      dir: weComMediaDir(config, frame)
+    });
+  } catch (error) {
+    logger.error?.(`wecom-media-download-failed:${error instanceof Error ? error.message : error}`);
+    await replyAck?.(frame, '媒体下载失败，请稍后重试或改发文本。', { finish: true });
+    return { skipped: false, command: { type: 'media' }, parsed, error };
+  }
+
+  const text = mediaRequirement(parsed, attachments);
+  const synthetic = {
+    ...frame,
+    body: {
+      ...frame.body,
+      msgtype: 'text',
+      text: { content: text }
+    }
+  };
+  return handleWeComMessage(synthetic, {
+    ...deps,
+    attachments,
+    dedup: null
+  });
 }
 
-function replyForAction(action, command) {
+function bindPendingCommand(command, waiting) {
+  if (waiting?.type !== 'need-workspace') return command;
+  if (CONTROL_TYPES.has(command.type)) return command;
+  const text = command.target
+    ?? command.text
+    ?? command.requirement
+    ?? '';
+  return {
+    type: 'workspace-choice',
+    text,
+    target: text,
+    requirement: waiting.requirement
+  };
+}
+
+function buildActionContext({ source, config, workspaces, attachments = [] }) {
+  const sessionKey = sessionKeyFromSource(source);
+  return {
+    source,
+    repository: config?.repository ?? null,
+    baseBranch: config?.baseBranch ?? 'main',
+    botRoot: config?.root ?? process.cwd(),
+    workspaces: workspaces?.list?.() ?? config?.workspaces ?? [],
+    workspace: workspaces?.getActive?.(sessionKey) ?? null,
+    currentWorkspace: config?.currentWorkspace ?? null,
+    requireWorkspace: workspaces ? !workspaces.hasConfigured() : !config?.repository,
+    switchWorkspace: (target) => workspaces?.switchTo?.(target, { conversationId: sessionKey }),
+    rememberWorkspace: (_conversationId, workspace) => workspaces?.remember?.(sessionKey, workspace),
+    attachments
+  };
+}
+
+function withTaskFooter(text, task) {
+  const footer = formatTaskFooter(task?.id, { running: task ? !TERMINAL_TASK.has(task.status) : false });
+  return footer ? `${text}\n\n${footer}` : text;
+}
+
+function cardForAction(action, extras = {}) {
+  if (action.type === 'need-workspace' || action.type === 'workspace-pick') {
+    return buildWorkspacePickerCard(extras.workspaces ?? []);
+  }
+  return null;
+}
+
+function replyForAction(action, command, extras = {}) {
   if (action.type === 'created') {
-    return `已创建任务 **${action.task.id}**\n需求：${action.task.requirement}\nAgent 已在后台启动，完成后会再推送一条通知。`;
+    const where = describeTaskWorkspace(action.workspace ?? action.task?.workspace);
+    return withAttachments(
+      `**${action.task.id}**\n${action.task.requirement}\n${where}`,
+      extras.attachments
+    );
   }
   if (action.type === 'continue') {
-    return `已继续任务 **${action.task.id}**\n补充：${action.message}`;
+    return withAttachments(
+      `**${action.task.id}** 继续\n${action.message}`,
+      extras.attachments
+    );
   }
   if (action.type === 'status') {
     return formatStatusReply(action.task, action.scheduler);
@@ -86,8 +365,28 @@ function replyForAction(action, command) {
   if (action.type === 'list') {
     return formatListReply(action.tasks);
   }
+  if (action.type === 'need-workspace' || action.type === 'workspace-list' || action.type === 'workspace-pick') {
+    return action.message;
+  }
+  if (action.type === 'workspace-switched') {
+    return `已切换到 **${action.workspace.name}**\n${action.workspace.repository ?? action.workspace.cwd}`;
+  }
   if (action.type === 'error' || action.type === 'ack') {
     return action.message;
   }
+  if (command?.type === 'workspace-list') {
+    return formatWorkspaceList(extras.workspaces?.list?.() ?? [], extras.workspaces?.getActive?.()?.id);
+  }
   return HELP_TEXT;
+}
+
+function describeTaskWorkspace(workspace) {
+  if (!workspace) return '未指定（将询问或使用运行目录）';
+  if (workspace.repository) return `${workspace.repository}（Cloud / AAFE git）`;
+  return `${workspace.cwd}（本地 / AAFE git）`;
+}
+
+function withAttachments(text, attachments) {
+  if (!attachments?.length) return text;
+  return `${text}\n${formatAttachmentNote(attachments)}`;
 }
