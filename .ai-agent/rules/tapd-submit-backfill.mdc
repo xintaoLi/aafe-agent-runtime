@@ -45,12 +45,12 @@ alwaysApply: true
 ## 动态门禁顺序（有关联 TAPD 时）
 
 ```text
-自测完成或用户触发提交意图
+自测 / E2E 完成（或用户跳过）或用户触发提交意图
   → 动态判定是否 Commit/PR/MR（ask 根据回复 / autonomous 根据上下文）
-      ├─ 是 / proceed → 按 `.aafe.config.json` → `submit.cli` 执行 Commit/PR → 回填门禁
+      ├─ 是 / proceed → 按 `.aafe.config.json` → `submit.cli` 执行 Commit；Commit 成功后必须继续尝试 PR/MR → 回填门禁
       └─ 否 / skip → 仍进入回填门禁（仅有关联 TAPD 时）
   → 动态判定是否回填（ask 根据回复 / autonomous 根据上下文）
-      ├─ 同意 / proceed → comments_create（+ 可选 PR 字段 / 状态流转）
+      ├─ 同意 / proceed → comments_create（+ 可选 PR 字段 + 状态逐步流转）
       └─ 拒绝 / skip → 结束
 ```
 
@@ -76,7 +76,7 @@ alwaysApply: true
 
 创建 / 拉取 / PR / MR 前 Read `.ai-agent/skills/repo-submit.md`。
 
-已配置 `repo.githubAccessToken` 或 `GITHUB_TOKEN` → **必须优先用该 Token 调 GitHub API**（`aafe repo pr`），**不依赖项目内是否安装 `gh`**。未配置 Token 或 Token API 失败时，先提示降级原因，再允许 `gh pr create`。
+先判定 `GITHUB_TOKEN` / `GH_TOKEN`，再判定 `repo.githubAccessToken`（支持 `${ENV}` 展开）。解析到 Token 时，GitHub 操作必须临时注入 `GITHUB_TOKEN` 环境变量，并优先用 Token API（`aafe repo pr`），**不依赖项目内是否安装 `gh`**。未配置 Token 或 Token API 失败时，先提示降级原因，再允许 `gh pr create`；降级时仍沿用临时注入的 Token 环境。
 
 先读 `repo.reviewers` / `repo.labels`（字符串数组，缺省 `[]`）。非空则创建或补写时必须带上；空数组省略。不要猜测人员或标签。
 
@@ -95,9 +95,9 @@ alwaysApply: true
 
 ### 回填询问（仅有关联 TAPD 时）
 
-有关联 TAPD 且自测/提交链到达时，无论是否 Commit / 是否产出 PR：
+有关联 TAPD 且自测/提交链到达时，无论是否 Commit / 是否产出 PR。若 Phase D 已产出 `pr_url`，必须把 `pr_url` 带入回填素材和 PR 字段处理：
 
-- **ask**：必须问「是否回填 TAPD 单子？」同意词：`是` / `Yes` / `Y` / `需要` / `同意` / `回填` / `好的` / `可以` / `ok`。否定则跳过。
+- **ask**：必须问「是否回填 TAPD 单子？将追加评论、写入 PR 字段（如配置）并按状态映射逐步流转到 doing」同意词：`是` / `Yes` / `Y` / `需要` / `同意` / `回填` / `好的` / `可以` / `ok`。否定则跳过。
 - **autonomous**：按 `workflow-mode.md` 判定；`proceed` 则回填，`skip` 则说明原因。有关联但解析不到 entry_id → Hard Ask。
 
 ## 回填方式（强制）

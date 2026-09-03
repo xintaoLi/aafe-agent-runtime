@@ -29,7 +29,7 @@ Companion: \`${prefix}/skills/tapd-submit-backfill.md\`
 Hard:
 
 - 先读 \`.aafe.config.json\` → \`repo\`（代码仓库配置）。
-- **已配置 \`repo.githubAccessToken\` 或 \`GITHUB_TOKEN\` / \`GH_TOKEN\`** → 用该 Token 执行 GitHub 相关操作，**不依赖项目内是否安装 \`gh\`**。
+- **先判定 \`GITHUB_TOKEN\` / \`GH_TOKEN\`，再判定 \`repo.githubAccessToken\`**。解析到 Token 后，临时注入 \`GITHUB_TOKEN\` 执行 GitHub 相关操作，**不依赖项目内是否安装 \`gh\`**。
 - **禁止**把 Token 写进命令行参数、\`git remote set-url\` 或对话明文。
 - \`repo.reviewers\` / \`repo.labels\` 非空时，创建或补写 PR/MR **必须**带上。
 
@@ -44,7 +44,7 @@ Hard:
 .aafe.config.json → submit.cli   # git | gtm
 \`\`\`
 
-展开 \`\${ENV}\`。环境变量已有值时优先于配置文件。
+展开 \`\${ENV}\`。环境变量已有值时优先于配置文件；配置文件 Token 只允许进入本次子进程环境，禁止落盘到 remote URL。
 
 ---
 
@@ -53,14 +53,14 @@ Hard:
 1. \`GITHUB_TOKEN\` / \`GH_TOKEN\`
 2. 否则 \`repo.githubAccessToken\`（可写 \`\${GITHUB_TOKEN}\`）
 
-**有 Token（mode=token）→ 走 R2 + R3，禁止因为没有 \`gh\` 而失败。**  
+**有 Token（mode=token）→ 先临时注入 \`GITHUB_TOKEN\` / \`GH_TOKEN\`，再走 R2 + R3，禁止因为没有 \`gh\` 而失败。**  
 **无 Token** → 明确提示“未解析到 \`repo.githubAccessToken\` / \`GITHUB_TOKEN\`”，然后降级 \`gh pr create\`。若 \`gh\` 未登录，如实报告 gh 登录错误（不阻断 TAPD Phase E）。
 
 ---
 
 ## Phase R2 — fetch / pull / push（GitHub + Token）
 
-把 Token 注入环境变量（已有 shell 值不覆盖），再：
+把 Token 临时注入环境变量（已有 shell 值不覆盖，配置值不写入命令行和 remote），再：
 
 \`\`\`bash
 git -c http.extraheader="AUTHORIZATION: bearer $GITHUB_TOKEN" fetch <remote>
@@ -90,7 +90,7 @@ aafe repo pr --title="<title>" --body="<body>" --base=<base> --head=<head>
 也可用 curl（\`Authorization: Bearer $GITHUB_TOKEN\`），效果相同。  
 \`--dry-run\` 只打印计划，不发请求。
 
-若 Token API 创建失败，允许降级到 \`gh pr create\`，但必须先输出降级提示和失败原因。正常情况下 \`.aafe.config.json\` Token 优先于 \`gh\`。
+若 Token API 创建失败，允许降级到 \`gh pr create\`，但必须先输出降级提示和失败原因；降级子进程也要沿用临时注入的 Token 环境。正常情况下 \`.aafe.config.json\` Token 优先于 \`gh\`。
 
 ---
 

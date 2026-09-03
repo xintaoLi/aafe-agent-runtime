@@ -22,7 +22,7 @@ alwaysApply: true
 
 | 来源 | 触发点 |
 | --- | --- |
-| TAPD 单 | 已通过 MCP / 用户拉取到**具体** story/bug 描述、验收标准、附件要点 |
+| TAPD 单 | 已通过 MCP / 用户拉取到**具体** story/bug 描述、验收标准、附件要点、Figma 设计稿链接（若有） |
 | 非 TAPD | 用户给出**具体**需求描述（非空泛话题） |
 
 若仅有「帮我看看」「优化一下」等模糊意图 → 先在本阶段澄清，**不得**直接写代码。
@@ -49,9 +49,20 @@ alwaysApply: true
 3. 当前在 `master` / `main`，或分支主题与新任务无关 → 新建或切换任务分支
 4. 无法确定 → `ask` 模式询问；`autonomous` 仅在高置信时自主判定，否则 Hard Ask
 
+## TAPD Figma 设计稿 Gate
+
+当 TAPD 标题、描述、验收标准、附件、评论或关联字段中出现 Figma 链接 / 节点信息时，必须执行本 Gate：
+
+1. 提取并记录 `figma_url`、`figma_node_id`、`figma_dpr`（若 TAPD 未说明倍率，默认按 Figma MCP 的 `dpr=1`；发现 750/2x 等高倍率线索时显式设置 `dpr=2`）。
+2. 调用 Figma MCP：优先 `get_design_context` 获取结构化数据，并搭配 `get_screenshot` 获取视觉截图；大设计稿、响应过大或需要先看层级时，改用 `get_full_bundle(includeFiles=["design_context_tree","design_context","screenshot_compressed"])`。
+3. 输出 `figma_design_context`、`figma_screenshot_evidence`、`figma_ui_constraints`：布局尺寸、间距、颜色、字体、圆角、阴影、资源、状态与交互差异。
+4. UI 还原必须以 Figma 结构化数据 + 截图为准；若本地组件库能力、响应式规则或现有样式与设计稿冲突，记录 `design_deviation` 并在实施前按工作流模式确认或说明取舍。
+5. 无 Figma 链接时记录 `figma: not_provided`，不得编造设计稿。
+
 ## 阶段 A — 需求分析与澄清
 
 1. 解析需求：目标、范围、验收标准、约束、依赖、风险
+   - 若有 Figma：把设计稿节点、视觉约束、交互状态、切图资源纳入需求约束；UI 还原不得仅凭文字描述或截图猜测
 2. 列出**不明确项**（歧义、缺失边界、多解路径、未定义异常/兼容策略）
 3. 对每项不明确点按工作流模式闭合：
    - **ask**：必须交互获取明确答复（方案选择 / 追问 / 要详细答复）
@@ -77,8 +88,9 @@ alwaysApply: true
 在历史检索之后、实施之前：
 
 1. **代码范围**：受影响文件/模块/函数清单（基于 locator + diff 意图，非全库）
-2. **根因分析**：现象 → 直接原因 → 根因假设 → 验证点
-3. **实施策略草案**：改哪些点、不改哪些点
+2. **Figma 约束映射（若有设计稿）**：将 `figma_ui_constraints` 映射到本地页面/组件/样式/资源，标记 must-change、read-only、design-deviation
+3. **根因分析**：现象 → 直接原因 → 根因假设 → 验证点
+4. **实施策略草案**：改哪些点、不改哪些点；UI 还原类任务必须说明如何按 Figma 落地
 
 ## 阶段 D — 实施规模 Gate（Plan 模式）
 
@@ -128,6 +140,8 @@ alwaysApply: true
 ## 禁止
 
 - 未澄清需求就写代码
+- UI 还原类 TAPD 已给 Figma 却未拉取结构化设计和截图
+- TAPD 已提供 Figma 时，仅按本地 diff 生成 UI 影响范围或测试用例
 - 跳过历史检索直接大改
 - 询问模式下大规模变更不询问就 silent 全量实施；自主模式须产出判定记录
 - 将「需求分析阶段」与「任务完成影响分析」混淆（后者在**实施完成后**）

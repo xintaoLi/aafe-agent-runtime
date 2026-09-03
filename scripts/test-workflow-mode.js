@@ -43,6 +43,8 @@ const pointer = workflowModePointerRuleMdc();
 assert.match(pointer, /workflow-mode\.md/);
 assert.match(pointer, /mode\.workflow/);
 assert.match(pointer, /autonomous/);
+assert.match(pointer, /主动评估改进空间/);
+assert.match(pointer, /PR 成功后带 `pr_url`/);
 
 const layered = workflowModePointerRuleMdc({
   agentPrefix: 'bklog/web/.ai-agent',
@@ -56,6 +58,8 @@ const project = workflowModeProjectRuleMdc({ agentPrefix: '.ai-agent' });
 assert.match(project, /询问模式/);
 assert.match(project, /自主判断模式/);
 assert.match(project, /Hard Ask/);
+assert.match(project, /明显改进空间/);
+assert.match(project, /状态逐步流转/);
 
 const skill = workflowModeSkillContent('.ai-agent');
 assert.match(skill, /Decision table/);
@@ -63,6 +67,8 @@ assert.match(skill, /Hard Ask/);
 assert.match(skill, /判定记录/);
 assert.match(skill, /aafe update --workflow-mode/);
 assert.match(skill, /tapd-submit-backfill\.md/);
+assert.match(skill, /Post-implementation improvement/);
+assert.match(skill, /临时注入 GitHub Token/);
 assert.doesNotMatch(skill, /force push 后自动/);
 
 const section = workflowModeRuleSection({ agentPrefix: '.ai-agent' });

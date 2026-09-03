@@ -19,10 +19,10 @@ Read `.aafe.config.json` → `mode.workflow` (default `ask`). See `.ai-agent/ski
 
 | Source | Done when |
 | --- | --- |
-| TAPD | `stories_get` / `bugs_get` 或用户粘贴：标题、描述、验收、优先级、关联信息 |
+| TAPD | `stories_get` / `bugs_get` 或用户粘贴：标题、描述、验收、优先级、关联信息、Figma 设计稿链接（若有） |
 | Non-TAPD | 用户消息含：要做什么、期望结果、范围边界（或经 Phase 1 补全） |
 
-Record: `requirement_source`, `requirement_summary`, `tapd_entry_id`（若有）
+Record: `requirement_source`, `requirement_summary`, `tapd_entry_id`（若有）, `figma_url`（若有）
 
 ### Phase 0.5 — TAPD branch association（git 和 gtm 均适用）
 
@@ -39,6 +39,22 @@ Record: `requirement_source`, `requirement_summary`, `tapd_entry_id`（若有）
 
 ---
 
+### Phase 0.6 — TAPD Figma design intake
+
+若 TAPD 单据标题、描述、验收标准、附件、评论或关联字段中包含 Figma URL / node-id：
+
+1. 提取 `figma_url`、`node-id`、设计倍率线索（如 375/750、1x/2x）；无法确认倍率时默认 `dpr=1`，不要猜测业务设计稿比例。
+2. 使用 Figma MCP 获取设计依据：
+   - 常规节点：`get_design_context({ url, dpr, includeComponents: true, includeResources: true })` + `get_screenshot({ url })`
+   - 大节点 / 超出上下文 / 需要层级俯瞰：`get_full_bundle({ url, dpr, includeFiles: ["design_context_tree", "design_context", "screenshot_compressed"], includeResources: true })`
+3. 记录 `figma_design_context`、`figma_screenshot_evidence`、`figma_resource_map`、`figma_ui_constraints`。
+4. UI 还原类需求必须基于 Figma 结构数据和截图执行；不得只按 TAPD 文字、口头描述或本地现状自由发挥。
+5. 若 Figma 与现有组件规范冲突，生成 `design_deviation`：差异、原因、影响、建议取舍；ask 模式先确认会影响视觉/交互的取舍。
+
+无 Figma 链接：记录 `figma: not_provided`，继续 Phase 1。
+
+---
+
 ## Phase 1 — Analyze & clarify (mandatory)
 
 ### 1.1 Parse
@@ -50,6 +66,7 @@ Extract:
 - **Acceptance** — how to verify done
 - **Constraints** — perf, compat, auth, deadline
 - **Dependencies** — API, other modules, flags
+- **Design** — Figma 节点、视觉规范、资源、交互状态（若 TAPD 已提供）
 
 ### 1.2 Ambiguity register
 
@@ -116,6 +133,7 @@ After history review:
 
 - List files / symbols likely touched (use `project-architecture-locator.md` when needed)
 - Mark read-only vs must-change
+- If Figma exists: map each `figma_ui_constraints` item to local page/component/style/resource files; label `must_match_figma`, `acceptable_delta`, or `design_deviation`
 - Artifact: `code_scope`
 
 ### 3.2 Root cause (bugs / defects)
@@ -204,6 +222,11 @@ If user declines Plan: document risk; may proceed in Agent with explicit `plan_s
 ## 代码范围
 ...
 
+## Figma 设计依据（若有）
+- URL / node-id / dpr
+- 关键视觉约束
+- 本地代码映射与 design_deviation
+
 ## 根因分析
 ...
 
@@ -219,6 +242,8 @@ direct fix | plan mode | blocked (waiting user)
 ## Anti-patterns
 
 - Coding with open AMB items
+- UI restoration from TAPD with Figma link but without fetching Figma structured data and screenshot
+- Generating UI scope/tests only from local diff when TAPD already provides Figma design
 - Skipping history on recurring bug classes
 - >5 files change without plan ask (ask mode) or without a recorded autonomous decision
 - Confusing this skill with post-task impact analysis (`architecture-impact-test-forecast.md`)

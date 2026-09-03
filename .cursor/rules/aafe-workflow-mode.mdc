@@ -11,6 +11,6 @@ Source of truth:
 2. Rule: `.ai-agent/rules/workflow-mode.mdc`
 3. Skill: `.ai-agent/skills/workflow-mode.md`
 
-**先读配置再走门禁。** `ask` 保持向用户确认；`autonomous` 由 LLM 按 Skill 判定表决定是否进入下一步（Commit / PR / 回填 / Plan / 影响分析），仅 Hard Ask 才停下来问。
+**先读配置再走门禁。** `ask` 保持向用户确认，但功能开发完成后仍要主动评估改进空间，再进入影响分析 / E2E 门禁；Commit 成功后继续尝试 PR，PR 成功后带 `pr_url` 进入 TAPD 回填并按状态映射逐步流转到 doing。`autonomous` 由 LLM 按 Skill 判定表决定是否进入下一步（Commit / PR / 回填 / Plan / 影响分析），仅 Hard Ask 才停下来问。
 
 `aafe init` / `aafe update --workflow-mode=ask|autonomous` 可写入。Do not duplicate project knowledge here.

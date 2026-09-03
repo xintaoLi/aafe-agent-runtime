@@ -75,6 +75,14 @@ alwaysApply: true
 3. 自测结束后：若任务**有关联 TAPD 单**且 \`tapd.enabled\`（见 \`${CONFIG_TAPD}\`）→ \`${SKILL_TAPD}\`；无 TAPD 关联则可选 Commit/PR，跳过 TAPD 回填
 4. 可选：项目内架构文档（\`docs/\`、设计说明、Mermaid 图等），**不依赖**固定目录名
 
+### TAPD Figma 约束
+
+TAPD 单含 Figma URL / node-id 时：
+
+- UI 还原必须基于 Figma 结构化数据和截图，不得只按本地现状或文字描述实现。
+- 影响代码分析先由本地 diff 生成影响单位和初版测试路径，再用 Figma 约束回归验证，收敛影响范围、视觉断言和测试用例。
+- 测试路径需标注关联 node-id、关键视觉约束和可接受偏差。
+
 ## 硬约束
 
 - 自测按**本次 diff**最小收敛，禁止无关全量回归。
@@ -130,9 +138,9 @@ alwaysApply: true
 ## 动态门禁顺序（有关联 TAPD 时）
 
 \`\`\`text
-自测完成或用户触发提交意图
+自测 / E2E 完成（或用户跳过）或用户触发提交意图
   → 动态判定是否 Commit/PR/MR（ask 根据回复 / autonomous 根据上下文）
-      ├─ 是 / proceed → 按 submit.cli（git|gtm）执行 Commit/PR → 回填门禁
+      ├─ 是 / proceed → 按 submit.cli（git|gtm）执行 Commit；Commit 成功后必须继续尝试 PR/MR → 回填门禁
       └─ 否 / skip → 仍进入回填门禁（仅有关联 TAPD 时）
   → 动态判定是否回填（ask 根据回复 / autonomous 根据上下文）
       ├─ 同意 / proceed → comments_create + 可选 PR 字段 + 状态逐步流转
@@ -143,7 +151,7 @@ alwaysApply: true
 
 \`.aafe.config.json\` → \`submit.cli\`：\`git\`（默认，Token API / \`aafe repo pr\`，不依赖 gh）或 \`gtm\`（\`gtm commit\`/\`gtm pr\`）。  
 提交 / 拉取 / PR / MR 读 \`.aafe.config.json\` → \`repo.githubAccessToken\` / \`repo.gongfengAccessToken\`（或环境变量 \`GITHUB_TOKEN\` / \`GIT_PRIVATE_TOKEN\`）。  
-已配置 GitHub Token 则用 Token 执行，不要因为没有 \`gh\` 失败。创建 PR / MR 时带上 \`repo.reviewers\` / \`repo.labels\`。
+GitHub 先判定 \`GITHUB_TOKEN\` / \`GH_TOKEN\`，再判定 \`repo.githubAccessToken\`；解析到 Token 则临时注入环境并优先用 Token API，不要因为没有 \`gh\` 失败。创建 PR / MR 时带上 \`repo.reviewers\` / \`repo.labels\`。
 \`aafe update --submit-cli=git|gtm\` 可更新。
 
 ### 回填
@@ -170,12 +178,16 @@ Rule: \`${RULE_IMPACT}\` · Next: \`${SKILL_SELF_TEST}\`
 
 1. 项目架构文档（\`docs/\`、README 架构节、Mermaid 等），按任务需要读取
 2. **仅映射本次任务改动文件** → 模块、路由、组件、Store、API、Worker、存储、测试点
+3. TAPD 含 Figma 时，读取 Figma 结构化设计 / 截图作为 UI 影响与测试断言依据
 
 ## Step 1 — Impact scope report
 
 - **直接影响** / **间接影响** / **潜在影响**
 - **架构依据**：文档路径、源码证据
 - **影响分类**：\`logic\` | \`store\` | \`api\` | \`ui\` | \`mixed\`
+- **Figma 设计依据（若有）**：node-id、视觉约束、资源、design_deviation
+
+若有 Figma：先由本地 diff 生成影响单位和 \`ui_test_paths\`，再用 Figma 回归验证收敛影响范围与断言。
 
 Artifacts: \`impact_scope\`, \`architecture_evidence\`, \`impact_class\`
 
@@ -185,11 +197,12 @@ Artifacts: \`impact_scope\`, \`architecture_evidence\`, \`impact_class\`
 | --- | --- | --- | --- | --- | --- | --- |
 
 - 默认 **unit**；可见渲染/交互才标 **ui**
+- TAPD 含 Figma 的 UI 用例必须引用设计稿关键约束
 - 无真实 API / 生产数据
 
 ## Step 2.5 — UI path draft（mode=ui）
 
-预读变更模板，输出 \`ui_test_paths\` 草案；URL 仍须用户提供。格式见 \`${SKILL_SELF_TEST}\` Step 2.5。
+预读变更模板，输出 \`ui_test_paths\` 草案；URL 仍须用户提供。TAPD 含 Figma 时补充 node-id、视觉断言和可接受偏差。格式见 \`${SKILL_SELF_TEST}\` Step 2.5。
 
 ## Step 3 — Hand off
 
@@ -230,7 +243,7 @@ Chain: \`${SKILL_IMPACT}\` → this → \`${SKILL_TAPD}\`（仅 TAPD 关联时�
 
 ## Step 0.5 — E2E
 
-UI/路由：\`aafe test --diff\`；要执行则询问本次 URL 并 \`--run --base-url=<url>\`。报告只读 \`.aafe/e2e/reports/\`。禁止任务收尾默认 \`--coverage\`。
+UI/路由：\`aafe test --diff\`；要执行则询问本次 URL 并 \`--run --base-url=<url>\`。TAPD 含 Figma 时，用 Figma 约束校准路径和视觉断言。报告只读 \`.aafe/e2e/reports/\`。禁止任务收尾默认 \`--coverage\`。
 
 ## Step 1 — Test directory
 
@@ -248,7 +261,7 @@ Runner: vitest / jest / \`npm test\` / \`node:test\`。
 
 ## Step 2.5 — UI paths（执行浏览器前）
 
-含 \`mode=ui\` 时：拿到 URL 后、点击前，一次性产出完整 \`ui_test_paths\`；执行只消费路径。
+含 \`mode=ui\` 时：拿到 URL 后、点击前，一次性产出完整 \`ui_test_paths\`；执行只消费路径。若有 Figma，每条路径需标注关联 node-id、关键视觉约束和可接受偏差。
 
 Actions: navigate | click | switch | fill | hover | assert | screenshot
 
@@ -273,7 +286,7 @@ Actions: navigate | click | switch | fill | hover | assert | screenshot
 
 ## Anti-patterns
 
-- 未授权开浏览器、猜 URL、执行中全库分析、改 TAPD description 塞自测表
+- 未授权开浏览器、猜 URL、执行中全库分析、TAPD 已提供 Figma 但测试路径 / 断言只来自本地 diff、改 TAPD description 塞自测表
 `;
 }
 
@@ -300,7 +313,7 @@ Submit-backfill status: backlog → todo → doing（已是 doing 则跳过；�
 
 \`\`\`text
 [A] 自测产物齐全
-[B] 问 Commit → [C]/[D] 按 submit.cli（git|gtm）→ [E] 问回填
+[B] 问 Commit → [C] Commit → [D] Try PR/MR（Token 优先，成功记录 pr_url）→ [E] 问回填
 [E] 同意 → [F] 评论 + PR 字段 + 状态流转
 \`\`\`
 
@@ -308,7 +321,7 @@ Submit-backfill status: backlog → todo → doing（已是 doing 则跳过；�
 
 ## Phase C / D — Submit CLI
 
-先读 \`submit.cli\`：\`git\`（默认）用 Git + Token API（\`aafe repo pr\`，不依赖 gh）；\`gtm\` 用 \`gtm commit\`/\`gtm pr\`（异常不强制）。  
+先读 \`submit.cli\`：\`git\`（默认）用 Git + Token API（\`aafe repo pr\`，不依赖 gh）；\`gtm\` 用 \`gtm commit\`/\`gtm pr\`（异常不强制）。GitHub 先判定环境变量和 \`repo.githubAccessToken\`，解析到 Token 时临时注入 \`GITHUB_TOKEN\`。  
 创建 PR / MR 时读 \`repo.reviewers\` / \`repo.labels\` 并写入（GitHub Token API；工蜂：创建后写 MR labels / reviewer_ids）。  
 有关联 TAPD 时使用已关联 \`entry_type\` / \`entry_id\`；禁止无关联时编造 ID。
 

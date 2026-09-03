@@ -10,6 +10,6 @@ Source of truth:
 1. Rule: `.ai-agent/rules/requirement-intake-analysis.mdc`
 2. Skill: `.ai-agent/skills/requirement-intake-analysis.md`
 
-Task Spine **[1]** 是动态决策：若是 TAPD 单，先拉详情并按规则判定是否新建/切换关联分支；非 TAPD 新任务也需判定是否新建/切换分支；无法确定则 ask 询问，autonomous 仅高置信自主判定。闭合后再进入执行。
+Task Spine **[1]** 是动态决策：若是 TAPD 单，先拉详情并按规则判定是否新建/切换关联分支；若单据含 Figma 设计稿，必须提取设计链接并用 Figma MCP 获取结构化设计与截图作为 UI 还原依据；非 TAPD 新任务也需判定是否新建/切换分支；无法确定则 ask 询问，autonomous 仅高置信自主判定。闭合后再进入执行。
 
 Do not duplicate project knowledge here.

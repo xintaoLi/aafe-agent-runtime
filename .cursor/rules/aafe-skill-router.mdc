@@ -9,7 +9,7 @@ For every task in this repository:
 1. Read `.ai-agent/skill-index.md` first.
 2. If present, read `.ai-agent/project.md` for project-specific quick map and domain routing hints.
 3. Read `.aafe.config.json` → `mode.workflow` (default `ask`). Load `.ai-agent/skills/workflow-mode.md` before the first interactive gate.
-3b. Follow `.ai-agent/skill-index.md` **Task Spine** as a dynamic decision chain: [1] 需求/分支判定 → [2] 执行判定 → [3] 影响/自测判定 → [4] 提交/PR/MR/回填判定。
+3b. Follow `.ai-agent/skill-index.md` **Task Spine** as a dynamic decision chain: [1] 需求/分支判定（TAPD 含 Figma 时先取结构化设计/截图）→ [2] 执行判定 → [3] 影响/自测判定（TAPD+Figma 用 diff+设计稿收敛）→ [4] 提交/PR/MR/回填判定。
 4. Only when the task matches a domain, read the matching `.ai-agent/project-skills/<domain>/SKILL.md`.
 5. For non-trivial frontend work, then follow `.ai-agent/runtime/*` and `.ai-agent/pipelines/*`.
 6. Editor directories are pointers only. Do not copy, rewrite, or maintain project knowledge in `.cursor`.

@@ -235,6 +235,10 @@ async function testLayeredInit() {
     assert.match(rule, /bklog\/web\/\.ai-agent\/skill-index\.md/);
     assert.match(rule, /globs: bklog\/web\/\*\*/);
 
+    const architectureRule = await readFile(path.join(root, '.cursor/rules/web/aafe-architecture-runtime.mdc'), 'utf8');
+    assert.match(architectureRule, /Figma MCP/);
+    assert.match(architectureRule, /local diff to generate impact units\/test paths/);
+
     const manifest = JSON.parse(await readFile(path.join(root, '.cursor/context/web/module.json'), 'utf8'));
     assert.deepEqual(manifest.retainInInstallDir, ['.ai-agent', '.docs', '.aafe.config.json']);
     assert.equal(manifest.agentPrefix, 'bklog/web/.ai-agent');

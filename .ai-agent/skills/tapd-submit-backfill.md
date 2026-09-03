@@ -29,12 +29,12 @@ Companions:
 ## Submit / Backfill decision chain（有关联 TAPD 时）
 
 ```text
-[A] 动态确认自测产物是否需要补齐（代码变更任务才需）
+[A] 动态确认自测产物是否需要补齐（代码变更任务才需；UI 影响含 E2E）
 [B] Commit 门禁（ask 根据用户回复；autonomous 根据上下文判定）
-    ├─ 是 / proceed → [C]/[D] 按 submit.cli（git|gtm）执行 Commit/PR → [E] 回填门禁
+    ├─ 是 / proceed → [C] Commit → [D] Try PR/MR → [E] 回填门禁
     └─ 否 / skip → [E] 仍进入回填门禁
 [E] 回填门禁（ask 根据用户回复；autonomous 根据上下文判定）
-    同意 / proceed → [F] 评论回填 + 可选 PR 字段 + 状态流转
+    同意 / proceed → [F] 评论回填 + 可选 PR 字段 + 状态逐步流转
     拒绝 → 结束
 ```
 
@@ -302,11 +302,11 @@ gtm commit
 
 ### D1 when `submit.cli=git`（默认）
 
-Commit 成功后尝试 PR：
+Commit 成功后必须尝试 PR；该步骤是 Phase C 的连续动作，不因 `agent.autoCreatePR=false` 跳过（该配置仅约束 Agent 平台自动建 PR）：
 
 1. Read `.ai-agent/skills/repo-submit.md`
-2. 确认分支相对 base 的提交与远程同步；优先走 `.aafe.config.json` → `repo.githubAccessToken`
-3. 已配置 `repo.githubAccessToken` / `GITHUB_TOKEN`：用 Token `git -c http.extraheader="AUTHORIZATION: bearer $GITHUB_TOKEN" push -u origin HEAD`（不要把 Token 写进 remote）
+2. 确认分支相对 base 的提交与远程同步；先判定 `.aafe.config.json` → `repo.githubAccessToken` 以及 `GITHUB_TOKEN` / `GH_TOKEN`
+3. 已配置 `repo.githubAccessToken` / `GITHUB_TOKEN` / `GH_TOKEN`：临时注入 `GITHUB_TOKEN` 环境变量，用 Token `git -c http.extraheader="AUTHORIZATION: bearer $GITHUB_TOKEN" push -u origin HEAD`（不要把 Token 写进 remote）
 4. 创建 PR：优先 `aafe repo pr --title= --body= --base= --head=`（Token API，附带 `repo.reviewers` / `repo.labels`）。无 Token 或 Token API 失败时，先提示降级原因，再允许 `gh pr create`
 5. 记录 `pr_url`；失败则报告原因，**不阻断** Phase E
 
@@ -325,11 +325,11 @@ gtm pr
 
 无 TAPD 关联 → **跳过本 Phase**，不向用户问回填。
 
-有关联时，**无论** B 选否、C/D 成功或失败：
+有关联时，**无论** B 选否、C/D 成功或失败。若 D 成功，`pr_url` 是 Phase F 的输入：
 
 **ask mode** — 必须问：
 
-> 是否回填 TAPD 单子？（将追加评论：处理结果 / 影响范围 / 自测结果；若有 PR 且存在 PR 字段则写入链接）
+> 是否回填 TAPD 单子？（将追加评论：处理结果 / 影响范围 / 自测结果；若有 PR 且存在 PR 字段则写入链接；并按配置状态映射逐步流转到 doing）
 
 同意词：`是` / `Yes` / `Y` / `需要` / `同意` / `回填` / `好的` / `可以` / `ok` 及明显同义肯定。  
 否定：跳过并说明可稍后手动触发本 Skill。

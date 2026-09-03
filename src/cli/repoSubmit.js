@@ -30,7 +30,8 @@ import {
   REPO_GITHUB_TOKEN_ENV,
   resolveRepoAccessToken,
   resolveRepoConfig,
-  resolveRepoPrMeta
+  resolveRepoPrMeta,
+  withRepoTokenEnv
 } from './repoConfig.js';
 
 export function githubApiBase(host = 'github.com') {
@@ -190,7 +191,8 @@ export async function runRepoPrCommand(root, argv = [], {
   const host = opts.host || remote?.host || 'github.com';
   const head = opts.head || await resolveHead(root);
   const meta = resolveRepoPrMeta(projectConfig);
-  const fallbackContext = { opts: { ...opts, head }, meta, env };
+  const githubEnv = withRepoTokenEnv(projectConfig, env);
+  const fallbackContext = { opts: { ...opts, head }, meta, env: githubEnv };
   if (auth.mode !== 'token') {
     const warning = '未解析到 repo.githubAccessToken / GITHUB_TOKEN，降级使用 gh pr create。若 gh 未登录会失败。';
     if (opts.dryRun) {

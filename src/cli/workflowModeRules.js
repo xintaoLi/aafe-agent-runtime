@@ -40,7 +40,7 @@ Source of truth:
 2. Rule: \`${agentPrefix}/rules/workflow-mode.mdc\`
 3. Skill: \`${agentPrefix}/skills/workflow-mode.md\`
 
-**先读配置再走门禁。** \`ask\` 保持向用户确认；\`autonomous\` 由 LLM 按 Skill 判定表决定是否进入下一步（Commit / PR / 回填 / Plan / 影响分析），仅 Hard Ask 才停下来问。
+**先读配置再走门禁。** \`ask\` 保持向用户确认，但功能开发完成后仍要主动评估改进空间，再进入影响分析 / E2E 门禁；Commit 成功后继续尝试 PR，PR 成功后带 \`pr_url\` 进入 TAPD 回填并按状态映射逐步流转到 doing。\`autonomous\` 由 LLM 按 Skill 判定表决定是否进入下一步（Commit / PR / 回填 / Plan / 影响分析），仅 Hard Ask 才停下来问。
 
 \`aafe init\` / \`aafe update --workflow-mode=ask|autonomous\` 可写入。Do not duplicate project knowledge here.
 `;
@@ -76,6 +76,7 @@ function workflowModeProjectRuleBody(agentPrefix = '.ai-agent') {
 ## 询问模式
 
 保持现有协议：需求澄清、Plan 切换、影响分析、Commit、PR、TAPD 回填等均通过询问反馈执行。
+功能开发完成后先主动评估是否还有明显改进空间；无改进项或改进完成后，再询问影响分析 / 最小收敛自测 / E2E。Commit 成功后继续尝试 PR；PR 成功后带 \`pr_url\` 进入 TAPD 回填，回填同意后评论、可选 PR 字段和状态逐步流转一起处理。
 
 ## 自主判断模式
 
@@ -174,11 +175,12 @@ Keep current AAFE protocol. Do **not** auto-advance gates.
 | Requirement AMB | 必须交互，未关闭禁止写代码 |
 | History full-reuse | 先确认再跳过新设计 |
 | Plan sizing | 大规模必须询问是否 SwitchMode |
-| Impact / self-test | 代码变更后询问是否分析影响 |
+| Post-implementation improvement | 功能开发完成后先主动评估是否还有明显改进空间；无改进项或改进完成后继续后续门禁 |
+| Impact / self-test / E2E | 代码变更后询问是否分析影响并执行最小收敛自测；UI 影响按规则进入 \`aafe test --diff\` / E2E URL 门禁 |
 | E2E URL | 缺地址则询问并等待 |
 | Commit | 询问是否 Commit |
-| PR | 随 Commit 同意后尝试；失败不阻断 |
-| TAPD backfill | 仅有关联 TAPD 时询问 |
+| PR | Commit 成功后必须继续尝试；优先临时注入 GitHub Token 并走 Token API；失败不阻断回填判断 |
+| TAPD backfill | 仅有关联 TAPD 时询问；PR 成功后带入 \`pr_url\`，同意后评论回填并按状态映射逐步流转到 doing |
 
 User yes/no words stay as defined in the downstream skills.
 

@@ -25,7 +25,7 @@ Source of truth:
    - \`${agentPrefix}/skills/minimal-convergent-self-test.md\`
    - 自测后衔接：\`${agentPrefix}/skills/tapd-submit-backfill.md\`
 
-Task Spine **[3]** 是动态决策：有代码变更才评估影响分析 + 自测；ask 模式按用户回复推进或跳过，autonomous 按上下文判定 \`proceed / skip / ask\`；完成或跳过后再动态判定 **[4]** 提交/PR/MR/回填。
+Task Spine **[3]** 是动态决策：有代码变更先主动评估功能是否还有明显改进空间；无改进项或改进完成后，再评估影响分析 + 自测。若需求来自 TAPD 且含 Figma 设计稿，影响分析和测试用例必须结合本地 diff + Figma 结构化设计 / 截图收敛。ask 模式按用户回复推进或跳过，autonomous 按上下文判定 \`proceed / skip / ask\`；完成或跳过后再动态判定 **[4]** 提交/PR/MR/回填。
 UI/路由自测走 \`aafe test --diff\`；浏览器 MCP 仅当 E2E blocked。MCP 兜底须先预生成 \`ui_test_paths\`。无代码变更或无 UI 影响时不询问浏览器。Do not duplicate project knowledge here.
 `;
 }
@@ -33,7 +33,7 @@ UI/路由自测走 \`aafe test --diff\`；浏览器 MCP 仅当 E2E blocked。MCP
 export function taskCompletionImpactProjectRuleMdc(ctx = {}) {
   const agentPrefix = ctx.agentPrefix ?? '.ai-agent';
   return `---
-description: 代码变更任务完成后条件询问影响分析与自测；UI 须先预生成测试路径；自测后按 TAPD 关联进入 Commit/PR/回填。
+description: 代码变更任务完成后先评估改进空间，再条件询问影响分析与自测；自测后按 TAPD 关联进入 Commit/PR/回填。
 alwaysApply: true
 ---
 
@@ -67,16 +67,24 @@ ${workflowModeGatePreamble(agentPrefix)}
 
 跳过时：正常给出最终回复即可；若用户随后发起提交意图，按 \`tapd-submit-backfill\` 评估是否有关联 TAPD 单（见该 Rule）。
 
+## 改进空间评估（仅「涉及代码变更」时）
+
+在询问影响范围 / 自测之前，先主动复盘本次实现是否还有明显改进空间：
+
+- 若发现会影响正确性、可维护性、边界处理或用户体验的低风险改进项，先简要说明并完成必要改进；改进后重新回到本 Gate。
+- 若没有明确改进项，记录「暂无明显改进空间」，再进入影响分析 / 自测询问。
+- 不为凑流程做无关重构；发现会扩大范围或需要产品取舍的改进项，按 Plan / Hard Ask 处理。
+
 ## 条件询问（仅「涉及代码变更」时）
 
 **仅当任务评估为涉及代码变更**：
 
-- **ask**：在最终回复前问「是否需要分析当前任务的影响范围并提供测试参考？」是 → 进入 Skills；否 → 不再追问。
+- **ask**：完成改进空间评估后，在最终回复前问「是否需要分析当前任务的影响范围并提供测试参考？需要的话我会继续执行最小收敛自测 / E2E（UI 影响时）。」是 → 进入 Skills；否 → 不再追问。
 - **autonomous**：不询问，直接进入 Skills（产出判定记录）。纯文档任务仍跳过。
 
 ## 确认后加载顺序
 
-0. 先跑 \`aafe impact --diff --format=md\`（\`aafe\` 不在 \`PATH\` 时用 \`node_modules/.bin/aafe\`），把机器算出的影响面作为起点，自己不要从零推断；命令不可用时才退回纯人工分析并说明。
+0. 先跑 \`aafe impact --diff --format=md\`（\`aafe\` 不在 \`PATH\` 时用 \`node_modules/.bin/aafe\`），把机器算出的影响面作为起点，自己不要从零推断；命令不可用时才退回纯人工分析并说明。若本任务已记录 \`figma_design_context\`，必须把 Figma 约束与本地 diff 共同纳入影响判断。
 1. \`${agentPrefix}/skills/architecture-impact-test-forecast.md\`
 2. \`${agentPrefix}/skills/minimal-convergent-self-test.md\`（最后测试环节：UI/E2E 走 \`aafe test --diff\`，禁止任务收尾默认 \`--coverage\`）
 3. 自测结束后：若任务过程中**有关联 TAPD 单**且 \`tapd.enabled\`，进入 \`${agentPrefix}/skills/tapd-submit-backfill.md\`（按 \`submit.cli\` 执行 Commit/PR → 回填）；无 TAPD 关联则仅可选提交，跳过 TAPD 回填询问
@@ -91,13 +99,15 @@ ${workflowModeGatePreamble(agentPrefix)}
 - **禁止猜 URL**；\`http://localhost:8080\` 占位视为未配置。
 - **UI 自测子询问**（浏览器 MCP）**仅当** E2E blocked（无 Playwright）且用户仍要看 UI。缺测试地址时先问 URL，不要改走 MCP。
 - MCP 兜底执行前必须产出完整 \`ui_test_paths\`；执行阶段只跟路径走。
+- TAPD 单含 Figma 时：影响代码分析先由本地 diff 生成影响单位和初版测试路径，再用 Figma 结构化数据 / 截图验证 UI 还原目标，收敛影响范围、测试断言和可接受差异；禁止只按本地 diff 生成 UI 用例。
 
 ## 自测完成后的衔接（按 TAPD 关联分流）
 
 自测（或用户明确跳过）结束后：
 
-1. **ask** 询问是否 Commit；**autonomous** 按 \`workflow-mode.md\` 判定。同意 / proceed 则按 \`.aafe.config.json\` → \`submit.cli\`（\`git\` 默认 / \`gtm\`）执行 Commit/PR（见 \`tapd-submit-backfill\`）
-2. **仅当任务过程中有关联 TAPD 单**且 \`tapd.enabled\` → **ask** 询问是否回填 / **autonomous** 自行判定；**无 TAPD 关联则跳过回填**
+1. **ask** 询问是否 Commit；**autonomous** 按 \`workflow-mode.md\` 判定。同意 / proceed 则按 \`.aafe.config.json\` → \`submit.cli\`（\`git\` 默认 / \`gtm\`）执行 Commit，并在 Commit 成功后继续尝试 PR（见 \`tapd-submit-backfill\` Phase D）。
+2. PR 成功则记录 \`pr_url\`，继续进入 TAPD 回填门禁；PR 失败只报告原因，不阻断后续 TAPD 回填判断。
+3. **仅当任务过程中有关联 TAPD 单**且 \`tapd.enabled\` → **ask** 询问是否回填 / **autonomous** 自行判定；同意后追加评论、写入 PR 字段（如配置）并按状态映射逐步流转到 doing；**无 TAPD 关联则跳过回填**
 
 ## 与 TAPD 回填的关系
 
@@ -109,15 +119,15 @@ export function taskCompletionImpactRuleSection(ctx = {}) {
   return [
     '## AAFE 任务完成影响分析与测试（条件触发）',
     '',
-    '任务结束前先做**任务评估**：仅当本次涉及**可执行代码变更**（非纯文档/需求分析）时，才进入影响分析。`ask` 先询问；`autonomous` 直接进入（见 workflow-mode）。',
+    '任务结束前先做**任务评估**：仅当本次涉及**可执行代码变更**（非纯文档/需求分析）时，先主动复盘功能是否还有明显改进空间；无改进项或改进完成后，再进入影响分析。`ask` 先询问；`autonomous` 直接进入（见 workflow-mode）。',
     '',
     '进入 Skills 后：',
     `1. Read \`${agentPrefix}/skills/architecture-impact-test-forecast.md\` 与 \`${agentPrefix}/skills/minimal-convergent-self-test.md\`；`,
-    '2. 输出影响范围报告（直接/间接/潜在影响 + 影响分类 + 架构依据）；',
-    '3. 按 diff 最小收敛设计测试：逻辑优先 Mock Props/I/O，落盘到 `test/`；',
-    '4. UI/页面/路由变更：跑 `aafe test --diff`；要执行时询问本次测试 URL，等待输入后 `--run --base-url=<url>`（不要写死 e2e.baseUrl）；',
+    '2. 输出影响范围报告（直接/间接/潜在影响 + 影响分类 + 架构依据）；TAPD 含 Figma 时，结合 Figma 结构化设计 / 截图校准 UI 影响。',
+    '3. 按 diff 最小收敛设计测试：逻辑优先 Mock Props/I/O，落盘到 `test/`；TAPD 含 Figma 时，先由本地 diff 生成影响单位和测试路径，再用 Figma 回归验证收敛用例和影响范围。',
+    '4. UI/页面/路由变更：跑 `aafe test --diff`；要执行时询问本次测试 URL，等待输入后 `--run --base-url=<url>`（不要写死 e2e.baseUrl）；Figma UI 还原场景的断言必须包含关键视觉约束。',
     '5. 浏览器 MCP 仅当 E2E blocked 且用户仍要看 UI；MCP 兜底须先预生成 `ui_test_paths`；禁止猜环境地址；禁止虚假声称通过；',
-    `6. 自测结束后：仅当任务过程中**有关联 TAPD 单**且 tapd.enabled → 按 submit.cli 执行 Commit/PR → ask 询问 / autonomous 判定 TAPD 回填；无 TAPD 关联则跳过回填。`,
+    `6. 自测结束后：按 submit.cli 执行 Commit；Commit 成功后继续尝试 PR；PR 成功后记录 pr_url，并在有关联 TAPD 单且 tapd.enabled 时进入回填门禁（评论 + 可选 PR 字段 + 状态逐步流转）；无 TAPD 关联则跳过回填。`,
     ''
   ].join('\n');
 }
@@ -142,6 +152,7 @@ Next skill for execution: \`minimal-convergent-self-test.md\`.
 2. Read \`${prefix}/memory/knowledge-center-architecture.md\` when present.
 3. Read relevant \`.docs\` architecture documents and Mermaid diagrams.
 4. Map **current task changed files only** to modules, routes, components, stores, APIs, workers, storage, flows and tests.
+5. If requirement intake produced \`figma_design_context\` / \`figma_ui_constraints\`, read them before narrowing UI impact; use Figma MCP evidence instead of guessing visual details.
 
 ## Step 1 — Impact scope report
 
@@ -151,9 +162,15 @@ Produce:
 - **间接影响**：callers, dependents, shared layers, downstream data flow
 - **潜在影响**：auth guards, cache, Worker, IndexedDB, compatibility, degradation paths
 - **架构关系依据**：.docs paths, diagram refs, source evidence
+- **Figma 设计依据（若有）**：design context, screenshot, resourceMap, local component/style mapping, design deviations
 - **影响分类标签**（供自测收敛）：\`logic\` | \`store\` | \`api\` | \`ui\` | \`mixed\`
 
-Required artifacts: \`impact_scope\`, \`architecture_evidence\`, \`impact_class\`
+When Figma exists, derive impact in two passes:
+
+1. Local diff pass: generate affected units and initial \`ui_test_paths\` from changed code.
+2. Figma regression pass: compare those units/paths against \`figma_ui_constraints\`, tighten assertions, drop unrelated cases, and mark \`figma_mismatch\` / \`acceptable_delta\`.
+
+Required artifacts: \`impact_scope\`, \`architecture_evidence\`, \`impact_class\`; plus \`figma_impact_evidence\` when Figma exists.
 
 ## Step 2 — Minimal test case design（设计 only）
 
@@ -175,6 +192,7 @@ Classification hints:
 - 组件内数据处理 / 百分比 / 缓存 / 排序 → **unit**，Mock Props 或纯函数 I/O
 - Store/API 契约 → **unit**，Mock state/response
 - 布局、样式、图表真实渲染、交互可见性 → 标记 **ui**；交给自测 Skill 走 \`aafe test --diff\`。浏览器 MCP 仅作 E2E blocked 兜底，本 Skill 不自动开浏览器
+- TAPD 含 Figma 的 UI 还原 → 测试用例必须引用 Figma 关键约束（尺寸/间距/颜色/字体/资源/交互状态）作为断言依据；先由本地 diff 生成路径，再用 Figma 收敛
 
 Required artifact: \`test_cases\`
 
@@ -184,6 +202,7 @@ Required artifact: \`test_cases\`
 
 - 标注将用到的 \`click\` / \`switch\` / \`fill\` / \`hover\` / \`assert\` 目标（文案、role、稳定 class / data-*）
 - 写清从页面壳层到复现点的步骤序列
+- 若有 Figma：每条 UI 路径补充 \`figma_assertions\`（视觉约束、资源、状态、可接受偏差），并标注关联的 Figma node-id
 - 完整格式与硬约束见 \`minimal-convergent-self-test.md\` Step 2.5
 
 目的：把代码分析前移到设计阶段，自测执行只消费路径。URL 仍须用户提供后才能 \`navigate\`。
@@ -222,6 +241,8 @@ Collect \`test_results\`（及 UI 时的 \`ui_test_paths\`）from that skill.
 logic | store | api | ui | mixed
 ### 架构依据
 ...
+### Figma 设计依据（若有）
+...
 
 ## 测试用例（设计）
 | ID | 优先级 | Mode | 场景 | Mock 要点 | 断言 | 覆盖边界 |
@@ -243,6 +264,7 @@ logic | store | api | ui | mixed
 ## Rules
 
 - Scope to **this task's diff** only.
+- If TAPD provides Figma, scope still starts from local diff, then Figma evidence narrows UI impact and test assertions.
 - Distinguish **tested / predicted / not covered**.
 - UI browser work is opt-in via \`minimal-convergent-self-test.md\`；本 Skill 不自动开浏览器。
 - UI 路径分析在设计/自测准备阶段完成；禁止把大量源码分析留到点击执行中。
@@ -263,7 +285,7 @@ E2E / 浏览器缺本次 URL 时，即使 \`mode.workflow=autonomous\` 也必须
 
 ## Goal
 
-按**本次变更影响范围**做最小收敛自测：能 Mock 则 Mock；UI/路由变更在最后测试环节走 \`aafe test --diff\`（Playwright YAML）。浏览器 MCP 仅作 E2E blocked 时的兜底。
+按**本次变更影响范围**做最小收敛自测：能 Mock 则 Mock；UI/路由变更在最后测试环节走 \`aafe test --diff\`（Playwright YAML）。若 TAPD 提供 Figma，测试路径和断言必须用本地 diff + Figma 结构化设计 / 截图共同收敛。浏览器 MCP 仅作 E2E blocked 时的兜底。
 
 ## Step 0 — Decide test mode from impact
 
@@ -280,12 +302,13 @@ Rules:
 - Example: 组件内数据处理逻辑变更 → 只测函数/方法 I/O，**不要**默认开浏览器。
 - Do not invent E2E for logic-only diffs.
 - 任务收尾**禁止**默认跑 \`aafe test --coverage\`（全量铺底是显式命令）。
+- TAPD 含 Figma 时：先用本地 diff 生成影响单位和初版 UI 路径，再用 Figma 约束回归验证，收敛到能证明 UI 还原质量的最小用例；不要生成与设计稿无关的 UI 全量回归。
 
 ## Step 0.5 — E2E via \`aafe test --diff\`
 
 当 Step 0 判定为 e2e / ui 时：
 
-1. 执行 \`aafe test --diff\`（\`aafe\` 不在 PATH 时用 \`node_modules/.bin/aafe\`）。
+1. 执行 \`aafe test --diff\`（\`aafe\` 不在 PATH 时用 \`node_modules/.bin/aafe\`）。若有 \`figma_ui_constraints\`，将其作为用例收敛依据：视觉断言必须覆盖关键 node-id、尺寸/间距/颜色/字体/资源/状态。
 2. 要 \`--run\` 但没有本次 URL：在对话里询问完整被测地址并**等待用户输入**。测试地址每次可能不同，不要写入 \`.aafe.config.json\` \`e2e.baseUrl\`，不要用环境变量凑合，**禁止**填 \`http://localhost:8080\`。
 3. 用户给出地址后：若含 \`#\` 或查询参数，先确认 A（目标页）/ B（仅 origin）/ C（提取参数拼到变更路由），再 \`aafe test --diff --run --base-url=<用户输入的 URL> --url-role=target|origin|template\`。
 4. CLI 若返回 \`needInput: "baseUrl"\` 或 \`needInput: "urlRole"\`：必须停下来问用户，禁止自行编造 URL 或改去装 uitest。
@@ -346,6 +369,7 @@ Converge:
 - 变更文件及其直接模板 / render（\`.vue\` / \`.tsx\` / \`.jsx\`）
 - 为定位交互控件所必需的子组件入口（点到能写出稳定 selector / 文案 / role 为止）
 - 影响报告中的路由 / Tab / 面板入口
+- TAPD Figma 设计稿中的相关 node-id、资源和视觉约束（仅限本次 diff 能触达的节点）
 
 禁止：无关目录全库检索、自测中途「再分析一下整个模块」。
 
@@ -387,6 +411,7 @@ Converge:
 - 每步含：\`action | target | expected\`（fill 含 value）
 - 目标优先稳定信号：可见文案、\`role\`、\`data-test*\`、业务 class；避免脆弱的 nth-child 链（除非无更好信号）
 - 与 TC ID 关联；P0 路径优先生成
+- 若有 Figma：路径必须包含 \`figma node-id\`、关键视觉断言和可接受偏差；没有对应 Figma 节点的 UI 断言需说明原因
 
 若影响分析阶段已产出同等质量路径，本步校验补全即可，勿重复劳动。
 
@@ -439,6 +464,7 @@ Hard rules:
 - Auto-launching browser MCP without consent
 - Guessing/testing multiple URLs
 - UI 执行中途大范围代码分析（应用 Step 2.5 预生成路径）
+- TAPD 已提供 Figma 但测试路径 / 断言只来自本地 diff
 - Full-suite regression for a one-file logic fix
 - Editing TAPD story description to dump test matrices（评论回填即可）
 - 自测结束后直接 commit/回填而不询问

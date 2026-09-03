@@ -134,6 +134,9 @@ assert.equal(injected.GIT_PRIVATE_TOKEN, 'gf_repo');
 assert.equal(withRepoTokenEnv({
   repo: { githubAccessToken: 'ghp_repo' }
 }, { GITHUB_TOKEN: 'from-shell' }).GITHUB_TOKEN, 'from-shell');
+assert.equal(withRepoTokenEnv({
+  repo: { githubAccessToken: 'ghp_repo' }
+}, {}).GH_TOKEN, 'ghp_repo');
 
 assert.deepEqual(parseGitRemote('git@github.com:acme/app.git'), {
   host: 'github.com',
@@ -211,5 +214,7 @@ assert.match(repoSkill, /aafe repo pr/);
 assert.match(repoSkill, /githubAccessToken/);
 assert.match(repoSkill, /AUTHORIZATION: bearer/);
 assert.match(repoSkill, /降级/);
+assert.match(repoSkill, /临时注入/);
+assert.match(repoSkill, /GITHUB_TOKEN.*GH_TOKEN/);
 
 console.log('submit config tests passed');

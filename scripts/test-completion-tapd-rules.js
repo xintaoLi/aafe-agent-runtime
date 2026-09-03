@@ -37,11 +37,18 @@ assert.match(projectImpact, /mode\.workflow|自主判断/);
 assert.match(projectImpact, /submit\.cli/);
 assert.match(projectImpact, /仅当任务过程中有关联 TAPD 单/);
 assert.match(projectImpact, /任务评估/);
+assert.match(projectImpact, /改进空间评估/);
+assert.match(projectImpact, /Commit 成功后继续尝试 PR/);
+assert.match(projectImpact, /状态映射逐步流转到 doing/);
+assert.match(projectImpact, /Figma 约束与本地 diff/);
+assert.match(projectImpact, /禁止只按本地 diff 生成 UI 用例/);
 
 const impactSection = taskCompletionImpactRuleSection({ agentPrefix: '.ai-agent' });
 assert.match(impactSection, /aafe test --diff/);
 assert.match(impactSection, /ui_test_paths/);
 assert.match(impactSection, /submit\.cli/);
+assert.match(impactSection, /改进空间/);
+assert.match(impactSection, /PR 成功后记录 pr_url/);
 
 const forecast = architectureImpactTestForecastSkillContent('.ai-agent');
 assert.match(forecast, /impact_class/);
@@ -49,6 +56,10 @@ assert.match(forecast, /ui_test_paths/);
 assert.match(forecast, /Step 2\.5/);
 assert.match(forecast, /tapd-submit-backfill\.md/);
 assert.match(forecast, /本 Skill 不自动开浏览器/);
+assert.match(forecast, /figma_design_context/);
+assert.match(forecast, /Local diff pass/);
+assert.match(forecast, /Figma regression pass/);
+assert.match(forecast, /figma_assertions/);
 
 const selfTest = minimalConvergentSelfTestSkillContent('.ai-agent');
 assert.match(selfTest, /aafe test --diff/);
@@ -60,6 +71,8 @@ assert.match(selfTest, /user_declined_browser_mcp/);
 assert.match(selfTest, /请提供要测试的完整页面 URL/);
 assert.match(selfTest, /等待用户输入/);
 assert.match(selfTest, /needInput: "baseUrl"/);
+assert.match(selfTest, /Figma 结构化设计/);
+assert.match(selfTest, /关键 node-id/);
 assert.doesNotMatch(selfTest, /无 Playwright \/ 无 baseUrl/);
 
 const layeredTapd = tapdSubmitRuleMdc({
@@ -79,11 +92,15 @@ assert.match(projectTapd, /--bug=/);
 assert.match(projectTapd, /comments_create/);
 assert.match(projectTapd, /ui_test_paths/);
 assert.match(projectTapd, /PR 链接字段/);
+assert.match(projectTapd, /Commit 成功后必须继续尝试 PR/);
+assert.match(projectTapd, /状态映射逐步流转到 doing/);
+assert.match(projectTapd, /临时注入/);
 
 const tapdSection = tapdSubmitRuleSection();
 assert.match(tapdSection, /comments_create/);
 assert.match(tapdSection, /submit\.cli/);
 assert.match(tapdSection, /Commit\/PR Gate|询问 Commit/);
+assert.match(tapdSection, /Commit 成功后必须继续尝试 PR/);
 
 const tapdSkill = tapdSubmitBackfillSkillContent('.ai-agent');
 assert.match(tapdSkill, /Commit\/PR Gate/);
@@ -110,6 +127,9 @@ assert.match(tapdSkill, /末 9 位/);
 assert.match(tapdSkill, /Phase D — Try PR/);
 assert.match(tapdSkill, /Phase E — TAPD backfill gate/);
 assert.match(tapdSkill, /有关联 TAPD 时/);
+assert.match(tapdSkill, /Commit 成功后必须尝试 PR/);
+assert.match(tapdSkill, /临时注入 `GITHUB_TOKEN`/);
+assert.match(tapdSkill, /按配置状态映射逐步流转到 doing/);
 
 import {
   requirementIntakeAnalysisSkillContent,
@@ -123,6 +143,9 @@ assert.match(projectReq, /阶段 A — 需求分析与澄清/);
 assert.match(projectReq, /历史积累检索/);
 assert.match(projectReq, /SwitchMode/);
 assert.match(projectReq, /> 5 个函数/);
+assert.match(projectReq, /TAPD Figma 设计稿 Gate/);
+assert.match(projectReq, /get_design_context/);
+assert.match(projectReq, /get_full_bundle/);
 
 const reqSkill = requirementIntakeAnalysisSkillContent('.ai-agent');
 assert.match(reqSkill, /Workflow mode/);
@@ -130,13 +153,18 @@ assert.match(reqSkill, /Phase 1 — Analyze & clarify/);
 assert.match(reqSkill, /Phase 2 — Historical/);
 assert.match(reqSkill, /target_mode_id: \"plan\"/);
 assert.match(reqSkill, /memory-recaller/);
+assert.match(reqSkill, /Phase 0\.6 — TAPD Figma design intake/);
+assert.match(reqSkill, /figma_ui_constraints/);
+assert.match(reqSkill, /design_deviation/);
 
 const reqSection = requirementIntakeRuleSection({ agentPrefix: '.ai-agent' });
 assert.match(reqSection, /Requirement Intake/);
+assert.match(reqSection, /Figma MCP/);
 
 const flatReq = requirementIntakeRuleMdc();
 assert.match(flatReq, /requirement-intake-analysis/);
 assert.match(flatReq, /Task Spine/);
+assert.match(flatReq, /Figma 设计稿/);
 
 const tapdPointer = tapdSubmitRuleMdc();
 assert.match(tapdPointer, /Task Spine/);
@@ -150,6 +178,8 @@ assert.match(spine, /动态路由/);
 assert.match(spine, /\[3\].*自测/);
 assert.match(spine, /\[4\].*PR/);
 assert.match(spine, /repo-submit\.md/);
+assert.match(spine, /Figma 回归验证收敛/);
 assert.match(taskSpineHookContext('.ai-agent'), /Task Spine/);
+assert.match(taskSpineHookContext('.ai-agent'), /TAPD includes Figma/);
 
 console.log('completion/tapd rules generator tests passed');

@@ -22,13 +22,14 @@ It is the thin routing protocol for project knowledge. Project-specific knowledg
 
 ```text
 [1] 需求与分支决策（写代码前）
-    TAPD 单 → 拉详情 → 校验/新建/切换关联分支 → 需求分析
+    TAPD 单 → 拉详情 → 校验/新建/切换关联分支 → 若含 Figma 则获取结构化设计/截图 → 需求分析
     非 TAPD → 判断是否新任务 → 按需新建/切换分支 → 需求分析
     无法判断 → ask 模式询问；autonomous 模式仅高置信自主判定，否则 Hard Ask
 [2] 任务执行决策
     小改直接执行；复杂/多方案 → Plan Gate；前端非平凡任务进入 runtime/pipelines
 [3] 影响与自测决策
     有代码变更 → impact + 最小收敛自测；纯问答/纯文档 → skip
+    TAPD + Figma → 本地 diff 生成影响单位/测试路径 → Figma 回归验证收敛影响范围与断言
     UI/E2E 缺 URL → Hard Ask；E2E blocked 且用户仍需要 → 浏览器 MCP 兜底
 [4] 提交 / PR / MR / 回填决策
     需要提交或用户要求提交 → `.ai-agent/skills/repo-submit.md`

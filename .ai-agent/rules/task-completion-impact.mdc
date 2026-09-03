@@ -1,5 +1,5 @@
 ---
-description: 代码变更任务完成后条件询问影响分析与自测；UI 须先预生成测试路径；自测后按 TAPD 关联进入 Commit/PR/回填。
+description: 代码变更任务完成后先评估改进空间，再条件询问影响分析与自测；自测后按 TAPD 关联进入 Commit/PR/回填。
 alwaysApply: true
 ---
 
@@ -37,19 +37,27 @@ alwaysApply: true
 
 跳过时：正常给出最终回复即可；若用户随后发起提交意图，按 `tapd-submit-backfill` 评估是否有关联 TAPD 单（见该 Rule）。
 
+## 改进空间评估（仅「涉及代码变更」时）
+
+在询问影响范围 / 自测之前，先主动复盘本次实现是否还有明显改进空间：
+
+- 若发现会影响正确性、可维护性、边界处理或用户体验的低风险改进项，先简要说明并完成必要改进；改进后重新回到本 Gate。
+- 若没有明确改进项，记录「暂无明显改进空间」，再进入影响分析 / 自测询问。
+- 不为凑流程做无关重构；发现会扩大范围或需要产品取舍的改进项，按 Plan / Hard Ask 处理。
+
 ## 条件询问（仅「涉及代码变更」时）
 
 **仅当任务评估为涉及代码变更**：
 
-- **ask**：在最终回复前问「是否需要分析当前任务的影响范围并提供测试参考？」是 → 进入 Skills；否 → 不再追问。
+- **ask**：完成改进空间评估后，在最终回复前问「是否需要分析当前任务的影响范围并提供测试参考？需要的话我会继续执行最小收敛自测 / E2E（UI 影响时）。」是 → 进入 Skills；否 → 不再追问。
 - **autonomous**：不询问，直接进入 Skills（产出判定记录）。纯文档任务仍跳过。
 
 ## 确认后加载顺序
 
-0. 先跑 `aafe impact --diff --format=md`（`aafe` 不在 `PATH` 时用 `node_modules/.bin/aafe`），把机器算出的影响面作为起点，自己不要从零推断；命令不可用时才退回纯人工分析并说明。
+0. 先跑 `aafe impact --diff --format=md`（`aafe` 不在 `PATH` 时用 `node_modules/.bin/aafe`），把机器算出的影响面作为起点，自己不要从零推断；命令不可用时才退回纯人工分析并说明。若本任务已记录 `figma_design_context`，必须把 Figma 约束与本地 diff 共同纳入影响判断。
 1. `.ai-agent/skills/architecture-impact-test-forecast.md`
 2. `.ai-agent/skills/minimal-convergent-self-test.md`（最后测试环节：UI/E2E 走 `aafe test --diff`，禁止任务收尾默认 `--coverage`）
-3. 自测结束后：若任务过程中**有关联 TAPD 单**且 `tapd.enabled`，进入 `.ai-agent/skills/tapd-submit-backfill.md`（按 `submit.cli` 执行 Commit/PR → 回填）；无 TAPD 关联则仅可选提交，跳过 TAPD 回填询问
+3. 自测结束后：若任务过程中**有关联 TAPD 单**且 `tapd.enabled`，进入 `.ai-agent/skills/tapd-submit-backfill.md`（按 `submit.cli` 执行 Commit，Commit 成功后尝试 PR → 回填）；无 TAPD 关联则仅可选提交，跳过 TAPD 回填询问
 4. 按需读取 architecture 相关 docs / memory（含 `.ai-agent/skills/knowledge-center-architecture.md` / `.ai-agent/memory/knowledge-center-architecture.md` when present）
 
 ## 硬约束
@@ -61,13 +69,15 @@ alwaysApply: true
 - **禁止猜 URL**；`http://localhost:8080` 占位视为未配置。
 - **UI 自测子询问**（浏览器 MCP）**仅当** E2E blocked（无 Playwright）且用户仍要看 UI。缺测试地址时先问 URL，不要改走 MCP。
 - MCP 兜底执行前必须产出完整 `ui_test_paths`；执行阶段只跟路径走。
+- TAPD 单含 Figma 时：影响代码分析先由本地 diff 生成影响单位和初版测试路径，再用 Figma 结构化数据 / 截图验证 UI 还原目标，收敛影响范围、测试断言和可接受差异；禁止只按本地 diff 生成 UI 用例。
 
 ## 自测完成后的衔接（按 TAPD 关联分流）
 
 自测（或用户明确跳过）结束后：
 
-1. **ask** 询问是否 Commit；**autonomous** 按 `workflow-mode.md` 判定。同意 / proceed 则按 `.aafe.config.json` → `submit.cli`（`git` 默认 / `gtm`）执行 Commit/PR（见 `tapd-submit-backfill`）
-2. **仅当任务过程中有关联 TAPD 单**且 `tapd.enabled` → **ask** 询问是否回填 / **autonomous** 自行判定；**无 TAPD 关联则跳过回填**
+1. **ask** 询问是否 Commit；**autonomous** 按 `workflow-mode.md` 判定。同意 / proceed 则按 `.aafe.config.json` → `submit.cli`（`git` 默认 / `gtm`）执行 Commit，并在 Commit 成功后继续尝试 PR（见 `tapd-submit-backfill` Phase D）。
+2. PR 成功则记录 `pr_url`，继续进入 TAPD 回填门禁；PR 失败只报告原因，不阻断后续 TAPD 回填判断。
+3. **仅当任务过程中有关联 TAPD 单**且 `tapd.enabled` → **ask** 询问是否回填 / **autonomous** 自行判定；同意后追加评论、写入 PR 字段（如配置）并按状态映射逐步流转到 doing；**无 TAPD 关联则跳过回填**
 
 ## 与 TAPD 回填的关系
 

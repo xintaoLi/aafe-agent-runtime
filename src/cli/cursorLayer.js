@@ -373,7 +373,7 @@ function cursorRules(ctx) {
     'For every non-trivial frontend task after the Skill Router step:',
     `0. Read \`.aafe.config.json\` → \`mode.workflow\` (default \`ask\`) and follow \`aafe-workflow-mode.mdc\` / \`${ctx.agentPrefix}/skills/workflow-mode.md\` before the first interactive gate.`,
     `0a. ${taskSpinePointerLine(ctx.agentPrefix)}`,
-    `0b. After concrete requirement (TAPD or user), follow \`aafe-requirement-intake-analysis.mdc\` / \`${ctx.agentPrefix}/skills/requirement-intake-analysis.md\`: TAPD pull + branch association → clarify → history → scope/root cause → Plan gate if large.`,
+    `0b. After concrete requirement (TAPD or user), follow \`aafe-requirement-intake-analysis.mdc\` / \`${ctx.agentPrefix}/skills/requirement-intake-analysis.md\`: TAPD pull + branch association → if TAPD contains Figma, fetch structured design + screenshot via Figma MCP → clarify → history → scope/root cause → Plan gate if large.`,
     `1. Read \`${ctx.agentPrefix}/runtime/engine.md\`.`,
     `2. Classify the task using \`${ctx.agentPrefix}/runtime/router.yaml\`.`,
     `3. Follow the selected \`${ctx.agentPrefix}/pipelines/*.yaml\`.`,
@@ -385,7 +385,7 @@ function cursorRules(ctx) {
     '8. For new features, run Pattern Interview before Pattern Selection.',
     '9. For complex frontend work, select and land patterns per module based on real business responsibility.',
     '10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.',
-    `11. Before final response, follow layered rule \`aafe-task-completion-impact.mdc\`: **task assessment** — only ask impact/self-test when code changed; UI sub-asks only for code + UI impact; pre-generate \`ui_test_paths\`.`,
+    `11. Before final response, follow layered rule \`aafe-task-completion-impact.mdc\`: **task assessment** — only ask impact/self-test when code changed; UI sub-asks only for code + UI impact; pre-generate \`ui_test_paths\`; TAPD + Figma tasks use local diff to generate impact units/test paths, then use Figma evidence to narrow impact and assertions.`,
     `12. After self-test or submit intent: \`aafe-tapd-submit-backfill.mdc\` **only when task has TAPD association** and \`tapd.enabled\`; else skip TAPD backfill asks.`,
     '13. File license: follow `aafe-new-file-license.mdc` — new files add header; edits use local `aafe license ensure <path>` (never AI-Read memory JSONL).',
     ''

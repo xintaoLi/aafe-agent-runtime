@@ -21,7 +21,7 @@ Source of truth:
 1. Rule: \`${agentPrefix}/rules/requirement-intake-analysis.mdc\`
 2. Skill: \`${agentPrefix}/skills/requirement-intake-analysis.md\`
 
-Task Spine **[1]** 是动态决策：若是 TAPD 单，先拉详情并按规则判定是否新建/切换关联分支；非 TAPD 新任务也需判定是否新建/切换分支；无法确定则 ask 询问，autonomous 仅高置信自主判定。闭合后再进入执行。
+Task Spine **[1]** 是动态决策：若是 TAPD 单，先拉详情并按规则判定是否新建/切换关联分支；若单据含 Figma 设计稿，必须提取设计链接并用 Figma MCP 获取结构化设计与截图作为 UI 还原依据；非 TAPD 新任务也需判定是否新建/切换分支；无法确定则 ask 询问，autonomous 仅高置信自主判定。闭合后再进入执行。
 
 Do not duplicate project knowledge here.
 `;
@@ -49,7 +49,7 @@ ${workflowModeGatePreamble(agentPrefix)}
 
 | 来源 | 触发点 |
 | --- | --- |
-| TAPD 单 | 已通过 MCP / 用户拉取到**具体** story/bug 描述、验收标准、附件要点 |
+| TAPD 单 | 已通过 MCP / 用户拉取到**具体** story/bug 描述、验收标准、附件要点、Figma 设计稿链接（若有） |
 | 非 TAPD | 用户给出**具体**需求描述（非空泛话题） |
 
 若仅有「帮我看看」「优化一下」等模糊意图 → 先在本阶段澄清，**不得**直接写代码。
@@ -76,9 +76,20 @@ ${workflowModeGatePreamble(agentPrefix)}
 3. 当前在 \`master\` / \`main\`，或分支主题与新任务无关 → 新建或切换任务分支
 4. 无法确定 → \`ask\` 模式询问；\`autonomous\` 仅在高置信时自主判定，否则 Hard Ask
 
+## TAPD Figma 设计稿 Gate
+
+当 TAPD 标题、描述、验收标准、附件、评论或关联字段中出现 Figma 链接 / 节点信息时，必须执行本 Gate：
+
+1. 提取并记录 \`figma_url\`、\`figma_node_id\`、\`figma_dpr\`（若 TAPD 未说明倍率，默认按 Figma MCP 的 \`dpr=1\`；发现 750/2x 等高倍率线索时显式设置 \`dpr=2\`）。
+2. 调用 Figma MCP：优先 \`get_design_context\` 获取结构化数据，并搭配 \`get_screenshot\` 获取视觉截图；大设计稿、响应过大或需要先看层级时，改用 \`get_full_bundle(includeFiles=["design_context_tree","design_context","screenshot_compressed"])\`。
+3. 输出 \`figma_design_context\`、\`figma_screenshot_evidence\`、\`figma_ui_constraints\`：布局尺寸、间距、颜色、字体、圆角、阴影、资源、状态与交互差异。
+4. UI 还原必须以 Figma 结构化数据 + 截图为准；若本地组件库能力、响应式规则或现有样式与设计稿冲突，记录 \`design_deviation\` 并在实施前按工作流模式确认或说明取舍。
+5. 无 Figma 链接时记录 \`figma: not_provided\`，不得编造设计稿。
+
 ## 阶段 A — 需求分析与澄清
 
 1. 解析需求：目标、范围、验收标准、约束、依赖、风险
+   - 若有 Figma：把设计稿节点、视觉约束、交互状态、切图资源纳入需求约束；UI 还原不得仅凭文字描述或截图猜测
 2. 列出**不明确项**（歧义、缺失边界、多解路径、未定义异常/兼容策略）
 3. 对每项不明确点按工作流模式闭合：
    - **ask**：必须交互获取明确答复（方案选择 / 追问 / 要详细答复）
@@ -104,8 +115,9 @@ ${workflowModeGatePreamble(agentPrefix)}
 在历史检索之后、实施之前：
 
 1. **代码范围**：受影响文件/模块/函数清单（基于 locator + diff 意图，非全库）
-2. **根因分析**：现象 → 直接原因 → 根因假设 → 验证点
-3. **实施策略草案**：改哪些点、不改哪些点
+2. **Figma 约束映射（若有设计稿）**：将 \`figma_ui_constraints\` 映射到本地页面/组件/样式/资源，标记 must-change、read-only、design-deviation
+3. **根因分析**：现象 → 直接原因 → 根因假设 → 验证点
+4. **实施策略草案**：改哪些点、不改哪些点；UI 还原类任务必须说明如何按 Figma 落地
 
 ## 阶段 D — 实施规模 Gate（Plan 模式）
 
@@ -167,12 +179,13 @@ export function requirementIntakeRuleSection(ctx = {}) {
     '',
     '拿到具体需求后（TAPD 拉取或用户描述）、写代码前：',
     '0. TAPD MCP 拉取需求详情并核对分支关联（git 和 gtm 均适用）：检查当前分支 `feat|bug/<slug>/#<short_id>` 是否与 TAPD 单一致；未关联或错误则从远程主干创建开发分支（见 `tapd-submit-backfill`「TAPD Branch Association」）。',
-    `1. 澄清不明确项（方案选择 / 追问 / 要详细答复）；未明确禁止写代码。自主模式可按 workflow-mode 用证据闭合 AMB。`,
-    `2. 需求明确后查历史：\`${agentPrefix}/skills/memory-recaller.md\` + experience/learnings。`,
-    '3. 分析代码范围与根因，再定实施策略。',
-    '4. 单函数或纯样式小改 → 直接修；>5 函数 / >5 文件 / >300 行新增或多文件交叉 → ask 询问 SwitchMode；autonomous 自行判定。',
-    '5. 实施后：task-completion-impact + tapd-submit-backfill 流程不变。',
-    `6. 详见 \`${agentPrefix}/skills/requirement-intake-analysis.md\`。`,
+    '1. TAPD 单若含 Figma 链接，必须通过 Figma MCP 获取结构化设计和截图；UI 还原以 Figma 尺寸、间距、颜色、字体、资源和交互状态为准。',
+    `2. 澄清不明确项（方案选择 / 追问 / 要详细答复）；未明确禁止写代码。自主模式可按 workflow-mode 用证据闭合 AMB。`,
+    `3. 需求明确后查历史：\`${agentPrefix}/skills/memory-recaller.md\` + experience/learnings。`,
+    '4. 分析代码范围与根因；若有 Figma，将设计约束映射到本地组件/样式/资源，再定实施策略。',
+    '5. 单函数或纯样式小改 → 直接修；>5 函数 / >5 文件 / >300 行新增或多文件交叉 → ask 询问 SwitchMode；autonomous 自行判定。',
+    '6. 实施后：task-completion-impact + tapd-submit-backfill 流程不变。',
+    `7. 详见 \`${agentPrefix}/skills/requirement-intake-analysis.md\`。`,
     ''
   ].join('\n');
 }
@@ -195,10 +208,10 @@ ${workflowModeSkillNote(prefix)}
 
 | Source | Done when |
 | --- | --- |
-| TAPD | \`stories_get\` / \`bugs_get\` 或用户粘贴：标题、描述、验收、优先级、关联信息 |
+| TAPD | \`stories_get\` / \`bugs_get\` 或用户粘贴：标题、描述、验收、优先级、关联信息、Figma 设计稿链接（若有） |
 | Non-TAPD | 用户消息含：要做什么、期望结果、范围边界（或经 Phase 1 补全） |
 
-Record: \`requirement_source\`, \`requirement_summary\`, \`tapd_entry_id\`（若有）
+Record: \`requirement_source\`, \`requirement_summary\`, \`tapd_entry_id\`（若有）, \`figma_url\`（若有）
 
 ### Phase 0.5 — TAPD branch association（git 和 gtm 均适用）
 
@@ -215,6 +228,22 @@ Record: \`requirement_source\`, \`requirement_summary\`, \`tapd_entry_id\`（若
 
 ---
 
+### Phase 0.6 — TAPD Figma design intake
+
+若 TAPD 单据标题、描述、验收标准、附件、评论或关联字段中包含 Figma URL / node-id：
+
+1. 提取 \`figma_url\`、\`node-id\`、设计倍率线索（如 375/750、1x/2x）；无法确认倍率时默认 \`dpr=1\`，不要猜测业务设计稿比例。
+2. 使用 Figma MCP 获取设计依据：
+   - 常规节点：\`get_design_context({ url, dpr, includeComponents: true, includeResources: true })\` + \`get_screenshot({ url })\`
+   - 大节点 / 超出上下文 / 需要层级俯瞰：\`get_full_bundle({ url, dpr, includeFiles: ["design_context_tree", "design_context", "screenshot_compressed"], includeResources: true })\`
+3. 记录 \`figma_design_context\`、\`figma_screenshot_evidence\`、\`figma_resource_map\`、\`figma_ui_constraints\`。
+4. UI 还原类需求必须基于 Figma 结构数据和截图执行；不得只按 TAPD 文字、口头描述或本地现状自由发挥。
+5. 若 Figma 与现有组件规范冲突，生成 \`design_deviation\`：差异、原因、影响、建议取舍；ask 模式先确认会影响视觉/交互的取舍。
+
+无 Figma 链接：记录 \`figma: not_provided\`，继续 Phase 1。
+
+---
+
 ## Phase 1 — Analyze & clarify (mandatory)
 
 ### 1.1 Parse
@@ -226,6 +255,7 @@ Extract:
 - **Acceptance** — how to verify done
 - **Constraints** — perf, compat, auth, deadline
 - **Dependencies** — API, other modules, flags
+- **Design** — Figma 节点、视觉规范、资源、交互状态（若 TAPD 已提供）
 
 ### 1.2 Ambiguity register
 
@@ -292,6 +322,7 @@ After history review:
 
 - List files / symbols likely touched (use \`project-architecture-locator.md\` when needed)
 - Mark read-only vs must-change
+- If Figma exists: map each \`figma_ui_constraints\` item to local page/component/style/resource files; label \`must_match_figma\`, \`acceptable_delta\`, or \`design_deviation\`
 - Artifact: \`code_scope\`
 
 ### 3.2 Root cause (bugs / defects)
@@ -380,6 +411,11 @@ If user declines Plan: document risk; may proceed in Agent with explicit \`plan_
 ## 代码范围
 ...
 
+## Figma 设计依据（若有）
+- URL / node-id / dpr
+- 关键视觉约束
+- 本地代码映射与 design_deviation
+
 ## 根因分析
 ...
 
@@ -395,6 +431,8 @@ direct fix | plan mode | blocked (waiting user)
 ## Anti-patterns
 
 - Coding with open AMB items
+- UI restoration from TAPD with Figma link but without fetching Figma structured data and screenshot
+- Generating UI scope/tests only from local diff when TAPD already provides Figma design
 - Skipping history on recurring bug classes
 - >5 files change without plan ask (ask mode) or without a recorded autonomous decision
 - Confusing this skill with post-task impact analysis (\`architecture-impact-test-forecast.md\`)

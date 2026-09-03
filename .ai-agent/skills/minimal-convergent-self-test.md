@@ -15,7 +15,7 @@ E2E / 浏览器缺本次 URL 时，即使 `mode.workflow=autonomous` 也必须 H
 
 ## Goal
 
-按**本次变更影响范围**做最小收敛自测：能 Mock 则 Mock；UI/路由变更在最后测试环节走 `aafe test --diff`（Playwright YAML）。浏览器 MCP 仅作 E2E blocked 时的兜底。
+按**本次变更影响范围**做最小收敛自测：能 Mock 则 Mock；UI/路由变更在最后测试环节走 `aafe test --diff`（Playwright YAML）。若 TAPD 提供 Figma，测试路径和断言必须用本地 diff + Figma 结构化设计 / 截图共同收敛。浏览器 MCP 仅作 E2E blocked 时的兜底。
 
 ## Step 0 — Decide test mode from impact
 
@@ -32,12 +32,13 @@ Rules:
 - Example: 组件内数据处理逻辑变更 → 只测函数/方法 I/O，**不要**默认开浏览器。
 - Do not invent E2E for logic-only diffs.
 - 任务收尾**禁止**默认跑 `aafe test --coverage`（全量铺底是显式命令）。
+- TAPD 含 Figma 时：先用本地 diff 生成影响单位和初版 UI 路径，再用 Figma 约束回归验证，收敛到能证明 UI 还原质量的最小用例；不要生成与设计稿无关的 UI 全量回归。
 
 ## Step 0.5 — E2E via `aafe test --diff`
 
 当 Step 0 判定为 e2e / ui 时：
 
-1. 执行 `aafe test --diff`（`aafe` 不在 PATH 时用 `node_modules/.bin/aafe`）。
+1. 执行 `aafe test --diff`（`aafe` 不在 PATH 时用 `node_modules/.bin/aafe`）。若有 `figma_ui_constraints`，将其作为用例收敛依据：视觉断言必须覆盖关键 node-id、尺寸/间距/颜色/字体/资源/状态。
 2. 要 `--run` 但没有本次 URL：在对话里询问完整被测地址并**等待用户输入**。测试地址每次可能不同，不要写入 `.aafe.config.json` `e2e.baseUrl`，不要用环境变量凑合，**禁止**填 `http://localhost:8080`。
 3. 用户给出地址后：若含 `#` 或查询参数，先确认 A（目标页）/ B（仅 origin）/ C（提取参数拼到变更路由），再 `aafe test --diff --run --base-url=<用户输入的 URL> --url-role=target|origin|template`。
 4. CLI 若返回 `needInput: "baseUrl"` 或 `needInput: "urlRole"`：必须停下来问用户，禁止自行编造 URL 或改去装 uitest。
@@ -98,6 +99,7 @@ Converge:
 - 变更文件及其直接模板 / render（`.vue` / `.tsx` / `.jsx`）
 - 为定位交互控件所必需的子组件入口（点到能写出稳定 selector / 文案 / role 为止）
 - 影响报告中的路由 / Tab / 面板入口
+- TAPD Figma 设计稿中的相关 node-id、资源和视觉约束（仅限本次 diff 能触达的节点）
 
 禁止：无关目录全库检索、自测中途「再分析一下整个模块」。
 
@@ -139,6 +141,7 @@ Converge:
 - 每步含：`action | target | expected`（fill 含 value）
 - 目标优先稳定信号：可见文案、`role`、`data-test*`、业务 class；避免脆弱的 nth-child 链（除非无更好信号）
 - 与 TC ID 关联；P0 路径优先生成
+- 若有 Figma：路径必须包含 `figma node-id`、关键视觉断言和可接受偏差；没有对应 Figma 节点的 UI 断言需说明原因
 
 若影响分析阶段已产出同等质量路径，本步校验补全即可，勿重复劳动。
 
@@ -191,6 +194,7 @@ Hard rules:
 - Auto-launching browser MCP without consent
 - Guessing/testing multiple URLs
 - UI 执行中途大范围代码分析（应用 Step 2.5 预生成路径）
+- TAPD 已提供 Figma 但测试路径 / 断言只来自本地 diff
 - Full-suite regression for a one-file logic fix
 - Editing TAPD story description to dump test matrices（评论回填即可）
 - 自测结束后直接 commit/回填而不询问

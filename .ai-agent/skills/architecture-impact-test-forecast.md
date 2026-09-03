@@ -21,6 +21,7 @@ Next skill for execution: `minimal-convergent-self-test.md`.
 2. Read `.ai-agent/memory/knowledge-center-architecture.md` when present.
 3. Read relevant `.docs` architecture documents and Mermaid diagrams.
 4. Map **current task changed files only** to modules, routes, components, stores, APIs, workers, storage, flows and tests.
+5. If requirement intake produced `figma_design_context` / `figma_ui_constraints`, read them before narrowing UI impact; use Figma MCP evidence instead of guessing visual details.
 
 ## Step 1 — Impact scope report
 
@@ -30,9 +31,15 @@ Produce:
 - **间接影响**：callers, dependents, shared layers, downstream data flow
 - **潜在影响**：auth guards, cache, Worker, IndexedDB, compatibility, degradation paths
 - **架构关系依据**：.docs paths, diagram refs, source evidence
+- **Figma 设计依据（若有）**：design context, screenshot, resourceMap, local component/style mapping, design deviations
 - **影响分类标签**（供自测收敛）：`logic` | `store` | `api` | `ui` | `mixed`
 
-Required artifacts: `impact_scope`, `architecture_evidence`, `impact_class`
+When Figma exists, derive impact in two passes:
+
+1. Local diff pass: generate affected units and initial `ui_test_paths` from changed code.
+2. Figma regression pass: compare those units/paths against `figma_ui_constraints`, tighten assertions, drop unrelated cases, and mark `figma_mismatch` / `acceptable_delta`.
+
+Required artifacts: `impact_scope`, `architecture_evidence`, `impact_class`; plus `figma_impact_evidence` when Figma exists.
 
 ## Step 2 — Minimal test case design（设计 only）
 
@@ -54,6 +61,7 @@ Classification hints:
 - 组件内数据处理 / 百分比 / 缓存 / 排序 → **unit**，Mock Props 或纯函数 I/O
 - Store/API 契约 → **unit**，Mock state/response
 - 布局、样式、图表真实渲染、交互可见性 → 标记 **ui**；交给自测 Skill 走 `aafe test --diff`。浏览器 MCP 仅作 E2E blocked 兜底，本 Skill 不自动开浏览器
+- TAPD 含 Figma 的 UI 还原 → 测试用例必须引用 Figma 关键约束（尺寸/间距/颜色/字体/资源/交互状态）作为断言依据；先由本地 diff 生成路径，再用 Figma 收敛
 
 Required artifact: `test_cases`
 
@@ -63,6 +71,7 @@ Required artifact: `test_cases`
 
 - 标注将用到的 `click` / `switch` / `fill` / `hover` / `assert` 目标（文案、role、稳定 class / data-*）
 - 写清从页面壳层到复现点的步骤序列
+- 若有 Figma：每条 UI 路径补充 `figma_assertions`（视觉约束、资源、状态、可接受偏差），并标注关联的 Figma node-id
 - 完整格式与硬约束见 `minimal-convergent-self-test.md` Step 2.5
 
 目的：把代码分析前移到设计阶段，自测执行只消费路径。URL 仍须用户提供后才能 `navigate`。
@@ -101,6 +110,8 @@ Collect `test_results`（及 UI 时的 `ui_test_paths`）from that skill.
 logic | store | api | ui | mixed
 ### 架构依据
 ...
+### Figma 设计依据（若有）
+...
 
 ## 测试用例（设计）
 | ID | 优先级 | Mode | 场景 | Mock 要点 | 断言 | 覆盖边界 |
@@ -122,6 +133,7 @@ logic | store | api | ui | mixed
 ## Rules
 
 - Scope to **this task's diff** only.
+- If TAPD provides Figma, scope still starts from local diff, then Figma evidence narrows UI impact and test assertions.
 - Distinguish **tested / predicted / not covered**.
 - UI browser work is opt-in via `minimal-convergent-self-test.md`；本 Skill 不自动开浏览器。
 - UI 路径分析在设计/自测准备阶段完成；禁止把大量源码分析留到点击执行中。
