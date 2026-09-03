@@ -74,7 +74,7 @@ function buildHermesAgentsMd(ctx, layered) {
     '',
     workflowModeRuleSection(ctx).trim(),
     '',
-    '## Requirement intake (before code)',
+    '## Requirement intake (before analysis / code)',
     '',
     requirementIntakeRuleSection(ctx).trim(),
     '',

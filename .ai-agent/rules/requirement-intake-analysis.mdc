@@ -1,5 +1,5 @@
 ---
-description: 拿到具体需求后必须先做需求澄清、历史检索、代码范围与根因分析；大规模变更需确认切换 Plan 模式。
+description: 拿到具体需求后必须先关闭分支决策，再做需求澄清、历史检索、代码范围与根因分析；大规模变更需确认切换 Plan 模式。
 alwaysApply: true
 ---
 
@@ -18,26 +18,26 @@ alwaysApply: true
 
 ## 触发（需求已到手）
 
-在**开始改代码之前**，必须先完成本 Rule。需求来源：
+在进入**需求分析、设计还原或代码实现之前**，必须先完成本 Rule。需求来源：
 
 | 来源 | 触发点 |
 | --- | --- |
 | TAPD 单 | 已通过 MCP / 用户拉取到**具体** story/bug 描述、验收标准、附件要点、Figma 设计稿链接（若有） |
 | 非 TAPD | 用户给出**具体**需求描述（非空泛话题） |
 
-若仅有「帮我看看」「优化一下」等模糊意图 → 先在本阶段澄清，**不得**直接写代码。
+若仅有「帮我看看」「优化一下」等模糊意图 → 先在本阶段澄清，**不得**直接进入设计还原或写代码。
 
 详细步骤：`.ai-agent/skills/requirement-intake-analysis.md`
 
 ## 分支决策（TAPD / 非 TAPD 均适用）
 
-写代码前先动态判定任务来源和当前分支是否适合本次任务。
+进入需求分析、设计还原或写代码前，先动态判定任务来源和当前分支是否适合本次任务。
 
 ### TAPD 单
 
 1. 通过 TAPD MCP 拉取需求详情，提取 `tapd_short_id`（URL 最后一段数字的末 9 位）
 2. 检查当前分支是否 `feat|bug/<slug>/#<tapd_short_id>` 且 short_id 与 TAPD 单一致
-3. TAPD ID 不匹配、未关联或当前分支不适合本任务 → 按规则新建或切换开发分支；除非用户此前已明确确认当前分支可用，否则不得因当前分支已有相关提交或未提交改动而放行继续实现：
+3. TAPD ID 不匹配、未关联或当前分支不适合本任务 → 按规则新建或切换开发分支；除非用户此前已明确确认当前分支可用，否则不得因当前分支已有相关提交或未提交改动而放行继续分析、设计还原或实现：
    - `git`：`git checkout -b feat|bug/<slug>/#<short_id> upstream/master`
    - `gtm`：`gtm create issue` → 关联已有单据 → 目标分支 `master` → 按 TAPD 标题生成英文短名
 4. 详见 `.ai-agent/skills/tapd-submit-backfill.md`「TAPD Branch Association」

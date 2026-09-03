@@ -77,7 +77,7 @@ Read `.aafe.config.json` → `submit.cli`:
 
 ## TAPD Branch Association — 分支关联与 TAPD 详情核对（git 和 gtm 均适用）
 
-**触发**：新任务开始（已拿到具体 TAPD 单 / 需求，准备改代码前），无论 `submit.cli` 是 `git` 还是 `gtm`。
+**触发**：新任务开始（已拿到具体 TAPD 单 / 需求，准备进入需求分析、设计还原或写代码前），无论 `submit.cli` 是 `git` 还是 `gtm`。
 
 ### T0 拉取 TAPD 需求详情
 
@@ -122,11 +122,11 @@ git branch --show-current
 
 **判定**：
 
-- 当前分支匹配 `{type}/{slug}/#{short_id}` 且 `short_id` **与 T0 拉取的 TAPD 单一致** → **已正确关联**，进入需求分析/开发
+- 当前分支匹配 `{type}/{slug}/#{short_id}` 且 `short_id` **与 T0 拉取的 TAPD 单一致** → **已正确关联**，进入需求分析/设计还原/开发
 - 当前分支匹配 `{type}/{slug}/#{digits}` 但 `digits` **与 TAPD 单不一致** → **关联了错误的单**；除非用户此前已明确确认当前分支可用于本 TAPD 单，否则必须继续执行 T2 创建/切换新分支
 - 不匹配（如 `master` / `main` / 无 `#id` 后缀）→ **未关联**，执行 T2
 
-**Hard：** TAPD ID 不匹配不是可忽略警告；当前分支包含相关提交、已有半成品实现或工作区存在未提交改动，都不能替代“用户已明确确认当前分支可用”。若未提交改动导致无法 checkout，应先停下报告并确认保护/迁移方式，禁止继续实现。
+**Hard：** TAPD ID 不匹配不是可忽略警告；当前分支包含相关提交、已有半成品实现或工作区存在未提交改动，都不能替代“用户已明确确认当前分支可用”。若未提交改动导致无法 checkout，应先停下报告并确认保护/迁移方式，禁止继续需求分析、设计还原或实现。
 
 ### T2 未关联或关联错误时：从远程主干创建开发分支
 
@@ -170,7 +170,7 @@ gtm create issue
 
 ### T3 确认关联成功
 
-完成后再次 `git branch --show-current`，确认已变为 `feat|bug/<slug>/#<short_id>`，再继续写代码。
+完成后再次 `git branch --show-current`，确认已变为 `feat|bug/<slug>/#<short_id>`，再继续需求分析、设计还原或写代码。
 
 **失败/异常**：简要报告；由项目侧处理，本 Skill 不强制降级；未关联成功时提醒用户手动完成后继续。
 
