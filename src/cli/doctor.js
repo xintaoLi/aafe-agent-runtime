@@ -10,6 +10,7 @@ import { memoryDiagnosisRuntimePaths } from './memoryDiagnosisRuntimeFiles.js';
 import { inspectPlaywrightSetup } from './e2eSetup.js';
 import { isE2eEnabled } from '../testing/e2e/config.js';
 import { collectUitestAdapterChanges } from './migrate.js';
+import { inspectCloudProjectReadiness } from '../agent-platform/runtime/CloudProjectReadiness.js';
 
 /** Capabilities the default planner sequences depend on. */
 const REQUIRED_CAPABILITIES = [
@@ -270,7 +271,7 @@ async function checkAgentPlatform(root, projectConfig) {
   // Resolve without the IDE fallback: it can serve anything, so leaving it on
   // here would mask a capability the project meant to wire up itself.
   const registry = createRegistryFromConfig(config.agents);
-  const knownProviders = new Set(['local', 'http', 'cli', 'ide']);
+  const knownProviders = new Set(['local', 'http', 'cli', 'mcp', 'ide', 'cursor']);
   for (const agent of registry.list()) {
     if (!knownProviders.has(agent.provider)) {
       warnings.push(`agent "${agent.id}" uses unknown provider "${agent.provider}"`);
@@ -286,6 +287,21 @@ async function checkAgentPlatform(root, projectConfig) {
     warnings.push(config.ideAgent?.enabled
       ? `capability "${capability}" has no configured agent (${reason}); it will be handed to the IDE agent`
       : `capability "${capability}" cannot be resolved (${reason}) and ideAgent.enabled is false`);
+  }
+
+  if (config.agent?.manager?.enabled === true) {
+    if (config.agent.mode !== 'cloud') {
+      warnings.push('agent.manager.enabled requires agent.mode "cloud"; managed tasks never share a local workspace');
+    }
+    if (!config.agent.repository) {
+      warnings.push('agent.manager.enabled requires agent.repository for Cursor Cloud');
+    }
+    if (config.agent.manager.validateProjectRuntime !== false) {
+      const readiness = await inspectCloudProjectReadiness(root, { projectConfig });
+      if (!readiness.ready) {
+        warnings.push(`Cursor Cloud cannot directly load project Rules/Skills: ${readiness.reason}`);
+      }
+    }
   }
   return warnings;
 }

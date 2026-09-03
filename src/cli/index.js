@@ -28,6 +28,7 @@ import {
   runTestCommand
 } from './platform.js';
 import { runRepoPrCommand } from './repoSubmit.js';
+import { runTaskCommand } from './tasks.js';
 
 export async function runCli(argv) {
   const command = argv[2] ?? 'help';
@@ -180,6 +181,11 @@ export async function runCli(argv) {
     return;
   }
 
+  if (command === 'task' || command === 'tasks') {
+    await runTaskCommand(process.cwd(), argv.slice(3));
+    return;
+  }
+
   // `run` now drives the Planner + Orchestrator. The former skill-pipeline
   // behaviour moved to `pipeline`, still reachable via `run --legacy`.
   if (command === 'run' || command === 'execute' || command === 'pipeline') {
@@ -242,6 +248,13 @@ function parseOptions(args) {
     if (arg.startsWith('--agent-mode=')) options.agentMode = arg.slice('--agent-mode='.length);
     if (arg === '--agent-mode') options.agentMode = true;
     if (arg === '--no-agent-mode') options.agentMode = false;
+    if (arg.startsWith('--agent-manager=')) options.agentManager = arg.slice('--agent-manager='.length);
+    if (arg === '--agent-manager') options.agentManager = true;
+    if (arg === '--no-agent-manager') options.agentManager = false;
+    if (arg.startsWith('--max-concurrent-tasks=')) options.maxConcurrentTasks = Number.parseInt(arg.slice('--max-concurrent-tasks='.length), 10);
+    if (arg.startsWith('--task-output=')) options.taskOutput = arg.slice('--task-output='.length);
+    if (arg === '--no-agent-readiness-check') options.validateProjectRuntime = false;
+    if (arg === '--no-agent-recovery') options.recoverOnStart = false;
     if (arg.startsWith('--cursor-api-key-env=')) options.cursorApiKeyEnv = arg.slice('--cursor-api-key-env='.length);
     if (arg.startsWith('--cursor-model=')) options.cursorModel = arg.slice('--cursor-model='.length);
     if (arg.startsWith('--cursor-runtime=')) options.cursorRuntime = arg.slice('--cursor-runtime='.length);
@@ -287,6 +300,7 @@ Commands:
   e2e       Enable/disable Playwright E2E later (aafe e2e enable|disable|status|install|auth)
   repo      GitHub PR via repo.githubAccessToken (aafe repo pr). Does not require gh
   diagnose  Turn a failing test report into a located root cause
+  task      Manage isolated durable Cursor Cloud tasks (create|list|status|continue|cancel|recover)
   update    Refresh installed project .ai-agent capabilities from the current aafe package
   migrate   Move files and config left by older versions to their current locations (--dry-run)
 
@@ -305,6 +319,9 @@ Init options:
   --submit-cli=git|gtm     Commit/PR provider written to .aafe.config.json → submit.cli (default: git)
   --workflow-mode=ask|autonomous  Gate interaction: ask user (default) or LLM auto-decide Commit/PR/backfill
   --agent-mode[=on|off]    Enable Cursor SDK execution for aafe run via .aafe.config.json → agent.enabled
+  --agent-manager[=on|off]  Enable durable Cursor Cloud task management
+  --max-concurrent-tasks=N  Maximum managed Cloud tasks running at once (default: 4)
+  --task-output=<path>      Managed task state root (default: .aafe)
   --cursor-api-key-env=CURSOR_API_KEY  Env var name used by Cursor SDK (default)
   --cursor-model=<id>      Cursor model for agent mode (default: composer-2.5)
   --cursor-runtime=local|cloud  Cursor SDK runtime for agent mode
@@ -372,6 +389,8 @@ Agent platform (context / impact / plan / run):
   aafe run     --replay=<runId>    Read-only replay of a stored run, with node payloads
   aafe test    --requirement="..." | --diff[=<ref>] | --coverage | --pr=<url>  [--run] [--base-url=<url>] [--url-role=A|B|C] [--auth-mode=none|reuse|headed|auto|reuse-or-headed] [--update]
   aafe diagnose --failure=<report.json|log.txt> [--diff[=<ref>]]
+  aafe task create --requirement="..." --repository=<url> [--base-branch=main] [--no-run]
+  aafe task list | status <taskId> | continue <taskId> "<message>" | cancel <taskId> | recover
   aafe pipeline "<task>"           Legacy skill pipeline (alias: aafe run --legacy)
   --no-write                       Do not persist the run under <output>/runs/
   --no-ide-agent                   Do not hand unserved capabilities to the IDE agent

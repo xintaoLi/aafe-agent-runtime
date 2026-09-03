@@ -216,6 +216,11 @@ export async function prepareAgentModeConfigForCommand(options = {}, existingCon
     || options.mcpConfig
     || options.mcpSettingSources
     || options.mcpEnabled !== undefined
+    || options.agentManager !== undefined
+    || options.maxConcurrentTasks !== undefined
+    || options.taskOutput
+    || options.validateProjectRuntime !== undefined
+    || options.recoverOnStart !== undefined
   ) {
     return resolveAgentModeConfig(existingConfig, {
       enabled: options.agentMode,
@@ -225,7 +230,12 @@ export async function prepareAgentModeConfigForCommand(options = {}, existingCon
       repository: options.cursorRepository,
       mcpEnabled: options.mcpEnabled,
       mcpConfig: options.mcpConfig,
-      mcpSettingSources: options.mcpSettingSources
+      mcpSettingSources: options.mcpSettingSources,
+      managerEnabled: options.agentManager,
+      maxConcurrentTasks: options.maxConcurrentTasks,
+      taskOutput: options.taskOutput,
+      validateProjectRuntime: options.validateProjectRuntime,
+      recoverOnStart: options.recoverOnStart
     });
   }
   if (options.yes || options.nonInteractive) {
@@ -414,7 +424,12 @@ export async function collectAgentModeConfigOptions(rl, existingAgent = null, op
     repository: options.cursorRepository,
     mcpEnabled: options.mcpEnabled,
     mcpConfig: options.mcpConfig,
-    mcpSettingSources: options.mcpSettingSources
+    mcpSettingSources: options.mcpSettingSources,
+    managerEnabled: options.agentManager,
+    maxConcurrentTasks: options.maxConcurrentTasks,
+    taskOutput: options.taskOutput,
+    validateProjectRuntime: options.validateProjectRuntime,
+    recoverOnStart: options.recoverOnStart
   });
   console.log('');
   console.log('Agent mode: when enabled, `aafe run` executes the context package through Cursor SDK.');

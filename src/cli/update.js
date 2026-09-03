@@ -65,6 +65,9 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
         submitCli: options.submitCli ?? null,
         workflowMode: options.workflowMode ?? null,
         agentMode: options.agentMode ?? null,
+        agentManager: options.agentManager ?? null,
+        maxConcurrentTasks: options.maxConcurrentTasks ?? null,
+        taskOutput: options.taskOutput ?? null,
         cursorRuntime: options.cursorRuntime ?? null,
         cursorModel: options.cursorModel ?? null,
         cursorApiKeyEnv: options.cursorApiKeyEnv ?? null,
@@ -234,6 +237,13 @@ export function parseUpdateOptions(args) {
     if (arg.startsWith('--agent-mode=')) options.agentMode = arg.slice('--agent-mode='.length);
     if (arg === '--agent-mode') options.agentMode = true;
     if (arg === '--no-agent-mode') options.agentMode = false;
+    if (arg.startsWith('--agent-manager=')) options.agentManager = arg.slice('--agent-manager='.length);
+    if (arg === '--agent-manager') options.agentManager = true;
+    if (arg === '--no-agent-manager') options.agentManager = false;
+    if (arg.startsWith('--max-concurrent-tasks=')) options.maxConcurrentTasks = Number.parseInt(arg.slice('--max-concurrent-tasks='.length), 10);
+    if (arg.startsWith('--task-output=')) options.taskOutput = arg.slice('--task-output='.length);
+    if (arg === '--no-agent-readiness-check') options.validateProjectRuntime = false;
+    if (arg === '--no-agent-recovery') options.recoverOnStart = false;
     if (arg.startsWith('--cursor-api-key-env=')) options.cursorApiKeyEnv = arg.slice('--cursor-api-key-env='.length);
     if (arg.startsWith('--cursor-model=')) options.cursorModel = arg.slice('--cursor-model='.length);
     if (arg.startsWith('--cursor-runtime=')) options.cursorRuntime = arg.slice('--cursor-runtime='.length);

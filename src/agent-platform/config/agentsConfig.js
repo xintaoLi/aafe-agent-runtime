@@ -244,7 +244,23 @@ function resolveGlobalAgentConfig(raw) {
     repo: config.repo ?? null,
     autoCreatePR: normalizeBoolean(config.autoCreatePR, false),
     skipReviewerRequest: normalizeBoolean(config.skipReviewerRequest, true),
-    mcp: resolveOverlayMcp(config.mcp)
+    mcp: resolveOverlayMcp(config.mcp),
+    manager: resolveManagerConfig(config.manager)
+  };
+}
+
+function resolveManagerConfig(raw) {
+  const manager = raw && typeof raw === 'object' ? raw : {};
+  const maxConcurrentTasks = Number.parseInt(manager.maxConcurrentTasks, 10);
+  return {
+    ...manager,
+    enabled: normalizeBoolean(manager.enabled, false),
+    maxConcurrentTasks: Number.isInteger(maxConcurrentTasks) && maxConcurrentTasks > 0
+      ? maxConcurrentTasks
+      : 4,
+    output: nonEmpty(manager.output) ?? '.aafe',
+    validateProjectRuntime: normalizeBoolean(manager.validateProjectRuntime, true),
+    recoverOnStart: normalizeBoolean(manager.recoverOnStart, true)
   };
 }
 

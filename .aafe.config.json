@@ -179,6 +179,13 @@
     "repository": null,
     "autoCreatePR": false,
     "skipReviewerRequest": true,
+    "manager": {
+      "enabled": false,
+      "maxConcurrentTasks": 4,
+      "output": ".aafe",
+      "validateProjectRuntime": true,
+      "recoverOnStart": true
+    },
     "mcp": {
       "enabled": true,
       "config": null,

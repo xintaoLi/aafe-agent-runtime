@@ -127,3 +127,12 @@
 {"path":"src/cli/repoSubmit.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-02T07:53:01.706Z"}
 {"path":"src/cli/repoSubmitRules.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-02T07:53:01.708Z"}
 {"path":"src/cli/taskSpine.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-02T08:24:24.268Z"}
+{"path":"src/agent-platform/tasks/TaskState.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:13:37.775Z"}
+{"path":"src/agent-platform/tasks/TaskStore.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:13:37.776Z"}
+{"path":"src/agent-platform/tasks/TaskScheduler.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:13:37.777Z"}
+{"path":"src/agent-platform/tasks/TaskManager.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:13:37.777Z"}
+{"path":"src/agent-platform/tasks/index.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:13:37.778Z"}
+{"path":"src/agent-platform/runtime/CursorTaskRuntime.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:13:37.778Z"}
+{"path":"src/agent-platform/runtime/CloudProjectReadiness.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:13:37.778Z"}
+{"path":"src/cli/tasks.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:13:37.779Z"}
+{"path":"scripts/test-task-manager.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:13:37.779Z"}

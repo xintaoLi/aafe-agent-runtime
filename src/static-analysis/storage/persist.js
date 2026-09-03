@@ -75,7 +75,7 @@ const LEGACY_MODULE_FILES = [
  * Directories under analyze.output that `--force` must not wipe.
  * E2E reports/auth and planner run history live beside analysis facts.
  */
-export const PRESERVED_ANALYZE_OUTPUT_DIRS = ['e2e', 'runs'];
+export const PRESERVED_ANALYZE_OUTPUT_DIRS = ['e2e', 'runs', 'tasks'];
 
 export class AnalysisStorage {
   plan(context) {

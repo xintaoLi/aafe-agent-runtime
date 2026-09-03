@@ -26,6 +26,7 @@ import path from 'node:path';
 
 import {
   defaultAgentModeConfig,
+  defaultAgentManagerConfig,
   isAgentModeEnabled,
   normalizeAgentEnabled,
   normalizeCursorMode,
@@ -52,7 +53,8 @@ assert.deepEqual(defaultAgentModeConfig(), {
   repository: null,
   autoCreatePR: false,
   skipReviewerRequest: true,
-  mcp: defaultAgentMcpConfig()
+  mcp: defaultAgentMcpConfig(),
+  manager: defaultAgentManagerConfig()
 });
 
 assert.equal(normalizeAgentEnabled('on'), true);
@@ -62,6 +64,13 @@ assert.equal(normalizeAgentEnabled(undefined, true), true);
 assert.equal(normalizeCursorMode('cloud'), 'cloud');
 assert.equal(normalizeCursorMode('unknown'), 'local');
 assert.equal(isAgentModeEnabled({ enabled: 'yes' }), true);
+assert.deepEqual(defaultAgentManagerConfig(), {
+  enabled: false,
+  maxConcurrentTasks: 4,
+  output: '.aafe',
+  validateProjectRuntime: true,
+  recoverOnStart: true
+});
 
 assert.deepEqual(resolveAgentModeConfig({}), defaultAgentModeConfig());
 assert.deepEqual(resolveAgentModeConfig({
@@ -81,6 +90,20 @@ assert.deepEqual(resolveAgentModeConfig({
 
 assert.equal(resolveAgentModeConfig({ agent: { enabled: true } }, { enabled: false }).enabled, false);
 assert.equal(resolveAgentModeConfig({}, { agentMode: 'enabled' }).enabled, true);
+assert.deepEqual(resolveAgentModeConfig({
+  agent: {
+    manager: {
+      enabled: true,
+      maxConcurrentTasks: 7,
+      output: '.tasks'
+    }
+  }
+}).manager, {
+  ...defaultAgentManagerConfig(),
+  enabled: true,
+  maxConcurrentTasks: 7,
+  output: '.tasks'
+});
 
 const disabled = resolveAgentsConfig({}, { agent: { enabled: false } });
 assert.equal(disabled.config.developer.provider, 'ide');

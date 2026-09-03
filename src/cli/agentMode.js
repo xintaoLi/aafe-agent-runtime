@@ -40,7 +40,18 @@ export function defaultAgentModeConfig() {
     repository: null,
     autoCreatePR: false,
     skipReviewerRequest: true,
-    mcp: defaultAgentMcpConfig()
+    mcp: defaultAgentMcpConfig(),
+    manager: defaultAgentManagerConfig()
+  };
+}
+
+export function defaultAgentManagerConfig() {
+  return {
+    enabled: false,
+    maxConcurrentTasks: 4,
+    output: '.aafe',
+    validateProjectRuntime: true,
+    recoverOnStart: true
   };
 }
 
@@ -89,7 +100,37 @@ export function resolveAgentModeConfig(projectConfig = {}, overrides = {}) {
       config: overrides.mcpConfig,
       settingSources: overrides.mcpSettingSources,
       servers: overrides.mcpServers ?? overrides.servers
+    }),
+    manager: resolveAgentManagerConfig(fromConfig.manager, overrides.manager ?? {
+      enabled: overrides.managerEnabled,
+      maxConcurrentTasks: overrides.maxConcurrentTasks,
+      output: overrides.taskOutput,
+      validateProjectRuntime: overrides.validateProjectRuntime,
+      recoverOnStart: overrides.recoverOnStart
     })
+  };
+}
+
+export function resolveAgentManagerConfig(raw = {}, overrides = {}) {
+  const fromConfig = raw && typeof raw === 'object' ? raw : {};
+  const defaults = defaultAgentManagerConfig();
+  return {
+    ...defaults,
+    ...fromConfig,
+    enabled: normalizeAgentEnabled(overrides.enabled ?? fromConfig.enabled, defaults.enabled),
+    maxConcurrentTasks: positiveInteger(
+      overrides.maxConcurrentTasks ?? fromConfig.maxConcurrentTasks,
+      defaults.maxConcurrentTasks
+    ),
+    output: nonEmpty(overrides.output ?? fromConfig.output) ?? defaults.output,
+    validateProjectRuntime: normalizeAgentEnabled(
+      overrides.validateProjectRuntime ?? fromConfig.validateProjectRuntime,
+      defaults.validateProjectRuntime
+    ),
+    recoverOnStart: normalizeAgentEnabled(
+      overrides.recoverOnStart ?? fromConfig.recoverOnStart,
+      defaults.recoverOnStart
+    )
   };
 }
 
@@ -107,4 +148,9 @@ export function isAgentModeEnabled(configOrMode) {
 function nonEmpty(value) {
   const text = String(value ?? '').trim();
   return text || null;
+}
+
+function positiveInteger(value, fallback) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 }

@@ -45,6 +45,12 @@ export { validateSchema, formatSchemaErrors } from './schema/validate.js';
 export { coerceToSchema, coerceAndValidate, buildRepairPrompt } from './schema/repair.js';
 export * from './protocol/request.js';
 export * from './protocol/response.js';
+export * from './tasks/index.js';
+export { CursorTaskRuntime } from './runtime/CursorTaskRuntime.js';
+export {
+  inspectCloudProjectReadiness,
+  assertCloudProjectReadiness
+} from './runtime/CloudProjectReadiness.js';
 
 /**
  * Assemble the full platform for a project root.

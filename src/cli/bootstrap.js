@@ -262,7 +262,13 @@ async function writeConfig(root, _detection, options, plan) {
     mcp: options.agentModeConfig?.mcp,
     mcpEnabled: options.mcpEnabled,
     mcpConfig: options.mcpConfig,
-    mcpSettingSources: options.mcpSettingSources
+    mcpSettingSources: options.mcpSettingSources,
+    manager: options.agentModeConfig?.manager,
+    managerEnabled: options.agentManager,
+    maxConcurrentTasks: options.maxConcurrentTasks,
+    taskOutput: options.taskOutput,
+    validateProjectRuntime: options.validateProjectRuntime,
+    recoverOnStart: options.recoverOnStart
   });
 
   if (existingConfig.taskCompletion && !config.taskCompletion) {
