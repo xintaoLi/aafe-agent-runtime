@@ -34,5 +34,11 @@ uses `sendMessage` (`aibot_send_msg`) to the conversation recorded on `task.sour
 Gateway never calls `Agent.create`. It only uses `TaskManager.create / start /
 continue / cancel / get / list / subscribe / initialize`.
 
+Inbound text is classified without an LLM. Explicit commands win. Remaining
+text is `help` / `ack` / new-work / follow-up / generic work. Session binding
+uses unfinished tasks in the current conversation: one task absorbs follow-up
+and generic work; TAPD / `【标题】` / work verbs always create; two or more
+open tasks still require an explicit Task ID.
+
 Credentials stay in `WECOM_BOT_ID` and `WECOM_BOT_SECRET`. The published
 `@aafe/agent-runtime` package does not take a hard dependency on the WeCom SDK.

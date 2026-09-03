@@ -25,3 +25,4 @@
 - [x] W2 continue/status/cancel/list and aibot_send_msg notify
 - [x] W3 resident initialize/recover, single-connection kick, aafe wecom
 - [x] Unit tests for commands, resolver, notify, dedup
+- [x] W4 implicit intent routing for TAPD / freeform / single-task continue

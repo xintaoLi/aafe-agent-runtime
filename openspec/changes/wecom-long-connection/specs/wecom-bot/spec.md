@@ -41,12 +41,39 @@ execution finishes.
 - THEN it creates a TaskManager task, replies the Task ID with finish=true, and starts the task asynchronously
 
 ### Requirement: Explicit continue
-Continue MUST require an explicit Task ID and MUST NOT guess the latest task.
+Continue with an explicit Task ID MUST target that task. Implicit continue
+MAY bind to the only unfinished task in the current conversation and MUST
+ask for a Task ID when zero or multiple unfinished tasks exist.
 
-#### Scenario: Continue without id
-- GIVEN a conversation that already has unfinished tasks
+#### Scenario: Continue without id and multiple open tasks
+- GIVEN a conversation that already has two unfinished tasks
 - WHEN the user sends `继续`
 - THEN the bot asks for a Task ID and does not create or continue a task
+
+#### Scenario: Continue without id and one open task
+- GIVEN a conversation that has exactly one unfinished task T001
+- WHEN the user sends `继续`
+- THEN the bot asks for supplement text using T001 and does not create a task
+
+### Requirement: Implicit intent routing
+Unprefixed text MUST be classified before ACK. TAPD links and new-work
+signals MUST create a task. Follow-up text MUST continue the only open
+conversation task. Greetings MUST stay on help.
+
+#### Scenario: TAPD paste creates a task
+- GIVEN no unfinished task in the conversation
+- WHEN the user sends a TAPD story title and URL without `做：`
+- THEN the bot creates a TaskManager task, replies the Task ID, and starts it asynchronously
+
+#### Scenario: Follow-up continues the only open task
+- GIVEN the conversation has exactly one unfinished task
+- WHEN the user sends `加上单测`
+- THEN the bot continues that task and does not create a new one
+
+#### Scenario: New TAPD during an open task
+- GIVEN the conversation has one unfinished task
+- WHEN the user pastes another TAPD URL
+- THEN the bot creates a new task instead of continuing the old one
 
 ### Requirement: Async completion notify
 Task completion MUST be pushed with aibot_send_msg and MUST NOT keep the original

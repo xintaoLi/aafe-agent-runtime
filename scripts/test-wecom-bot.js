@@ -26,6 +26,7 @@ import path from 'node:path';
 import { parseWeComArgs } from '../src/cli/wecom.js';
 import { startWeComBot } from '../ai-bots/wecom/src/index.js';
 import { parseWeComCommand, stripMentions } from '../ai-bots/wecom/src/commands.js';
+import { analyzeWeComIntent } from '../ai-bots/wecom/src/intent.js';
 import { createTaskManagerOptions, loadWeComBotConfig } from '../ai-bots/wecom/src/config.js';
 import { createMessageDedup } from '../ai-bots/wecom/src/dedup.js';
 import { createWeComGateway } from '../ai-bots/wecom/src/gateway.js';
@@ -54,8 +55,29 @@ assert.deepEqual(parseWeComCommand('状态 T001'), { type: 'status', taskId: 'T0
 assert.deepEqual(parseWeComCommand('取消 T001'), { type: 'cancel', taskId: 'T001' });
 assert.deepEqual(parseWeComCommand('列表'), { type: 'list' });
 assert.equal(parseWeComCommand('继续').type, 'ambiguous-continue');
-assert.equal(parseWeComCommand('你好').type, 'help');
+assert.deepEqual(parseWeComCommand('继续：改样式'), {
+  type: 'implicit-continue',
+  message: '改样式'
+});
+assert.equal(parseWeComCommand('状态').type, 'implicit-status');
+assert.equal(parseWeComCommand('取消').type, 'implicit-cancel');
+assert.deepEqual(parseWeComCommand('你好'), { type: 'freeform', text: '你好' });
 assert.equal(parseWeComCommand('做：').type, 'help');
+assert.equal(analyzeWeComIntent('你好').type, 'help');
+assert.equal(analyzeWeComIntent('谢谢').type, 'ack');
+assert.equal(analyzeWeComIntent('怎么样了').type, 'implicit-status');
+assert.deepEqual(analyzeWeComIntent('加上单测'), {
+  type: 'implicit-route',
+  text: '加上单测',
+  prefer: 'follow'
+});
+const tapdPaste = '【日志检索结果复制按钮失效，点击后没有复制到内容】 https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081137887277';
+assert.deepEqual(analyzeWeComIntent(tapdPaste), {
+  type: 'implicit-route',
+  text: tapdPaste,
+  prefer: 'new'
+});
+assert.equal(analyzeWeComIntent('登录页按钮颜色需要改成品牌色').prefer, 'work');
 
 const textFrame = {
   headers: { req_id: 'req-1' },
@@ -175,6 +197,7 @@ const missingRepo = await resolveWeComAction(
 assert.equal(missingRepo.type, 'created');
 assert.equal(missingRepo.start, true);
 assert.equal(missingRepo.task.repository, null);
+missingRepo.task.status = 'completed';
 
 manager.tasks[0].status = 'running';
 manager.tasks.push({
@@ -183,13 +206,29 @@ manager.tasks.push({
   source: { type: 'wecom', conversationId: 'chat-x', userId: 'user-a' },
   goal: 'other'
 });
+const singleContinue = await resolveWeComAction(
+  { type: 'ambiguous-continue' },
+  { source: sourceFromFrame(textFrame) },
+  manager
+);
+assert.equal(singleContinue.type, 'error');
+assert.match(singleContinue.message, new RegExp(created.task.id));
+assert.match(singleContinue.message, /请补充内容/);
+
+manager.tasks.push({
+  id: 'task-same-chat',
+  status: 'running',
+  source: { type: 'wecom', conversationId: 'user-a', userId: 'user-a' },
+  goal: 'same chat'
+});
 const ambiguous = await resolveWeComAction(
   { type: 'ambiguous-continue' },
   { source: sourceFromFrame(textFrame) },
   manager
 );
-assert.match(ambiguous.message, /必须带显式 Task ID/);
+assert.match(ambiguous.message, /多个未结束任务/);
 assert.equal(ambiguous.message.includes(created.task.id), true);
+assert.equal(ambiguous.message.includes('task-same-chat'), true);
 assert.equal(ambiguous.message.includes('task-other'), false);
 
 const listed = await resolveWeComAction({ type: 'list' }, { source: sourceFromFrame(textFrame) }, manager);
@@ -225,6 +264,56 @@ await handleWeComMessage({
   dedup: createMessageDedup()
 });
 assert.equal(helpReplies[0], HELP_TEXT);
+
+const tapdReplies = [];
+const tapdStarted = [];
+const tapdHandled = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'tapd-1', text: { content: tapdPaste } }
+}, {
+  manager: createFakeManager({ onStart(id) { tapdStarted.push(id); } }),
+  replyAck: async (_frame, content) => { tapdReplies.push(content); },
+  config: { repository: 'owner/repo', baseBranch: 'main' },
+  dedup: createMessageDedup()
+});
+assert.equal(tapdHandled.action.type, 'created');
+assert.equal(tapdHandled.action.task.requirement, tapdPaste);
+assert.equal(tapdReplies[0].includes(tapdHandled.action.task.id), true);
+await delay(10);
+assert.deepEqual(tapdStarted, [tapdHandled.action.task.id]);
+
+const followManager = createFakeManager();
+const existing = await followManager.create({
+  id: 'task-open-1',
+  status: 'running',
+  source: sourceFromFrame(textFrame),
+  goal: '旧任务'
+});
+existing.status = 'running';
+const followHandled = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'follow-1', text: { content: '加上单测' } }
+}, {
+  manager: followManager,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(followHandled.action.type, 'continue');
+assert.equal(followHandled.action.task.id, 'task-open-1');
+assert.equal(followHandled.action.message, '加上单测');
+
+const newDuringOpen = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'new-1', text: { content: tapdPaste } }
+}, {
+  manager: followManager,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo', baseBranch: 'main' },
+  dedup: createMessageDedup()
+});
+assert.equal(newDuringOpen.action.type, 'created');
+assert.notEqual(newDuringOpen.action.task.id, 'task-open-1');
 
 const notifyTask = {
   id: 'task-done',
