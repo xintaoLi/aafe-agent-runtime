@@ -224,12 +224,19 @@ async function testLayeredInit() {
       yes: true,
       force: true,
       editors: 'cursor',
+      sddEnabled: true,
       workspaceLayout: layout
     });
 
     const config = JSON.parse(await readFile(path.join(installRoot, '.aafe.config.json'), 'utf8'));
     assert.equal(config.workspace.layeredEditors, true);
     assert.equal(config.workspace.moduleName, 'web');
+    assert.deepEqual(config.sdd, {
+      enabled: true,
+      root: 'openspec',
+      schema: 'spec-driven',
+      approvalRequired: true
+    });
 
     const rule = await readFile(path.join(root, '.cursor/rules/web/aafe-skill-router.mdc'), 'utf8');
     assert.match(rule, /bklog\/web\/\.ai-agent\/skill-index\.md/);
@@ -245,7 +252,10 @@ async function testLayeredInit() {
     assert.equal(manifest.docsPrefix, 'bklog/web/.docs');
 
     assert.equal(await exists(path.join(installRoot, '.ai-agent')), true);
+    assert.equal(await exists(path.join(installRoot, '.ai-agent/sdd/SKILL.md')), true);
     assert.equal(await exists(path.join(root, '.ai-agent')), false);
+    const sddRule = await readFile(path.join(root, '.cursor/rules/web/aafe-sdd-gate.mdc'), 'utf8');
+    assert.match(sddRule, /bklog\/web\/\.ai-agent\/sdd\/SKILL\.md/);
 
     const fromPr = await readFile(path.join(root, '.cursor/skills/web/aafe-test-from-pr/SKILL.md'), 'utf8');
     assert.match(fromPr, /aafe test --pr/);

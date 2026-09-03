@@ -70,7 +70,8 @@ export class TaskManager {
       source: input.source,
       repository: normalizeRepository(input.repository, input.baseBranch),
       baseBranch: input.baseBranch,
-      taskBranch: input.taskBranch
+      taskBranch: input.taskBranch,
+      sdd: input.sdd
     }, context);
     this.#publish({ type: 'task.created', taskId: task.id, task });
     return task;
@@ -85,6 +86,9 @@ export class TaskManager {
     const task = await this.#require(taskId);
     if (task.status === 'running' || this.scheduler.has(taskId)) {
       throw new Error(`task-already-active:${taskId}`);
+    }
+    if (task.sdd && !isSDDReadyForExecution(task.sdd)) {
+      throw new Error(`task-sdd-not-ready:${taskId}:${task.sdd.status ?? 'unknown'}`);
     }
     if (!['created', 'ready', 'waiting', 'failed', 'cancelled', 'blocked', 'completed'].includes(task.status)) {
       throw new Error(`task-not-runnable:${taskId}:${task.status}`);
@@ -380,4 +384,10 @@ function buildTaskPrompt(task, context) {
     '',
     'Preserve existing behavior and unrelated user changes. Run focused verification and report the result.'
   ].filter(Boolean).join('\n');
+}
+
+function isSDDReadyForExecution(sdd) {
+  if (!['ready', 'implementing', 'verifying', 'verified', 'synced'].includes(sdd.status)) return false;
+  if (sdd.validation?.valid !== true || sdd.validation.revision !== sdd.revision) return false;
+  return Boolean(sdd.approval && sdd.approval.revision === sdd.revision);
 }

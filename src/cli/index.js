@@ -29,6 +29,7 @@ import {
 } from './platform.js';
 import { runRepoPrCommand } from './repoSubmit.js';
 import { runTaskCommand } from './tasks.js';
+import { runSDDCommand } from './sdd.js';
 
 export async function runCli(argv) {
   const command = argv[2] ?? 'help';
@@ -186,6 +187,11 @@ export async function runCli(argv) {
     return;
   }
 
+  if (command === 'sdd' || command === 'openspec') {
+    await runSDDCommand(process.cwd(), argv.slice(3));
+    return;
+  }
+
   // `run` now drives the Planner + Orchestrator. The former skill-pipeline
   // behaviour moved to `pipeline`, still reachable via `run --legacy`.
   if (command === 'run' || command === 'execute' || command === 'pipeline') {
@@ -255,6 +261,11 @@ function parseOptions(args) {
     if (arg.startsWith('--task-output=')) options.taskOutput = arg.slice('--task-output='.length);
     if (arg === '--no-agent-readiness-check') options.validateProjectRuntime = false;
     if (arg === '--no-agent-recovery') options.recoverOnStart = false;
+    if (arg === '--sdd') options.sddEnabled = true;
+    if (arg === '--no-sdd') options.sddEnabled = false;
+    if (arg.startsWith('--sdd-root=')) options.sddRoot = arg.slice('--sdd-root='.length);
+    if (arg.startsWith('--sdd-schema=')) options.sddSchema = arg.slice('--sdd-schema='.length);
+    if (arg === '--no-sdd-approval') options.sddApprovalRequired = false;
     if (arg.startsWith('--cursor-api-key-env=')) options.cursorApiKeyEnv = arg.slice('--cursor-api-key-env='.length);
     if (arg.startsWith('--cursor-model=')) options.cursorModel = arg.slice('--cursor-model='.length);
     if (arg.startsWith('--cursor-runtime=')) options.cursorRuntime = arg.slice('--cursor-runtime='.length);
@@ -322,6 +333,10 @@ Init options:
   --agent-manager[=on|off]  Enable durable Cursor Cloud task management
   --max-concurrent-tasks=N  Maximum managed Cloud tasks running at once (default: 4)
   --task-output=<path>      Managed task state root (default: .aafe)
+  --sdd / --no-sdd         Enable or disable automatic SDD task gating
+  --sdd-root=<path>         OpenSpec project root (default: openspec)
+  --sdd-schema=<name>       SDD artifact schema (core supports spec-driven)
+  --no-sdd-approval        Do not require explicit artifact approval
   --cursor-api-key-env=CURSOR_API_KEY  Env var name used by Cursor SDK (default)
   --cursor-model=<id>      Cursor model for agent mode (default: composer-2.5)
   --cursor-runtime=local|cloud  Cursor SDK runtime for agent mode
@@ -391,6 +406,8 @@ Agent platform (context / impact / plan / run):
   aafe diagnose --failure=<report.json|log.txt> [--diff[=<ref>]]
   aafe task create --requirement="..." --repository=<url> [--base-branch=main] [--no-run]
   aafe task list | status <taskId> | continue <taskId> "<message>" | cancel <taskId> | recover
+  aafe sdd create [--task-id=<id>|--requirement="..."] [--change=<id>] [--slug=<slug>]
+  aafe sdd status|propose|spec|design|tasks|validate|approve|apply-context|trace|revisions|verify|sync|archive <taskId>
   aafe pipeline "<task>"           Legacy skill pipeline (alias: aafe run --legacy)
   --no-write                       Do not persist the run under <output>/runs/
   --no-ide-agent                   Do not hand unserved capabilities to the IDE agent

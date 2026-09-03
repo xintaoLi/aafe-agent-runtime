@@ -33,6 +33,7 @@ export { detectAntiPatterns, ANTI_PATTERN_CATALOG, ANTI_PATTERN_RULES } from './
 export { PATTERN_DOMAINS, PATTERN_INDEX, PATTERN_BY_ID, RULE_BY_ID } from './patterns/catalog.js';
 export { detectProject } from './cli/detect.js';
 export { bootstrapProject } from './cli/bootstrap.js';
+export { defaultSDDConfig, resolveSDDConfig } from './cli/sddConfig.js';
 export { analyzeProjectArchitecture } from './cli/analyze.js';
 export { discoverProjectEntries } from './static-analysis/entryDiscover.js';
 export { AnalyzeOrchestrator } from './static-analysis/orchestrator.js';
@@ -57,6 +58,16 @@ export {
   initializeTaskManager,
   createTaskId,
   TASK_STATUSES,
+  SDDEngine,
+  SDDStore,
+  SDDValidator,
+  OpenSpecAdapter,
+  createSDDEngine,
+  SDD_CHANGE_STATUSES,
+  SDD_ARTIFACT_GRAPH,
+  parseOpenSpecDelta,
+  parseOpenSpecRequirements,
+  mergeOpenSpecDelta,
   CursorTaskRuntime,
   inspectCloudProjectReadiness,
   assertCloudProjectReadiness,

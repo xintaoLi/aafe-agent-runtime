@@ -6,6 +6,7 @@ import { AGENTS_CONFIG_FILE, loadAgentsConfig } from '../agent-platform/config/a
 import { createRegistryFromConfig } from '../agent-platform/registry/AgentRegistry.js';
 import { dddRuntimePaths } from './dddRuntimeFiles.js';
 import { patternRuntimePaths } from './patternRuntimeFiles.js';
+import { sddRuntimePaths } from './sddRuntimeFiles.js';
 import { memoryDiagnosisRuntimePaths } from './memoryDiagnosisRuntimeFiles.js';
 import { inspectPlaywrightSetup } from './e2eSetup.js';
 import { isE2eEnabled } from '../testing/e2e/config.js';
@@ -72,6 +73,9 @@ export async function doctorProject(root) {
   const layered = Boolean(projectConfig.workspace?.layeredEditors ?? projectConfig.workspace?.layeredCursor);
   const cursorLayout = resolveEditorPathsFromConfig(root, projectConfig, 'cursor');
   const files = [...requiredFiles];
+  if (projectConfig.sdd?.enabled === true) {
+    files.push(...sddRuntimePaths('.ai-agent'));
+  }
   if (projectConfig.editors?.includes('cursor')) {
     if (cursorLayout.layered) {
       const { paths, moduleName } = cursorLayout;
@@ -83,6 +87,9 @@ export async function doctorProject(root) {
         path.join('.cursor', 'rules', moduleName, 'aafe-tapd-submit-backfill.mdc'),
         path.join('.cursor', 'rules', moduleName, 'aafe-workflow-mode.mdc'),
         path.join('.cursor', 'rules', moduleName, 'aafe-new-file-license.mdc'),
+        ...(projectConfig.sdd?.enabled === true
+          ? [path.join('.cursor', 'rules', moduleName, 'aafe-sdd-gate.mdc')]
+          : []),
         path.join('.cursor', 'skills', moduleName, 'aafe-runtime', 'SKILL.md'),
         path.join('.cursor', 'skills', moduleName, 'aafe-test-from-pr', 'SKILL.md'),
         path.join('.cursor', 'rules', moduleName, 'aafe-test-from-pr.mdc'),
@@ -96,6 +103,7 @@ export async function doctorProject(root) {
       }
     } else {
       files.push('.cursor/rules/aafe-skill-router.mdc', '.cursor/rules/aafe-architecture-runtime.mdc', '.cursor/rules/aafe-requirement-intake-analysis.mdc', '.cursor/rules/aafe-task-completion-impact.mdc', '.cursor/rules/aafe-tapd-submit-backfill.mdc', '.cursor/rules/aafe-workflow-mode.mdc', '.cursor/rules/aafe-new-file-license.mdc', '.cursor/rules/aafe-test-from-pr.mdc', '.cursor/skills/aafe-runtime/SKILL.md', '.cursor/skills/aafe-test-from-pr/SKILL.md', '.cursor/hooks.json', '.cursor/hooks/run-hook.cmd', '.cursor/hooks/aafe-session-start');
+      if (projectConfig.sdd?.enabled === true) files.push('.cursor/rules/aafe-sdd-gate.mdc');
       if (projectConfig.taskCompletion?.enabled) files.push('.cursor/hooks/aafe-task-completion');
     }
   }
@@ -233,6 +241,18 @@ export async function doctorProject(root) {
   }
   if (skillIndex && !skillIndex.includes('architecture-on-demand')) warnings.push('.ai-agent/skill-index.md does not mention architecture-on-demand loading');
   if (skillIndex && !skillIndex.includes('workflow-mode')) warnings.push('.ai-agent/skill-index.md does not mention workflow-mode; run aafe update');
+  if (projectConfig.sdd?.enabled === true) {
+    if (projectConfig.sdd.schema && projectConfig.sdd.schema !== 'spec-driven') {
+      warnings.push(`sdd.schema "${projectConfig.sdd.schema}" is not supported by the core runtime; use "spec-driven"`);
+    }
+    const sddRoot = path.resolve(root, projectConfig.sdd.root ?? 'openspec');
+    if (sddRoot !== root && !sddRoot.startsWith(`${path.resolve(root)}${path.sep}`)) {
+      warnings.push('sdd.root must stay inside the project root');
+    }
+    if (skillIndex && !skillIndex.includes('.ai-agent/sdd/SKILL.md')) {
+      warnings.push('.ai-agent/skill-index.md does not mention the SDD source of truth; run aafe update');
+    }
+  }
   if (skillIndex && /npx uitest|@aafe\/ai-test/.test(skillIndex) && !skillIndex.includes('Do not install or run')) {
     warnings.push('.ai-agent/skill-index.md still points at uitest; run aafe update so PR E2E uses aafe test --pr');
   }

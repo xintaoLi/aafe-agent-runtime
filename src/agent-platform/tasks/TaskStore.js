@@ -62,6 +62,7 @@ export class TaskStore {
         activeRunId: partial.cursor?.activeRunId ?? null,
         runs: clone(partial.cursor?.runs ?? [])
       },
+      sdd: clone(partial.sdd ?? null),
       result: clone(partial.result ?? null),
       error: partial.error ?? null,
       createdAt: partial.createdAt ?? now,
@@ -111,6 +112,7 @@ export class TaskStore {
         ...clone(patch ?? {}),
         id,
         cursor: patch?.cursor ? { ...current.cursor, ...clone(patch.cursor) } : current.cursor,
+        sdd: patch?.sdd ? { ...(current.sdd ?? {}), ...clone(patch.sdd) } : current.sdd,
         updatedAt: new Date().toISOString()
       };
       await atomicJsonWrite(this.#file(id, TASK_FILE), next);

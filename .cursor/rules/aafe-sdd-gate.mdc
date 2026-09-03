@@ -1,0 +1,12 @@
+---
+description: AAFE SDD / OpenSpec opt-in gate pointer
+alwaysApply: true
+---
+
+# AAFE SDD Gate
+
+Source of truth: `.ai-agent/sdd/SKILL.md`.
+
+SDD is part of the feature workflow and is enabled by default. When
+`.aafe.config.json → sdd.enabled` is not false, load `.ai-agent/sdd/SKILL.md`.
+An explicit `aafe sdd` command also activates it. `sdd.enabled: false` is the project opt-out.

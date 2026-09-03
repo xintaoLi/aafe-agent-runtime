@@ -49,13 +49,21 @@ const parsedManager = parseUpdateOptions([
   '--max-concurrent-tasks=8',
   '--task-output=.agent-state',
   '--no-agent-readiness-check',
-  '--no-agent-recovery'
+  '--no-agent-recovery',
+  '--sdd',
+  '--sdd-root=specifications',
+  '--sdd-schema=spec-driven',
+  '--no-sdd-approval'
 ]);
 assert.equal(parsedManager.agentManager, true);
 assert.equal(parsedManager.maxConcurrentTasks, 8);
 assert.equal(parsedManager.taskOutput, '.agent-state');
 assert.equal(parsedManager.validateProjectRuntime, false);
 assert.equal(parsedManager.recoverOnStart, false);
+assert.equal(parsedManager.sddEnabled, true);
+assert.equal(parsedManager.sddRoot, 'specifications');
+assert.equal(parsedManager.sddSchema, 'spec-driven');
+assert.equal(parsedManager.sddApprovalRequired, false);
 
 assert.deepEqual(resolveForceAnalyzeDecision({}, { isTTY: false }), { forceAnalyze: true, shouldPrompt: false });
 assert.deepEqual(resolveForceAnalyzeDecision({}, { isTTY: true }), { forceAnalyze: true, shouldPrompt: true });

@@ -140,6 +140,7 @@
     }
   },
   "gates": [
+    "sdd_gate",
     "ddd_enablement_gate",
     "ddd_gate",
     "architecture_gate",
@@ -168,6 +169,12 @@
   },
   "mode": {
     "workflow": "ask"
+  },
+  "sdd": {
+    "enabled": true,
+    "root": "openspec",
+    "schema": "spec-driven",
+    "approvalRequired": true
   },
   "agent": {
     "enabled": false,

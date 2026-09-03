@@ -58,6 +58,12 @@ Entity, Aggregate, Repository, Service, Domain or Clean Architecture appearing i
 is never enough. Start at `.ai-agent/ddd/rules/ddd-gate.md`, or run `aafe ddd gate "<request>"`;
 if the gate says disabled, do not read any other file under `.ai-agent/ddd/`.
 
+## SDD is part of feature delivery
+
+Load `.ai-agent/sdd/**` for feature work unless `.aafe.config.json → sdd.enabled` is explicitly
+false. Explicit SDD/OpenSpec/spec-driven work and `aafe sdd` commands also activate it. Start at
+`.ai-agent/sdd/SKILL.md`; SDD planning is fused into the feature pipeline rather than routed separately.
+
 ## Frontend design patterns are opt-in
 
 Load `.ai-agent/frontend-engineering/**` **only** when the user explicitly asks for design-pattern
@@ -89,6 +95,7 @@ not on `PATH`; if neither resolves, fall back to reading files and say so.
 | Reporting blast radius after a change | `aafe impact --diff` or `aafe impact --requirement="<text>"` |
 | Deciding whether DDD applies | `aafe ddd gate "<request>"`, then `aafe ddd scope` |
 | Deciding whether design patterns apply | `aafe pattern gate "<request>"`, then `aafe pattern discover` |
+| Managing an SDD/OpenSpec change | `aafe sdd create|status|validate|approve|apply-context|sync|archive` |
 | Planning tests for a change | `aafe test --diff` or `aafe test --requirement="<text>"` |
 | Full functional coverage from analyze | `aafe test --coverage` |
 | Generate cases from a PR vs its target branch | `aafe test --pr=<url>` |

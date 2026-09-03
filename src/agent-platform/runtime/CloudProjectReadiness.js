@@ -39,6 +39,9 @@ export async function inspectCloudProjectReadiness(root = process.cwd(), options
     layout.cursorRule,
     layout.cursorSkill
   ];
+  if (config.sdd?.enabled === true) {
+    required.push(layout.sddSkill, layout.cursorSddRule);
+  }
   const missing = [];
   for (const file of required) {
     if (!(await exists(path.join(layout.gitRoot, file)))) missing.push(file);
@@ -52,6 +55,12 @@ export async function inspectCloudProjectReadiness(root = process.cwd(), options
   }
   if (skill && !skill.includes(layout.agentPrefix)) {
     invalid.push(`${layout.cursorSkill}:missing-ai-agent-pointer`);
+  }
+  if (config.sdd?.enabled === true) {
+    const sddRule = await safeRead(path.join(layout.gitRoot, layout.cursorSddRule));
+    if (sddRule && !sddRule.includes(layout.sddSkill)) {
+      invalid.push(`${layout.cursorSddRule}:missing-sdd-skill-pointer`);
+    }
   }
 
   let tracked = [];
@@ -115,12 +124,16 @@ function resolveLayout(root, config) {
     agentPrefix,
     skillIndex: `${agentPrefix}/skill-index.md`,
     projectEntry: `${agentPrefix}/project.md`,
+    sddSkill: `${agentPrefix}/sdd/SKILL.md`,
     cursorRule: layered
       ? `.cursor/rules/${moduleName}/aafe-skill-router.mdc`
       : '.cursor/rules/aafe-skill-router.mdc',
     cursorSkill: layered
       ? `.cursor/skills/${moduleName}/aafe-runtime/SKILL.md`
-      : '.cursor/skills/aafe-runtime/SKILL.md'
+      : '.cursor/skills/aafe-runtime/SKILL.md',
+    cursorSddRule: layered
+      ? `.cursor/rules/${moduleName}/aafe-sdd-gate.mdc`
+      : '.cursor/rules/aafe-sdd-gate.mdc'
   };
 }
 

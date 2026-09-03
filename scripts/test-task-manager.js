@@ -220,6 +220,20 @@ try {
   readiness = await assertCloudProjectReadiness(readyRoot);
   assert.equal(readiness.ready, true);
   assert.equal(readiness.activation, 'cursor-project-native');
+
+  await writeFile(path.join(readyRoot, '.aafe.config.json'), JSON.stringify({ sdd: { enabled: true } }));
+  readiness = await inspectCloudProjectReadiness(readyRoot);
+  assert.equal(readiness.ready, false);
+  assert.ok(readiness.missing.includes('.ai-agent/sdd/SKILL.md'));
+  await mkdir(path.join(readyRoot, '.ai-agent/sdd'), { recursive: true });
+  await writeFile(path.join(readyRoot, '.ai-agent/sdd/SKILL.md'), '# SDD');
+  await writeFile(
+    path.join(readyRoot, '.cursor/rules/aafe-sdd-gate.mdc'),
+    'Source of truth: `.ai-agent/sdd/SKILL.md`.'
+  );
+  await execFileAsync('git', ['add', '.'], { cwd: readyRoot });
+  readiness = await assertCloudProjectReadiness(readyRoot);
+  assert.equal(readiness.ready, true);
 } finally {
   await rm(fixture, { recursive: true, force: true });
 }

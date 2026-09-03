@@ -26,6 +26,7 @@ import {
   aafeTestFromPrPointerRuleMdc,
   AAFE_TEST_FROM_PR_SKILL_DIR
 } from './e2eFromPrRules.js';
+import { sddPointerRuleMdc } from './sddRuntimeFiles.js';
 import { taskSpineHookContext, taskSpinePointerLine } from './taskSpine.js';
 import {
   createCursorPathContext,
@@ -103,6 +104,7 @@ export async function writeLayeredCursorAdapters({
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-tapd-submit-backfill.mdc'), tapdSubmitRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-workflow-mode.mdc'), workflowModePointerRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-new-file-license.mdc'), fileLicenseRuleMdc(ctx), options);
+  await writeIfAllowed(path.join(paths.rulesDir, 'aafe-sdd-gate.mdc'), sddPointerRuleMdc({ agentPrefix: ctx.agentPrefix }), options);
   await writeIfAllowed(path.join(paths.rulesDir, 'aafe-test-from-pr.mdc'), aafeTestFromPrPointerRuleMdc(ctx), options);
   await writeIfAllowed(path.join(paths.skillsDir, 'aafe-runtime', 'SKILL.md'), nativeEditorSkill('Cursor', ctx), options);
   await writeIfAllowed(

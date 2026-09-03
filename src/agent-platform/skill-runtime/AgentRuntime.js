@@ -9,10 +9,11 @@ import { evaluatePatternGate } from '../../patterns/PatternGate.js';
 import { evaluateMemoryOOMGate } from '../../memory-diagnosis/MemoryOOMGate.js';
 
 export class AgentRuntime {
-  constructor({ router, pipelines, gates, skills, hooks, memory, knowledge, projectContext = null, root = process.cwd(), maxReruns = 1 }) {
+  constructor({ router, pipelines, gates, skills, hooks, memory, knowledge, sdd = { enabled: true }, projectContext = null, root = process.cwd(), maxReruns = 1 }) {
     this.router = router;
     this.root = root;
     this.projectContext = projectContext;
+    this.sdd = { enabled: true, ...(sdd ?? {}) };
     // Shared so the per-instance slice cache survives across skills in one run.
     this.knowledge = knowledge === false ? null : knowledge ?? new KnowledgeStore({ root });
     this.pipelines = pipelines;
@@ -66,6 +67,7 @@ export class AgentRuntime {
         taskType,
         memoryContext,
         knowledge: this.knowledge,
+        sdd: this.sdd,
         projectContext: request?.projectContext ?? this.projectContext
       });
       context.memoryContext = memoryContext ?? '';

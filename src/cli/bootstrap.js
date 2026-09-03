@@ -30,6 +30,7 @@ import {
 } from './fileLicenseRules.js';
 import { dddPointerRuleMdc, dddRuntimeFiles } from './dddRuntimeFiles.js';
 import { patternPointerRuleMdc, patternRuntimeFiles } from './patternRuntimeFiles.js';
+import { sddPointerRuleMdc, sddRuntimeFiles } from './sddRuntimeFiles.js';
 import { memoryDiagnosisRuntimeFiles } from './memoryDiagnosisRuntimeFiles.js';
 import {
   aafeTestFromPrCursorSkill,
@@ -43,6 +44,7 @@ import { repoSubmitSkill } from './repoSubmitRules.js';
 import { taskSpineHookContext, taskSpineMarkdown, taskSpinePointerLine } from './taskSpine.js';
 import { resolveWorkflowModeConfig } from './workflowMode.js';
 import { resolveAgentModeConfig } from './agentMode.js';
+import { defaultSDDConfig, resolveSDDConfig } from './sddConfig.js';
 import {
   workflowModePointerRuleMdc,
   workflowModeProjectRuleMdc,
@@ -188,7 +190,8 @@ async function writeConfig(root, _detection, options, plan) {
         }
       }
     },
-    gates: ['ddd_enablement_gate', 'ddd_gate', 'architecture_gate', 'pattern_enablement_gate', 'pattern_gate', 'implementation_gate', 'merge_gate'],
+    sdd: defaultSDDConfig(),
+    gates: ['sdd_gate', 'ddd_enablement_gate', 'ddd_gate', 'architecture_gate', 'pattern_enablement_gate', 'pattern_gate', 'implementation_gate', 'merge_gate'],
     e2e: {
       casesDir: 'tests/ui-ai/cases',
       reportDir: '.aafe/e2e/reports',
@@ -250,6 +253,13 @@ async function writeConfig(root, _detection, options, plan) {
 
   config.mode = resolveWorkflowModeConfig(existingConfig, {
     workflow: options.workflowModeConfig?.workflow ?? options.workflowMode
+  });
+
+  config.sdd = resolveSDDConfig(existingConfig, {
+    enabled: options.sddEnabled,
+    root: options.sddRoot,
+    schema: options.sddSchema,
+    approvalRequired: options.sddApprovalRequired
   });
 
   config.agent = resolveAgentModeConfig(existingConfig, {
@@ -374,6 +384,7 @@ async function writeFlatCursorAdapters(root, options) {
   await writeIfAllowed(path.join(root, '.cursor/rules/aafe-new-file-license.mdc'), fileLicenseRuleMdc(), options);
   await writeIfAllowed(path.join(root, '.cursor/rules/aafe-ddd-gate.mdc'), dddPointerRuleMdc(), options);
   await writeIfAllowed(path.join(root, '.cursor/rules/aafe-pattern-gate.mdc'), patternPointerRuleMdc(), options);
+  await writeIfAllowed(path.join(root, '.cursor/rules/aafe-sdd-gate.mdc'), sddPointerRuleMdc(), options);
   await writeIfAllowed(path.join(root, '.cursor/rules/aafe-test-from-pr.mdc'), aafeTestFromPrPointerRuleMdc(), options);
   await writeIfAllowed(path.join(root, '.cursor/skills/aafe-runtime/SKILL.md'), nativeEditorSkill('Cursor'), options);
   await writeIfAllowed(
@@ -422,6 +433,7 @@ function runtimeFiles(_detection, plan) {
     '.aafe-memory/learnings.jsonl': '',
     ...dddRuntimeFiles('.ai-agent'),
     ...patternRuntimeFiles('.ai-agent'),
+    ...sddRuntimeFiles('.ai-agent'),
     ...memoryDiagnosisRuntimeFiles('.ai-agent'),
     '.ai-agent/scenarios/ddd.md': dddPack(),
     '.ai-agent/skills/architect.md': architectSkill(),
@@ -756,6 +768,12 @@ Entity, Aggregate, Repository, Service, Domain or Clean Architecture appearing i
 is never enough. Start at \`.ai-agent/ddd/rules/ddd-gate.md\`, or run \`aafe ddd gate "<request>"\`;
 if the gate says disabled, do not read any other file under \`.ai-agent/ddd/\`.
 
+## SDD is part of feature delivery
+
+Load \`.ai-agent/sdd/**\` for feature work unless \`.aafe.config.json → sdd.enabled\` is explicitly
+false. Explicit SDD/OpenSpec/spec-driven work and \`aafe sdd\` commands also activate it. Start at
+\`.ai-agent/sdd/SKILL.md\`; SDD planning is fused into the feature pipeline rather than routed separately.
+
 ## Frontend design patterns are opt-in
 
 Load \`.ai-agent/frontend-engineering/**\` **only** when the user explicitly asks for design-pattern
@@ -787,6 +805,7 @@ not on \`PATH\`; if neither resolves, fall back to reading files and say so.
 | Reporting blast radius after a change | \`aafe impact --diff\` or \`aafe impact --requirement="<text>"\` |
 | Deciding whether DDD applies | \`aafe ddd gate "<request>"\`, then \`aafe ddd scope\` |
 | Deciding whether design patterns apply | \`aafe pattern gate "<request>"\`, then \`aafe pattern discover\` |
+| Managing an SDD/OpenSpec change | \`aafe sdd create|status|validate|approve|apply-context|sync|archive\` |
 | Planning tests for a change | \`aafe test --diff\` or \`aafe test --requirement="<text>"\` |
 | Full functional coverage from analyze | \`aafe test --coverage\` |
 | Generate cases from a PR vs its target branch | \`aafe test --pr=<url>\` |
@@ -839,13 +858,13 @@ Responsibilities:
 1. Classify every request before implementation.
 2. Select the matching architecture pipeline.
 3. Execute skills in order and preserve structured state.
-4. Enforce gates before code generation or merge.
+4. Fuse SDD planning into feature delivery and enforce SDD/architecture gates before code generation or merge.
 5. Compose implementation plans from architecture outputs.
 6. Run critique after implementation and request rerun on failure.
 
 Never:
 - Skip architecture analysis for feature, refactor or performance work.
-- Implement before architecture_gate passes.
+- Implement a feature before sdd_gate and architecture_gate pass.
 - Hide tradeoffs or future extension risks.
 - Mix domain, infrastructure and presentation responsibilities.
 `;
@@ -874,6 +893,15 @@ function router() {
 
 function gates() {
   return `gates:
+  sdd_gate:
+    requires:
+      - sdd_decision
+      - sdd_exploration
+      - sdd_proposal
+      - sdd_specs
+      - sdd_design
+      - sdd_tasks
+      - sdd_approval
   # Enablement is a separate question from completeness: may we do DDD at all,
   # versus is the model finished.
   ddd_enablement_gate:
@@ -1604,14 +1632,22 @@ Format:
 }
 
 function featurePipeline() {
-  // No DDD and no pattern steps. An ordinary feature must not be turned into a
-  // modelling or design-pattern exercise by the pipeline it happens to land in.
+  // SDD is the specification layer of feature delivery. DDD and patterns remain
+  // opt-in dimensions inside that flow rather than competing feature types.
   return `pipeline:
+  - skill: sdd-gate
   - skill: memory-recaller
+  - skill: sdd-explore
   - skill: architect
   - skill: module-decomposer
   - skill: evolution-predictor
   - gate: architecture_gate
+  - skill: sdd-proposal
+  - skill: sdd-specs
+  - skill: sdd-design
+  - skill: sdd-tasks
+  - skill: sdd-approval
+  - gate: sdd_gate
   - skill: adr-generator
   - gate: implementation_gate
   - skill: refactor-critic

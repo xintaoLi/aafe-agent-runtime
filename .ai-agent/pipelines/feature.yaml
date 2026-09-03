@@ -1,9 +1,17 @@
 pipeline:
+  - skill: sdd-gate
   - skill: memory-recaller
+  - skill: sdd-explore
   - skill: architect
   - skill: module-decomposer
   - skill: evolution-predictor
   - gate: architecture_gate
+  - skill: sdd-proposal
+  - skill: sdd-specs
+  - skill: sdd-design
+  - skill: sdd-tasks
+  - skill: sdd-approval
+  - gate: sdd_gate
   - skill: adr-generator
   - gate: implementation_gate
   - skill: refactor-critic

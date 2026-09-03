@@ -1227,6 +1227,21 @@ try {
     !defaultPipelines.feature.steps.some((step) => String(step.skill ?? '').startsWith('ddd-')),
     'the generic feature pipeline must not run DDD skills'
   );
+  for (const step of ['sdd-gate', 'sdd-explore', 'sdd-proposal', 'sdd-specs', 'sdd-design', 'sdd-tasks', 'sdd-approval']) {
+    assert.ok(defaultPipelines.feature.steps.some((item) => item.skill === step),
+      `the feature pipeline must fuse ${step}`);
+  }
+
+  const featureRun = await runtime.execute({ prompt: '增加用户搜索功能' });
+  assert.equal(featureRun.results['sdd-gate'].artifacts.sdd_decision.enabled, true);
+  assert.equal(featureRun.results.sdd_gate.status, 'pass');
+  assert.equal(featureRun.results.merge_gate.status, 'pass');
+
+  const noSddRuntime = createDefaultRuntime({ memory: false, knowledge: false, sdd: { enabled: false } });
+  const noSddRun = await noSddRuntime.execute({ prompt: '增加用户搜索功能' });
+  assert.equal(noSddRun.results['sdd-gate'].artifacts.sdd_decision.enabled, false);
+  assert.equal(noSddRun.results.sdd_gate.status, 'pass', 'explicit project opt-out must preserve feature execution');
+  assert.equal(noSddRun.results['sdd-proposal'].artifacts.sdd_proposal, null);
 
   const narrowRun = await runtime.execute({ prompt: '按 DDD 设计订单聚合' });
   assert.equal(narrowRun.results['ddd-gate'].status, 'pass');

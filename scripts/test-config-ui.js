@@ -37,6 +37,7 @@ assert.equal(parseConfigUiArgs(['--port=4400']).port, 4400);
 
 const existing = {
   analyze: { output: '.aafe' },
+  sdd: { enabled: true, root: 'openspec', schema: 'spec-driven', approvalRequired: true },
   mode: { workflow: 'ask' },
   submit: { cli: 'git' },
   agent: {
@@ -80,6 +81,7 @@ const next = applyConfigForm(existing, {
 });
 
 assert.equal(next.analyze.output, '.aafe', 'must not rewrite unrelated config');
+assert.deepEqual(next.sdd, existing.sdd, 'must preserve SDD config when the UI form does not edit it');
 assert.equal(next.mode.workflow, 'autonomous');
 assert.equal(next.submit.cli, 'gtm');
 assert.equal(next.agent.enabled, true);

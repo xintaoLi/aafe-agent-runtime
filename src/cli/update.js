@@ -34,7 +34,11 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
     sync: true,
     force: true,
     preserveMemory: true,
-    editors: options.editors
+    editors: options.editors,
+    sddEnabled: options.sddEnabled,
+    sddRoot: options.sddRoot,
+    sddSchema: options.sddSchema,
+    sddApprovalRequired: options.sddApprovalRequired
   };
   const forceAnalyze = await prepareForceAnalyzeForCommand({
     analyze: options.analyze,
@@ -68,6 +72,9 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
         agentManager: options.agentManager ?? null,
         maxConcurrentTasks: options.maxConcurrentTasks ?? null,
         taskOutput: options.taskOutput ?? null,
+        sddEnabled: options.sddEnabled ?? null,
+        sddRoot: options.sddRoot ?? null,
+        sddSchema: options.sddSchema ?? null,
         cursorRuntime: options.cursorRuntime ?? null,
         cursorModel: options.cursorModel ?? null,
         cursorApiKeyEnv: options.cursorApiKeyEnv ?? null,
@@ -244,6 +251,11 @@ export function parseUpdateOptions(args) {
     if (arg.startsWith('--task-output=')) options.taskOutput = arg.slice('--task-output='.length);
     if (arg === '--no-agent-readiness-check') options.validateProjectRuntime = false;
     if (arg === '--no-agent-recovery') options.recoverOnStart = false;
+    if (arg === '--sdd') options.sddEnabled = true;
+    if (arg === '--no-sdd') options.sddEnabled = false;
+    if (arg.startsWith('--sdd-root=')) options.sddRoot = arg.slice('--sdd-root='.length);
+    if (arg.startsWith('--sdd-schema=')) options.sddSchema = arg.slice('--sdd-schema='.length);
+    if (arg === '--no-sdd-approval') options.sddApprovalRequired = false;
     if (arg.startsWith('--cursor-api-key-env=')) options.cursorApiKeyEnv = arg.slice('--cursor-api-key-env='.length);
     if (arg.startsWith('--cursor-model=')) options.cursorModel = arg.slice('--cursor-model='.length);
     if (arg.startsWith('--cursor-runtime=')) options.cursorRuntime = arg.slice('--cursor-runtime='.length);

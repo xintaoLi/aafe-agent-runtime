@@ -17,6 +17,7 @@ export async function loadRuntimeConfig(root, options = {}) {
     router: Object.keys(router.routes ?? {}).length ? router : defaultRouter,
     gates: Object.keys(gates).length ? gates : defaultGates,
     pipelines: Object.keys(pipelines).length ? pipelines : defaultPipelines,
+    sdd: { enabled: true, ...(projectConfig.sdd ?? {}) },
     maxReruns: projectConfig.rerun?.enabled === false ? 0 : projectConfig.rerun?.maxReruns
   };
 }

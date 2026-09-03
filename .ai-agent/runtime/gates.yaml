@@ -1,4 +1,13 @@
 gates:
+  sdd_gate:
+    requires:
+      - sdd_decision
+      - sdd_exploration
+      - sdd_proposal
+      - sdd_specs
+      - sdd_design
+      - sdd_tasks
+      - sdd_approval
   # Enablement is a separate question from completeness: may we do DDD at all,
   # versus is the model finished.
   ddd_enablement_gate:

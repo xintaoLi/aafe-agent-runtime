@@ -27,6 +27,7 @@ export const defaultRouter = {
 };
 
 export const defaultGates = {
+  sdd_gate: { requires: ['sdd_decision', 'sdd_exploration', 'sdd_proposal', 'sdd_specs', 'sdd_design', 'sdd_tasks', 'sdd_approval'] },
   // Enablement comes first and is separate from modelling completeness: one
   // asks "may we do DDD at all", the other "is the model finished".
   ddd_enablement_gate: { requires: ['ddd_decision', 'ddd_scope'] },
@@ -48,7 +49,7 @@ export const defaultPipelines = {
   // Neither DDD nor pattern steps here. An ordinary feature must not be turned
   // into a modelling or pattern exercise because the pipeline happened to
   // include those skills.
-  feature: { steps: [{ skill: 'memory-recaller' }, { skill: 'architect' }, { skill: 'module-decomposer' }, { skill: 'evolution-predictor' }, { gate: 'architecture_gate' }, { skill: 'adr-generator' }, { gate: 'implementation_gate' }, { skill: 'refactor-critic' }, { skill: 'memory-writer' }, { gate: 'merge_gate' }] },
+  feature: { steps: [{ skill: 'sdd-gate' }, { skill: 'memory-recaller' }, { skill: 'sdd-explore' }, { skill: 'architect' }, { skill: 'module-decomposer' }, { skill: 'evolution-predictor' }, { gate: 'architecture_gate' }, { skill: 'sdd-proposal' }, { skill: 'sdd-specs' }, { skill: 'sdd-design' }, { skill: 'sdd-tasks' }, { skill: 'sdd-approval' }, { gate: 'sdd_gate' }, { skill: 'adr-generator' }, { gate: 'implementation_gate' }, { skill: 'refactor-critic' }, { skill: 'memory-writer' }, { gate: 'merge_gate' }] },
   // Gate -> Scope -> Discovery -> Strategic -> Tactical -> Architecture ->
   // Mapping -> Refactor -> Validation, per DDD.md §27. Everything after the
   // scope step self-skips when the request did not ask for it.
@@ -71,6 +72,33 @@ export const defaultPipelines = {
 };
 
 export const defaultSkills = {
+  'sdd-gate': {
+    async run(context) {
+      const configured = context.input?.sdd?.enabled !== false;
+      const explicit = /\b(?:sdd|openspec|spec-driven)\b|规格驱动|规范驱动/i.test(promptOf(context));
+      const enabled = configured || explicit;
+      return {
+        status: 'pass',
+        summary: enabled ? 'SDD planning is fused into the feature pipeline' : 'SDD planning skipped by project opt-out',
+        artifacts: { sdd_decision: { enabled, source: explicit ? 'request' : configured ? 'config-default' : 'config-opt-out' } },
+        risks: [],
+        nextHints: []
+      };
+    }
+  },
+  'sdd-explore': sddSkill(async (context) => ({
+    status: 'pass',
+    summary: 'SDD exploration captured',
+    artifacts: {
+      sdd_exploration: {
+        requirement: promptOf(context),
+        hasMemoryContext: Boolean(context.input?.memoryContext),
+        hasProjectContext: Boolean(context.input?.projectContext)
+      }
+    },
+    risks: [],
+    nextHints: []
+  }), { sdd_exploration: null }),
   'memory-recaller': {
     async run(context) {
       return { status: 'pass', summary: 'Project memory recalled', artifacts: { memory_context: context.input?.memoryContext ?? '' }, risks: [], nextHints: [] };
@@ -302,6 +330,69 @@ export const defaultSkills = {
     risks: [],
     nextHints: ['DDD-SYSTEM-019: document the validated model, not the draft']
   })),
+  'sdd-proposal': sddSkill(async (context) => ({
+    status: 'pass',
+    summary: 'SDD proposal shaped from feature evidence',
+    artifacts: {
+      sdd_proposal: {
+        why: promptOf(context),
+        whatChanges: context.results?.['module-decomposer']?.artifacts?.decomposition ?? [],
+        source: 'feature-pipeline'
+      }
+    },
+    risks: [],
+    nextHints: []
+  }), { sdd_proposal: null }),
+  'sdd-specs': sddSkill(async (context) => ({
+    status: 'pass',
+    summary: 'SDD requirements prepared',
+    artifacts: {
+      sdd_specs: [{
+        capability: 'feature',
+        requirements: [{ id: 'REQ-001', statement: promptOf(context), scenarios: [] }]
+      }]
+    },
+    risks: [],
+    nextHints: ['Complete concrete Given/When/Then scenarios before durable approval']
+  }), { sdd_specs: null }),
+  'sdd-design': sddSkill(async (context) => ({
+    status: 'pass',
+    summary: 'SDD design assembled from architecture outputs',
+    artifacts: {
+      sdd_design: {
+        boundaries: context.results?.architect?.artifacts?.boundaries ?? [],
+        decomposition: context.results?.['module-decomposer']?.artifacts?.decomposition ?? [],
+        extensionPoints: context.results?.['evolution-predictor']?.artifacts?.extension_points ?? []
+      }
+    },
+    risks: [],
+    nextHints: []
+  }), { sdd_design: null }),
+  'sdd-tasks': sddSkill(async (context) => ({
+    status: 'pass',
+    summary: 'SDD implementation tasks derived',
+    artifacts: {
+      sdd_tasks: (context.results?.['module-decomposer']?.artifacts?.decomposition ?? [])
+        .map((module, index) => ({ id: `TASK-${index + 1}`, module, status: 'pending' }))
+    },
+    risks: [],
+    nextHints: []
+  }), { sdd_tasks: null }),
+  'sdd-approval': sddSkill(async (context) => ({
+    status: 'pass',
+    summary: 'SDD approval policy attached to feature plan',
+    artifacts: {
+      sdd_approval: {
+        required: context.input?.sdd?.approvalRequired !== false,
+        status: context.input?.sdd?.approvalRequired === false ? 'not-required' : 'pending',
+        enforcedBy: 'SDDEngine'
+      }
+    },
+    risks: [],
+    nextHints: context.input?.sdd?.approvalRequired === false
+      ? []
+      : ['Approve the durable SDD change before Task Manager execution']
+  }), { sdd_approval: null }),
   architect: simpleSkill('Architecture analysis completed', { boundaries: ['domain', 'application', 'infrastructure', 'presentation'], risk_review: ['coupling', 'scaling', 'ownership'] }),
   'module-decomposer': simpleSkill('Module decomposition completed', { decomposition: ['domain', 'application', 'infrastructure', 'presentation', 'shared'] }),
   // --- Frontend design-pattern system (前端设计模式.md) ----------------------
@@ -523,6 +614,7 @@ export function createDefaultRuntime(overrides = {}) {
     hooks: overrides.hooks,
     memory: overrides.memory,
     knowledge: overrides.knowledge,
+    sdd: overrides.sdd,
     root: overrides.root,
     maxReruns: overrides.maxReruns
   });
@@ -564,6 +656,24 @@ function dddSkill(id, run) {
         return { status: 'pass', summary: `${id} not in DDD scope`, artifacts: { skipped: id }, risks: [], nextHints: [] };
       }
       return run(context, plan);
+    }
+  };
+}
+
+function sddSkill(run, emptyArtifacts) {
+  return {
+    async run(context) {
+      const decision = context.results?.['sdd-gate']?.artifacts?.sdd_decision;
+      if (!decision?.enabled) {
+        return {
+          status: 'pass',
+          summary: 'SDD skill skipped by project opt-out',
+          artifacts: { skipped: 'sdd', ...emptyArtifacts },
+          risks: [],
+          nextHints: []
+        };
+      }
+      return run(context, decision);
     }
   };
 }

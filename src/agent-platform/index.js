@@ -46,6 +46,7 @@ export { coerceToSchema, coerceAndValidate, buildRepairPrompt } from './schema/r
 export * from './protocol/request.js';
 export * from './protocol/response.js';
 export * from './tasks/index.js';
+export * from './sdd/index.js';
 export { CursorTaskRuntime } from './runtime/CursorTaskRuntime.js';
 export {
   inspectCloudProjectReadiness,

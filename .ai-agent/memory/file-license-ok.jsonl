@@ -136,3 +136,13 @@
 {"path":"src/agent-platform/runtime/CloudProjectReadiness.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:13:37.778Z"}
 {"path":"src/cli/tasks.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:13:37.779Z"}
 {"path":"scripts/test-task-manager.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:13:37.779Z"}
+{"path":"src/agent-platform/sdd/SDDState.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:39:47.663Z"}
+{"path":"src/agent-platform/sdd/SDDStore.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:39:47.664Z"}
+{"path":"src/agent-platform/sdd/OpenSpecAdapter.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:39:47.665Z"}
+{"path":"src/agent-platform/sdd/SDDValidator.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:39:47.665Z"}
+{"path":"src/agent-platform/sdd/SDDEngine.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:39:47.666Z"}
+{"path":"src/agent-platform/sdd/index.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:39:47.666Z"}
+{"path":"src/cli/sdd.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:39:47.667Z"}
+{"path":"src/cli/sddConfig.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:39:47.667Z"}
+{"path":"src/cli/sddRuntimeFiles.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:39:47.667Z"}
+{"path":"scripts/test-sdd.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T07:39:47.668Z"}
