@@ -107,6 +107,42 @@ try {
   assert.equal(sdkState.runs, 3);
   await cursor.closeAll();
 
+  const localState = { creates: 0, lastCreate: null };
+  const localSdk = {
+    Agent: {
+      async create(options) {
+        localState.creates += 1;
+        localState.lastCreate = options;
+        return {
+          agentId: 'agent-local',
+          async send() {
+            return fakeRun('run-local');
+          },
+          async [Symbol.asyncDispose]() {}
+        };
+      },
+      async resume() {},
+      async getRun() {
+        return fakeRun('recover-local');
+      },
+      async cancelRun() {}
+    }
+  };
+  const localRuntime = new CursorTaskRuntime({
+    env: { CURSOR_API_KEY: 'cursor_test' },
+    importSdk: async () => localSdk
+  });
+  await localRuntime.run({
+    id: 'cursor-local',
+    repository: null,
+    baseBranch: 'main',
+    cursor: { agentId: null }
+  }, 'local work', { cwd: '/tmp/aafe-local-agent' });
+  assert.equal(localState.creates, 1);
+  assert.equal(localState.lastCreate.local.cwd, '/tmp/aafe-local-agent');
+  assert.equal(localState.lastCreate.cloud, undefined);
+  await localRuntime.closeAll();
+
   const resumedRuntime = new CursorTaskRuntime({
     env: { CURSOR_API_KEY: 'cursor_test' },
     importSdk: async () => sdk

@@ -2,7 +2,7 @@
 
 本文说明 AAFE 里的 Agent **是什么、默认怎么跑、以及怎么改**。
 
-与 [`AGENTS.SCHEMA.md`](./AGENTS.SCHEMA.md) 的分工：那份是协议规范（RFC），定义请求/响应结构、状态机与不变量，面向要实现 Agent 的人；本文面向要**用和配**这套东西的人。
+与 [`AGENTS.SCHEMA.md`](./AGENTS.SCHEMA.md) 的分工：那份是协议规范（RFC），定义请求/响应结构、状态机与不变量，面向要实现 Agent 的人；本文面向要**用和配**这套东西的人。若要启用 Cursor SDK 改代码（`agent.enabled` / `aafe run --agent=cursor`），见 [Agent Setup](./AGENTS.SETUP.md)。
 
 ---
 

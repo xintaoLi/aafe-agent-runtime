@@ -3,18 +3,20 @@
 `@aafe/agent-runtime` 是面向前端工程的项目级 AI 架构运行时。它把 AI Coding 从「直接改代码」升级为一条可审计的链路：
 
 ```text
-项目记忆 → 架构定位 → 需求分析 → 设计（按需） → 实施 → 批判审查 → 影响分析 → 测试预测 → 知识更新
+需求接入/分支判定 → SDD + 架构规划 → 实施 → 批判审查 → 影响分析/自测 → 提交/PR → TAPD 回填（按需） → 知识更新
 ```
 
-AAFE 自己不改代码。它负责让 IDE Agent 在动手之前，先拿到这个项目的真实结构、约束和影响面。
+AAFE 默认只做编排、分析和上下文交付；启用 Cursor developer execution 或 `aafe task` 后，才会通过 Cursor SDK / Cloud Agent 执行代码变更。
 
 核心能力：
 
 - 项目级 Runtime 初始化、更新和诊断
 - Skill、Pipeline、Hook、Gate 和 Memory 编排
 - Vue / React / Next / Monorepo 等项目识别
+- 默认启用的 SDD 规格规划、OpenSpec 兼容 artifact、revision 与 traceability
 - **DDD 领域建模**与**前端设计模式组合**，两者均为显式开启
 - Planner + Orchestrator 的 Agent Platform，产出给 IDE Agent 的最小上下文包
+- Task Manager + Cursor Cloud 的隔离任务、并发调度和进程重启恢复
 - Knowledge Center 知识关系、影响分析和测试预测
 - Knowledge Web 本地可视化
 - 任务完成后自动更新 Knowledge、Runtime 和 Doctor
@@ -30,10 +32,14 @@ AAFE 自己不改代码。它负责让 IDE Agent 在动手之前，先拿到这�
 - [Memory](#memory)
 - [DDD（显式开启）](#ddd显式开启)
 - [前端设计模式（显式开启）](#前端设计模式显式开启)
+- [SDD 与 Feature Pipeline](#sdd-与-feature-pipeline)
 - [Agent Platform](#agent-platform)
 - [任务主流程（Task Spine）](#任务主流程task-spine)
+- [隔离任务与 Cursor Cloud](#隔离任务与-cursor-cloud)
 - [E2E](#e2e)
-- [Agent 作用与配置指南](./AGENTS.CONFIG.md)
+- [Agent Setup（Cursor Agent 模式）](./plan-list/AGENTS.SETUP.md)
+- [Cloud Task Manager + 企微 Bot](./plan-list/WECOM-CLOUD-TASK.md)
+- [Agent 作用与配置指南](./plan-list/AGENTS.CONFIG.md)
 - [Agent 内自主命中](#agent-内自主命中)
 - [Knowledge Center](#knowledge-center)
 - [Knowledge Web](#knowledge-web)
@@ -70,7 +76,7 @@ npx aafe knowledge-web --serve --port=4173   # 浏览器打开 http://127.0.0.1:
 --scenarios=complex,ddd,patterns,graph,admin,dashboard,workflow
 ```
 
-DDD 与设计模式的知识包始终会安装，但**默认不激活**——是否启用由每次请求的门禁判定，见 [DDD（显式开启）](#ddd显式开启) 与 [前端设计模式（显式开启）](#前端设计模式显式开启)。
+SDD 默认启用并融合进 feature pipeline；DDD 与设计模式知识包始终会安装，但**默认不激活**——是否启用由每次请求的门禁判定，见 [SDD 与 Feature Pipeline](#sdd-与-feature-pipeline)、[DDD（显式开启）](#ddd显式开启) 与 [前端设计模式（显式开启）](#前端设计模式显式开启)。
 
 ## 从 0.1.x 升级到 0.2.0
 
@@ -199,6 +205,7 @@ npx aafe migrate
 - `architecture_gate` 的 `requires` 去掉了 `pattern_selection`。架构合理与否，和有没有用设计模式是两件事。
 - `pattern_gate` 的 `requires` 改为 `pattern_problems` / `pattern_composition` / `pattern_anti_patterns`。
 - 新增 `ddd_enablement_gate` 与 `pattern_enablement_gate`。
+- `feature` pipeline 默认融合 `sdd-gate / explore / proposal / specs / design / tasks / approval`，并在实施前经过 `sdd_gate`；`sdd.enabled: false` 时这些步骤发布空兼容 artifact 后跳过。
 
 **未执行** `aafe update` **时不会崩**：模式技能在被门禁跳过时，仍会发布 `pattern_interview`、`pattern_selection`、`module_pattern_selection` 等旧 artifact 键（值为空），所以留在磁盘上的旧 `pattern_gate` 不会把管线卡死。但这只是兼容垫片，行为已经是新的——请尽快执行 `update`。
 
@@ -211,7 +218,7 @@ npx aafe ddd gate "加个列表页"        # 期望 disabled
 npx aafe pattern gate "加个列表页"    # 期望 disabled
 ```
 
-`doctor` 会校验两棵新知识树是否完整、`feature.yaml` 是否已去掉无条件的 DDD/模式步骤、各 Gate 配置是否为新版本。
+`doctor` 会校验 DDD/模式/SDD 知识入口、`feature.yaml` 的 SDD 融合及 DDD/模式 opt-in 约束、各 Gate 配置和 Cursor 指针；启用 Cloud Task readiness 时还会检查这些文件是否可被 Git clone 获取。
 
 ### 回滚
 
@@ -252,6 +259,9 @@ git checkout -- .ai-agent .aafe.config.json
 | `aafe plan`             | 查看 Planner 的决策轨迹                                                                          |
 | `aafe run`              | 运行 Planner + Orchestrator 全循环                                                             |
 | `aafe pipeline`         | 运行旧的 Skill Pipeline（0.1.x 的 `aafe run` 行为）                                                |
+| `aafe task`             | 创建、查询、继续、取消和恢复隔离的持久化 Cursor Cloud Task                                                |
+| `aafe sdd`              | 管理 Task 绑定的 OpenSpec artifact、revision、审批、验证、同步和归档                                      |
+| `aafe repo pr`          | 使用仓库 Token 创建或复用 GitHub PR                                                               |
 | `aafe test`             | 规划并生成 YAML Case；`--coverage` 全量、`--diff` 任务变更、`--pr=<url>` PR 差异；`--run` 才用 Playwright 执行 |
 | `aafe diagnose`         | 把失败报告定位成根因与修复方向                                                                           |
 | `aafe license`          | 校验并补齐文件 License 头                                                                         |
@@ -622,6 +632,128 @@ Gate → Discovery → Selection → Composition → Anti-Pattern Audit → Vali
 
 `aafe pattern audit` 会区分 `observed`（项目现状里已存在的反模式）与 `predicted`（当前组合方案会引入的反模式），共 25 类。
 
+## SDD 与 Feature Pipeline
+
+SDD 默认启用，并且是现有通用 `feature` pipeline 的规格规划层，不是与 feature 并列的任务类型。DDD 和设计模式仍是显式启用的分析维度。IDE Task Spine 可同时加载 SDD 与按需知识包；但当前声明式 `domain-feature`、`pattern-feature`、`graph-feature` pipeline 尚未复用这段 SDD steps，只有通用 `feature.yaml` 已完成融合。
+
+```json
+{
+  "sdd": {
+    "enabled": true,
+    "root": "openspec",
+    "schema": "spec-driven",
+    "approvalRequired": true
+  }
+}
+```
+
+项目可用 `sdd.enabled: false` 显式退出普通 feature 的 SDD 规划；明确执行 `aafe sdd` 命令仍会进入 SDD 引擎。
+
+### Feature Pipeline 中的融合位置
+
+```mermaid
+flowchart LR
+  SG["sdd-gate"] --> MR["memory-recaller"]
+  MR --> SE["sdd-explore"]
+  SE --> AR["architect"]
+  AR --> MD["module-decomposer"]
+  MD --> EP["evolution-predictor"]
+  EP --> AG{"architecture_gate"}
+  AG --> SP["sdd-proposal"]
+  SP --> SS["sdd-specs"]
+  SS --> SD["sdd-design"]
+  SD --> ST["sdd-tasks"]
+  ST --> SA["sdd-approval policy"]
+  SA --> SGATE{"sdd_gate"}
+  SGATE --> ADR["adr-generator"]
+  ADR --> IG{"implementation_gate"}
+  IG --> RC["refactor-critic"]
+  RC --> ER["experience-recorder"]
+  ER --> MW["memory-writer"]
+  MW --> MG{"merge_gate"}
+```
+
+这里的 `sdd-approval` 只把审批策略和待审批状态附着到 pipeline 结果，不代表人工审批已经完成。可执行的持久化审批由 `SDDEngine` 校验当前 revision 后完成；Task Manager 只接受“当前 revision 已验证且已审批”的 SDD 绑定任务。
+
+### Artifact 依赖、修订与归档
+
+```mermaid
+flowchart LR
+  P["proposal.md"] --> S["specs/&lt;capability&gt;/spec.md"]
+  P --> D["design.md"]
+  S --> T["tasks.md"]
+  D --> T
+  T --> V["validate"]
+  V --> A["approve current revision"]
+  A --> I["implement / verify"]
+  I --> SY["sync delta specs"]
+  SY --> AC["archive change"]
+  R["任一 artifact 修订"] -. "revision + 1；验证与审批失效" .-> V
+```
+
+共享 artifact 位于 `openspec/changes/<changeId>/` 和 `openspec/specs/`；Task 私有状态位于 `.aafe/tasks/<taskId>/sdd/`，包含 `change.json`、revision 快照、traceability 和 verification evidence。一个 Task 最多绑定一个 active change，一个 change 只属于一个 Task。
+
+```mermaid
+stateDiagram-v2
+  [*] --> draft
+  draft --> waiting_approval: validate 有效且要求审批
+  draft --> ready: validate 有效且免审批
+  draft --> failed
+  draft --> cancelled
+  waiting_approval --> draft: artifact 修订
+  waiting_approval --> ready: approve 当前 revision
+  waiting_approval --> failed
+  waiting_approval --> cancelled
+  ready --> draft: artifact 修订
+  ready --> implementing: apply-context
+  ready --> synced: sync
+  ready --> failed
+  ready --> cancelled
+  implementing --> draft: artifact 修订
+  implementing --> verifying: recordVerification
+  implementing --> synced: sync
+  implementing --> failed
+  implementing --> cancelled
+  verifying --> draft: artifact 修订
+  verifying --> implementing: 继续实现
+  verifying --> verified: passed
+  verifying --> synced: sync
+  verifying --> failed: failed
+  verifying --> cancelled
+  verified --> draft: artifact 修订
+  verified --> implementing: 继续实现
+  verified --> synced: sync
+  verified --> failed
+  verified --> cancelled
+  synced --> draft: artifact 修订
+  synced --> implementing: 继续实现
+  synced --> archived: archive
+  synced --> failed
+  synced --> cancelled
+  failed --> draft: 修订并重试
+  failed --> cancelled
+  archived --> [*]
+  cancelled --> [*]
+```
+
+常用持久化流程：
+
+```bash
+aafe task create --requirement="增加用户搜索" --repository=<repo-url> --no-run
+aafe sdd create --task-id=<taskId>
+aafe sdd propose <taskId> --file=proposal.md
+aafe sdd spec <taskId> --capability=user-search --file=spec.md
+aafe sdd design <taskId> --file=design.md
+aafe sdd tasks <taskId> --file=tasks.md
+aafe sdd validate <taskId>
+aafe sdd approve <taskId>
+aafe task continue <taskId> "按已审批 SDD 执行"
+aafe sdd verify <taskId> --file=verification.json
+aafe sdd sync <taskId> --dry-run
+aafe sdd sync <taskId> --yes
+aafe sdd archive <taskId> --yes
+```
+
 ## Agent Platform
 
 从 `0.2.0` 起，静态分析之上多了一层 Agent Platform：Planner 决定「该做什么」，Orchestrator 负责「怎么可靠地做完」，专业 Agent 各自解决一类问题，最终由 Context Agent 产出交给 IDE Agent 的最小上下文包。
@@ -629,6 +761,28 @@ Gate → Discovery → Selection → Composition → Anti-Pattern Audit → Vali
 ```text
 CLI → Planner → Orchestrator → AgentProvider → Agent → Knowledge → Context Package → IDE Agent
 ```
+
+```mermaid
+flowchart LR
+  CLI["context / impact / plan / run / test / diagnose"] --> TASK["标准化 Task"]
+  TASK --> STALE{"Knowledge 是否缺失或陈旧"}
+  STALE -->|是| ANALYZE["project-analysis"]
+  STALE -->|否| PLAN["Planner.decide"]
+  ANALYZE --> PLAN
+  PLAN --> ACTION{"invoke / parallel / complete<br/>fail / need_user_input / replan"}
+  ACTION -->|invoke / parallel| GRAPH["ExecutionGraph 依赖就绪波次"]
+  GRAPH --> POLICY["并发、超时、重试、网络与预算策略"]
+  POLICY --> REGISTRY["Capability → AgentRegistry"]
+  REGISTRY --> RUNTIME["AgentRuntime<br/>输入校验 → Provider → 修复 → 输出/evidence 校验"]
+  RUNTIME --> STATE["ExecutionState + nodes input/output"]
+  STATE --> PLAN
+  ACTION -->|complete| PACKAGE["Context Package + run.json"]
+  PACKAGE --> OVERLAY{"是否启用 Cursor developer execution"}
+  OVERLAY -->|否| IDE["IDE handoff / 仅返回上下文"]
+  OVERLAY -->|是| CURSOR["Cursor SDK implementation"]
+```
+
+默认 `RulePlanner` 按 Task kind 选择 capability：requirement/generic 走影响分析、知识校验和上下文打包；diff 走变更影响；failure 先定位失败；analysis 可并行执行架构、依赖、数据流、feature 与业务流；test 根据 requirement、diff、coverage 或 PR 规划、生成并按显式权限执行 E2E。
 
 
 
@@ -676,24 +830,114 @@ AAFE 的 Task Spine 是**动态决策链**，不是每个任务都固定执行�
 
 `ask` 模式下，门禁不会自动推进：Agent 需要根据用户回复判断是否进入后续环节；用户拒绝或明确跳过时停止该分支。`autonomous` 模式下，LLM 根据上下文自主判定 `proceed / skip / ask`，只有缺少用户独有事实且会影响方案时才 Hard Ask。
 
-```text
-[1] 需求与分支决策（写代码前）
-    ├─ TAPD 单：拉详情 → 判定当前分支是否关联 → 按需新建/切换
-    ├─ 非 TAPD 新任务：判定是否需要新建/切换分支
-    └─ 无法确定：ask 询问；autonomous 高置信才自主判定
-[2] 任务执行决策
-    ├─ 小改：直接执行
-    ├─ 多方案/大改：Plan Gate
-    └─ 前端非平凡任务：按需进入 runtime / pipelines / project-skill
-[3] 影响范围 + 自测决策
-    ├─ 纯问答/纯文档：skip
-    ├─ 有代码变更：impact + 最小收敛自测
-    └─ UI/E2E：缺 URL 则 Hard Ask，blocked 后才考虑浏览器 MCP
-[4] 提交 / PR / MR / 回填决策
-    ├─ 用户要求提交或判定需要提交：repo-submit
-    ├─ GitHub：优先 repo.githubAccessToken；失败/缺失才提示后降级 gh
-    └─ 有 TAPD 关联：进入回填门禁；无关联则跳过 TAPD 回填
+默认开关：`mode.workflow=ask`、`sdd.enabled=true`、`agent.enabled=false`、`agent.manager.enabled=false`、`e2e.enabled=true`。因此默认会做 SDD 规划，但不会自动调用 Cursor SDK 或启动持久化 Cloud Task；这两类执行需显式启用或直接使用对应命令。Cursor Agent 模式的启用、API Key、模型列表和 `aafe run --agent=cursor` 见 [Agent Setup](./plan-list/AGENTS.SETUP.md)。
+
+```mermaid
+flowchart TD
+  START(["用户需求 / TAPD / PR / diff"]) --> SOURCE{"任务来源"}
+  SOURCE -->|TAPD| TAPD["拉取详情与验收标准<br/>有 Figma 时取结构化设计和截图"]
+  SOURCE -->|普通需求| SPEC["澄清目标、范围、验收、约束"]
+  SOURCE -->|PR 或 diff| DIFF["读取变更并建立影响上下文"]
+
+  TAPD --> BRANCH{"当前分支是否正确关联"}
+  SPEC --> NEWTASK{"新任务或当前分支不匹配"}
+  BRANCH -->|否| SWITCH["新建或切换关联分支"]
+  BRANCH -->|是| HISTORY["检索历史与项目知识"]
+  NEWTASK -->|是| SWITCH
+  NEWTASK -->|否| HISTORY
+  NEWTASK -->|无法判断| MODE{"workflow mode"}
+  MODE -->|ask| HARDASK["询问用户"]
+  MODE -->|autonomous 且高置信| HISTORY
+  MODE -->|缺用户独有事实| HARDASK
+  SWITCH --> HISTORY
+  HARDASK --> HISTORY
+  DIFF --> HISTORY
+
+  HISTORY --> SIZE{"执行复杂度"}
+  SIZE -->|纯问答或纯文档| ANSWER["回答或更新文档"]
+  SIZE -->|小改| DIRECT["按项目约束直接实施"]
+  SIZE -->|多方案或高风险| PLAN["Plan Gate"]
+  SIZE -->|非平凡 feature| FEATURE["Feature Pipeline"]
+  PLAN --> FEATURE
+
+  FEATURE --> SDD["SDD Explore → Proposal → Specs/Design → Tasks"]
+  SDD --> ARCH{"sdd_gate + architecture_gate"}
+  ARCH -->|不通过| REVISE["补齐或修订 artifact/架构"]
+  REVISE --> SDD
+  ARCH -->|通过| IMPLEMENT["实施<br/>IDE Agent / 可选 Cursor Developer Agent"]
+  DIRECT --> IMPLEMENT
+
+  IMPLEMENT --> REVIEW["Critic / merge_gate"]
+  REVIEW --> CHANGE{"是否有代码或运行时配置变更"}
+  ANSWER --> CHANGE
+  CHANGE -->|否| SUBMITDECIDE{"是否有提交意图"}
+  CHANGE -->|是| IMPACT["aafe impact --diff"]
+  IMPACT --> TESTPLAN["最小收敛自测 / aafe test --diff"]
+  TESTPLAN --> UI{"是否需要 UI/E2E"}
+  UI -->|否| SUBMITDECIDE
+  UI -->|是且有本次 URL| E2E["Playwright E2E"]
+  UI -->|缺 URL| URLASK["Hard Ask 获取 URL/URL 角色"]
+  URLASK --> E2E
+  E2E --> SUBMITDECIDE
+
+  SUBMITDECIDE -->|否| DONE(["完成，不提交"])
+  SUBMITDECIDE -->|是| COMMIT["Commit"]
+  COMMIT --> PR["PR / MR"]
+  PR --> LINK{"有关联 TAPD 且 tapd.enabled"}
+  LINK -->|否| KNOWLEDGE["按需更新 Knowledge / Memory"]
+  LINK -->|是| BACKFILL["回填结果、影响、自测和 PR/MR 链接<br/>状态最多推进到 doing"]
+  BACKFILL --> KNOWLEDGE
+  KNOWLEDGE --> DONE2(["完成"])
 ```
+
+### 三个运行面及其衔接
+
+当前实现提供三个相互协作但入口不同的运行面。它们共享 `.ai-agent` Rules/Skills 和 `.aafe` 持久化约定，但不能把其中一个入口的能力误认为另一个入口已经自动执行。
+
+```mermaid
+flowchart TB
+  REQ["需求"] --> IDE["IDE Agent + Task Spine"]
+  REQ --> PLATFORM["aafe run / context / impact / test"]
+  REQ --> DURABLE["aafe sdd + aafe task"]
+
+  subgraph PIPE["Feature Skill Pipeline"]
+    IDE --> FP["router → feature.yaml"]
+    FP --> FP_SDD["结构化 SDD 规划 + gates"]
+  end
+
+  subgraph AP["Planner + Orchestrator"]
+    PLATFORM --> RP["RulePlanner / LlmPlanner"]
+    RP --> ORCH["依赖图、并发、重试、预算、契约校验"]
+    ORCH --> CAPS["专业 capability Agents"]
+    CAPS --> CTX["Context Package"]
+    CTX --> DEV{"agent.enabled / developer provider"}
+    DEV -->|关闭| HANDOFF["交给当前 IDE Agent"]
+    DEV -->|Cursor| CURSOR_ONE["Cursor SDK 单次实现"]
+  end
+
+  subgraph DT["Durable SDD + Cloud Tasks"]
+    DURABLE --> TS["TaskStore"]
+    TS --> SE["SDDEngine / OpenSpecAdapter"]
+    SE --> READY["当前 revision validate + approve"]
+    READY --> TM["TaskManager"]
+    TM --> SCH["TaskScheduler"]
+    SCH --> CLOUD["CursorTaskRuntime"]
+  end
+
+  FP_SDD -. "规划结果不会自动写 OpenSpec" .-> SE
+  CTX -. "aafe run 不自动创建 durable Task" .-> TM
+  CLOUD -. "Cloud clone 原生加载同一套 Rules/Skills" .-> FP
+```
+
+实际边界：
+
+- `aafe pipeline`（或 `aafe run --legacy`）执行 `.ai-agent/pipelines/*.yaml`；默认 `feature` 已融合 SDD 规划。
+- 明确 DDD、设计模式或 graph 请求会路由到各自专用 pipeline；当前这些专用 pipeline 仍未内嵌 SDD steps，这是现有实现边界。
+- `aafe run` 执行 Planner + Orchestrator，先得到 Context Package；仅当 Agent 模式启用或 developer provider 为 Cursor 时再调用 Cursor SDK。
+- `aafe sdd` 管理持久化 OpenSpec artifact、revision、审批、同步和归档；feature pipeline 的结构化结果不会自动落盘到 OpenSpec。
+- `aafe task` 管理持久化 Cursor Cloud Task。Task 绑定 SDD 后必须通过当前 revision 的验证与审批；未绑定 SDD 的 Task 仍保持兼容，可直接调度。
+- `aafe task create` 不会自动创建 SDD Change；`aafe sdd apply-context` 只返回上下文，TaskManager 当前不会自动把它注入 Cloud prompt。
+- 当前没有“普通 `aafe run` 自动创建 SDD Change，再自动转为 durable Cloud Task”的隐式串联；由 IDE Agent 按 Task Spine 调用对应入口，或由上层代码组合公开 API。
 
 ### [1] 需求与分支决策
 
@@ -862,7 +1106,7 @@ CI 里建议关掉：没有交互式 IDE Agent 能接手，handoff 只会变成�
 
 每个 Agent 都绑定一组契约：`prompt` + `inputSchema` + `outputSchema`，默认从 `src/agents/<id>/` 装载，也可以在 `.aafe.agents.json` 里指向项目自己的文件或内联 schema。
 
-`AgentRuntime` 是所有 Agent 的唯一执行路径：
+Agent Platform 的 `AgentRuntime` 是所有 capability Agent 的唯一执行路径：
 
 ```text
 装载契约 → 校验入参 → 注入 prompt/schema → 调用 provider
@@ -913,13 +1157,105 @@ Agent 接线独立成文件，避免把 `.aafe.config.json` 撑爆。`aafe init`
 }
 ```
 
-字段逐条说明、五种 provider 的配置示例和自定义 Agent 的写法见 **[Agent 作用与配置指南](./AGENTS.CONFIG.md)**；协议层面的请求/响应结构见 `[AGENTS.SCHEMA.md](./AGENTS.SCHEMA.md)`。
+字段逐条说明、五种 provider 的配置示例和自定义 Agent 的写法见 **[Agent 作用与配置指南](./plan-list/AGENTS.CONFIG.md)**；协议层面的请求/响应结构见 [AGENTS.SCHEMA.md](./plan-list/AGENTS.SCHEMA.md)。
 
 Planner 默认是确定性的 `RulePlanner`，无需 API Key 即可离线运行。把 `planner.provider` 改成 `"llm"` 并填好 `endpoint` / `model` 即可启用 OpenAI 兼容的 `LlmPlanner`；它在网络异常、返回非 JSON 或请求了不存在的 capability 时会**自动回退到 RulePlanner**，所以开启 LLM 只会变慢，不会让流程中断。
 
 `provider` 支持 `local` / `http` / `cli` / `mcp` / `ide` 五种传输方式。`http` 类型的 Agent 需要显式打开 `policies.allowNetwork`。`endpoint` / `model` / `prompt` / `inputSchema` / `outputSchema` 支持 `${ENV_VAR}` 展开，密钥和内网地址不必进版本库；变量未设置时该字段置空并在 `aafe doctor` 报警，而不是把字面量 `${...}` 当成地址去请求。
 
 `policies` 里两种预算是不同的东西：`tokenBudget` 限制单个 Agent 的上下文包大小，`maxTokens` / `maxCost` 是整个 run 的花费上限，在步与步之间检查（调用中途中止并不会退还已花的 token）。`cli` 类型 Agent 的命令和 `tools` 会先过危险操作 denylist——`rm -rf`、`git reset --hard`、`git push`、`sudo` 之类在 spawn 前就被拒绝。
+
+## 隔离任务与 Cursor Cloud
+
+`aafe task` 是持久化、多任务的 Cursor Cloud 执行入口，与 `aafe run` 的一次性 developer Agent overlay 不同。每个 Task 拥有独立的 `task.json`、`context.json`、`events.jsonl` 和可选 `sdd/`，默认位于 `.aafe/tasks/<taskId>/`。
+
+```mermaid
+flowchart TD
+  CREATE["task create"] --> STORE["TaskStore<br/>task/context/events"]
+  STORE --> BOUND{"是否绑定 SDD"}
+  BOUND -->|是| CHECK{"当前 revision<br/>validation.valid + approval"}
+  CHECK -->|否| BLOCK_SDD["拒绝启动<br/>task-sdd-not-ready"]
+  CHECK -->|是| READY["CloudProjectReadiness"]
+  BOUND -->|否| READY
+  READY -->|Rules/Skills 缺失、指针无效或未被 Git 跟踪| BLOCK["blocked"]
+  READY -->|通过| QUEUED["queued"]
+  QUEUED --> SCHED["TaskScheduler<br/>maxConcurrentTasks"]
+  SCHED --> RUN["running"]
+  RUN --> SDK["CursorTaskRuntime<br/>Agent.create/resume → send → stream → wait"]
+  SDK --> RESULT{"Run 结果"}
+  RESULT -->|成功且无 verify callback| COMPLETE["completed"]
+  RESULT -->|成功且有 verify callback| VERIFY["verifying"]
+  VERIFY -->|通过| COMPLETE
+  VERIFY -->|失败| FAILED["failed"]
+  RESULT -->|error / missing| FAILED
+  RESULT -->|cancelled| CANCEL["cancelled"]
+  RUN -->|进程重启| RECOVER["task recover<br/>Agent.getRun"]
+  RECOVER --> SDK
+  COMPLETE -->|continue| QUEUED
+  FAILED -->|重试| QUEUED
+  CANCEL -->|重试| QUEUED
+  BLOCK -->|修复 readiness 后重试| QUEUED
+```
+
+Task 状态机：
+
+```mermaid
+stateDiagram-v2
+  [*] --> created
+  created --> queued
+  created --> blocked
+  created --> cancelled
+  queued --> planning
+  queued --> running
+  queued --> blocked
+  queued --> cancelled
+  planning --> queued
+  planning --> ready
+  planning --> waiting
+  planning --> failed
+  planning --> cancelled
+  planning --> blocked
+  ready --> running
+  ready --> queued
+  ready --> cancelled
+  ready --> blocked
+  running --> waiting
+  running --> verifying
+  running --> completed
+  running --> failed
+  running --> cancelled
+  running --> blocked
+  waiting --> queued
+  waiting --> running
+  waiting --> cancelled
+  waiting --> blocked
+  verifying --> completed
+  verifying --> failed
+  verifying --> waiting
+  verifying --> cancelled
+  verifying --> blocked
+  completed --> queued: continue/re-run
+  completed --> blocked
+  failed --> queued: retry
+  failed --> blocked
+  cancelled --> queued: retry
+  cancelled --> blocked
+  blocked --> queued: readiness restored
+  blocked --> cancelled
+```
+
+并发与恢复规则：
+
+- `planning / ready / waiting` 已定义为合法状态并纳入恢复扫描，但当前 TaskManager 没有主动写入这些状态的执行步骤；常规 CLI 主路径是 `created → queued → running → completed/failed/cancelled`。
+- `verifying` 只在 API 调用方传入 `options.verify` 时进入，当前 `aafe task` CLI 尚未暴露该 callback。
+- `TaskScheduler` 是进程内有界调度器，默认 `maxConcurrentTasks: 4`；持久化的是 Task 状态，不是内存队列。
+- 并发上限只约束同一个 `TaskManager` 实例；多个独立 CLI 进程不共享内存 semaphore。`task recover` 会在单次进程内并发重排候选任务。
+- `recover()` 扫描 `queued / planning / ready / running`。有 `agentId + activeRunId` 的 running Task 用 `Agent.getRun` 重连；其他候选重新入队。
+- `recoverOnStart` 只在 API 调用 `TaskManager.initialize()` 时生效；当前 `aafe task` CLI 不会自动调用它，进程重启后需显式执行 `aafe task recover`。
+- Cursor Cloud 启动前验证 `.aafe.config.json`、Skill Index、项目入口和 Cursor 指针均存在且被 Git 跟踪。SDD 启用时还要求 SDD Skill 与指针可被 Cloud clone 获取。
+- `agent.manager.enabled` 目前控制初始化配置与 doctor 提示，但 `aafe task` 命令本身不以该值作为硬开关；显式调用仍会进入 TaskManager。
+- 同一 Task 复用一个 Cursor Agent、可产生多个 Run；终态后关闭本地 session handle，持久化 Agent/Run ID 供恢复与审计。
+- `autoCreatePR` 默认关闭；Task Manager 不替代 Task Spine 的 Commit、PR/MR 和 TAPD 回填判断。
 
 ## E2E
 
@@ -1071,7 +1407,7 @@ npx aafe knowledge-web --serve --port=4173     # 生成并启动本地服务
 
 **1. 会话钩子自动跑同步链。** `sessionStart` 触发 `aafe task-completion`，即 `knowledge update → knowledge-web → update → doctor`，历史文件迁移也在其中。钩子会依次尝试 `node_modules/.bin/aafe`（含 monorepo 向上查找）和全局 `aafe`；都找不到才静默退出，绝不会从网络拉包。
 
-**2. always-apply 规则替 Agent 做判定。** `aafe-ddd-gate.mdc` 和 `aafe-pattern-gate.mdc` 要求 Agent 在动手前自己跑 `aafe ddd gate` / `aafe pattern gate`；`aafe-new-file-license.mdc` 要求跑 `aafe license ensure`；影响分析规则要求先跑 `aafe impact --diff` 拿机器结果，而不是从零推断。
+**2. always-apply 规则替 Agent 做判定。** `aafe-sdd-gate.mdc` 默认把 SDD 融入 feature 工作流；`aafe-ddd-gate.mdc` 和 `aafe-pattern-gate.mdc` 要求显式意图后才运行对应分析；`aafe-new-file-license.mdc` 要求跑 `aafe license ensure`；影响分析规则要求先跑 `aafe impact --diff` 拿机器结果，而不是从零推断。
 
 **3.** `skill-index.md` **里的命令表。** Agent 每个任务都先读这个文件，其中「Commands you may run yourself」列出了什么情况该跑什么：
 
@@ -1110,7 +1446,7 @@ aafe task-completion --dry-run
   "taskCompletion": {
     "enabled": true,
     "command": "aafe task-completion",
-    "steps": ["aafe knowledge update", "aafe update", "aafe doctor"],
+    "steps": ["aafe knowledge update", "aafe knowledge-web", "aafe update", "aafe doctor"],
     "failClosed": false,
     "log": ".aafe-memory/knowledge-sync.jsonl"
   }
@@ -1148,18 +1484,24 @@ aafe analyze --architecture-docs=.docs
 ## AI Runtime 执行
 
 ```bash
+# Planner + Orchestrator；按配置可继续调用 Cursor developer Agent
 aafe run "实现一个支持取消、分页和缓存的日志检索功能"
+
+# 声明式 Skill Pipeline
+aafe pipeline "实现一个支持取消、分页和缓存的日志检索功能"
 ```
 
-通用 `feature` 管线（不含 DDD 与模式步骤）：
+通用 `feature` 管线已融合 SDD，不包含默认关闭的 DDD 与设计模式步骤：
 
 ```text
-memory-recaller → architect → module-decomposer → evolution-predictor
-→ [architecture_gate] → adr-generator → [implementation_gate]
-→ refactor-critic → memory-writer → [merge_gate]
+sdd-gate → memory-recaller → sdd-explore
+→ architect → module-decomposer → evolution-predictor → [architecture_gate]
+→ sdd-proposal → sdd-specs → sdd-design → sdd-tasks → sdd-approval → [sdd_gate]
+→ adr-generator → [implementation_gate] → refactor-critic
+→ experience-recorder → memory-writer → [merge_gate]
 ```
 
-只有请求明确表达了相应意图，才会改走 `domain-feature` 或 `pattern-feature` 管线。
+只有请求明确表达了相应意图，才会改走 `domain-feature` 或 `pattern-feature` 管线；graph 请求走 `graph-feature`。这些专用 pipeline 当前尚未复用通用 feature 的 SDD steps。
 
 任务结束前，必须基于 `.docs` 和相关模块关系输出：直接/间接/潜在影响范围、架构证据、P0/P1/P2 测试预测、已执行与未覆盖的测试，以及未验证风险和人工确认项。
 
@@ -1178,6 +1520,7 @@ memory-recaller → architect → module-decomposer → evolution-predictor
 ├── ddd/                        # DDD 知识包（opt-in）
 ├── frontend-engineering/       # 设计模式知识包（opt-in）
 ├── frontend-memory/            # 前端 OOM 诊断包（opt-in，不是项目 Memory）
+├── sdd/                        # SDD Skill 与 artifact/workflow rules（默认启用）
 ├── project.md                  # 项目自有，update 不覆盖
 ├── project-skills/             # 项目自有，update 不覆盖
 └── rules/                      # 项目自有，update 不覆盖
@@ -1187,8 +1530,15 @@ memory-recaller → architect → module-decomposer → evolution-predictor
 ├── learnings.jsonl
 └── summary.md
 
-.aafe/                          # analyze 产物（analyze.output）
+.aafe/                          # analyze 与运行状态
+├── tasks/<taskId>/             # task.json / context.json / events.jsonl
+│   └── sdd/                    # change.json / revisions / traceability
+├── runs/<runId>/               # Planner + Orchestrator 运行记录
 └── e2e/                        # E2E 报告 / spec / auth（见 e2e.*Dir）
+
+openspec/
+├── changes/<changeId>/         # proposal / specs / design / tasks
+└── specs/                      # sync 后的主规格
 
 tests/ui-ai/cases/              # E2E YAML 用例（e2e.casesDir）
 
@@ -1201,7 +1551,7 @@ tests/ui-ai/cases/              # E2E YAML 用例（e2e.casesDir）
 └── aafe-generated/
 ```
 
-`.ai-agent/` 是项目 AI Runtime 入口；项目 Memory 在 `memory.path`（默认 `.aafe-memory/`）；E2E 用例和报告只写 `e2e.casesDir` / `e2e.reportDir`。`.docs/` 保留原始架构说明及 Knowledge 生成视图；编辑器目录只是指向 `.ai-agent` 的薄适配层。
+`.ai-agent/` 是项目 AI Runtime 入口；项目 Memory 在 `memory.path`（默认 `.aafe-memory/`）；Task/Run 状态在 `.aafe/`；共享 SDD artifact 在 `openspec/`。E2E 用例和报告只写 `e2e.casesDir` / `e2e.reportDir`。`.docs/` 保留原始架构说明及 Knowledge 生成视图；编辑器目录只是指向 `.ai-agent` 的薄适配层。
 
 ### 子目录安装（Monorepo / 多模块）
 
@@ -1267,6 +1617,8 @@ git diff --check
 ## 设计边界
 
 - Runtime 核心提供通用编排能力，不承载具体业务 CMS 数据模型；
+- SDD 是通用 feature 的默认规格层；`sdd.enabled: false` 是项目级退出，持久化验证与审批以当前 revision 为准；
+- Skill Pipeline、Planner/Orchestrator 与 durable TaskManager 是三个协作运行面，不隐式共享 Task/Run 状态；
 - DDD 与设计模式均为显式开启，不因代码库里的术语或需求里的裸关键词自动激活；
 - 模式选型的产物是**最小充分的模式组合**，「不用设计模式」是合法结论；
 - 领域模型区分 `observed` 与 `inferred`，没有证据的推断不伪装成事实；

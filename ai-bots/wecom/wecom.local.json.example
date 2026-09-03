@@ -1,0 +1,5 @@
+{
+  "botId": "your-wecom-bot-id",
+  "secret": "your-wecom-bot-secret",
+  "apiKey": "crsr_your-cursor-api-key"
+}

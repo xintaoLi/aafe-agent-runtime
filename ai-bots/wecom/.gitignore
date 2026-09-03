@@ -1,0 +1,7 @@
+node_modules/
+wecom.local.json
+.env
+.env.*
+!.env.example
+!wecom.local.json.example
+

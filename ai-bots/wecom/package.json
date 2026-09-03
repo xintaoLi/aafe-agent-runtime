@@ -1,0 +1,19 @@
+{
+  "name": "@aafe/wecom-bot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "WeCom long-connection AI bot that creates isolated AAFE tasks.",
+  "bin": {
+    "aafe-wecom": "./bin/wecom.js"
+  },
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@wecom/aibot-node-sdk": "^1.0.7"
+  }
+}

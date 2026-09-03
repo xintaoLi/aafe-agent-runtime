@@ -1,0 +1,132 @@
+/*
+ * Tencent is pleased to support the open source community by making
+ * 蓝鲸智云PaaS平台 (BlueKing PaaS) available.
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * 蓝鲸智云PaaS平台 (BlueKing PaaS) is licensed under the MIT License.
+ * License for 蓝鲸智云PaaS平台 (BlueKing PaaS):
+ * ---------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+import { pathToFileURL } from 'node:url';
+import { createTaskManager } from '../../../src/agent-platform/tasks/index.js';
+import { resolveCursorMcpForRun, toCursorMcpServers } from '../../../src/cli/agentMcp.js';
+import { createTaskManagerOptions, loadWeComBotConfig } from './config.js';
+import { createMessageDedup } from './dedup.js';
+import { createWeComGateway } from './gateway.js';
+import { handleWeComMedia, handleWeComMessage } from './handler.js';
+import { attachWeComNotifier } from './notify.js';
+
+export { loadWeComBotConfig, createTaskManagerOptions } from './config.js';
+export { parseWeComCommand, stripMentions } from './commands.js';
+export { analyzeWeComIntent } from './intent.js';
+export { createMessageDedup } from './dedup.js';
+export { resolveWeComAction } from './resolver.js';
+export { attachWeComNotifier, formatTaskNotify } from './notify.js';
+export { handleWeComMessage } from './handler.js';
+export { createWeComGateway } from './gateway.js';
+
+/**
+ * Resident WeCom process. Must not reuse `aafe task`'s manager.close() on idle.
+ */
+export async function startWeComBot(options = {}) {
+  const logger = options.logger ?? console;
+  const config = options.config ?? await loadWeComBotConfig(options);
+  const mcp = options.mcpServers
+    ? { servers: options.mcpServers }
+    : await resolveCursorMcpForRun(config.agent?.mcp, {
+      root: config.root,
+      env: options.env ?? process.env
+    });
+
+  const manager = options.manager ?? createTaskManager(createTaskManagerOptions(config, {
+    mcpServers: toCursorMcpServers(mcp.servers)
+  }));
+  if (options.recoverOnStart !== false) {
+    await manager.initialize();
+  }
+
+  const sdk = options.sdk ?? (options.WSClient ? {} : await loadWeComSdk());
+  const WSClient = options.WSClient ?? sdk.default?.WSClient ?? sdk.WSClient ?? sdk.AiBot?.WSClient;
+  const generateReqId = options.generateReqId ?? sdk.generateReqId;
+  const gateway = options.gateway ?? createWeComGateway({
+    botId: config.botId,
+    secret: config.secret,
+    wsUrl: config.wsUrl,
+    WSClient,
+    generateReqId,
+    logger
+  });
+
+  const dedup = options.dedup ?? createMessageDedup();
+  const replyAck = (frame, content, extra) => gateway.replyAck(frame, content, extra);
+  attachWeComNotifier({
+    manager,
+    sendMessage: (chatid, body) => gateway.sendMessage(chatid, body),
+    logger
+  });
+
+  gateway.onText((frame) => {
+    void handleWeComMessage(frame, { manager, replyAck, config, dedup, logger });
+  });
+  gateway.onMedia((frame) => {
+    void handleWeComMedia(frame, { replyAck, dedup });
+  });
+  gateway.onEnterChat((frame) => {
+    void gateway.replyWelcome(frame).catch((error) => {
+      logger.error?.(`wecom-welcome-failed:${error instanceof Error ? error.message : error}`);
+    });
+  });
+
+  let shuttingDown = false;
+  const shutdown = async (reason) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    logger.info?.(`wecom-bot shutdown:${reason}`);
+    try { gateway.disconnect(); } catch { /* ignore */ }
+    try { await manager.close(); } catch { /* ignore */ }
+    if (options.exitOnShutdown !== false) process.exit(reason === 'kicked' ? 1 : 0);
+  };
+
+  gateway.onKicked(() => {
+    logger.error?.('wecom-bot kicked by another connection; exiting to keep a single socket');
+    void shutdown('kicked');
+  });
+
+  if (options.installSignals !== false) {
+    process.once('SIGINT', () => { void shutdown('sigint'); });
+    process.once('SIGTERM', () => { void shutdown('sigterm'); });
+  }
+
+  gateway.connect();
+  logger.info?.(`wecom-bot connecting ${config.wsUrl}`);
+
+  if (options.keepAlive === false) return { manager, gateway, config, shutdown };
+  return new Promise(() => {});
+}
+
+export async function loadWeComSdk() {
+  try {
+    return await import('@wecom/aibot-node-sdk');
+  } catch (first) {
+    try {
+      return await import(new URL('../node_modules/@wecom/aibot-node-sdk/dist/index.js', import.meta.url));
+    } catch {
+      throw new Error(`wecom-sdk-unavailable:${first instanceof Error ? first.message : first}`);
+    }
+  }
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  await startWeComBot();
+}

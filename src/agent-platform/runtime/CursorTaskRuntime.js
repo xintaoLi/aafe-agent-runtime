@@ -22,7 +22,8 @@ const DEFAULT_API_KEY_ENV = 'CURSOR_API_KEY';
 const DEFAULT_MODEL = 'composer-2.5';
 
 /**
- * Durable Cursor Cloud runtime. A task owns one Agent and may create many Runs.
+ * Durable Cursor runtime. A task owns one Agent and may create many Runs.
+ * With a repository it uses Cloud; without one it uses a local Agent on cwd.
  * The SDK handle is process-local; the persisted agent id is enough to resume it.
  */
 export class CursorTaskRuntime {
@@ -101,7 +102,11 @@ export class CursorTaskRuntime {
     const apiKey = this.#apiKey(options);
     let run;
     try {
-      run = await Agent.getRun(runId, { runtime: 'cloud', agentId, apiKey });
+      run = await Agent.getRun(runId, {
+        runtime: runtimeKind(task, options),
+        agentId,
+        apiKey
+      });
     } catch (error) {
       throw cursorError('cursor-run-recover-failed', error);
     }
@@ -145,7 +150,7 @@ export class CursorTaskRuntime {
     if (!runId || !agentId) return { cancelled: false, reason: 'no-active-run' };
     const { Agent } = await this.#sdk();
     await Agent.cancelRun(runId, {
-      runtime: 'cloud',
+      runtime: runtimeKind(task, options),
       agentId,
       apiKey: this.#apiKey(options)
     });
@@ -198,7 +203,22 @@ export class CursorTaskRuntime {
       options.repository ?? options.repositories ?? task.repository,
       task.baseBranch
     );
-    if (repositories.length === 0) throw new Error('cursor-cloud-repository-missing');
+    const create = {
+      apiKey,
+      model: { id: options.model ?? DEFAULT_MODEL },
+      name: options.name ?? `AAFE ${task.id}`,
+      ...(options.mcpServers && Object.keys(options.mcpServers).length
+        ? { mcpServers: options.mcpServers }
+        : {}),
+      idempotencyKey: options.agentIdempotencyKey ?? `aafe-agent-${task.id}`
+    };
+
+    if (repositories.length === 0) {
+      create.local = {
+        cwd: options.cwd ?? options.root ?? process.cwd()
+      };
+      return create;
+    }
 
     const cloud = {
       repos: repositories,
@@ -207,17 +227,8 @@ export class CursorTaskRuntime {
     };
     if (options.environment) cloud.env = normalizeEnvironment(options.environment);
     if (options.envVars && Object.keys(options.envVars).length) cloud.envVars = options.envVars;
-
-    return {
-      apiKey,
-      model: { id: options.model ?? DEFAULT_MODEL },
-      name: options.name ?? `AAFE ${task.id}`,
-      cloud,
-      ...(options.mcpServers && Object.keys(options.mcpServers).length
-        ? { mcpServers: options.mcpServers }
-        : {}),
-      idempotencyKey: options.agentIdempotencyKey ?? `aafe-agent-${task.id}`
-    };
+    create.cloud = cloud;
+    return create;
   }
 
   async #sdk() {
@@ -245,6 +256,17 @@ export class CursorTaskRuntime {
     this.onEvent(event);
     options.onEvent?.(event);
   }
+}
+
+function runtimeKind(task, options = {}) {
+  const mode = String(options.mode ?? options.runtime ?? '').toLowerCase();
+  if (mode === 'local') return 'local';
+  if (mode === 'cloud') return 'cloud';
+  const repositories = normalizeRepositories(
+    options.repository ?? options.repositories ?? task.repository,
+    task.baseBranch
+  );
+  return repositories.length === 0 ? 'local' : 'cloud';
 }
 
 function normalizeRepositories(value, defaultRef) {
