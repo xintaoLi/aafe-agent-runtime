@@ -106,14 +106,17 @@ export async function checkWeComModels(root, {
 
   // The task stage also matches on the classification, which a dry run cannot
   // produce without paying for a model, so every possible outcome is listed.
+  // `followup` is left out: it continues an existing task and reuses the model
+  // pinned there, so it never reaches the table.
   for (const probe of probes) {
     const intentPick = router.select({ stage: 'intent', text: probe });
     out.log(`\n干跑「${probe}」`);
     out.log(`  意图分析 → ${intentPick.model}（${intentPick.ruleId}）`);
-    for (const kind of INTENT_KINDS) {
+    for (const kind of INTENT_KINDS.filter((item) => item !== 'followup')) {
       const pick = router.select({ stage: 'task', intent: { kind, confidence: 1 }, text: probe });
       out.log(`  任务执行 · intent=${kind.padEnd(9)} → ${pick.model.padEnd(20)}（${pick.ruleId}）`);
     }
+    out.log('  任务执行 · intent=followup  → 复用原任务已钉定的模型');
   }
 
   const failed = !ok || configErrors.length > 0;
