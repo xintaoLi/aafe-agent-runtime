@@ -25,6 +25,7 @@
     "endpoint": null,
     "model": null,
     "apiKeyEnv": "AAFE_LLM_API_KEY",
+    "cursorModel": "gemini-3.8-flash",
     "timeoutMs": 25000
   }
 }

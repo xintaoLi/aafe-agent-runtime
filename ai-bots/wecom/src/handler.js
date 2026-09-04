@@ -40,6 +40,8 @@ import { sessionKeyFromSource, sourceFromFrame } from './session.js';
 import { formatWorkspaceList } from './workspace.js';
 
 export const UNDERSTANDING_TEXT = '正在理解分析中…';
+const INTENT_ACK_GRACE_MS = 150;
+const PENDING = Symbol('intent-pending');
 
 const CONTROL_TYPES = new Set([
   'help',
@@ -65,6 +67,7 @@ export async function handleWeComMessage(frame, {
   dedup,
   attachments = [],
   understanding = null,
+  intentAckGraceMs = INTENT_ACK_GRACE_MS,
   logger = console
 } = {}) {
   const msgid = frame?.body?.msgid;
@@ -89,15 +92,20 @@ export async function handleWeComMessage(frame, {
   // round trip would cost seconds before a stop can even be attempted.
   const stream = createReplyStream({ frame, replyAck, replyProgress, logger });
   if (understanding && command.type === 'implicit-route') {
-    await stream.push(UNDERSTANDING_TEXT);
-    command.intent = await analyzeIntent(command, {
+    const pending = analyzeIntent(command, {
       understanding,
       manager,
       source,
       attachments,
       logger
     });
-    await stream.push(formatIntentStage(command.intent));
+    // Most messages are classified without a model, so announcing the analysis
+    // would only flash a frame the user cannot read. Announce it once it is
+    // clear the answer needs waiting for.
+    const settled = await Promise.race([pending, waitFor(intentAckGraceMs, PENDING)]);
+    if (settled === PENDING) await stream.push(UNDERSTANDING_TEXT);
+    command.intent = settled === PENDING ? await pending : settled;
+    if (command.intent) await stream.push(formatIntentStage(command.intent));
   }
 
   const action = await resolveWeComAction(command, buildActionContext({
@@ -187,7 +195,14 @@ async function analyzeIntent(command, { understanding, manager, source, attachme
   } catch {
     // A listing failure must not block classification; assume a fresh request.
   }
-  const intent = await understanding.analyze({ text: command.text, attachments, hasOpenTask });
+  let intent;
+  try {
+    intent = await understanding.analyze({ text: command.text, attachments, hasOpenTask });
+  } catch (error) {
+    // Routing by keyword is still better than dropping the turn.
+    logger.error?.(`wecom-intent-failed:${error instanceof Error ? error.message : error}`);
+    return null;
+  }
   logger.event?.('intent.resolved', {
     conversationId: source.conversationId,
     kind: intent.kind,
@@ -197,6 +212,13 @@ async function analyzeIntent(command, { understanding, manager, source, attachme
     reason: intent.reason ?? null
   });
   return intent;
+}
+
+function waitFor(ms, value) {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(value), ms);
+    if (typeof timer.unref === 'function') timer.unref();
+  });
 }
 
 export function formatIntentStage(intent) {

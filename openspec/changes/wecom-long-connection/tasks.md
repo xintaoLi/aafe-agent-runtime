@@ -49,3 +49,7 @@
 - [x] Intent analyzer with an OpenAI-compatible endpoint, a Cursor one-shot fallback, and keyword rules underneath
 - [x] Repository question narrowed to code work; analysis runs in the bot directory
 - [x] Classification stored with the pending workspace question and reused for the answer
+- [x] Rules-first classification: TAPD / leading verb / question / addendum resolve in ~1ms, model only for ambiguous new work
+- [x] `正在理解分析中…` only when classification loses a 150ms race
+- [x] Classifier model defaults to `gemini-3.8-flash` instead of the task model
+- [x] Digits-only junk answers help instead of creating a task

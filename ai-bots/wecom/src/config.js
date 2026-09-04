@@ -25,6 +25,7 @@ import { resolveWeComLogConfig, normalizeLogValue } from './logger.js';
 import { parseWorkspaces } from './workspace.js';
 
 const DEFAULT_WS_URL = 'wss://openws.work.weixin.qq.com';
+const DEFAULT_INTENT_MODEL = 'gemini-3.8-flash';
 
 export const WECOM_LOCAL_CONFIG_NAMES = Object.freeze([
   'ai-bots/wecom/wecom.local.json',
@@ -76,7 +77,7 @@ export async function loadWeComBotConfig({
     currentWorkspace: firstNonEmpty(local.currentWorkspace, env.AAFE_WECOM_WORKSPACE) ?? workspaces[0]?.id ?? null,
     localConfigPath: local.path ?? null,
     log: resolveWeComLogConfig({ env, local, root: projectRoot }),
-    intent: resolveWeComIntentConfig({ env, local, apiKey, model: model ?? agent.model ?? null }),
+    intent: resolveWeComIntentConfig({ env, local, apiKey }),
     agent: {
       ...agent,
       apiKey: apiKey ?? agent.apiKey ?? null,
@@ -88,8 +89,11 @@ export async function loadWeComBotConfig({
 /**
  * Intent classification runs before any task exists, so it needs its own
  * endpoint. Without one it falls back to the Cursor key the bot already holds.
+ * The classifier model is deliberately not the task model: measured on this
+ * repo, `grok-4.6` spends ~13s reasoning about a one-line label while
+ * `gemini-3.8-flash` answers in ~7.7s and scores it higher.
  */
-export function resolveWeComIntentConfig({ env = {}, local = {}, apiKey = null, model = null } = {}) {
+export function resolveWeComIntentConfig({ env = {}, local = {}, apiKey = null } = {}) {
   const raw = local.intent ?? {};
   const enabled = parseBoolean(env.AAFE_WECOM_INTENT_ENABLED ?? raw.enabled, true);
   const timeout = Number(env.AAFE_WECOM_INTENT_TIMEOUT_MS ?? raw.timeoutMs);
@@ -102,7 +106,7 @@ export function resolveWeComIntentConfig({ env = {}, local = {}, apiKey = null, 
     apiKeyEnv: firstNonEmpty(raw.apiKeyEnv) ?? 'AAFE_LLM_API_KEY',
     timeoutMs: Number.isFinite(timeout) && timeout > 0 ? timeout : null,
     cursorApiKey: apiKey,
-    cursorModel: firstNonEmpty(raw.cursorModel) ?? model
+    cursorModel: firstNonEmpty(env.AAFE_WECOM_INTENT_CURSOR_MODEL, raw.cursorModel) ?? DEFAULT_INTENT_MODEL
   };
 }
 

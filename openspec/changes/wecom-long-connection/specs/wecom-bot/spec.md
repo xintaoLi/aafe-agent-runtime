@@ -99,21 +99,44 @@ task owned by the speaker in the current conversation. Greetings MUST stay on he
 - THEN the bot creates a new task instead of continuing the old one
 
 ### Requirement: Staged intent analysis before routing
-Free-form input MUST be classified by a model before the bot decides what to
-do with it, and the user MUST see the stages on one stream: an immediate
-`正在理解分析中…`, then the classification result, then the routing outcome.
-Classification MUST cover text, links, and attachments alike. Control words
-(`状态` / `终止` / `列表` / `帮助` / `仓库`) and answers to a pending question MUST
-stay on the keyword path so a stop is never delayed by a model round trip.
-Classification MUST NOT be able to break a turn: on failure, timeout, or an
-unparsable answer the bot MUST fall back to keyword routing and continue.
+Free-form input MUST be classified before the bot decides what to do with it,
+and the user MUST see the stages on one stream: the classification result and
+then the routing outcome. `正在理解分析中…` MUST be sent first whenever the
+classification does not resolve within a short grace period, and MUST be
+skipped when it resolves instantly so the user is not shown an unreadable
+flash. Classification MUST cover text, links, and attachments alike.
 
-#### Scenario: Free-form text shows both stages
-- GIVEN the intent analyzer is configured
-- WHEN the user sends `分析一下这个 bot 的重连逻辑`
-- THEN the bot first refreshes the stream with `正在理解分析中…`
-- AND then refreshes the same stream with `这是一个**分析排查**任务，正在进一步解析中…`
-- AND finally refreshes it with the created task
+Unmistakable input MUST be classified without a model: TAPD pastes and
+bracketed defect titles, a leading code or analysis verb, plain questions, and
+text that adds to the speaker's only open task. A model MUST only be consulted
+when no such signal is present. Control words (`状态` / `终止` / `列表` / `帮助` /
+`仓库`), digits-only junk, and answers to a pending question MUST also stay off
+the model path, so a stop is never delayed by a round trip.
+
+Classification MUST NOT be able to break a turn: on failure, timeout, an
+unparsable answer, or a throwing classifier the bot MUST fall back to keyword
+routing and continue.
+
+#### Scenario: Unmistakable input skips the model
+- WHEN the user pastes a TAPD story title and URL
+- THEN the bot classifies it as code work without calling a model
+- AND the reply goes out in the same turn
+
+#### Scenario: Addendum to the only open task skips the model
+- GIVEN the speaker has exactly one open task
+- WHEN the user sends text with no leading verb and no new-work marker
+- THEN the bot treats it as a follow-up without calling a model
+
+#### Scenario: Ambiguous new work waits for the model
+- GIVEN no open task and text with no leading verb
+- WHEN the user sends `登录页按钮颜色需要改成品牌色`
+- THEN the bot refreshes the stream with `正在理解分析中…`
+- AND then refreshes the same stream with the classification result
+- AND finally refreshes it with the routing outcome
+
+#### Scenario: Digits alone are not a requirement
+- WHEN the user sends `1233`
+- THEN the bot answers with help, creates no task, and calls no model
 
 #### Scenario: Classification failure keeps the turn alive
 - GIVEN the configured backend is unreachable

@@ -43,6 +43,7 @@ import {
 import {
   classifyIntentByRules,
   createIntentAnalyzer,
+  fastIntent,
   parseIntent
 } from '../ai-bots/wecom/src/understand.js';
 import { createWeComLogger, resolveWeComLogConfig, sanitizeLogValue } from '../ai-bots/wecom/src/logger.js';
@@ -125,6 +126,10 @@ assert.deepEqual(analyzeWeComIntent(tapdPaste), {
   prefer: 'new'
 });
 assert.equal(analyzeWeComIntent('登录页按钮颜色需要改成品牌色').prefer, 'work');
+// Digits alone are not a requirement, so they never reach a task or a model.
+assert.equal(analyzeWeComIntent('1233').type, 'help');
+assert.equal(analyzeWeComIntent('???').type, 'help');
+assert.equal(analyzeWeComIntent('1、2、3都执行，TAPD MCP已有').type, 'implicit-route');
 
 const textFrame = {
   headers: { req_id: 'req-1' },
@@ -1225,7 +1230,9 @@ const httpAnalyzer = createIntentAnalyzer({
   })
 });
 assert.equal(httpAnalyzer.backend, 'llm');
-const httpIntent = await httpAnalyzer.analyze({ text: '排查一下接口为什么慢' });
+// AMBIGUOUS has no leading verb and no TAPD marker, so only a model can label it.
+const AMBIGUOUS = '登录页按钮颜色需要改成品牌色';
+const httpIntent = await httpAnalyzer.analyze({ text: AMBIGUOUS });
 assert.equal(httpIntent.kind, 'analysis');
 assert.equal(httpIntent.source, 'llm');
 assert.equal(httpIntent.summary, '排查耗时');
@@ -1236,7 +1243,7 @@ const brokenAnalyzer = createIntentAnalyzer({
   fetchImpl: async () => { throw new Error('boom'); },
   logger: { warn() {} }
 });
-const brokenIntent = await brokenAnalyzer.analyze({ text: '帮我修一下登录按钮' });
+const brokenIntent = await brokenAnalyzer.analyze({ text: AMBIGUOUS });
 assert.equal(brokenIntent.source, 'rules');
 assert.equal(brokenIntent.kind, 'code');
 assert.match(brokenIntent.reason, /boom/);
@@ -1259,7 +1266,7 @@ const cursorAnalyzer = createIntentAnalyzer({
   })
 });
 assert.equal(cursorAnalyzer.backend, 'cursor');
-const cursorIntent = await cursorAnalyzer.analyze({ text: '修一下复制按钮' });
+const cursorIntent = await cursorAnalyzer.analyze({ text: AMBIGUOUS });
 assert.equal(cursorIntent.kind, 'code');
 assert.equal(cursorIntent.source, 'cursor');
 assert.equal(cursorCalls[0].options.mode, 'plan');
@@ -1271,7 +1278,7 @@ const timedOutAnalyzer = createIntentAnalyzer({
   importSdk: async () => ({ Agent: { prompt: () => delay(200).then(() => ({ result: '{}' })) } }),
   logger: { warn() {} }
 });
-const timedOut = await timedOutAnalyzer.analyze({ text: '分析一下影响面' });
+const timedOut = await timedOutAnalyzer.analyze({ text: AMBIGUOUS });
 assert.equal(timedOut.source, 'rules');
 assert.match(timedOut.reason, /intent-timeout/);
 
@@ -1281,14 +1288,55 @@ assert.equal(createIntentAnalyzer({ settings: {} }).backend, 'rules');
 const intentConfig = resolveWeComIntentConfig({
   env: { AAFE_WECOM_INTENT_TIMEOUT_MS: '9000' },
   local: { intent: { endpoint: 'https://llm.example/v1/chat/completions', model: 'fast-1' } },
-  apiKey: 'crsr_x',
-  model: 'grok-4.6'
+  apiKey: 'crsr_x'
 });
 assert.equal(intentConfig.enabled, true);
 assert.equal(intentConfig.timeoutMs, 9000);
 assert.equal(intentConfig.cursorApiKey, 'crsr_x');
-assert.equal(intentConfig.cursorModel, 'grok-4.6');
+// Classification does not inherit the task model: a reasoning model spends
+// seconds on a one-line label.
+assert.equal(intentConfig.cursorModel, 'gemini-3.8-flash');
+assert.equal(
+  resolveWeComIntentConfig({ env: { AAFE_WECOM_INTENT_CURSOR_MODEL: 'gpt-5.4-mini' } }).cursorModel,
+  'gpt-5.4-mini'
+);
 assert.equal(resolveWeComIntentConfig({ env: { AAFE_WECOM_INTENT_ENABLED: 'false' } }).enabled, false);
+
+// The fast path answers without a model wherever the signal is unmistakable.
+let modelCalls = 0;
+const countingAnalyzer = createIntentAnalyzer({
+  settings: { cursorApiKey: 'crsr_x' },
+  importSdk: async () => ({
+    Agent: {
+      async prompt() {
+        modelCalls += 1;
+        return { status: 'finished', result: '{"kind":"code","needs_code":true,"confidence":0.9}' };
+      }
+    }
+  })
+});
+const tapdPasteIntent = await countingAnalyzer.analyze({
+  text: '【日志检索结果复制按钮失效，点击后没有复制到内容】\nhttps://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081137887277'
+});
+assert.equal(tapdPasteIntent.source, 'rules-fast');
+assert.equal(tapdPasteIntent.kind, 'code');
+assert.equal((await countingAnalyzer.analyze({ text: '帮我修一下登录按钮' })).source, 'rules-fast');
+assert.equal((await countingAnalyzer.analyze({ text: '分析一下这次变更的影响面' })).kind, 'analysis');
+assert.equal((await countingAnalyzer.analyze({ text: 'composer 是什么意思' })).kind, 'question');
+// Real traffic: an addendum to the one open task never needed a model either.
+const addendum = await countingAnalyzer.analyze({
+  text: '1、析影响范围并做最小收敛自测\n2、 Commit / 提 PR',
+  hasOpenTask: true
+});
+assert.equal(addendum.kind, 'followup');
+assert.equal(addendum.source, 'rules-fast');
+assert.equal(modelCalls, 0);
+// Only genuinely ambiguous new work is worth the wait.
+assert.equal((await countingAnalyzer.analyze({ text: AMBIGUOUS })).source, 'cursor');
+assert.equal(modelCalls, 1);
+assert.equal(fastIntent(AMBIGUOUS), null);
+// A leading verb decides new work even while a task is open.
+assert.equal(fastIntent('帮我修一下另一个 bug', { hasOpenTask: true }).kind, 'code');
 
 const stageReplies = [];
 const stageUpdates = [];
@@ -1312,24 +1360,76 @@ const analysisHandled = await handleWeComMessage({
         needsCode: false,
         summary: '看重连逻辑',
         confidence: 0.9,
+        source: 'rules-fast'
+      };
+    }
+  }
+});
+// An instant classification skips the announcement: two frames in the same
+// millisecond would only flash something unreadable.
+assert.equal(stageReplies.length, 1);
+assert.match(stageReplies[0], /这是一个\*\*分析排查\*\*任务，正在进一步解析中…/);
+assert.match(stageReplies[0], /看重连逻辑/);
+// Analysis touches no repository, so it runs in the bot directory right away.
+assert.equal(analysisHandled.action.type, 'created');
+assert.equal(analysisHandled.action.task.workspace.cwd, path.resolve('/bot/root'));
+assert.equal(analysisHandled.intent.kind, 'analysis');
+assert.equal(stageUpdates[0].streamId, 'stream-intent');
+assert.match(stageUpdates[0].content, /分析排查/);
+// The stage the user must see cannot be dropped by the non-blocking path.
+assert.equal(stageUpdates[0].blocking, true);
+
+// A classification that has to wait announces itself first.
+const slowStageReplies = [];
+const slowStageUpdates = [];
+await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'intent-slow', text: { content: '登录页按钮颜色需要改成品牌色' } }
+}, {
+  manager: createFakeManager(),
+  replyAck: async (_frame, content) => { slowStageReplies.push(content); return 'stream-slow'; },
+  replyProgress: async (_frame, _streamId, content) => { slowStageUpdates.push(content); },
+  progress: { open() {} },
+  config: { root: '/bot/root' },
+  dedup: createMessageDedup(),
+  intentAckGraceMs: 5,
+  understanding: {
+    async analyze() {
+      await delay(40);
+      return {
+        kind: 'analysis',
+        label: '分析排查',
+        needsCode: false,
+        summary: '看按钮改色',
+        confidence: 0.9,
         source: 'llm'
       };
     }
   }
 });
-assert.equal(stageReplies[0], '正在理解分析中…');
-assert.equal(stageReplies.length, 1);
-assert.match(stageUpdates[0].content, /这是一个\*\*分析排查\*\*任务，正在进一步解析中…/);
-assert.match(stageUpdates[0].content, /看重连逻辑/);
-assert.equal(stageUpdates[0].streamId, 'stream-intent');
-// Analysis touches no repository, so it runs in the bot directory right away.
-assert.equal(analysisHandled.action.type, 'created');
-assert.equal(analysisHandled.action.task.workspace.cwd, path.resolve('/bot/root'));
-assert.equal(analysisHandled.intent.kind, 'analysis');
-assert.match(stageUpdates[1].content, /分析排查/);
-// The stage the user must see cannot be dropped by the non-blocking path.
-assert.equal(stageUpdates[1].blocking, true);
+assert.equal(slowStageReplies[0], '正在理解分析中…');
+assert.match(slowStageUpdates[0], /这是一个\*\*分析排查\*\*任务/);
 
+// A classifier that throws must not cost the turn.
+const crashStageReplies = [];
+const crashHandled = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'intent-crash', text: { content: '登录页按钮颜色需要改成品牌色' } }
+}, {
+  manager: createFakeManager(),
+  replyAck: async (_frame, content) => { crashStageReplies.push(content); return 'stream-crash'; },
+  replyProgress: async () => {},
+  progress: { open() {} },
+  config: { root: '/bot/root', repository: 'owner/repo' },
+  dedup: createMessageDedup(),
+  logger: { error() {}, event() {} },
+  understanding: { async analyze() { throw new Error('classifier down'); } }
+});
+assert.equal(crashHandled.action.type, 'created');
+assert.equal(crashHandled.intent, null);
+assert.equal(crashStageReplies.length, 1);
+
+const codeStageReplies = [];
 const codeStageUpdates = [];
 const intentPending = createPendingStore();
 const codeHandled = await handleWeComMessage({
@@ -1337,7 +1437,7 @@ const codeHandled = await handleWeComMessage({
   body: { ...textFrame.body, msgid: 'intent-2', text: { content: '把日志检索的复制按钮修好' } }
 }, {
   manager: createFakeManager(),
-  replyAck: async () => 'stream-code',
+  replyAck: async (_frame, content) => { codeStageReplies.push(content); return 'stream-code'; },
   replyProgress: async (_frame, _streamId, content) => { codeStageUpdates.push(content); },
   pending: intentPending,
   config: { root: '/bot/root' },
@@ -1371,7 +1471,8 @@ assert.equal(readingAnalysis.action ?? readingAnalysis.type, 'created');
 assert.equal(readingAnalysis.task.workspace.cwd, path.resolve('/bot/root'));
 
 assert.equal(codeHandled.action.type, 'need-workspace');
-assert.match(codeStageUpdates[0], /代码开发/);
+assert.match(codeStageReplies[0], /代码开发/);
+assert.match(codeStageUpdates[0], /需要先选定仓库/);
 assert.equal(intentPending.get('user-a').intent.kind, 'code');
 
 // Answering the repository question must not spend another classification.

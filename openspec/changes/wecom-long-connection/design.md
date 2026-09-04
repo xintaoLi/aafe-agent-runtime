@@ -71,22 +71,36 @@ longer reports the previous failure; the notify view also suppresses errors on
 `completed` for tasks persisted before that fix.
 
 Free-form input is classified before the bot decides anything. The turn is
-staged on one stream: `正在理解分析中…` goes out before the classifier is even
-called, the classification result replaces it, and the routing outcome replaces
-that. Stage refreshes go out blocking, unlike the animation frames, because a
-dropped stage would leave the user reading the wrong state.
+staged on one stream: the classification result, then the routing outcome.
+`正在理解分析中…` is only sent when the classification loses a 150ms race,
+because most messages are classified in under 2ms and two frames in the same
+millisecond just flash. Stage refreshes go out blocking, unlike the animation
+frames, because a dropped stage would leave the user reading the wrong state.
 
-The classifier has three layers and always answers. An OpenAI-compatible
-endpoint (`intent.endpoint` + `intent.model`, via the shared `LlmClient`) is
-used when configured. Otherwise the Cursor key the bot already holds drives a
-single `Agent.prompt` in `plan` mode; that runs in an empty scratch directory
-under the system temp dir, because classification reads nothing and indexing a
-workspace would only cost time. Measured latency of that path is roughly 7–14
-seconds, which is why the acknowledgement is sent first. Underneath both sits a
-keyword classifier that takes over on failure, timeout, or an unparsable
-answer, so the model is never on the critical path for correctness. Control
-words and answers to a pending question skip classification entirely: a stop
-must not wait on a model.
+Classification is rules-first, and that ordering is the whole latency story.
+Cursor has no HTTP inference channel: `api.cursor.com` exposes only `/v1/agents`
+(cloud agents, which need a repo and boot a VM), `/v1/me`, `/v1/models` and
+`/v1/repositories`, and `api2.cursor.sh` is the binary's own internal protocol.
+So the Cursor path is a local agent run, and it is slow for structural reasons
+rather than fixable ones: measured on this repo, `Agent.create` costs 3s while
+each subsequent `agent.send` still costs 4–11s, so keeping a warm classifier
+agent buys nothing — the cost is the agent turn, not process boot. `grok-4.6`
+spends ~13s on a one-line label, `gemini-3.8-flash` ~8s at higher confidence,
+and `gpt-5.4-nano` still needs 5.5s and got the label wrong. Replaying this
+bot's real message log showed the model earning nothing on 5 of 6 messages.
+
+The keyword layer therefore answers first and the model is the exception. TAPD
+pastes, a leading code or analysis verb, plain questions, and text that adds to
+the speaker's only open task resolve in ~1ms. Only text with no such signal
+reaches a model: an OpenAI-compatible endpoint (`intent.endpoint` +
+`intent.model` via the shared `LlmClient`) when configured — that wire format is
+just what nearly every gateway speaks, including local runtimes — otherwise a
+single `Agent.prompt` in `plan` mode on the Cursor key the bot already holds,
+run in an empty scratch directory under the system temp dir because
+classification reads nothing and indexing a workspace would only cost time.
+The classifier model is deliberately not the task model. Underneath everything
+sits the same keyword classifier as a fallback, so a failure, timeout, or
+unparsable answer costs latency but never correctness.
 
 Classification decides how far the bot goes before asking anything. Only `code`
 work with no configured workspace asks for a repository; `analysis`, `question`

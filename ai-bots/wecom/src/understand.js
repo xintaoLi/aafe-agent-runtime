@@ -22,6 +22,7 @@ import { mkdir } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { LlmClient } from '../../../src/llm/LlmClient.js';
+import { isNewWork } from './intent.js';
 
 export const INTENT_KINDS = Object.freeze(['code', 'analysis', 'question', 'followup']);
 
@@ -57,6 +58,47 @@ const CODE_HINT = /(?:修复|修一下|改一下|改下|实现|开发|重构|新
 const ANALYSIS_HINT = /(?:分析|排查|定位|评估|梳理|影响面|影响范围|为什么|为何|原因|怎么回事|看一下|看看|了解|对比|调研|总结)/i;
 const QUESTION_HINT = /(?:是什么|什么意思|怎么用|如何使用|区别|介绍一下|解释)/i;
 const FOLLOW_HINT = /^(?:再|继续|补充|还要|顺便|另外|不对|这里|那个|加上|不要)/;
+
+const LEAD = '^(?:请)?(?:帮我|帮忙|麻烦)?\\s*';
+const CODE_LEAD = new RegExp(`${LEAD}(?:修复|修一下|修好|修|改一下|改下|改成|改|实现|开发|重构|新增|加个|接入|上线|优化|支持|fix|implement|refactor)`, 'i');
+const ANALYSIS_LEAD = new RegExp(`${LEAD}(?:分析|排查|定位|评估|梳理|调研|总结|对比|看一下|看看|查一下|为什么|为何)`, 'i');
+
+/**
+ * The fast path exists because the model earns nothing on the traffic this bot
+ * actually gets: TAPD pastes, explicit verbs, and additions to the one open
+ * task are already unambiguous, and paying seconds for them only delays the
+ * task. It answers only when the signal is unmistakable and returns null
+ * otherwise, which is exactly where a model is worth waiting for.
+ */
+export function fastIntent(text, { attachments = [], hasOpenTask = false } = {}) {
+  const body = String(text ?? '').trim();
+  if (!body) return null;
+  const code = CODE_HINT.test(body);
+  const analysis = ANALYSIS_HINT.test(body);
+
+  // A TAPD story or a bracketed defect title is always code work.
+  if (isNewWork(body) && !ANALYSIS_LEAD.test(body)) {
+    return intent({ kind: 'code', needsCode: true, summary: clip(body), confidence: 0.9, source: 'rules-fast' });
+  }
+  if (hasOpenTask && FOLLOW_HINT.test(body) && !CODE_LEAD.test(body)) {
+    return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.8, source: 'rules-fast' });
+  }
+  if (ANALYSIS_LEAD.test(body) && !code) {
+    return intent({ kind: 'analysis', needsCode: false, summary: clip(body), confidence: 0.8, source: 'rules-fast' });
+  }
+  if (CODE_LEAD.test(body) && !analysis) {
+    return intent({ kind: 'code', needsCode: true, summary: clip(body), confidence: 0.8, source: 'rules-fast' });
+  }
+  if (QUESTION_HINT.test(body) && !code && !analysis && !attachments.length) {
+    return intent({ kind: 'question', needsCode: false, summary: clip(body), confidence: 0.8, source: 'rules-fast' });
+  }
+  // Unrecognised text next to an open task is an addendum, which is what the
+  // keyword router already assumed; classifying it again changes nothing.
+  if (hasOpenTask && !isNewWork(body)) {
+    return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.6, source: 'rules-fast' });
+  }
+  return null;
+}
 
 /**
  * Rules are the floor, not the ceiling: the bot must keep routing when the
@@ -146,6 +188,8 @@ export function createIntentAnalyzer({
   return {
     backend,
     async analyze({ text, attachments = [], hasOpenTask = false } = {}) {
+      const fast = fastIntent(text, { attachments, hasOpenTask });
+      if (fast) return fast;
       const fallback = classifyIntentByRules(text, { attachments, hasOpenTask });
       if (backend === 'rules') return fallback;
       const payload = {
