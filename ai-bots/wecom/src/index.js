@@ -27,6 +27,7 @@ import { createMessageDedup } from './dedup.js';
 import { createWeComGateway } from './gateway.js';
 import { handleWeComCard, handleWeComMedia, handleWeComMessage } from './handler.js';
 import { attachWeComNotifier } from './notify.js';
+import { createModelRouter, validateModelRules } from './models.js';
 import { createPendingStore } from './pending.js';
 import { createWeComProgressHub } from './progress.js';
 import { createIntentAnalyzer } from './understand.js';
@@ -46,6 +47,12 @@ export { parseCardEvent, buildCancelledCard } from './cards.js';
 export { createWeComLogger, resolveWeComLogConfig } from './logger.js';
 export { parseWeComMedia, mediaRequirement, inferMediaType } from './media.js';
 export { createIntentAnalyzer, classifyIntentByRules, parseIntent } from './understand.js';
+export {
+  createModelRouter,
+  validateModelRules,
+  mergeModelRules,
+  DEFAULT_MODEL_RULES
+} from './models.js';
 
 /**
  * Resident WeCom process. Must not reuse `aafe task`'s manager.close() on idle.
@@ -95,9 +102,22 @@ export async function startWeComBot(options = {}) {
   const replyProgress = (frame, streamId, content, finish, extra) =>
     gateway.replyProgress(frame, streamId, content, finish, extra);
   const replyCard = (frame, card) => gateway.replyCard(frame, card);
+  // A rule that fails validation is dropped and logged, never fatal.
+  for (const error of config.models?.configErrors ?? []) {
+    logger.error?.(`wecom-model-rule-invalid:${error}`);
+  }
+  const models = options.models ?? createModelRouter({
+    rules: await acceptedModelRules(config, {
+      logger,
+      listModels: options.listModels ?? loadCursorModelIds
+    }),
+    fallback: config.models?.default,
+    logger
+  });
   const understanding = options.understanding ?? createIntentAnalyzer({
     settings: config.intent ?? {},
     env: options.env ?? process.env,
+    selectModel: (input) => models.model(input),
     logger
   });
   const progress = options.progress ?? createWeComProgressHub({
@@ -125,10 +145,11 @@ export async function startWeComBot(options = {}) {
 
   gateway.onText((frame) => guard('message', () => handleWeComMessage(frame, {
     manager, replyAck, replyProgress, replyCard, progress, pending, workspaces, config, dedup,
-    understanding, logger
+    understanding, models, logger
   })));
   gateway.onCard?.((frame) => guard('card', () => handleWeComCard(frame, {
     manager,
+    models,
     sendText: (content, source) => gateway.sendMarkdown(source, content),
     updateCard: (cardFrame, card) => gateway.updateCard(cardFrame, card),
     progress,
@@ -143,6 +164,7 @@ export async function startWeComBot(options = {}) {
     replyProgress,
     replyCard,
     understanding,
+    models,
     progress,
     pending,
     workspaces,
@@ -189,8 +211,34 @@ export async function startWeComBot(options = {}) {
   });
   logger.info?.(`wecom-bot connecting ${config.wsUrl}`);
 
-  if (options.keepAlive === false) return { manager, gateway, config, shutdown };
+  if (options.keepAlive === false) return { manager, gateway, config, models, shutdown };
   return new Promise(() => {});
+}
+
+/**
+ * A rule naming a model the account cannot run would otherwise only fail when
+ * a task starts, so the model list is checked once at boot. The check is
+ * advisory: if the call fails the rules stand on structural validation alone.
+ */
+async function acceptedModelRules(config, { logger, listModels }) {
+  const rules = config.models?.rules ?? [];
+  let known;
+  try {
+    known = await listModels(config.apiKey);
+  } catch (error) {
+    logger.warn?.(`wecom-model-list-unavailable:${error instanceof Error ? error.message : error}`);
+    return rules;
+  }
+  const { rules: accepted, errors } = validateModelRules(rules, { models: known });
+  for (const error of errors) logger.error?.(`wecom-model-rule-invalid:${error}`);
+  return accepted;
+}
+
+async function loadCursorModelIds(apiKey) {
+  if (!apiKey) throw new Error('cursor-api-key-missing');
+  const sdk = await import('@cursor/sdk');
+  const list = await sdk.Cursor.models.list({ apiKey });
+  return (list?.models ?? list ?? []).map((item) => item.id ?? item.name).filter(Boolean);
 }
 
 export async function loadWeComSdk() {

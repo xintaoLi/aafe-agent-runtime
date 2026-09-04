@@ -65,6 +65,7 @@ export async function handleWeComMessage(frame, {
   workspaces,
   config,
   dedup,
+  models = null,
   attachments = [],
   understanding = null,
   intentAckGraceMs = INTENT_ACK_GRACE_MS,
@@ -112,7 +113,8 @@ export async function handleWeComMessage(frame, {
     source,
     config,
     workspaces,
-    attachments
+    attachments,
+    models
   }), manager);
 
   if (action.type === 'need-workspace') {
@@ -256,6 +258,7 @@ function createReplyStream({ frame, replyAck, replyProgress, logger = console })
 export async function handleWeComCard(frame, {
   manager,
   sendText,
+  models,
   updateCard,
   progress,
   pending,
@@ -308,7 +311,8 @@ export async function handleWeComCard(frame, {
       source,
       config,
       workspaces,
-      attachments
+      attachments,
+      models
     }), manager);
     if (action.type === 'created') pending?.clear(sessionKey);
     const reply = replyForAction(action, command, { workspaces, config, attachments });
@@ -427,7 +431,7 @@ function bindPendingCommand(command, waiting) {
   };
 }
 
-function buildActionContext({ source, config, workspaces, attachments = [] }) {
+function buildActionContext({ source, config, workspaces, attachments = [], models = null }) {
   const sessionKey = sessionKeyFromSource(source);
   return {
     source,
@@ -440,6 +444,7 @@ function buildActionContext({ source, config, workspaces, attachments = [] }) {
     requireWorkspace: workspaces ? !workspaces.hasConfigured() : !config?.repository,
     switchWorkspace: (target) => workspaces?.switchTo?.(target, { conversationId: sessionKey }),
     rememberWorkspace: (_conversationId, workspace) => workspaces?.remember?.(sessionKey, workspace),
+    selectModel: models ? (input) => models.select({ ...input, attachments }) : null,
     attachments
   };
 }
@@ -460,8 +465,9 @@ function replyForAction(action, command, extras = {}) {
   if (action.type === 'created') {
     const where = describeTaskWorkspace(action.workspace ?? action.task?.workspace);
     const kind = action.intent?.label ? ` · ${action.intent.label}` : '';
+    const model = action.task?.model ? ` · ${action.task.model}` : '';
     return withAttachments(
-      `**${action.task.id}**${kind}\n${action.task.requirement}\n${where}`,
+      `**${action.task.id}**${kind}${model}\n${action.task.requirement}\n${where}`,
       extras.attachments
     );
   }

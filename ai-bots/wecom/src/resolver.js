@@ -137,6 +137,9 @@ async function createRequirementTask(requirement, context, manager, intent = nul
   const botRoot = context.botRoot ?? process.cwd();
   const taskWorkspace = toTaskWorkspace(workspace ?? (needsWorkspace ? null : botWorkspace(botRoot)), botRoot);
   const id = createTaskId();
+  // The model is pinned here and reused by every later run of this task, so a
+  // follow-up cannot silently switch models mid-conversation.
+  const routed = context.selectModel?.({ stage: 'task', intent, text: requirement }) ?? null;
   const task = await manager.create({
     id,
     kind: 'requirement',
@@ -146,15 +149,17 @@ async function createRequirementTask(requirement, context, manager, intent = nul
     baseBranch: taskWorkspace?.baseBranch ?? context.baseBranch ?? 'main',
     taskBranch: `aafe/task/${id}`,
     workspace: taskWorkspace,
+    ...(routed?.model ? { model: routed.model } : {}),
     source: context.source,
     context: {
       userRequest: requirement,
       workspace: taskWorkspace,
       attachments: context.attachments ?? [],
-      ...(intent ? { intent } : {})
+      ...(intent ? { intent } : {}),
+      ...(routed ? { model: routed } : {})
     }
   });
-  return { type: 'created', task, start: true, workspace: taskWorkspace, intent };
+  return { type: 'created', task, start: true, workspace: taskWorkspace, intent, model: routed };
 }
 
 function botWorkspace(root) {

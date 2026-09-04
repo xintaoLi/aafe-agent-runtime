@@ -108,6 +108,33 @@ and `followup` start immediately in the bot runtime directory, which is a
 checkout too. When the question is asked, the classification travels with the
 pending entry and is reused for the answer rather than paid for twice.
 
+Which model runs a stage is a rule table in `models.rules`, and the shipped
+behaviour is four default rules in that same table rather than branches in
+code: `intent-classify` (stage `intent`) → the fast model, `complex-code`
+(regex over 架构/重构/性能/…) → the reasoning model, `simple-analysis` (intent
+`analysis`/`question`) → the fast model, `code-work` (intent `code`) → the
+reasoning model, then the configured default. Order is priority, which is why
+`complex-code` sits above `simple-analysis`: "分析一下架构" is analysis by intent
+but needs the reasoning model. Project rules are evaluated before the defaults
+and replace a default in place when they reuse its id.
+
+The chosen model is pinned on the task at creation (`task.model`, persisted by
+`TaskStore`) and re-applied by `runtimeOptionsFromWorkspace` on every later
+run, so resume and follow-ups cannot switch models inside one agent session.
+Tasks written before this existed have no `model` and fall back to the
+manager's runtime default.
+
+Rules are validated before they are trusted, in two tiers. Structure — unique
+id, model present, known stage and intent kinds, compilable regexes,
+confidence in 0..1 — is checked wherever rules are loaded, and a failing rule
+is dropped with a logged error rather than taking the bot down. Model names
+cannot be checked structurally, so they are matched against the account's own
+`Cursor.models.list`: once at boot, advisory, so a network failure leaves the
+rules standing on structure alone, and on demand through
+`aafe wecom --check-models`, which prints the effective table, reports rejected
+rules, exits non-zero, and can dry-run a probe against every stage and intent
+kind without spending a model call.
+
 Code tasks carry `task.workspace`. Configured `workspaces[]` / `repository`
 are used immediately. Otherwise the conversation waits for `本地`, a local
 path, or a remote git URL. Runtime `cwd`/`repository`/`mode` come from that

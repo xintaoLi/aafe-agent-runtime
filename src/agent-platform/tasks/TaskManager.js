@@ -482,8 +482,11 @@ function buildTaskPrompt(task, context) {
 
 function runtimeOptionsFromWorkspace(task) {
   const workspace = task?.workspace ?? {};
+  // A task may name its own model; without one the manager default applies.
+  const model = task?.model ? { model: task.model } : {};
   if (workspace.repository) {
     return {
+      ...model,
       repository: workspace.repository,
       cwd: workspace.cwd,
       mode: 'cloud'
@@ -491,12 +494,13 @@ function runtimeOptionsFromWorkspace(task) {
   }
   if (workspace.cwd) {
     return {
+      ...model,
       repository: null,
       cwd: workspace.cwd,
       mode: 'local'
     };
   }
-  return {};
+  return model;
 }
 
 function isSDDReadyForExecution(sdd) {

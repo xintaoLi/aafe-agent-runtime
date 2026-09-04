@@ -53,3 +53,7 @@
 - [x] `正在理解分析中…` only when classification loses a 150ms race
 - [x] Classifier model defaults to `gemini-3.8-flash` instead of the task model
 - [x] Digits-only junk answers help instead of creating a task
+- [x] Model routing as an ordered rule table; shipped behaviour is default rules, not code branches
+- [x] Model pinned on the task at creation and reused by resume / follow-up runs
+- [x] Rule validation: structure everywhere, model names against the account list at boot (advisory)
+- [x] `aafe wecom --check-models [--probe=...] [--offline]` gates a new rule and exits non-zero on invalid

@@ -25,7 +25,18 @@
     "endpoint": null,
     "model": null,
     "apiKeyEnv": "AAFE_LLM_API_KEY",
-    "cursorModel": "gemini-3.8-flash",
+    "cursorModel": null,
     "timeoutMs": 25000
+  },
+  "models": {
+    "default": "grok-4.6",
+    "rules": [
+      {
+        "id": "ui-polish",
+        "model": "claude-sonnet-5",
+        "match": "样式|css|文案|颜色",
+        "note": "自定义规则示例：先跑 aafe wecom --check-models 验证"
+      }
+    ]
   }
 }

@@ -151,6 +151,56 @@ routing and continue.
 - WHEN the user sends an image with a caption
 - THEN the attachment type and filename are part of the classification input
 
+### Requirement: Model selection is a validated rule table
+Which model runs a stage MUST be decided by an ordered rule table, not by
+branches in code, and the shipped behaviour MUST be expressed as default rules
+in that same table. A rule MAY match on stage (`intent` / `task`), intent kind,
+a regex over the text and attachment names, a negative regex, and a minimum
+confidence. The first matching rule wins; with no match the configured default
+applies. Project rules MUST be evaluated before the defaults, and a project
+rule reusing a default rule's id MUST replace it in place.
+
+The model MUST be pinned on the task when it is created and reused by every
+later run of that task, so a follow-up cannot switch models mid-conversation.
+Tasks created before model routing MUST keep working on the runtime default.
+
+A rule MUST be validated before it is trusted. Structural validation covers a
+unique non-empty id, a model name, a known stage, known intent kinds,
+compilable regexes, and a confidence within 0..1. A rule that fails MUST be
+dropped with a logged error, never crash the bot. Model names MUST also be
+checked against the account's own model list: once at boot as an advisory
+check, and on demand through `aafe wecom --check-models`, which MUST exit
+non-zero when any rule is invalid and MUST be able to dry-run a sample message
+against the table without calling a model.
+
+#### Scenario: Classification takes the fast model
+- WHEN any text is classified
+- THEN the `intent` stage rule selects `gemini-3.8-flash`
+
+#### Scenario: Architecture work takes the reasoning model
+- WHEN the requirement mentions 架构 and the intent is analysis
+- THEN `complex-code` wins over `simple-analysis` and selects `grok-4.6`
+
+#### Scenario: A project rule overrides a default
+- GIVEN a project rule matching `样式` with a different model
+- WHEN a code task mentions 样式
+- THEN that rule wins over the built-in code rule
+
+#### Scenario: An invalid rule is dropped, not fatal
+- GIVEN a rule whose regex does not compile
+- WHEN the bot starts
+- THEN the rule is dropped with a logged error and the remaining rules route
+
+#### Scenario: A fake model name is caught before a task runs
+- GIVEN a rule naming a model the account cannot run
+- WHEN the bot boots and the model list is reachable
+- THEN the rule is dropped with a logged error
+
+#### Scenario: Validation command gates a new rule
+- WHEN `aafe wecom --check-models --probe="<text>"` runs
+- THEN it prints the effective table, rejects invalid rules, exits non-zero
+- AND shows the model each stage and intent kind would pick for the probe
+
 ### Requirement: Repository is only asked for code work
 The repository question MUST be limited to tasks classified as code work with
 no workspace configured. Analysis and Q&A MUST start immediately in the bot

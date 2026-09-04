@@ -22,10 +22,10 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { resolveAgentModeConfig } from '../../../src/cli/agentMode.js';
 import { resolveWeComLogConfig, normalizeLogValue } from './logger.js';
+import { DEFAULT_INTENT_MODEL, DEFAULT_TASK_MODEL, mergeModelRules, validateModelRules } from './models.js';
 import { parseWorkspaces } from './workspace.js';
 
 const DEFAULT_WS_URL = 'wss://openws.work.weixin.qq.com';
-const DEFAULT_INTENT_MODEL = 'gemini-3.8-flash';
 
 export const WECOM_LOCAL_CONFIG_NAMES = Object.freeze([
   'ai-bots/wecom/wecom.local.json',
@@ -78,6 +78,7 @@ export async function loadWeComBotConfig({
     localConfigPath: local.path ?? null,
     log: resolveWeComLogConfig({ env, local, root: projectRoot }),
     intent: resolveWeComIntentConfig({ env, local, apiKey }),
+    models: resolveWeComModelConfig({ env, local, model }),
     agent: {
       ...agent,
       apiKey: apiKey ?? agent.apiKey ?? null,
@@ -89,9 +90,8 @@ export async function loadWeComBotConfig({
 /**
  * Intent classification runs before any task exists, so it needs its own
  * endpoint. Without one it falls back to the Cursor key the bot already holds.
- * The classifier model is deliberately not the task model: measured on this
- * repo, `grok-4.6` spends ~13s reasoning about a one-line label while
- * `gemini-3.8-flash` answers in ~7.7s and scores it higher.
+ * `cursorModel` stays null unless set on purpose, so the `intent` stage rule in
+ * `models.rules` is what normally picks the classifier model.
  */
 export function resolveWeComIntentConfig({ env = {}, local = {}, apiKey = null } = {}) {
   const raw = local.intent ?? {};
@@ -106,8 +106,20 @@ export function resolveWeComIntentConfig({ env = {}, local = {}, apiKey = null }
     apiKeyEnv: firstNonEmpty(raw.apiKeyEnv) ?? 'AAFE_LLM_API_KEY',
     timeoutMs: Number.isFinite(timeout) && timeout > 0 ? timeout : null,
     cursorApiKey: apiKey,
-    cursorModel: firstNonEmpty(env.AAFE_WECOM_INTENT_CURSOR_MODEL, raw.cursorModel) ?? DEFAULT_INTENT_MODEL
+    cursorModel: firstNonEmpty(env.AAFE_WECOM_INTENT_CURSOR_MODEL, raw.cursorModel)
   };
+}
+
+/**
+ * Model routing is a rule table, not a switch in code: the shipped defaults and
+ * a project's own rules are the same shape and go through one matcher. Project
+ * rules are evaluated first and may replace a built-in by reusing its id.
+ */
+export function resolveWeComModelConfig({ env = {}, local = {}, model = null } = {}) {
+  const raw = local.models ?? {};
+  const fallback = firstNonEmpty(env.AAFE_WECOM_MODEL_DEFAULT, raw.default, model) ?? DEFAULT_TASK_MODEL;
+  const { rules, errors } = validateModelRules(raw.rules ?? []);
+  return { default: fallback, rules: mergeModelRules(rules), configErrors: errors };
 }
 
 export function createTaskManagerOptions(config, extra = {}) {
@@ -203,7 +215,8 @@ export function normalizeLocalWeComValues(raw = {}) {
     model: raw.model ?? raw.AAFE_WECOM_MODEL ?? raw.WECOM_MODEL,
     workspaces: raw.workspaces,
     log: normalizeLogValue(raw.log ?? raw.WECOM_LOG),
-    intent: raw.intent
+    intent: raw.intent,
+    models: raw.models
   });
 }
 

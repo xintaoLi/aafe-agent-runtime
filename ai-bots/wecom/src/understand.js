@@ -135,6 +135,7 @@ export function createIntentAnalyzer({
   env = process.env,
   fetchImpl = globalThis.fetch,
   importSdk = null,
+  selectModel = null,
   now = () => Date.now()
 } = {}) {
   const enabled = settings.enabled !== false;
@@ -149,8 +150,12 @@ export function createIntentAnalyzer({
     }, { fetchImpl, env })
     : null;
   const cursorKey = settings.cursorApiKey ?? null;
-  const cursorModel = settings.cursorModel ?? settings.model ?? null;
   const loadSdk = importSdk ?? (() => import('@cursor/sdk'));
+  // Explicit config wins over the rule table; model names live in models.js,
+  // which reads INTENT_KINDS from here, so this module must not import it back.
+  const modelFor = (payload) => settings.cursorModel
+    ?? selectModel?.({ stage: 'intent', text: payload.text, attachments: payload.attachments })
+    ?? null;
   const backend = !enabled
     ? 'rules'
     : http?.isConfigured()
@@ -172,11 +177,12 @@ export function createIntentAnalyzer({
     const sdk = await loadSdk();
     if (typeof sdk?.Agent?.prompt !== 'function') throw new Error('cursor-sdk-prompt-unavailable');
     await mkdir(cwd, { recursive: true });
+    const model = modelFor(payload);
     const result = await sdk.Agent.prompt(
       `${SYSTEM_PROMPT}\n\n用户输入：\n${JSON.stringify(payload)}`,
       {
         apiKey: cursorKey,
-        ...(cursorModel ? { model: { id: cursorModel } } : {}),
+        ...(model ? { model: { id: model } } : {}),
         mode: 'plan',
         local: { cwd }
       }

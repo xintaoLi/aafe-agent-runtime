@@ -23,7 +23,13 @@ import { access, mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { parseWeComArgs } from '../src/cli/wecom.js';
+import { checkWeComModels, parseWeComArgs } from '../src/cli/wecom.js';
+import {
+  DEFAULT_MODEL_RULES,
+  createModelRouter,
+  mergeModelRules,
+  validateModelRules
+} from '../ai-bots/wecom/src/models.js';
 import { startWeComBot } from '../ai-bots/wecom/src/index.js';
 import { parseWeComCommand, stripMentions } from '../ai-bots/wecom/src/commands.js';
 import { analyzeWeComIntent } from '../ai-bots/wecom/src/intent.js';
@@ -38,7 +44,8 @@ import {
 import {
   createTaskManagerOptions,
   loadWeComBotConfig,
-  resolveWeComIntentConfig
+  resolveWeComIntentConfig,
+  resolveWeComModelConfig
 } from '../ai-bots/wecom/src/config.js';
 import {
   classifyIntentByRules,
@@ -1031,6 +1038,7 @@ gateway.client.handlers.get('event')({ body: { event: { eventtype: 'disconnected
 assert.equal(gateway.kicked, true);
 
 assert.deepEqual(parseWeComArgs(['--root=/tmp/app', '--config=/tmp/wecom.local.json', '--no-recover']), {
+  probes: [],
   root: '/tmp/app',
   config: '/tmp/wecom.local.json',
   recoverOnStart: false
@@ -1044,7 +1052,10 @@ const startedBot = await startWeComBot({
     secret: 'secret',
     wsUrl: 'wss://openws.work.weixin.qq.com',
     repository: 'owner/repo',
-    agent: { mcp: { enabled: false } }
+    agent: { mcp: { enabled: false } },
+    models: resolveWeComModelConfig({
+      local: { models: { rules: [{ id: 'ghost', model: 'gpt-9-turbo', match: 'x' }] } }
+    })
   },
   manager: {
     async initialize() { recovered.push('ok'); return []; },
@@ -1056,8 +1067,13 @@ const startedBot = await startWeComBot({
   exitOnShutdown: false,
   installSignals: false,
   mcpServers: {},
+  listModels: async () => ['grok-4.6', 'gemini-3.8-flash'],
   env: {}
 });
+// Boot checks model names once: a rule naming a model the account cannot run
+// is dropped here instead of failing when a task starts.
+assert.equal(startedBot.models.list().some((rule) => rule.id === 'ghost'), false);
+assert.equal(startedBot.models.model({ stage: 'intent', text: 'x' }), 'gemini-3.8-flash');
 assert.deepEqual(recovered, ['ok']);
 assert.equal(startedBot.gateway.client.connected, true);
 await startedBot.shutdown('test');
@@ -1293,9 +1309,9 @@ const intentConfig = resolveWeComIntentConfig({
 assert.equal(intentConfig.enabled, true);
 assert.equal(intentConfig.timeoutMs, 9000);
 assert.equal(intentConfig.cursorApiKey, 'crsr_x');
-// Classification does not inherit the task model: a reasoning model spends
-// seconds on a one-line label.
-assert.equal(intentConfig.cursorModel, 'gemini-3.8-flash');
+// Unset by design: the `intent` stage rule picks the classifier model, and
+// this field is the escape hatch that overrides it.
+assert.equal(intentConfig.cursorModel, null);
 assert.equal(
   resolveWeComIntentConfig({ env: { AAFE_WECOM_INTENT_CURSOR_MODEL: 'gpt-5.4-mini' } }).cursorModel,
   'gpt-5.4-mini'
@@ -1511,6 +1527,171 @@ await handleWeComMessage({
 });
 assert.equal(classifications, 0);
 assert.equal(controlReplies.length, 1);
+
+const modelReplies = [];
+const router = createModelRouter({ logger: { error() {} } });
+// Requirement 1: classification always takes the fast model.
+assert.equal(router.model({ stage: 'intent', text: '随便什么文本' }), 'gemini-3.8-flash');
+// Requirement 2: code work and anything architectural takes the reasoning model.
+assert.equal(router.select({ stage: 'task', intent: { kind: 'code' }, text: '修按钮' }).ruleId, 'code-work');
+assert.equal(router.model({ stage: 'task', intent: { kind: 'code' }, text: '修按钮' }), 'grok-4.6');
+assert.equal(router.model({ stage: 'task', intent: { kind: 'analysis' }, text: '看看重连日志' }), 'gemini-3.8-flash');
+// Order is priority: architecture beats the plain analysis rule.
+const architectural = router.select({ stage: 'task', intent: { kind: 'analysis' }, text: '分析一下整体架构分层' });
+assert.equal(architectural.ruleId, 'complex-code');
+assert.equal(architectural.model, 'grok-4.6');
+assert.equal(router.select({ stage: 'task', intent: null, text: '' }).ruleId, 'fallback');
+// An intent-stage rule never answers a task-stage question and vice versa.
+assert.notEqual(router.select({ stage: 'task', intent: { kind: 'code' }, text: 'x' }).ruleId, 'intent-classify');
+
+// Requirement 3: a project rule is the same shape and wins over the built-ins.
+const custom = validateModelRules([
+  { id: 'ui-polish', model: 'claude-sonnet-5', match: '样式|css|文案', note: '轻量 UI 改动' }
+]);
+assert.equal(custom.ok, true);
+const customRouter = createModelRouter({
+  rules: mergeModelRules(custom.rules),
+  logger: { error() {} }
+});
+assert.equal(customRouter.model({ stage: 'task', intent: { kind: 'code' }, text: '改一下按钮样式' }), 'claude-sonnet-5');
+assert.equal(customRouter.model({ stage: 'task', intent: { kind: 'code' }, text: '修登录逻辑' }), 'grok-4.6');
+// Reusing a built-in id replaces it in place rather than leaving both.
+const replaced = mergeModelRules(validateModelRules([
+  { id: 'code-work', model: 'claude-opus-5', intent: ['code'] }
+]).rules);
+assert.equal(replaced.filter((rule) => rule.id === 'code-work').length, 1);
+assert.equal(createModelRouter({ rules: replaced, logger: { error() {} } })
+  .model({ stage: 'task', intent: { kind: 'code' }, text: '修登录' }), 'claude-opus-5');
+
+// New rules are validated before they are trusted.
+const bad = validateModelRules([
+  { id: 'no-model', match: 'x' },
+  { model: 'grok-4.6' },
+  { id: 'bad-regex', model: 'grok-4.6', match: '([' },
+  { id: 'bad-intent', model: 'grok-4.6', intent: ['refactor'] },
+  { id: 'bad-stage', model: 'grok-4.6', stage: 'plan' },
+  { id: 'bad-conf', model: 'grok-4.6', minConfidence: 3 },
+  { id: 'dupe', model: 'grok-4.6' },
+  { id: 'dupe', model: 'grok-4.6' }
+]);
+assert.equal(bad.ok, false);
+assert.equal(bad.rules.length, 1);
+assert.equal(bad.errors.length, 7);
+assert.match(bad.errors.join('\n'), /缺少 model/);
+assert.match(bad.errors.join('\n'), /不是合法正则/);
+assert.match(bad.errors.join('\n'), /未知 intent：refactor/);
+assert.match(bad.errors.join('\n'), /stage 只能是/);
+assert.match(bad.errors.join('\n'), /minConfidence/);
+assert.match(bad.errors.join('\n'), /id 重复/);
+assert.equal(validateModelRules('nope').ok, false);
+// The online check rejects a model the account cannot run.
+assert.equal(validateModelRules([{ id: 'x', model: 'gpt-9' }], { models: ['grok-4.6'] }).ok, false);
+assert.equal(validateModelRules([{ id: 'x', model: 'grok-4.6' }], { models: ['grok-4.6'] }).ok, true);
+// An invalid rule is dropped, never fatal: the router still routes.
+const droppedErrors = [];
+const resilient = createModelRouter({
+  rules: [{ id: 'broken', model: 'grok-4.6', match: '([' }, ...DEFAULT_MODEL_RULES],
+  logger: { error: (message) => droppedErrors.push(message) }
+});
+assert.equal(droppedErrors.length, 1);
+assert.equal(resilient.model({ stage: 'intent', text: 'x' }), 'gemini-3.8-flash');
+
+const modelConfig = resolveWeComModelConfig({
+  local: { models: { default: 'claude-opus-5', rules: [{ id: 'mine', model: 'grok-4.5', match: 'x' }] } }
+});
+assert.equal(modelConfig.default, 'claude-opus-5');
+assert.equal(modelConfig.rules[0].id, 'mine');
+assert.equal(modelConfig.rules.length, DEFAULT_MODEL_RULES.length + 1);
+assert.deepEqual(modelConfig.configErrors, []);
+assert.equal(resolveWeComModelConfig({ local: { models: { rules: [{ model: 'x' }] } } }).configErrors.length, 1);
+assert.equal(resolveWeComModelConfig({ env: { AAFE_WECOM_MODEL_DEFAULT: 'gpt-5.6-sol' } }).default, 'gpt-5.6-sol');
+
+// The routed model is pinned on the task so every later run reuses it.
+const modelRouted = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'model-1', text: { content: '分析一下这个 bot 的重连逻辑' } }
+}, {
+  manager: createFakeManager(),
+  replyAck: async (_frame, content) => { modelReplies.push(content); return 'stream-model'; },
+  replyProgress: async (_frame, _streamId, content) => { modelReplies.push(content); },
+  progress: { open() {} },
+  config: { root: '/bot/root' },
+  dedup: createMessageDedup(),
+  models: router,
+  understanding: {
+    async analyze() {
+      return { kind: 'analysis', label: '分析排查', needsCode: false, summary: '看重连', confidence: 0.9, source: 'rules-fast' };
+    }
+  }
+});
+assert.equal(modelRouted.action.task.model, 'gemini-3.8-flash');
+assert.equal(modelRouted.action.model.ruleId, 'simple-analysis');
+// The user can see which model the task got.
+assert.match(modelReplies.join('\n'), /gemini-3\.8-flash/);
+
+const codeRouted = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'model-2', text: { content: '重构一下检索模块的分层架构' } }
+}, {
+  manager: createFakeManager(),
+  replyAck: async () => 'stream-model-2',
+  replyProgress: async () => {},
+  progress: { open() {} },
+  config: { root: '/bot/root', repository: 'owner/repo' },
+  dedup: createMessageDedup(),
+  models: router,
+  understanding: {
+    async analyze() {
+      return { kind: 'code', label: '代码开发', needsCode: true, summary: '重构分层', confidence: 0.95, source: 'llm' };
+    }
+  }
+});
+assert.equal(codeRouted.action.task.model, 'grok-4.6');
+assert.equal(codeRouted.action.model.ruleId, 'complex-code');
+
+// Without a router the task carries no model and the manager default applies.
+assert.equal(analysisHandled.action.task.model, undefined);
+
+const modelCheckOut = [];
+const checkCode = await checkWeComModels('/tmp/app', {
+  offline: true,
+  probes: ['分析一下整体架构'],
+  loadConfig: async () => ({
+    apiKey: null,
+    models: resolveWeComModelConfig({ local: {} })
+  }),
+  out: { log: (line) => modelCheckOut.push(line), error: (line) => modelCheckOut.push(line), warn() {} }
+});
+assert.equal(checkCode, 0);
+assert.match(modelCheckOut.join('\n'), /intent-classify\s+→ gemini-3\.8-flash/);
+assert.match(modelCheckOut.join('\n'), /任务执行 · intent=analysis\s+→ grok-4\.6\s+（complex-code）/);
+assert.match(modelCheckOut.join('\n'), /校验通过/);
+
+const failOut = [];
+const failCode = await checkWeComModels('/tmp/app', {
+  offline: true,
+  loadConfig: async () => ({
+    apiKey: null,
+    models: resolveWeComModelConfig({ local: { models: { rules: [{ id: 'x', model: 'ghost-1' }] } } })
+  }),
+  listModels: async () => ['grok-4.6'],
+  out: { log: (line) => failOut.push(line), error: (line) => failOut.push(line), warn() {} }
+});
+assert.equal(failCode, 0);
+// Offline cannot know the model is fake; the online check is what catches it.
+const onlineOut = [];
+const onlineCode = await checkWeComModels('/tmp/app', {
+  probes: [],
+  loadConfig: async () => ({
+    apiKey: 'crsr_x',
+    models: resolveWeComModelConfig({ local: { models: { rules: [{ id: 'x', model: 'ghost-1' }] } } })
+  }),
+  listModels: async () => ['grok-4.6', 'gemini-3.8-flash'],
+  out: { log: (line) => onlineOut.push(line), error: (line) => onlineOut.push(line), warn() {} }
+});
+assert.equal(onlineCode, 1);
+assert.match(onlineOut.join('\n'), /模型不存在：ghost-1/);
+assert.match(onlineOut.join('\n'), /校验未通过/);
 
 console.log('wecom bot tests passed');
 

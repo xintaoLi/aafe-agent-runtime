@@ -57,6 +57,9 @@ export class TaskStore {
       workspace: clone(partial.workspace ?? null),
       baseBranch: partial.baseBranch ?? partial.workspace?.baseBranch ?? partial.repository?.baseBranch ?? partial.repository?.branch ?? null,
       taskBranch: partial.taskBranch ?? null,
+      // Pinned at creation so every run of this task uses one model. Absent on
+      // tasks created before model routing; those fall back to the runtime default.
+      model: partial.model ?? null,
       status: partial.status ?? 'created',
       cursor: {
         agentId: partial.cursor?.agentId ?? null,
