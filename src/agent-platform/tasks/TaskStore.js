@@ -53,8 +53,9 @@ export class TaskStore {
       goal: partial.goal ?? partial.requirement ?? '',
       requirement: partial.requirement ?? null,
       source: clone(partial.source ?? null),
-      repository: clone(partial.repository ?? null),
-      baseBranch: partial.baseBranch ?? partial.repository?.baseBranch ?? partial.repository?.branch ?? null,
+      repository: clone(partial.repository ?? partial.workspace?.repository ?? null),
+      workspace: clone(partial.workspace ?? null),
+      baseBranch: partial.baseBranch ?? partial.workspace?.baseBranch ?? partial.repository?.baseBranch ?? partial.repository?.branch ?? null,
       taskBranch: partial.taskBranch ?? null,
       status: partial.status ?? 'created',
       cursor: {

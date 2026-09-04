@@ -35,7 +35,7 @@ export async function resolveWeComAction(command, context, manager) {
   if (command.type === 'error') return command;
 
   if (command.type === 'create') {
-    return createRequirementTask(command.requirement, context, manager);
+    return createRequirementTask(command.requirement, context, manager, command.intent);
   }
 
   if (command.type === 'need-workspace') {
@@ -64,10 +64,14 @@ export async function resolveWeComAction(command, context, manager) {
 
   if (command.type === 'workspace-switch') {
     const workspace = context.switchWorkspace?.(command.target, source.conversationId);
-    if (!workspace) {
+    if (workspace) return { type: 'workspace-switched', workspace };
+    // The picker card's 当前目录 button and raw paths are not store entries.
+    const selected = resolveChoice(command, context);
+    if (selected.type === 'error') {
       return { type: 'error', message: `找不到仓库 ${command.target}。发送「仓库」查看列表。` };
     }
-    return { type: 'workspace-switched', workspace };
+    context.rememberWorkspace?.(source.conversationId, selected.workspace);
+    return { type: 'workspace-switched', workspace: selected.workspace };
   }
 
   if (command.type === 'continue') {
@@ -116,16 +120,22 @@ export async function resolveWeComAction(command, context, manager) {
   return { type: 'help' };
 }
 
-async function createRequirementTask(requirement, context, manager) {
+async function createRequirementTask(requirement, context, manager, intent = null) {
   const workspace = resolveCreateWorkspace(context);
-  if (!workspace && context.requireWorkspace) {
+  // Only work that edits code is worth an interactive round trip. Analysis and
+  // Q&A run in the bot's own directory, which is a checkout as well, so asking
+  // would just add a turn before the answer.
+  const needsWorkspace = intent ? intent.kind === 'code' && intent.needsCode !== false : true;
+  if (!workspace && context.requireWorkspace && needsWorkspace) {
     return {
       type: 'need-workspace',
       requirement,
+      intent,
       message: formatWorkspacePrompt(context.botRoot ?? process.cwd(), context.workspaces ?? [])
     };
   }
-  const taskWorkspace = toTaskWorkspace(workspace, context.botRoot ?? process.cwd());
+  const botRoot = context.botRoot ?? process.cwd();
+  const taskWorkspace = toTaskWorkspace(workspace ?? (needsWorkspace ? null : botWorkspace(botRoot)), botRoot);
   const id = createTaskId();
   const task = await manager.create({
     id,
@@ -140,10 +150,15 @@ async function createRequirementTask(requirement, context, manager) {
     context: {
       userRequest: requirement,
       workspace: taskWorkspace,
-      attachments: context.attachments ?? []
+      attachments: context.attachments ?? [],
+      ...(intent ? { intent } : {})
     }
   });
-  return { type: 'created', task, start: true, workspace: taskWorkspace };
+  return { type: 'created', task, start: true, workspace: taskWorkspace, intent };
+}
+
+function botWorkspace(root) {
+  return { id: 'local', name: 'Bot 运行目录', cwd: root, repository: null, mode: 'local' };
 }
 
 async function chooseWorkspaceAndCreate(command, context, manager) {
@@ -154,7 +169,7 @@ async function chooseWorkspaceAndCreate(command, context, manager) {
     ...context,
     workspace: selected.workspace,
     requireWorkspace: false
-  }, manager);
+  }, manager, command.intent ?? null);
 }
 
 function resolveChoice(command, context) {
@@ -250,10 +265,11 @@ async function bindImplicitCommand(command, context, manager) {
 }
 
 function routeFreeform(command, open, latest = null, source = {}) {
-  const prefer = command.prefer ?? 'work';
+  const intent = command.intent ?? null;
+  const prefer = intentPreference(intent) ?? command.prefer ?? 'work';
   const text = command.text;
-  if (prefer === 'new' || isNewWork(text)) {
-    return { type: 'create', requirement: text };
+  if (prefer === 'new' || (prefer !== 'follow' && isNewWork(text))) {
+    return { type: 'create', requirement: text, intent };
   }
   const target = pickFollowUpTarget(open, latest);
   if (prefer === 'follow') {
@@ -269,8 +285,19 @@ function routeFreeform(command, open, latest = null, source = {}) {
     return { type: 'ambiguous-continue' };
   }
   if (target) return { type: 'continue', taskId: target.id, message: text };
-  if (open.length === 0) return { type: 'create', requirement: text };
+  if (open.length === 0) return { type: 'create', requirement: text, intent };
   return { type: 'ambiguous-continue' };
+}
+
+/**
+ * The classifier only overrides routing when it is sure; a hedged answer keeps
+ * the keyword preference the parser already produced. The 0.7 bar for `new`
+ * exists so an open task never swallows a clearly standalone request.
+ */
+function intentPreference(intent) {
+  if (!intent) return null;
+  if (intent.kind === 'followup') return intent.confidence >= 0.5 ? 'follow' : null;
+  return intent.confidence >= 0.7 ? 'new' : null;
 }
 
 function pickFollowUpTarget(open = [], latest = null) {

@@ -19,7 +19,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { freshCardTaskId } from './cards.js';
+import { cardEventPayload, freshCardTaskId } from './cards.js';
 import { WELCOME_TEXT } from './help.js';
 import { describeWeComError } from './logger.js';
 import { notifyTargetFromSource, sourceFromFrame } from './session.js';
@@ -135,14 +135,31 @@ export function createWeComGateway({
     async updateCard(frame, card, userids) {
       return client.updateTemplateCard(frame, card, userids);
     },
-    async replyProgress(frame, streamId, content, finish = false) {
-      if (!finish && typeof client.replyStreamNonBlocking === 'function') {
+    /**
+     * Non-blocking drops a frame when the previous one is still unacked, which
+     * is right for animation but wrong for a stage the user must see.
+     */
+    async replyProgress(frame, streamId, content, finish = false, { blocking = false } = {}) {
+      if (!finish && !blocking && typeof client.replyStreamNonBlocking === 'function') {
         return client.replyStreamNonBlocking(frame, streamId, content, finish);
       }
       return client.replyStream(frame, streamId, content, finish);
     },
     async sendMessage(chatid, body) {
       return client.sendMessage(chatid, body);
+    },
+    /**
+     * A card-event req_id only accepts `aibot_respond_update_msg`, so text that
+     * answers a card click has to be pushed actively instead of replied.
+     */
+    async sendMarkdown(source, content) {
+      const target = notifyTargetFromSource(source);
+      if (!target) throw new Error('wecom-card-chat-missing');
+      return client.sendMessage(target.chatid, {
+        msgtype: 'markdown',
+        markdown: { content },
+        chat_type: target.chatType
+      });
     },
     async downloadFile(url, aeskey) {
       if (!url) throw new Error('wecom-media-url-missing');
@@ -170,7 +187,7 @@ export function createWeComGateway({
 }
 
 function isTemplateCardEvent(frame) {
-  const event = frame?.body?.event ?? {};
+  const event = cardEventPayload(frame);
   return event.eventtype === 'template_card_event'
     || Boolean(event.event_key ?? event.eventKey ?? event.EventKey);
 }

@@ -58,6 +58,7 @@ export class TaskManager {
       maxConcurrentTasks,
       onEvent: (event) => this.#publish(event)
     });
+    this.followUpChain = new Map();
   }
 
   async create(input = {}) {
@@ -68,8 +69,9 @@ export class TaskManager {
       goal: input.goal ?? input.requirement,
       requirement: input.requirement,
       source: input.source,
-      repository: normalizeRepository(input.repository, input.baseBranch),
-      baseBranch: input.baseBranch,
+      repository: normalizeRepository(input.repository ?? input.workspace?.repository, input.baseBranch ?? input.workspace?.baseBranch),
+      workspace: input.workspace ?? null,
+      baseBranch: input.baseBranch ?? input.workspace?.baseBranch,
       taskBranch: input.taskBranch,
       sdd: input.sdd
     }, context);
@@ -109,17 +111,7 @@ export class TaskManager {
   }
 
   async continue(taskId, message, options = {}) {
-    const task = await this.#require(taskId);
-    const context = await this.store.getContext(taskId);
-    context.conversation ??= { messages: [] };
-    context.conversation.messages ??= [];
-    context.conversation.messages.push({
-      role: 'user',
-      content: String(message),
-      createdAt: new Date().toISOString()
-    });
-    await this.store.replaceContext(taskId, context);
-    return this.start(task.id, { ...options, prompt: String(message), followUp: true });
+    return this.#serializeFollowUp(taskId, () => this.#continue(taskId, message, options));
   }
 
   async cancel(taskId) {
@@ -127,7 +119,10 @@ export class TaskManager {
     const queued = this.scheduler.cancelQueued(taskId);
     let runtime = { cancelled: false, reason: 'not-running' };
     if (!queued && task.status === 'running') {
-      runtime = await this.runtime.cancel(task, this.runtimeOptions);
+      runtime = await this.runtime.cancel(task, {
+        ...this.runtimeOptions,
+        ...runtimeOptionsFromWorkspace(task)
+      });
     }
     task = await this.#require(taskId);
     if (!isTerminalTaskStatus(task.status)) {
@@ -145,12 +140,19 @@ export class TaskManager {
    */
   async recover(options = {}) {
     const candidates = await this.store.list({
-      statuses: ['queued', 'planning', 'ready', 'running'],
+      statuses: ['queued', 'planning', 'ready', 'running', 'waiting'],
       limit: options.limit ?? 1000
     });
     const recovered = [];
     for (const task of candidates) {
       if (this.scheduler.has(task.id)) continue;
+      if (task.status === 'waiting') {
+        recovered.push({
+          taskId: task.id,
+          promise: this.#serializeFollowUp(task.id, () => this.#drainPendingFollowUp(task.id, options))
+        });
+        continue;
+      }
       if (task.status === 'running' && task.cursor?.agentId && task.cursor?.activeRunId) {
         recovered.push({
           taskId: task.id,
@@ -208,16 +210,78 @@ export class TaskManager {
     await this.runtime.closeAll();
   }
 
+  async #continue(taskId, message, options = {}) {
+    const task = await this.#require(taskId);
+    const context = await this.store.getContext(taskId);
+    context.conversation ??= { messages: [] };
+    context.conversation.messages ??= [];
+    const text = String(message);
+    context.conversation.messages.push({
+      role: 'user',
+      content: text,
+      createdAt: new Date().toISOString()
+    });
+    context.pendingFollowUps = [...(context.pendingFollowUps ?? []), text];
+    await this.store.replaceContext(taskId, context);
+
+    if (task.status === 'running' || this.scheduler.has(taskId)) {
+      await this.store.appendEvent(taskId, 'task.followup.queued', {
+        preview: text.slice(0, 200)
+      });
+      this.#publish({ type: 'task.followup.queued', taskId });
+      return { ...task, followUpQueued: true };
+    }
+    return this.#drainPendingFollowUp(taskId, options);
+  }
+
+  async #drainPendingFollowUp(taskId, options = {}) {
+    const context = await this.store.getContext(taskId);
+    const pending = context.pendingFollowUps ?? [];
+    if (!pending.length) return this.#require(taskId);
+    if (this.scheduler.has(taskId)) {
+      return { ...(await this.#require(taskId)), followUpQueued: true };
+    }
+    const task = await this.#require(taskId);
+    if (task.status === 'running') {
+      return { ...task, followUpQueued: true };
+    }
+    if (task.status === 'cancelled') return task;
+    const prompt = pending.join('\n\n');
+    context.pendingFollowUps = [];
+    await this.store.replaceContext(taskId, context);
+    try {
+      return await this.start(task.id, { ...options, prompt, followUp: true });
+    } catch (error) {
+      const latest = await this.store.getContext(taskId).catch(() => context);
+      latest.pendingFollowUps = [...(latest.pendingFollowUps ?? []), ...pending];
+      await this.store.replaceContext(taskId, latest).catch(() => {});
+      throw error;
+    }
+  }
+
+  #serializeFollowUp(taskId, work) {
+    const previous = this.followUpChain.get(taskId) ?? Promise.resolve();
+    const next = previous.then(work, work);
+    this.followUpChain.set(taskId, next.catch(() => {}));
+    return next;
+  }
+
   async #execute(taskId, options) {
     let task = await this.#require(taskId);
-    task = await this.store.transition(taskId, 'running');
+    // A new attempt owns the outcome, so the previous attempt's error must not
+    // survive into the next result.
+    task = await this.store.transition(taskId, 'running', { error: null });
     const context = await this.store.getContext(taskId);
-    const prompt = options.prompt ?? buildTaskPrompt(task, context);
+    const fullPrompt = buildTaskPrompt(task, context);
+    const prompt = options.prompt ?? fullPrompt;
+    const workspaceRuntime = runtimeOptionsFromWorkspace(task);
 
     try {
       const result = await this.runtime.run(task, prompt, {
         ...this.runtimeOptions,
+        ...workspaceRuntime,
         ...options,
+        fallbackPrompt: fullPrompt,
         idempotencyKey: options.idempotencyKey ?? `aafe-run-${task.id}-${task.cursor?.runs?.length ?? 0}`,
         onBinding: async ({ agentId, runId }) => {
           const latest = await this.#require(taskId);
@@ -256,12 +320,21 @@ export class TaskManager {
     try {
       const result = await this.runtime.recover(task, {
         ...this.runtimeOptions,
+        ...runtimeOptionsFromWorkspace(task),
         ...options
       });
       return this.#finish(task.id, result, options);
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (/cursor-run-recover-failed/.test(message)) {
+        // The previous Run is gone but the task and its context survived, so
+        // reattaching fails while re-running the task is still correct.
+        await this.store.appendEvent(task.id, 'task.run.reattach.failed', { error: message });
+        await this.runtime.close(task.id);
+        return this.#execute(task.id, options);
+      }
       const failed = await this.store.transition(task.id, 'failed', {
-        error: error instanceof Error ? error.message : String(error),
+        error: message,
         event: { recovery: true }
       });
       await this.runtime.close(task.id);
@@ -287,6 +360,21 @@ export class TaskManager {
       eventPayload: result
     });
 
+    const context = await this.store.getContext(taskId);
+    const pending = context.pendingFollowUps ?? [];
+    const canFollow = pending.length > 0
+      && result.status !== 'cancelled'
+      && result.status !== 'error'
+      && result.status !== 'missing';
+    if (canFollow) {
+      task = await this.store.transition(taskId, 'waiting', {
+        result,
+        event: { followUpQueued: true, pending: pending.length }
+      });
+      this.#publish({ type: 'task.followup.pending', taskId, pending: pending.length });
+      return task;
+    }
+
     if (result.status === 'cancelled') {
       task = await this.store.transition(taskId, 'cancelled', { result });
     } else if (result.status === 'error' || result.status === 'missing') {
@@ -298,7 +386,9 @@ export class TaskManager {
       task = await this.store.transition(taskId, 'verifying');
       try {
         const verification = await options.verify(task, result);
-        task = await this.store.transition(taskId, verification?.passed === false ? 'failed' : 'completed', {
+        const passed = verification?.passed !== false;
+        task = await this.store.transition(taskId, passed ? 'completed' : 'failed', {
+          error: passed ? null : (verification?.error ?? 'verification-failed'),
           result: { execution: result, verification }
         });
       } catch (error) {
@@ -308,7 +398,7 @@ export class TaskManager {
         });
       }
     } else {
-      task = await this.store.transition(taskId, 'completed', { result });
+      task = await this.store.transition(taskId, 'completed', { error: null, result });
     }
 
     await this.runtime.close(taskId);
@@ -346,6 +436,9 @@ export class TaskManager {
     for (const listener of this.listeners) {
       try { listener(event); } catch { /* observers are isolated */ }
     }
+    if (event?.type === 'scheduler.finished' && event.taskId) {
+      void this.#serializeFollowUp(event.taskId, () => this.#drainPendingFollowUp(event.taskId));
+    }
   }
 }
 
@@ -357,7 +450,8 @@ function isolatedContext(context, input) {
     project: base.project ?? {},
     plan: base.plan ?? null,
     constraints: base.constraints ?? [],
-    metadata: base.metadata ?? {}
+    metadata: base.metadata ?? {},
+    attachments: base.attachments ?? []
   };
 }
 
@@ -384,6 +478,25 @@ function buildTaskPrompt(task, context) {
     '',
     'Preserve existing behavior and unrelated user changes. Run focused verification and report the result.'
   ].filter(Boolean).join('\n');
+}
+
+function runtimeOptionsFromWorkspace(task) {
+  const workspace = task?.workspace ?? {};
+  if (workspace.repository) {
+    return {
+      repository: workspace.repository,
+      cwd: workspace.cwd,
+      mode: 'cloud'
+    };
+  }
+  if (workspace.cwd) {
+    return {
+      repository: null,
+      cwd: workspace.cwd,
+      mode: 'local'
+    };
+  }
+  return {};
 }
 
 function isSDDReadyForExecution(sdd) {

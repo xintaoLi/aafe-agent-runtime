@@ -76,11 +76,33 @@ export async function loadWeComBotConfig({
     currentWorkspace: firstNonEmpty(local.currentWorkspace, env.AAFE_WECOM_WORKSPACE) ?? workspaces[0]?.id ?? null,
     localConfigPath: local.path ?? null,
     log: resolveWeComLogConfig({ env, local, root: projectRoot }),
+    intent: resolveWeComIntentConfig({ env, local, apiKey, model: model ?? agent.model ?? null }),
     agent: {
       ...agent,
       apiKey: apiKey ?? agent.apiKey ?? null,
       model: model ?? agent.model ?? null
     }
+  };
+}
+
+/**
+ * Intent classification runs before any task exists, so it needs its own
+ * endpoint. Without one it falls back to the Cursor key the bot already holds.
+ */
+export function resolveWeComIntentConfig({ env = {}, local = {}, apiKey = null, model = null } = {}) {
+  const raw = local.intent ?? {};
+  const enabled = parseBoolean(env.AAFE_WECOM_INTENT_ENABLED ?? raw.enabled, true);
+  const timeout = Number(env.AAFE_WECOM_INTENT_TIMEOUT_MS ?? raw.timeoutMs);
+  const endpoint = firstNonEmpty(env.AAFE_WECOM_INTENT_ENDPOINT, raw.endpoint);
+  return {
+    enabled,
+    endpoint,
+    model: firstNonEmpty(env.AAFE_WECOM_INTENT_MODEL, raw.model),
+    apiKey: firstNonEmpty(env.AAFE_WECOM_INTENT_API_KEY, raw.apiKey),
+    apiKeyEnv: firstNonEmpty(raw.apiKeyEnv) ?? 'AAFE_LLM_API_KEY',
+    timeoutMs: Number.isFinite(timeout) && timeout > 0 ? timeout : null,
+    cursorApiKey: apiKey,
+    cursorModel: firstNonEmpty(raw.cursorModel) ?? model
   };
 }
 
@@ -176,8 +198,15 @@ export function normalizeLocalWeComValues(raw = {}) {
     currentWorkspace: raw.currentWorkspace ?? raw.AAFE_WECOM_WORKSPACE,
     model: raw.model ?? raw.AAFE_WECOM_MODEL ?? raw.WECOM_MODEL,
     workspaces: raw.workspaces,
-    log: normalizeLogValue(raw.log ?? raw.WECOM_LOG)
+    log: normalizeLogValue(raw.log ?? raw.WECOM_LOG),
+    intent: raw.intent
   });
+}
+
+function parseBoolean(value, fallback) {
+  if (value == null || value === '') return fallback;
+  if (typeof value === 'boolean') return value;
+  return !/^(?:0|false|off|no)$/i.test(String(value).trim());
 }
 
 export async function persistCurrentWorkspace(configPath, workspaceId) {

@@ -62,7 +62,7 @@ export function buildWorkspaceSwitchedCard(workspace, cardTaskId) {
 }
 
 export function parseCardEvent(frame = {}) {
-  const event = frame?.body?.event ?? {};
+  const event = cardEventPayload(frame);
   const key = cardEventKey(event);
   const sep = key.indexOf(':');
   const parsed = sep < 0
@@ -72,6 +72,16 @@ export function parseCardEvent(frame = {}) {
     ...parsed,
     cardTaskId: event.task_id ?? event.taskId ?? null
   };
+}
+
+/**
+ * WeCom nests the click payload under `template_card_event`, one level below
+ * the event envelope that carries `eventtype`.
+ */
+export function cardEventPayload(frame = {}) {
+  const event = frame?.body?.event ?? {};
+  const nested = event.template_card_event ?? event.templateCardEvent ?? null;
+  return nested ? { ...event, ...nested } : event;
 }
 
 function cardEventKey(event = {}) {

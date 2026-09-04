@@ -19,5 +19,12 @@
   ],
   "log": {
     "enabled": false
+  },
+  "intent": {
+    "enabled": true,
+    "endpoint": null,
+    "model": null,
+    "apiKeyEnv": "AAFE_LLM_API_KEY",
+    "timeoutMs": 25000
   }
 }

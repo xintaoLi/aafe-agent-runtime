@@ -26,3 +26,26 @@
 - [x] W3 resident initialize/recover, single-connection kick, aafe wecom
 - [x] Unit tests for commands, resolver, notify, dedup
 - [x] W4 implicit intent routing for TAPD / freeform / single-task continue
+- [x] W5 live progress on the create/continue ACK stream
+- [x] W6 terminate button, workspace ask/switch, per-task cwd/repository
+- [x] W7 Cursor-like compact progress (3–5 process lines + separate summary)
+- [x] W8 standalone terminate card (no stream+card combo) and text 终止
+- [x] Optional local JSONL analysis log (default off, `WECOM_LOG` / `log.enabled`)
+- [x] Image/file/voice/video/mixed receive, decrypt, attach, and media send/upload
+- [x] Continue while running queues follow-up instead of task-already-active
+- [x] Implicit follow-up prefers a just-completed conversation task over a stale running one
+- [x] Group implicit continue/pending bind by speaker (chatid::userid); explicit Task ID can cross members
+- [x] Unique card task_id per send (WeCom 42014) and readable SDK error logs
+- [x] Local Agent resume/getRun/cancelRun scoped to the task workspace cwd; lost Agent replaced with context replay
+- [x] Dancing kaomoji loading frame on the stream title while a task runs
+- [x] Stale error from a failed attempt no longer shows on a later successful run
+- [x] Copyable 对话 ID footer on ACK / live view / notify
+- [x] Terminate moved into the running view; no standalone cancel card
+- [x] Card clicks parse the nested `template_card_event` payload
+- [x] Card clicks answer with the card update only; text goes out as an active push
+- [x] Workspace picker `local` button resolves to the bot run directory
+- [x] Gateway handlers catch their own rejections so the bot survives them
+- [x] Staged turn: `正在理解分析中…` → classification result → routing outcome on one stream
+- [x] Intent analyzer with an OpenAI-compatible endpoint, a Cursor one-shot fallback, and keyword rules underneath
+- [x] Repository question narrowed to code work; analysis runs in the bot directory
+- [x] Classification stored with the pending workspace question and reused for the answer

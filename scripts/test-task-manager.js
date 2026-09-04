@@ -166,6 +166,104 @@ try {
   assert.equal(sdkState.cancels, 1);
   await resumedRuntime.closeAll();
 
+  // --- a local Agent is resumed inside its own workspace store -------------
+  const localResumeState = { resumeArgs: null, getRunArgs: null, cancelArgs: null, creates: 0 };
+  const localResumeSdk = {
+    Agent: {
+      async create() {
+        localResumeState.creates += 1;
+        return {
+          agentId: 'agent-local-new',
+          async send() { return fakeRun('run-local-new'); },
+          async [Symbol.asyncDispose]() {}
+        };
+      },
+      async resume(agentId, options) {
+        localResumeState.resumeArgs = { agentId, options };
+        return {
+          agentId,
+          async send() { return fakeRun('run-local-resumed'); },
+          async [Symbol.asyncDispose]() {}
+        };
+      },
+      async getRun(runId, options) {
+        localResumeState.getRunArgs = { runId, options };
+        return fakeRun(runId);
+      },
+      async cancelRun(runId, options) {
+        localResumeState.cancelArgs = { runId, options };
+      }
+    }
+  };
+  const localTask = {
+    id: 'cursor-local-resume',
+    repository: null,
+    baseBranch: 'main',
+    workspace: { cwd: '/tmp/aafe-workspace', mode: 'local' },
+    cursor: { agentId: 'agent-local-old', activeRunId: 'run-old' }
+  };
+  const localResumeRuntime = new CursorTaskRuntime({
+    env: { CURSOR_API_KEY: 'cursor_test' },
+    importSdk: async () => localResumeSdk
+  });
+  await localResumeRuntime.run(localTask, 'follow up', { cwd: '/tmp/aafe-workspace', mode: 'local' });
+  assert.equal(localResumeState.resumeArgs.agentId, 'agent-local-old');
+  assert.equal(localResumeState.resumeArgs.options.local.cwd, '/tmp/aafe-workspace');
+  assert.equal(localResumeState.creates, 0);
+  await localResumeRuntime.closeAll();
+
+  await localResumeRuntime.recover(localTask, { cwd: '/tmp/aafe-workspace', mode: 'local' });
+  assert.deepEqual(localResumeState.getRunArgs.options, { runtime: 'local', cwd: '/tmp/aafe-workspace' });
+  await localResumeRuntime.cancel(localTask, { cwd: '/tmp/aafe-workspace', mode: 'local' });
+  assert.deepEqual(localResumeState.cancelArgs.options, { runtime: 'local', cwd: '/tmp/aafe-workspace' });
+  await localResumeRuntime.closeAll();
+
+  // --- a lost Agent is replaced and replays the durable context ------------
+  const lostState = { creates: 0, sent: [] };
+  const lostSdk = {
+    Agent: {
+      async create() {
+        lostState.creates += 1;
+        return {
+          agentId: 'agent-replacement',
+          async send(message) {
+            lostState.sent.push(message);
+            return fakeRun('run-replacement');
+          },
+          async [Symbol.asyncDispose]() {}
+        };
+      },
+      async resume(agentId) {
+        throw new Error(`Agent ${agentId} not found`);
+      },
+      async getRun() { return fakeRun('run-x'); },
+      async cancelRun() {}
+    }
+  };
+  const lostRuntime = new CursorTaskRuntime({
+    env: { CURSOR_API_KEY: 'cursor_test' },
+    importSdk: async () => lostSdk
+  });
+  const lostEvents = [];
+  const lostResult = await lostRuntime.run({
+    id: 'cursor-lost',
+    repository: null,
+    baseBranch: 'main',
+    workspace: { cwd: '/tmp/aafe-workspace', mode: 'local' },
+    cursor: { agentId: 'agent-gone' }
+  }, 'only the follow-up', {
+    cwd: '/tmp/aafe-workspace',
+    mode: 'local',
+    fallbackPrompt: 'full task context',
+    onEvent: (event) => lostEvents.push(event.type)
+  });
+  assert.equal(lostState.creates, 1);
+  assert.deepEqual(lostState.sent, ['full task context']);
+  assert.equal(lostResult.agentId, 'agent-replacement');
+  assert.ok(lostEvents.includes('cursor.agent.lost'));
+  assert.ok(lostEvents.includes('cursor.agent.recreated'));
+  await lostRuntime.closeAll();
+
   // --- manager binds execution to isolated durable tasks -------------------
   const managerRoot = path.join(fixture, 'manager');
   let managerActive = 0;
@@ -210,6 +308,78 @@ try {
   assert.equal((await manager.getContext('managed-b')).metadata.own, 'b');
   assert.ok((await manager.events('managed-a')).some((event) => event.type === 'task.cursor.bound'));
   await manager.close();
+
+  // --- continue while running queues the next Run instead of throwing ------
+  const continueRoot = path.join(fixture, 'continue-active');
+  let continueRuns = 0;
+  let releaseContinue;
+  const continueRuntime = {
+    async run(task, prompt) {
+      continueRuns += 1;
+      if (continueRuns === 1) {
+        await new Promise((resolve) => { releaseContinue = resolve; });
+      }
+      return {
+        agentId: `agent-${task.id}`,
+        runId: `run-${continueRuns}`,
+        status: 'finished',
+        text: String(prompt),
+        git: {}
+      };
+    },
+    async recover() { return { status: 'finished', text: 'x' }; },
+    async cancel() { return { cancelled: true }; },
+    async close() {},
+    async closeAll() {}
+  };
+  const continueManager = new TaskManager({
+    root: continueRoot,
+    runtime: continueRuntime,
+    validateProjectRuntime: false
+  });
+  await continueManager.create({ id: 'active-task', requirement: 'first' });
+  const firstRun = continueManager.start('active-task', { prompt: 'first' });
+  await delay(20);
+  const queued = await continueManager.continue('active-task', 'plus tests');
+  assert.equal(queued.status, 'running');
+  assert.equal(queued.followUpQueued, true);
+  assert.deepEqual((await continueManager.getContext('active-task')).pendingFollowUps, ['plus tests']);
+  releaseContinue();
+  const firstFinished = await firstRun;
+  assert.equal(firstFinished.status, 'waiting');
+  await delay(50);
+  const afterContinue = await continueManager.get('active-task');
+  assert.equal(afterContinue.status, 'completed');
+  assert.equal(continueRuns, 2);
+  assert.deepEqual((await continueManager.getContext('active-task')).pendingFollowUps ?? [], []);
+  await continueManager.close();
+
+  // --- a successful retry drops the previous attempt's error ---------------
+  const retryRoot = path.join(fixture, 'retry-error');
+  let retryRuns = 0;
+  const retryManager = new TaskManager({
+    root: retryRoot,
+    runtime: {
+      async run(task) {
+        retryRuns += 1;
+        if (retryRuns === 1) throw new Error('cursor-agent-open-failed:Agent agent-x not found');
+        return { agentId: 'agent-x', runId: `run-${retryRuns}`, status: 'finished', text: 'ok', git: {} };
+      },
+      async recover() { return { status: 'finished', text: 'x' }; },
+      async cancel() { return { cancelled: true }; },
+      async close() {},
+      async closeAll() {}
+    },
+    validateProjectRuntime: false
+  });
+  await retryManager.create({ id: 'retry-task', requirement: 'retry' });
+  const retryFailed = await retryManager.start('retry-task');
+  assert.equal(retryFailed.status, 'failed');
+  assert.match(retryFailed.error, /agent-x not found/);
+  const retried = await retryManager.start('retry-task');
+  assert.equal(retried.status, 'completed');
+  assert.equal(retried.error, null);
+  await retryManager.close();
 
   // --- restart recovery reattaches a running Cursor run --------------------
   const recoveryStore = new TaskStore({ root: managerRoot });

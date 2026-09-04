@@ -22,13 +22,14 @@ import { pathToFileURL } from 'node:url';
 import { createTaskManager } from '../../../src/agent-platform/tasks/index.js';
 import { resolveCursorMcpForRun, toCursorMcpServers } from '../../../src/cli/agentMcp.js';
 import { createTaskManagerOptions, loadWeComBotConfig, persistCurrentWorkspace } from './config.js';
-import { createWeComLogger, resolveWeComLogConfig } from './logger.js';
+import { createWeComLogger, describeWeComError, resolveWeComLogConfig } from './logger.js';
 import { createMessageDedup } from './dedup.js';
 import { createWeComGateway } from './gateway.js';
 import { handleWeComCard, handleWeComMedia, handleWeComMessage } from './handler.js';
 import { attachWeComNotifier } from './notify.js';
 import { createPendingStore } from './pending.js';
 import { createWeComProgressHub } from './progress.js';
+import { createIntentAnalyzer } from './understand.js';
 import { createWorkspaceStore } from './workspace.js';
 
 export { loadWeComBotConfig, createTaskManagerOptions } from './config.js';
@@ -44,6 +45,7 @@ export { createWorkspaceStore, classifyWorkspaceTarget } from './workspace.js';
 export { parseCardEvent, buildCancelledCard } from './cards.js';
 export { createWeComLogger, resolveWeComLogConfig } from './logger.js';
 export { parseWeComMedia, mediaRequirement, inferMediaType } from './media.js';
+export { createIntentAnalyzer, classifyIntentByRules, parseIntent } from './understand.js';
 
 /**
  * Resident WeCom process. Must not reuse `aafe task`'s manager.close() on idle.
@@ -90,7 +92,14 @@ export async function startWeComBot(options = {}) {
     persistCurrent: (id) => persistCurrentWorkspace(config.localConfigPath, id)
   });
   const replyAck = (frame, content, extra) => gateway.replyAck(frame, content, extra);
+  const replyProgress = (frame, streamId, content, finish, extra) =>
+    gateway.replyProgress(frame, streamId, content, finish, extra);
   const replyCard = (frame, card) => gateway.replyCard(frame, card);
+  const understanding = options.understanding ?? createIntentAnalyzer({
+    settings: config.intent ?? {},
+    env: options.env ?? process.env,
+    logger
+  });
   const progress = options.progress ?? createWeComProgressHub({
     replyProgress: (frame, streamId, content, finish) => gateway.replyProgress(frame, streamId, content, finish),
     logger
@@ -104,43 +113,45 @@ export async function startWeComBot(options = {}) {
     logger
   });
 
-  gateway.onText((frame) => {
-    void handleWeComMessage(frame, {
-      manager, replyAck, replyCard, progress, pending, workspaces, config, dedup, logger
-    });
-  });
-  gateway.onCard?.((frame) => {
-    void handleWeComCard(frame, {
-      manager,
-      replyAck,
-      replyCard,
-      updateCard: (cardFrame, card) => gateway.updateCard(cardFrame, card),
-      progress,
-      pending,
-      workspaces,
-      config,
-      logger
-    });
-  });
-  gateway.onMedia((frame) => {
-    void handleWeComMedia(frame, {
-      manager,
-      replyAck,
-      replyCard,
-      progress,
-      pending,
-      workspaces,
-      config,
-      dedup,
-      logger,
-      downloadFile: (url, aeskey) => gateway.downloadFile(url, aeskey)
-    });
-  });
-  gateway.onEnterChat((frame) => {
-    void gateway.replyWelcome(frame).catch((error) => {
-      logger.error?.(`wecom-welcome-failed:${error instanceof Error ? error.message : error}`);
-    });
-  });
+  // A rejected handler must never reach the process: Node would exit the bot.
+  const guard = (what, work) => {
+    void Promise.resolve()
+      .then(work)
+      .catch((error) => {
+        logger.error?.(`wecom-${what}-failed:${describeWeComError(error)}`);
+        logger.event?.(`${what}.failed`, { error: describeWeComError(error) });
+      });
+  };
+
+  gateway.onText((frame) => guard('message', () => handleWeComMessage(frame, {
+    manager, replyAck, replyProgress, replyCard, progress, pending, workspaces, config, dedup,
+    understanding, logger
+  })));
+  gateway.onCard?.((frame) => guard('card', () => handleWeComCard(frame, {
+    manager,
+    sendText: (content, source) => gateway.sendMarkdown(source, content),
+    updateCard: (cardFrame, card) => gateway.updateCard(cardFrame, card),
+    progress,
+    pending,
+    workspaces,
+    config,
+    logger
+  })));
+  gateway.onMedia((frame) => guard('media', () => handleWeComMedia(frame, {
+    manager,
+    replyAck,
+    replyProgress,
+    replyCard,
+    understanding,
+    progress,
+    pending,
+    workspaces,
+    config,
+    dedup,
+    logger,
+    downloadFile: (url, aeskey) => gateway.downloadFile(url, aeskey)
+  })));
+  gateway.onEnterChat((frame) => guard('welcome', () => gateway.replyWelcome(frame)));
 
   let shuttingDown = false;
   const shutdown = async (reason) => {

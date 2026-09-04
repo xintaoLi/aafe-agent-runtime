@@ -110,7 +110,8 @@ export function createWorkspaceStore(config = {}, { persistCurrent } = {}) {
 export function classifyWorkspaceTarget(raw, root) {
   const text = String(raw ?? '').trim();
   if (!text) return { kind: 'unknown' };
-  if (/^(?:本地|当前目录|运行目录|bot目录|here|\.)$/i.test(text)) {
+  // `local` is what the workspace picker card sends for 当前目录.
+  if (/^(?:本地|当前目录|运行目录|bot目录|local|here|\.)$/i.test(text)) {
     return { kind: 'local', cwd: path.resolve(root) };
   }
   if (/tapd\.(?:woa\.com|cn)/i.test(text)) return { kind: 'unknown' };

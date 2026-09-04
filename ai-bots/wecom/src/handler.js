@@ -35,9 +35,11 @@ import {
   weComMediaDir
 } from './media.js';
 import { formatListReply, formatStatusReply, formatTaskFooter } from './notify.js';
-import { resolveWeComAction } from './resolver.js';
+import { listOpenTasks, resolveWeComAction } from './resolver.js';
 import { sessionKeyFromSource, sourceFromFrame } from './session.js';
 import { formatWorkspaceList } from './workspace.js';
+
+export const UNDERSTANDING_TEXT = '正在理解分析中…';
 
 const CONTROL_TYPES = new Set([
   'help',
@@ -54,6 +56,7 @@ const TERMINAL_TASK = new Set(['completed', 'failed', 'cancelled']);
 export async function handleWeComMessage(frame, {
   manager,
   replyAck,
+  replyProgress,
   replyCard,
   progress,
   pending,
@@ -61,6 +64,7 @@ export async function handleWeComMessage(frame, {
   config,
   dedup,
   attachments = [],
+  understanding = null,
   logger = console
 } = {}) {
   const msgid = frame?.body?.msgid;
@@ -81,6 +85,21 @@ export async function handleWeComMessage(frame, {
     analyzeWeComIntent(frame?.body?.text?.content),
     pending?.get(sessionKey)
   );
+  // Control words ("状态"/"终止"/"列表") stay on the regex fast path: a model
+  // round trip would cost seconds before a stop can even be attempted.
+  const stream = createReplyStream({ frame, replyAck, replyProgress, logger });
+  if (understanding && command.type === 'implicit-route') {
+    await stream.push(UNDERSTANDING_TEXT);
+    command.intent = await analyzeIntent(command, {
+      understanding,
+      manager,
+      source,
+      attachments,
+      logger
+    });
+    await stream.push(formatIntentStage(command.intent));
+  }
+
   const action = await resolveWeComAction(command, buildActionContext({
     source,
     config,
@@ -92,6 +111,7 @@ export async function handleWeComMessage(frame, {
     pending?.set(sessionKey, {
       type: 'need-workspace',
       requirement: action.requirement,
+      intent: action.intent ?? null,
       source,
       attachments
     });
@@ -104,7 +124,7 @@ export async function handleWeComMessage(frame, {
   const card = cardForAction(action, { workspaces: workspaces?.list?.() ?? config?.workspaces ?? [] });
   // The live view appends the footer itself, so the header it reuses stays clean.
   const ack = withTaskFooter(reply, action.task);
-  const streamId = await replyAck(frame, ack, { finish: !keepOpen });
+  const streamId = await stream.push(ack, { finish: !keepOpen });
   if (card) {
     try {
       await replyCard?.(frame, card);
@@ -152,17 +172,68 @@ export async function handleWeComMessage(frame, {
     msgid,
     conversationId: source.conversationId,
     command: command?.type ?? null,
+    intent: command?.intent?.kind ?? null,
     action: action?.type ?? null,
     taskId: action?.task?.id ?? null,
     streamId
   });
-  return { skipped: false, command, action, reply: ack };
+  return { skipped: false, command, action, intent: command.intent ?? null, reply: ack };
+}
+
+async function analyzeIntent(command, { understanding, manager, source, attachments, logger }) {
+  let hasOpenTask = false;
+  try {
+    hasOpenTask = (await listOpenTasks(manager, source, { match: 'owner' })).length > 0;
+  } catch {
+    // A listing failure must not block classification; assume a fresh request.
+  }
+  const intent = await understanding.analyze({ text: command.text, attachments, hasOpenTask });
+  logger.event?.('intent.resolved', {
+    conversationId: source.conversationId,
+    kind: intent.kind,
+    needsCode: intent.needsCode,
+    confidence: intent.confidence,
+    intentSource: intent.source,
+    reason: intent.reason ?? null
+  });
+  return intent;
+}
+
+export function formatIntentStage(intent) {
+  if (!intent) return UNDERSTANDING_TEXT;
+  const head = `这是一个**${intent.label}**任务，正在进一步解析中…`;
+  return intent.summary ? `${head}\n> ${intent.summary}` : head;
+}
+
+/**
+ * One WeCom stream carries every stage of a turn: the first push opens it, the
+ * rest refresh it in place so the user sees one message that keeps evolving.
+ */
+function createReplyStream({ frame, replyAck, replyProgress, logger = console }) {
+  let streamId = null;
+  return {
+    get id() {
+      return streamId;
+    },
+    async push(content, { finish = false } = {}) {
+      if (!streamId) {
+        streamId = await replyAck?.(frame, content, { finish });
+        return streamId;
+      }
+      if (!replyProgress) return streamId;
+      try {
+        await replyProgress(frame, streamId, content, finish, { blocking: true });
+      } catch (error) {
+        logger.error?.(`wecom-stream-update-failed:${describeWeComError(error)}`);
+      }
+      return streamId;
+    }
+  };
 }
 
 export async function handleWeComCard(frame, {
   manager,
-  replyAck,
-  replyCard,
+  sendText,
   updateCard,
   progress,
   pending,
@@ -197,14 +268,19 @@ export async function handleWeComCard(frame, {
       logger.error?.(`wecom-card-cancel-failed:${parsed.value}:${describeWeComError(error)}`);
     }
     if (!updateCard) {
-      await replyAck(frame, `已取消任务 **${parsed.value}**`, { finish: true });
+      await pushText(sendText, source, `已取消任务 **${parsed.value}**`, logger);
     }
     return { skipped: false, command: { type: 'cancel', taskId: parsed.value }, action: { type: 'cancelled' } };
   }
 
   if (parsed.action === 'ws') {
     const command = waiting?.type === 'need-workspace'
-      ? { type: 'workspace-choice', target: parsed.value, requirement: waiting.requirement }
+      ? {
+        type: 'workspace-choice',
+        target: parsed.value,
+        requirement: waiting.requirement,
+        intent: waiting.intent ?? null
+      }
       : { type: 'workspace-switch', target: parsed.value };
     const action = await resolveWeComAction(command, buildActionContext({
       source,
@@ -215,14 +291,18 @@ export async function handleWeComCard(frame, {
     if (action.type === 'created') pending?.clear(sessionKey);
     const reply = replyForAction(action, command, { workspaces, config, attachments });
     if (updateCard) {
-      const workspace = action.workspace ?? action.task?.workspace ?? null;
-      await updateCard(frame, buildWorkspaceSwitchedCard(workspace, parsed.cardTaskId));
+      try {
+        const workspace = action.workspace ?? action.task?.workspace ?? null;
+        await updateCard(frame, buildWorkspaceSwitchedCard(workspace, parsed.cardTaskId));
+      } catch (error) {
+        logger.error?.(`wecom-card-update-failed:${parsed.value}:${describeWeComError(error)}`);
+      }
     }
-    const keepOpen = action.type === 'created';
+    // No live stream here: a card click cannot open one, so the task reports
+    // through the terminal notify instead.
     const ack = withTaskFooter(reply, action.task);
-    const streamId = await replyAck(frame, ack, { finish: !keepOpen });
-    if (keepOpen && progress && action.task?.id) {
-      progress.open({ taskId: action.task.id, frame, streamId, header: reply });
+    await pushText(sendText, source, ack, logger);
+    if (action.type === 'created' && action.task?.id) {
       void Promise.resolve(manager.start(action.task.id)).catch((error) => {
         logger.error?.(`wecom-task-start-failed:${action.task.id}:${error instanceof Error ? error.message : error}`);
         logger.event?.('task.start.failed', {
@@ -241,8 +321,19 @@ export async function handleWeComCard(frame, {
     return { skipped: false, command, action, reply: ack };
   }
 
-  await replyAck(frame, HELP_TEXT, { finish: true });
-  return { skipped: false, command: { type: 'help' } };
+  logger.warn?.(`wecom-card-event-unknown:${parsed.action ?? 'none'}`);
+  return { skipped: true, reason: 'unknown-card-event' };
+}
+
+async function pushText(sendText, source, content, logger) {
+  if (!sendText) return false;
+  try {
+    await sendText(content, source);
+    return true;
+  } catch (error) {
+    logger.error?.(`wecom-card-reply-failed:${describeWeComError(error)}`);
+    return false;
+  }
 }
 
 export async function handleWeComMedia(frame, deps = {}) {
@@ -309,7 +400,8 @@ function bindPendingCommand(command, waiting) {
     type: 'workspace-choice',
     text,
     target: text,
-    requirement: waiting.requirement
+    requirement: waiting.requirement,
+    intent: waiting.intent ?? null
   };
 }
 
@@ -345,8 +437,9 @@ function cardForAction(action, extras = {}) {
 function replyForAction(action, command, extras = {}) {
   if (action.type === 'created') {
     const where = describeTaskWorkspace(action.workspace ?? action.task?.workspace);
+    const kind = action.intent?.label ? ` · ${action.intent.label}` : '';
     return withAttachments(
-      `**${action.task.id}**\n${action.task.requirement}\n${where}`,
+      `**${action.task.id}**${kind}\n${action.task.requirement}\n${where}`,
       extras.attachments
     );
   }

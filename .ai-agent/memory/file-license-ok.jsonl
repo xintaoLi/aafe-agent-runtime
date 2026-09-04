@@ -170,3 +170,9 @@
 {"path":"src/cli/fileLicenseRules.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T08:50:42.516Z"}
 {"path":"scripts/test-file-license-rules.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T08:50:42.518Z"}
 {"path":"ai-bots/wecom/src/intent.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T11:06:54.832Z"}
+{"path":"ai-bots/wecom/src/progress.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T11:13:20.618Z"}
+{"path":"ai-bots/wecom/src/cards.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T11:23:57.819Z"}
+{"path":"ai-bots/wecom/src/logger.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T11:54:48.466Z"}
+{"path":"ai-bots/wecom/src/media.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T11:59:48.305Z"}
+{"path":"ai-bots/wecom/src/workspace.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-04T02:56:13.726Z"}
+{"path":"ai-bots/wecom/src/understand.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-04T03:18:54.242Z"}
