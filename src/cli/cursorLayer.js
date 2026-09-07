@@ -317,7 +317,7 @@ function cursorSkillRouterRules(ctx) {
     '',
     'For every task in this repository module:',
     `1. Read \`${ctx.agentPrefix}/skill-index.md\` first.`,
-    `2. If present, read \`${ctx.agentPrefix}/project.md\` for project-specific quick map and domain routing hints.`,
+    `2. Read \`${ctx.agentPrefix}/project.md\` only when repository context is needed.`,
     `3. Read \`.aafe.config.json\` → \`mode.workflow\` (default \`ask\`). Load \`${ctx.agentPrefix}/skills/workflow-mode.md\` before the first interactive gate.`,
     `3b. ${taskSpinePointerLine(ctx.agentPrefix)}`,
     `4. Only when the task matches a domain, read the matching \`${ctx.agentPrefix}/project-skills/<domain>/SKILL.md\`.`,
@@ -382,11 +382,8 @@ function cursorRules(ctx) {
     `4. Enforce \`${ctx.agentPrefix}/runtime/gates.yaml\` before implementation.`,
     `5. Read \`${ctx.agentPrefix}/skills/project-architecture-locator.md\` first when locating routes, components, modules or design docs.`,
     `5b. For deep architecture/dataflow, use \`${ctx.agentPrefix}/skills/architecture-on-demand.md\` / \`dataflow-on-demand.md\` against configured analyze output (default \`.aafe/\`, never the full tree).`,
-    '6. Use framework, DDD, design-pattern and scenario packs when relevant.',
-    '7. For business-heavy features, run DDD Discovery before module decomposition.',
-    '8. For new features, run Pattern Interview before Pattern Selection.',
-    '9. For complex frontend work, select and land patterns per module based on real business responsibility.',
-    '10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.',
+    '6. Load DDD and design-pattern packs only on explicit user request; otherwise skip their analysis and output.',
+    '7. Report only applicable artifacts and verified findings.',
     `11. Before final response, follow layered rule \`aafe-task-completion-impact.mdc\`: **task assessment** — only ask impact/self-test when code changed; UI sub-asks only for code + UI impact; pre-generate \`ui_test_paths\`; TAPD + Figma tasks use local diff to generate impact units/test paths, then use Figma evidence to narrow impact and assertions.`,
     `12. After self-test or submit intent: \`aafe-tapd-submit-backfill.mdc\` **only when task has TAPD association** and \`tapd.enabled\`; else skip TAPD backfill asks.`,
     '13. File license: follow `aafe-new-file-license.mdc` — new files add header; edits use local `aafe license ensure <path>` (never AI-Read memory JSONL).',
@@ -507,4 +504,3 @@ export function resolveCursorPathsFromConfig(root, projectConfig = {}) {
     paths: buildCursorLayerPaths(workspaceRoot, workspace.moduleName)
   };
 }
-

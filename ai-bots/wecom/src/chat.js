@@ -22,6 +22,10 @@ import { mkdir } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { LlmClient } from '../../../src/llm/LlmClient.js';
+import { scratchPrompt } from './scratch.js';
+import { normalizeUsage } from '../../../src/llm/usage.js';
+import { CodexTaskRuntime } from '../../../src/agent-platform/runtime/CodexTaskRuntime.js';
+import { randomUUID } from 'node:crypto';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 /** Answering a question never reads the project, so it runs outside it. */
@@ -55,7 +59,8 @@ export function createChatResponder({
   env = process.env,
   fetchImpl = globalThis.fetch,
   importSdk = null,
-  selectModel = null
+  selectModel = null,
+  createCodexRuntime = () => new CodexTaskRuntime()
 } = {}) {
   const enabled = settings.enabled !== false;
   const timeoutMs = Number(settings.timeoutMs) > 0 ? Number(settings.timeoutMs) : DEFAULT_TIMEOUT_MS;
@@ -65,12 +70,28 @@ export function createChatResponder({
       model: settings.model,
       apiKey: settings.apiKey ?? null,
       apiKeyEnv: settings.apiKeyEnv ?? 'AAFE_LLM_API_KEY',
+      maxOutputTokens: settings.chatMaxOutputTokens ?? 768,
+      tokenBudget: settings.tokenBudget ?? 4096,
+      onUsage: (usage) => logger.event?.('llm.usage', { stage: 'chat', ...usage }),
       timeoutMs
     }, { fetchImpl, env })
     : null;
   const cursorKey = settings.cursorApiKey ?? null;
   const loadSdk = importSdk ?? (() => import('@cursor/sdk'));
-  const backend = !enabled ? 'none' : http?.isConfigured() ? 'llm' : cursorKey ? 'cursor' : 'none';
+  const backend = !enabled ? 'none' : http?.isConfigured() ? 'llm' : settings.codex ? 'codex' : cursorKey ? 'cursor' : 'none';
+
+  async function callCodex(text) {
+    await mkdir(cwd, { recursive: true });
+    const runtime = createCodexRuntime();
+    try {
+      const result = await runtime.run({ id: randomUUID() }, `${SYSTEM_PROMPT}\n\n用户：\n${text}`, {
+        cwd, executionMode: 'plan', ephemeral: true, tokenBudget: settings.tokenBudget ?? 4096,
+        codex: { ...settings.codex, timeoutMs }
+      });
+      logger.event?.('llm.usage', { stage: 'chat', provider: 'codex', usage: result.usage });
+      return result.text;
+    } finally { await runtime.closeAll(); }
+  }
 
   async function callHttp(text) {
     const result = await http.chat([
@@ -83,16 +104,16 @@ export function createChatResponder({
 
   async function callCursor(text) {
     const sdk = await loadSdk();
-    if (typeof sdk?.Agent?.prompt !== 'function') throw new Error('cursor-sdk-prompt-unavailable');
     await mkdir(cwd, { recursive: true });
     const model = selectModel?.({ stage: 'chat', text }) ?? null;
-    const result = await sdk.Agent.prompt(`${SYSTEM_PROMPT}\n\n用户：\n${text}`, {
+    const result = await scratchPrompt(sdk, `${SYSTEM_PROMPT}\n\n用户：\n${text}`, {
       apiKey: cursorKey,
       ...(model ? { model: { id: model } } : {}),
       mode: 'plan',
       local: { cwd }
-    });
+    }, { timeoutMs, tokenBudget: settings.tokenBudget ?? 4096, label: 'chat' });
     if (result?.status && result.status !== 'finished') throw new Error(`cursor-prompt-${result.status}`);
+    logger.event?.('llm.usage', { stage: 'chat', model, usage: normalizeUsage(result?.usage ?? result?.metrics) });
     return result?.result ?? '';
   }
 
@@ -106,7 +127,8 @@ export function createChatResponder({
       const body = String(text ?? '').trim();
       if (!body || backend === 'none') return null;
       try {
-        const raw = await withTimeout(backend === 'llm' ? callHttp(body) : callCursor(body), timeoutMs);
+        const raw = backend === 'codex' ? await callCodex(body)
+          : await withTimeout(backend === 'llm' ? callHttp(body) : callCursor(body), timeoutMs);
         return clean(raw);
       } catch (error) {
         logger.warn?.(`wecom-chat-failed:${backend}:${error instanceof Error ? error.message : error}`);

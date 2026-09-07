@@ -24,6 +24,8 @@ import path from 'node:path';
 import { LlmClient } from '../../../src/llm/LlmClient.js';
 import { isNewWork } from './intent.js';
 import { scanTaskId } from './quote.js';
+import { scratchPrompt } from './scratch.js';
+import { normalizeUsage } from '../../../src/llm/usage.js';
 
 export const INTENT_KINDS = Object.freeze(['code', 'analysis', 'question', 'followup']);
 
@@ -61,6 +63,8 @@ const SYSTEM_PROMPT = [
 const CODE_HINT = /(?:修复|修一下|改一下|改下|实现|开发|重构|新增|加个|增加|接入|上线|提交|commit|pr\b|merge|bug|报错|异常|失效|不生效|崩溃|fix|implement|refactor)/i;
 const ANALYSIS_HINT = /(?:分析|排查|定位|评估|梳理|影响面|影响范围|为什么|为何|原因|怎么回事|看一下|看看|了解|对比|调研|总结)/i;
 const QUESTION_HINT = /(?:是什么|什么意思|怎么用|如何使用|区别|介绍一下|解释)/i;
+const REPOSITORY_HINT = /(?:这个|当前|本|该|我们|这里的).{0,8}(?:项目|仓库|代码|模块|接口|路由|实现)|(?:项目|仓库|代码库)|(?:src|ai-bots|packages)\/|\b[\w.-]+\.(?:js|ts|tsx|jsx|vue|py|go)\b/i;
+const GENERAL_ANALYSIS = /(?:JavaScript|TypeScript|闭包|概念|原理|算法|设计模式|区别)/i;
 const FOLLOW_HINT = /^(?:再|继续|补充|还要|顺便|另外|不对|这里|那个|加上|不要)/;
 // Ship verbs — commit, PR, merge, TAPD backfill, run the tests again — happen
 // to work that already exists. Read as new work they produce a task whose
@@ -179,13 +183,13 @@ export function fastIntent(text, {
     return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.8, source: 'rules-fast' });
   }
   if (ANALYSIS_LEAD.test(body) && !code) {
-    return intent({ kind: 'analysis', needsCode: false, summary: clip(body), confidence: 0.8, source: 'rules-fast' });
+    return intent({ kind: 'analysis', needsCode: attachments.length > 0 || REPOSITORY_HINT.test(body) || !GENERAL_ANALYSIS.test(body), summary: clip(body), confidence: 0.8, source: 'rules-fast' });
   }
   if (CODE_LEAD.test(body) && !analysis) {
     return intent({ kind: 'code', needsCode: true, summary: clip(body), confidence: 0.8, source: 'rules-fast' });
   }
   if (QUESTION_HINT.test(body) && !code && !analysis && !attachments.length) {
-    return intent({ kind: 'question', needsCode: false, summary: clip(body), confidence: 0.8, source: 'rules-fast' });
+    return intent({ kind: 'question', needsCode: REPOSITORY_HINT.test(body), summary: clip(body), confidence: 0.8, source: 'rules-fast' });
   }
   // An open task must not turn every unrecognised sentence into an addendum:
   // that is how "我想下班" ended up appended to a TAPD story. Without a
@@ -226,10 +230,10 @@ export function classifyIntentByRules(text, {
     return intent({ kind: 'code', needsCode: true, summary: clip(body), confidence: 0.5, source: 'rules' });
   }
   if (ANALYSIS_HINT.test(withMedia)) {
-    return intent({ kind: 'analysis', needsCode: false, summary: clip(body), confidence: 0.45, source: 'rules' });
+    return intent({ kind: 'analysis', needsCode: attachments.length > 0 || REPOSITORY_HINT.test(body) || !GENERAL_ANALYSIS.test(body), summary: clip(body), confidence: 0.45, source: 'rules' });
   }
   if (QUESTION_HINT.test(withMedia)) {
-    return intent({ kind: 'question', needsCode: false, summary: clip(body), confidence: 0.4, source: 'rules' });
+    return intent({ kind: 'question', needsCode: REPOSITORY_HINT.test(body), summary: clip(body), confidence: 0.4, source: 'rules' });
   }
   // Unknown free text used to become a repository question, so keep that shape.
   return intent({ kind: 'code', needsCode: true, summary: clip(body), confidence: 0.2, source: 'rules' });
@@ -258,6 +262,9 @@ export function createIntentAnalyzer({
       model: settings.model,
       apiKey: settings.apiKey ?? null,
       apiKeyEnv: settings.apiKeyEnv ?? 'AAFE_LLM_API_KEY',
+      maxOutputTokens: settings.maxOutputTokens ?? 256,
+      tokenBudget: settings.tokenBudget ?? 4096,
+      onUsage: (usage) => logger.event?.('llm.usage', { stage: 'intent', ...usage }),
       timeoutMs
     }, { fetchImpl, env })
     : null;
@@ -287,19 +294,19 @@ export function createIntentAnalyzer({
 
   async function callCursor(payload) {
     const sdk = await loadSdk();
-    if (typeof sdk?.Agent?.prompt !== 'function') throw new Error('cursor-sdk-prompt-unavailable');
     await mkdir(cwd, { recursive: true });
     const model = modelFor(payload);
-    const result = await sdk.Agent.prompt(
+    const result = await scratchPrompt(sdk,
       `${SYSTEM_PROMPT}\n\n用户输入：\n${JSON.stringify(payload)}`,
       {
         apiKey: cursorKey,
         ...(model ? { model: { id: model } } : {}),
         mode: 'plan',
         local: { cwd }
-      }
+      }, { timeoutMs, tokenBudget: settings.tokenBudget ?? 4096, label: 'intent' }
     );
     if (result?.status && result.status !== 'finished') throw new Error(`cursor-prompt-${result.status}`);
+    logger.event?.('llm.usage', { stage: 'intent', model, usage: normalizeUsage(result?.usage ?? result?.metrics) });
     return result?.result ?? '';
   }
 

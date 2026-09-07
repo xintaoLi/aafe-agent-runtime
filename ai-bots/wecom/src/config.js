@@ -46,10 +46,34 @@ export async function loadWeComBotConfig({
   const agent = resolveAgentModeConfig(projectConfig);
   const explicitPath = localConfigPath ?? env.AAFE_WECOM_CONFIG ?? null;
   const local = await readLocalConfig(projectRoot, { extraPath: explicitPath });
-  const apiKeyEnv = agent.apiKeyEnv ?? defaultApiKeyEnvForProvider(agent.provider);
   const provider = normalizeAgentProvider(
     firstNonEmpty(env.AAFE_WECOM_PROVIDER, env.WECOM_PROVIDER, local.provider, agent.provider)
   );
+  const cursorRaw = isPlainObject(local.cursor) ? local.cursor : {};
+  const cursorKeyEnv = firstNonEmpty(cursorRaw.apiKeyEnv,
+    agent.provider === 'cursor' ? agent.apiKeyEnv : null) ?? 'CURSOR_API_KEY';
+  const cursor = {
+    apiKeyEnv: cursorKeyEnv,
+    apiKey: firstNonEmpty(env[cursorKeyEnv], env.CURSOR_API_KEY, cursorRaw.apiKey,
+      agent.provider === 'cursor' ? agent.apiKey : null, local.apiKey),
+    model: firstNonEmpty(env.AAFE_WECOM_CURSOR_MODEL,
+      provider === 'cursor' ? firstNonEmpty(env.AAFE_WECOM_MODEL, env.WECOM_MODEL) : null,
+      cursorRaw.model, local.model, agent.provider === 'cursor' ? agent.model : null),
+    models: cursorRaw.models ?? local.models,
+    mcp: cursorRaw.mcp ?? agent.mcp,
+    autoCreatePR: cursorRaw.autoCreatePR ?? agent.autoCreatePR,
+    skipReviewerRequest: cursorRaw.skipReviewerRequest ?? agent.skipReviewerRequest
+  };
+  const apiKeyEnv = provider === 'cursor' ? cursorKeyEnv : defaultApiKeyEnvForProvider(provider);
+  const codex = {
+    apiKey: firstNonEmpty(env.CODEX_API_KEY, env.OPENAI_API_KEY,
+      local.codex?.CODEX_API_KEY, local.codex?.apiKey, local.codexApiKey),
+    executable: firstNonEmpty(env.AAFE_WECOM_CODEX_EXECUTABLE, local.codex?.executable) ?? 'codex',
+    model: firstNonEmpty(env.AAFE_WECOM_CODEX_MODEL, local.codex?.model,
+      provider === 'codex' ? firstNonEmpty(env.AAFE_WECOM_MODEL, env.WECOM_MODEL,
+        projectConfig.agent?.provider === 'codex' ? projectConfig.agent?.model : null) : null),
+    timeoutMs: Number(local.codex?.timeoutMs) > 0 ? Number(local.codex.timeoutMs) : 30 * 60_000
+  };
 
   const botId = firstNonEmpty(env.WECOM_BOT_ID, local.botId);
   const secret = firstNonEmpty(env.WECOM_BOT_SECRET, local.secret);
@@ -59,16 +83,8 @@ export async function loadWeComBotConfig({
     );
   }
 
-  const apiKey = firstNonEmpty(
-    env[apiKeyEnv],
-    env.CURSOR_API_KEY,
-    env.OPENAI_API_KEY,
-    env.CODEX_API_KEY,
-    agent.apiKey,
-    local.apiKey,
-    local.codexApiKey
-  );
-  const model = firstNonEmpty(env.AAFE_WECOM_MODEL, env.WECOM_MODEL, local.model) ?? agent.model ?? null;
+  const apiKey = provider === 'codex' ? codex.apiKey : cursor.apiKey;
+  const model = provider === 'codex' ? codex.model : cursor.model;
   const repository = firstNonEmpty(env.AAFE_WECOM_REPOSITORY, local.repository) ?? agent.repository ?? null;
   const baseBranch = firstNonEmpty(env.AAFE_WECOM_BASE_BRANCH, local.baseBranch) ?? 'main';
   const workspaces = parseWorkspaces(local.workspaces ?? agent.workspaces, {
@@ -81,6 +97,8 @@ export async function loadWeComBotConfig({
     botId,
     secret,
     apiKey,
+    codex,
+    cursor,
     wsUrl: firstNonEmpty(env.WECOM_WS_URL, local.wsUrl) ?? DEFAULT_WS_URL,
     repository,
     baseBranch,
@@ -95,15 +113,19 @@ export async function loadWeComBotConfig({
     ),
     localConfigPath: local.path ?? null,
     log: resolveWeComLogConfig({ env, local, root: projectRoot }),
-    intent: resolveWeComIntentConfig({ env, local, apiKey }),
-    models: resolveWeComModelConfig({ env, local, model }),
+    intent: { ...resolveWeComIntentConfig({ env, local, apiKey: provider === 'cursor' ? apiKey : null }),
+      ...(provider === 'codex' ? { codex } : {}) },
+    models: resolveWeComModelConfig({ env, local: { ...local, models: cursor.models }, model: cursor.model }),
     tapd: resolveWeComTapdConfig({ env, local, project: projectConfig }),
     repo: resolveWeComRepoConfig({ env, local }),
     agent: {
       ...agent,
+      mcp: cursor.mcp,
+      autoCreatePR: cursor.autoCreatePR,
+      skipReviewerRequest: cursor.skipReviewerRequest,
       provider,
-      apiKey: apiKey ?? agent.apiKey ?? null,
-      model: model ?? agent.model ?? null,
+      apiKey: apiKey ?? null,
+      model: model ?? null,
       apiKeyEnv
     }
   };
@@ -148,7 +170,10 @@ export function resolveWeComIntentConfig({ env = {}, local = {}, apiKey = null }
     apiKeyEnv: firstNonEmpty(raw.apiKeyEnv) ?? 'AAFE_LLM_API_KEY',
     timeoutMs: Number.isFinite(timeout) && timeout > 0 ? timeout : null,
     cursorApiKey: apiKey,
-    cursorModel: firstNonEmpty(env.AAFE_WECOM_INTENT_CURSOR_MODEL, raw.cursorModel)
+    cursorModel: firstNonEmpty(env.AAFE_WECOM_INTENT_CURSOR_MODEL, raw.cursorModel),
+    tokenBudget: Number(raw.tokenBudget) > 0 ? Number(raw.tokenBudget) : 4096,
+    maxOutputTokens: Number(raw.maxOutputTokens) > 0 ? Number(raw.maxOutputTokens) : 256,
+    chatMaxOutputTokens: Number(raw.chatMaxOutputTokens) > 0 ? Number(raw.chatMaxOutputTokens) : 768
   };
 }
 
@@ -219,7 +244,7 @@ export function createTaskManagerOptions(config, extra = {}) {
     output: manager.output ?? '.aafe',
     maxConcurrentTasks: manager.maxConcurrentTasks ?? 4,
     validateProjectRuntime: extra.validateProjectRuntime
-      ?? (useCloud ? manager.validateProjectRuntime ?? true : false),
+      ?? (useCloud && agent.provider !== 'codex' ? manager.validateProjectRuntime ?? true : false),
     recoverOnStart: extra.recoverOnStart ?? manager.recoverOnStart ?? true,
     // One git worktree per task, so several people's tasks can run against one
     // local repository at once. `worktrees: false` falls back to a lock on the
@@ -234,10 +259,14 @@ export function createTaskManagerOptions(config, extra = {}) {
       aafeRoot: extra.aafeRoot ?? config.root
     },
     runtimeOptions: {
-      apiKey: extra.apiKey ?? config.apiKey ?? agent.apiKey,
-      apiKeyEnv: agent.apiKeyEnv,
+      codex: config.codex,
+      tokenBudget: Number(manager.tokenBudget) > 0 ? Number(manager.tokenBudget) : 12000,
+      // Cursor transport reads these; Codex reads only its own `codex` block.
+      // Keep old Cursor tasks resumable even when Codex is the default provider.
+      apiKey: extra.apiKey ?? (config.cursor ? config.cursor.apiKey : config.apiKey ?? agent.apiKey),
+      apiKeyEnv: config.cursor?.apiKeyEnv ?? agent.apiKeyEnv,
       provider: extra.provider ?? agent.provider ?? 'cursor',
-      model: extra.model ?? agent.model,
+      model: extra.model ?? (config.cursor ? config.cursor.model : agent.model),
       repository,
       cwd: extra.cwd ?? active?.cwd ?? config.root,
       mode: useCloud ? 'cloud' : 'local',
@@ -259,7 +288,12 @@ export async function readLocalWeComConfig(root, { extraPath = null } = {}) {
   for (const file of files.reverse()) {
     const parsed = await parseLocalWeComFile(file);
     if (!parsed) continue;
-    merged = { ...merged, ...omitEmpty(parsed), path: file };
+    merged = {
+      ...merged, ...omitEmpty(parsed),
+      cursor: { ...merged.cursor, ...parsed.cursor },
+      codex: { ...merged.codex, ...parsed.codex },
+      path: file
+    };
   }
   return merged;
 }
@@ -297,6 +331,12 @@ export function parseDotEnv(text) {
 
 export function normalizeLocalWeComValues(raw = {}) {
   return omitEmpty({
+    cursor: isPlainObject(raw.cursor) ? raw.cursor : undefined,
+    codex: {
+      ...(isPlainObject(raw.codex) ? raw.codex : {}),
+      ...(raw.AAFE_WECOM_CODEX_EXECUTABLE ? { executable: raw.AAFE_WECOM_CODEX_EXECUTABLE } : {}),
+      ...(raw.AAFE_WECOM_CODEX_MODEL ? { model: raw.AAFE_WECOM_CODEX_MODEL } : {})
+    },
     botId: raw.botId ?? raw.WECOM_BOT_ID ?? raw.bot_id,
     secret: raw.secret ?? raw.WECOM_BOT_SECRET,
     apiKey: raw.apiKey ?? raw.CURSOR_API_KEY ?? raw.cursorApiKey,

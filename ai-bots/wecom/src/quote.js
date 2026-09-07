@@ -37,8 +37,8 @@ const MEDIA_LABEL = Object.freeze({
  * loose id pattern the command parser accepts, because this one runs over free
  * text where `[Tt][A-Za-z0-9._-]{1,127}` would match most words.
  */
-const TASK_ID_IN_TEXT = /\btask-\d{14}-[0-9a-f]{8}\b/i;
-const TASK_ID_IN_TEXT_ALL = /\btask-\d{14}-[0-9a-f]{8}\b/gi;
+const TASK_ID_IN_TEXT = /\btask-(?:\d{14}|wecom-[0-9a-f]{16})-[0-9a-f]{8}\b/i;
+const TASK_ID_IN_TEXT_ALL = /\btask-(?:\d{14}|wecom-[0-9a-f]{16})-[0-9a-f]{8}\b/gi;
 
 /**
  * The 8-hex tail of a Task ID, which is what people actually retype after

@@ -20,6 +20,7 @@
 
 import { RulePlanner } from './RulePlanner.js';
 import { normalizeDecision } from './decision.js';
+import { normalizeUsage } from '../../llm/usage.js';
 
 const SYSTEM_PROMPT = `You are the AAFE planner. You decide the next single step of a
 frontend project-analysis run. You never write code, never run commands and never
@@ -69,6 +70,13 @@ export class LlmPlanner {
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: JSON.stringify(this.#observation(ctx, available)) }
     ]);
+    const usage = normalizeUsage(result.usage);
+    if (ctx.state.metrics) {
+      ctx.state.metrics.plannerCalls = (ctx.state.metrics.plannerCalls ?? 0) + 1;
+      ctx.state.metrics.unmeasuredPlannerCalls = (ctx.state.metrics.unmeasuredPlannerCalls ?? 0) + (usage.totalTokens === null ? 1 : 0);
+      ctx.state.metrics.tokens += usage.totalTokens ?? 0;
+      ctx.state.metrics.cost += usage.cost ?? 0;
+    }
 
     if (result.status !== 'success') {
       return this.#fallback(ctx, result.reason);

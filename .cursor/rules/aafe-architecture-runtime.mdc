@@ -15,11 +15,8 @@ For every non-trivial frontend task after the Skill Router step:
 4. Enforce `.ai-agent/runtime/gates.yaml` before implementation.
 5. Read `.ai-agent/skills/project-architecture-locator.md` first when locating routes, components, modules or design docs.
 5b. For deep architecture/dataflow, use `.ai-agent/skills/architecture-on-demand.md` / `dataflow-on-demand.md` against the configured analyze output (default `.aafe/`, never the full tree).
-6. Use framework, DDD, design-pattern and scenario packs when relevant.
-7. For business-heavy features, run DDD Discovery before module decomposition.
-8. For new features, run Pattern Interview before Pattern Selection.
-9. For complex frontend work, select and land patterns per module based on real business responsibility.
-10. Output DDD Model, Architecture, Module Boundaries, Pattern Interview, Pattern Selection, Module Pattern Selection, Tradeoffs, Implementation and Critique.
+6. Load DDD and design-pattern packs only on explicit user request; otherwise skip their analysis and output.
+7. Report only applicable artifacts and verified findings.
 11. Before final response, follow `aafe-task-completion-impact.mdc` (Task Spine [3]): dynamically assess whether impact/self-test applies; only code changes enter this branch; UI sub-asks only for code + UI impact; pre-generate `ui_test_paths`; TAPD + Figma tasks use local diff to generate impact units/test paths, then use Figma evidence to narrow impact and assertions.
 12. After self-test or explicit submit intent: dynamically follow `aafe-tapd-submit-backfill.mdc` + `repo-submit.md` (Task Spine [4]). TAPD backfill only when task has TAPD association and `tapd.enabled`; PR/MR still uses repo-submit.
 13. File license: follow `aafe-new-file-license.mdc` — new files add header; edits use local `aafe license ensure <path>` (never AI-Read memory JSONL).

@@ -994,11 +994,11 @@ try {
   {
     const { CodexAgentProvider } = await import('../src/agent-platform/runtime/providers/CodexAgentProvider.js');
     const reserved = await new CodexAgentProvider().invoke(
-      createAgentDefinition('developer-agent', { provider: 'codex', enabled: true }),
+      createAgentDefinition('developer-agent', { provider: 'codex', enabled: true, codex: { executable: '/nonexistent-aafe-test/codex' } }),
       { capability: 'implementation', goal: 'g', input: {}, context: {}, constraints: {} }
     );
     assert.equal(reserved.status, 'failed');
-    assert.match(reserved.reason, /codex-runtime-not-implemented/);
+    assert.match(reserved.reason, /codex-cli-not-found/);
   }
 
   // --- knowledge write-back --------------------------------------------------

@@ -19,6 +19,8 @@
  */
 
 import { cloudSafeEnvVars } from '../tasks/workspaceRepoEnv.js';
+import { estimateTokens } from '../../ide-bridge/context/tokens.js';
+import { normalizeUsage } from '../../llm/usage.js';
 
 const DEFAULT_API_KEY_ENV = 'CURSOR_API_KEY';
 const DEFAULT_MODEL = 'composer-2.5';
@@ -52,9 +54,11 @@ export class CursorTaskRuntime {
   }
 
   async run(task, prompt, options = {}) {
+    assertPromptBudget(prompt, options);
     this.#applyLocalShellEnv(task, options);
     let { sdk, agent, apiKey, recreated } = await this.#agentFor(task, options);
-    const sendOptions = {};
+    const sendOptions = { mode: options.executionMode ?? (task.kind === 'analysis' ? 'plan' : 'agent') };
+    if (options.model) sendOptions.model = { id: options.model };
     if (options.mcpServers && Object.keys(options.mcpServers).length) {
       sendOptions.mcpServers = options.mcpServers;
     }
@@ -64,6 +68,7 @@ export class CursorTaskRuntime {
     // A replacement Agent has no Cursor-side history, so the durable AAFE
     // context has to be replayed instead of only the latest follow-up.
     const message = recreated && options.fallbackPrompt ? options.fallbackPrompt : prompt;
+    assertPromptBudget(message, options);
 
     let run;
     try {
@@ -86,6 +91,8 @@ export class CursorTaskRuntime {
       if (typeof options.onBinding === 'function') {
         await options.onBinding({ agentId: agent.agentId, runId: run.id });
       }
+      const session = this.sessions.get(task.id);
+      if (session) session.recreated = false;
       const text = [];
       if (run.supports?.('stream') !== false && typeof run.stream === 'function') {
         for await (const message of run.stream()) {
@@ -253,6 +260,7 @@ export class CursorTaskRuntime {
       } catch (retryError) {
         if (!isActiveRunConflict(retryError)) throw retryError;
         const replacement = await this.#replaceAgent(task, options);
+        assertPromptBudget(options.fallbackPrompt || message, options);
         return {
           run: await replacement.agent.send(options.fallbackPrompt || message, sendOptions),
           agent: replacement.agent
@@ -525,11 +533,20 @@ function normalizeResult(agentId, run, result, text) {
     agentId,
     runId: result?.id ?? run?.id ?? null,
     status: result?.status ?? run?.status ?? 'error',
-    text: text.join('') || result?.result || run?.result || '',
+    text: (typeof result?.result === 'string' ? result.result : '') || (typeof run?.result === 'string' ? run.result : '') || text.join(''),
     model: result?.model ?? run?.model ?? null,
     durationMs: result?.durationMs ?? run?.durationMs ?? null,
+    usage: normalizeUsage(result?.usage ?? result?.metrics ?? run?.usage),
     git: serializable(result?.git ?? run?.git ?? null)
   };
+}
+
+function assertPromptBudget(prompt, options) {
+  const budget = options.tokenBudget ?? 12000;
+  const estimate = estimateTokens(prompt);
+  if (!Number.isFinite(budget) || budget <= 0 || estimate > budget) {
+    throw new Error(`task-context-budget-exceeded:${estimate}/${budget}`);
+  }
 }
 
 async function disposeAgent(agent) {

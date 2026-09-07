@@ -86,7 +86,7 @@ export function danceFrame(tick = 0) {
 }
 
 export function formatProgressEvent(event = {}) {
-  const type = event.type;
+  const type = event.type?.replace(/^codex\./, 'cursor.').replace(/^task\.codex\./, 'task.cursor.');
   if (!type) return null;
   if (TERMINAL.has(type)) return { kind: 'terminal', type };
   const status = STATUS[type];
@@ -314,7 +314,7 @@ export function createWeComProgressHub({
 
   async function stallSession(session) {
     if (!session || session.finished) return false;
-    session.status = 'failed';
+    session.lastEventAt = now();
     const current = lastActivity(session);
     appendBlock(session, { kind: 'status', text: '长时间无新输出' });
     const extra = current
@@ -322,8 +322,8 @@ export function createWeComProgressHub({
       : '期间没有任何新的过程输出';
     logger.event?.('progress.stalled', { taskId: session.taskId });
     const flushed = await flushSession(session, {
-      finish: true,
-      footer: `${extra}。发送 \`继续 ${session.taskId}\` 可重试。`
+      finish: false,
+      footer: `${extra}。任务仍在运行，可查询状态或显式取消。`
     });
     try {
       await onStall?.(session.taskId);

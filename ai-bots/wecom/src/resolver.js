@@ -19,12 +19,14 @@
  */
 
 import { createTaskId } from '../../../src/agent-platform/tasks/TaskStore.js';
+import { createHash } from 'node:crypto';
 import { parseTapdAssociation } from '../../../src/agent-platform/tasks/tapdPolicy.js';
 import { leadingCandidate } from './candidates.js';
 import { isExplicitAnchor, isWarmCompleted, ownedBy, resolveTaskAnchor, WARM_COMPLETED_MS } from './context.js';
 import { isNewWork } from './intent.js';
 import { isTerminalStatus } from './session.js';
 import { pickSmalltalkReply } from './smalltalk.js';
+import { fastIntent } from './understand.js';
 import {
   classifyWorkspaceTarget,
   formatWorkspaceList,
@@ -141,11 +143,9 @@ export async function resolveWeComAction(command, context, manager) {
 }
 
 async function createRequirementTask(requirement, context, manager, intent = null, providerHint = null) {
+  if (!intent && (providerHint ?? context.provider) === 'codex') intent = fastIntent(requirement);
   const workspace = resolveCreateWorkspace(context);
-  // Only work that edits code is worth an interactive round trip. Analysis and
-  // Q&A run in the bot's own directory, which is a checkout as well, so asking
-  // would just add a turn before the answer.
-  const needsWorkspace = intent ? intent.kind === 'code' && intent.needsCode !== false : true;
+  const needsWorkspace = intent ? intent.needsCode !== false : true;
   const provider = providerHint ?? context.provider ?? 'cursor';
   if (!workspace && context.requireWorkspace && needsWorkspace) {
     return {
@@ -158,14 +158,24 @@ async function createRequirementTask(requirement, context, manager, intent = nul
   }
   const botRoot = context.botRoot ?? process.cwd();
   const taskWorkspace = toTaskWorkspace(workspace ?? (needsWorkspace ? null : botWorkspace(botRoot)), botRoot);
-  const id = createTaskId();
+  const source = context.source;
+  const id = source?.messageId
+    ? `task-wecom-${createHash('sha256').update(JSON.stringify([source.chatbotId, source.conversationId, source.userId, source.messageId])).digest('hex').slice(0, 24).replace(/(.{16})(.{8})/, '$1-$2')}`
+    : createTaskId();
+  const existing = typeof manager.get === 'function' ? await manager.get(id) : null;
+  if (source?.messageId && existing?.id === id && existing.source?.messageId === source.messageId) {
+    return existing.status === 'created'
+      ? { type: 'created', task: existing, start: true, workspace: existing.workspace, intent }
+      : { type: 'status', task: existing };
+  }
   // The model is pinned here and reused by every later run of this task, so a
   // follow-up cannot silently switch models mid-conversation.
-  const routed = context.selectModel?.({ stage: 'task', intent, text: requirement }) ?? null;
+  const routed = provider === 'codex' ? { model: context.codexModel ?? null }
+    : context.selectModel?.({ stage: 'task', intent, text: requirement }) ?? null;
   const tapd = buildTaskTapdContext(requirement, context.tapd);
   const task = await manager.create({
     id,
-    kind: 'requirement',
+    kind: ['analysis', 'question'].includes(intent?.kind) ? 'analysis' : 'requirement',
     goal: requirement,
     requirement,
     provider,
@@ -602,7 +612,7 @@ function matchesWeComSource(task, source = {}, match = 'user') {
   return true;
 }
 
-function canAccessTask(task, source = {}) {
+export function canAccessTask(task, source = {}) {
   if (!task) return false;
   if (task.source?.type !== 'wecom') return true;
   if (source.conversationId && task.source.conversationId === source.conversationId) return true;

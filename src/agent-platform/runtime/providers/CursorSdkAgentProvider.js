@@ -20,6 +20,8 @@
 
 import { AgentProvider } from './AgentProvider.js';
 import { agentFailed, agentSuccess } from '../../protocol/response.js';
+import { estimateTokens } from '../../../ide-bridge/context/tokens.js';
+import { normalizeUsage } from '../../../llm/usage.js';
 
 const DEFAULT_MODEL = 'composer-2.5';
 const DEFAULT_API_KEY_ENV = 'CURSOR_API_KEY';
@@ -54,6 +56,9 @@ export class CursorSdkAgentProvider extends AgentProvider {
 
     let agent = null;
     const prompt = buildPrompt(definition, request);
+    const estimatedContextTokens = estimateTokens(prompt);
+    const budget = request.constraints?.tokenBudget ?? 12000;
+    if (estimatedContextTokens > budget) return agentFailed(`context-budget-exceeded:${estimatedContextTokens}/${budget}`);
     try {
       agent = await Agent.create(this.#agentOptions(definition, request, apiKey));
       const run = await agent.send(prompt);
@@ -68,11 +73,13 @@ export class CursorSdkAgentProvider extends AgentProvider {
       const result = typeof run?.wait === 'function' ? await run.wait() : {};
       if (result?.status === 'error') {
         return agentFailed(`cursor-run-failed:${result.id ?? run?.id ?? 'unknown'}`, {
+          metrics: extractMetrics(result),
           result: compactRunResult(agent, run, result, streamedText)
         });
       }
       if (result?.status === 'cancelled') {
         return agentFailed(`cursor-run-cancelled:${result.id ?? run?.id ?? 'unknown'}`, {
+          metrics: extractMetrics(result),
           result: compactRunResult(agent, run, result, streamedText)
         });
       }
@@ -120,12 +127,13 @@ function buildPrompt(definition, request) {
   if (request.repair?.prompt) return request.repair.prompt;
   if (typeof request.input?.prompt === 'string' && request.input.prompt.trim()) return request.input.prompt;
 
+  const contextPackage = request.context?.contextPackage ?? request.context?.priorResults?.['context-packaging']?.result ?? null;
   const payload = {
     task: request.goal,
     capability: request.capability,
     input: request.input,
-    contextPackage: request.context?.contextPackage ?? null,
-    priorResults: request.context?.priorResults ?? {}
+    contextPackage,
+    priorResults: contextPackage ? {} : request.context?.priorResults ?? {}
   };
 
   return [
@@ -176,10 +184,11 @@ function compactRunResult(agent, run, result, streamedText) {
 }
 
 function extractMetrics(result) {
-  const usage = result?.usage ?? result?.metrics ?? {};
+  const usage = normalizeUsage(result?.usage ?? result?.metrics);
   return {
-    tokens: Number.isFinite(usage.tokens) ? usage.tokens : undefined,
-    cost: Number.isFinite(usage.cost) ? usage.cost : undefined
+    tokens: usage.totalTokens ?? undefined,
+    cost: usage.cost ?? undefined,
+    usage
   };
 }
 

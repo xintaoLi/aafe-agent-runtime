@@ -20,7 +20,7 @@
 
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { agentPartial, agentSkipped, agentSuccess } from '../../agent-platform/protocol/response.js';
+import { agentFailed, agentPartial, agentSkipped, agentSuccess } from '../../agent-platform/protocol/response.js';
 import { estimateTokens } from '../../ide-bridge/context/tokens.js';
 
 /**
@@ -109,9 +109,11 @@ export class ContextAgent {
     const truncated = fitToBudget(pkg, budget);
     pkg.truncated = truncated;
     pkg.tokenEstimate = estimateTokens(pkg);
+    pkg.tokenEstimate = estimateTokens(pkg);
+    if (pkg.tokenEstimate > budget) return agentFailed(`context-budget-exceeded:${pkg.tokenEstimate}/${budget}`);
 
     const response = {
-      metrics: { duration: Date.now() - started, tokens: pkg.tokenEstimate },
+      metrics: { duration: Date.now() - started, estimatedContextTokens: pkg.tokenEstimate },
       nextActions: []
     };
 
@@ -164,7 +166,10 @@ export class ContextAgent {
     const budget = request.constraints?.tokenBudget ?? 12000;
     pkg.truncated = fitToBudget(pkg, budget);
     pkg.tokenEstimate = estimateTokens(pkg);
-    return agentSuccess(pkg, { metrics: { duration: Date.now() - started, tokens: pkg.tokenEstimate } });
+    pkg.tokenEstimate = estimateTokens(pkg);
+    if (pkg.tokenEstimate > budget) return agentFailed(`context-budget-exceeded:${pkg.tokenEstimate}/${budget}`);
+    const response = { metrics: { duration: Date.now() - started, estimatedContextTokens: pkg.tokenEstimate } };
+    return pkg.truncated.length ? agentPartial(pkg, 'context trimmed to budget', response) : agentSuccess(pkg, response);
   }
 
   /**
@@ -492,6 +497,23 @@ function fitToBudget(pkg, budget) {
   if (estimateTokens(pkg) > budget && pkg.architecture?.modules?.length > 2) {
     truncated.push(`architecture.modules ${pkg.architecture.modules.length}->2`);
     pkg.architecture.modules = pkg.architecture.modules.slice(0, 2);
+  }
+  // Floors are preferences, not permission to exceed the configured budget.
+  // Never silently trim the task or its constraints.
+  pkg.truncated = truncated;
+  for (const key of [...order.map(([key]) => key), 'recommendedChanges']) {
+    const list = pkg[key];
+    if (!Array.isArray(list)) continue;
+    const before = list.length;
+    while (list.length && estimateTokens(pkg) + 16 > budget) list.pop();
+    if (list.length !== before) truncated.push(`${key} ${before}->${list.length}`);
+  }
+  for (const key of ['dependencies', 'modules']) {
+    const list = pkg.architecture?.[key];
+    if (!Array.isArray(list)) continue;
+    const before = list.length;
+    while (list.length && estimateTokens(pkg) + 16 > budget) list.pop();
+    if (list.length !== before) truncated.push(`architecture.${key} ${before}->${list.length}`);
   }
   return truncated;
 }

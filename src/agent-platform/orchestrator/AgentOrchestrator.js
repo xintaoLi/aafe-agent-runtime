@@ -25,6 +25,7 @@ import { ExecutionPolicy, mapWithConcurrency } from '../policy/ExecutionPolicy.j
 import { createAgentRequest } from '../protocol/request.js';
 import { agentFailed, agentSkipped } from '../protocol/response.js';
 import { AgentRuntime } from '../runtime/AgentRuntime.js';
+import { addMeasuredMetrics } from '../../llm/usage.js';
 
 /**
  * Executes planner decisions reliably. It does not decide *what* to do — that
@@ -100,6 +101,12 @@ export class AgentOrchestrator {
         const decision = await this.planner.decide(await this.#plannerContext(task, state, graph));
         decisions.push(decision);
         this.onEvent({ type: 'decision', decision, step: state.step });
+        const plannerBudget = this.policy.assertWithinBudget(state.spent());
+        if (plannerBudget) {
+          status = 'failed';
+          reason = plannerBudget;
+          break;
+        }
 
         if (decision.action === 'complete') {
           status = 'complete';
@@ -351,16 +358,18 @@ export class AgentOrchestrator {
 
   async #invokeWithRetry(agent, request, constraints, signal) {
     let last = agentFailed('agent-not-invoked');
+    const spend = {};
     for (let attempt = 0; attempt <= constraints.maxRetries; attempt += 1) {
-      if (signal?.aborted) return agentSkipped('cancelled');
+      if (signal?.aborted) return agentSkipped('cancelled', { metrics: spend });
       try {
         last = await this.runtime.invoke(agent, request, { signal });
       } catch (error) {
         last = agentFailed(error instanceof Error ? error.message : String(error));
       }
-      if (last.status !== 'failed') return last;
+      addMeasuredMetrics(spend, last.metrics);
+      if (last.status !== 'failed') return { ...last, metrics: { ...last.metrics, ...spend } };
     }
-    return last;
+    return { ...last, metrics: { ...last.metrics, ...spend } };
   }
 
   /**

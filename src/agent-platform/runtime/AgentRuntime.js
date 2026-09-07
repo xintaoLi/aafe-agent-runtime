@@ -21,6 +21,7 @@
 import { agentFailed, normalizeAgentResponse } from '../protocol/response.js';
 import { ContractLoader } from '../schema/loader.js';
 import { buildRepairPrompt, coerceAndValidate } from '../schema/repair.js';
+import { addMeasuredMetrics } from '../../llm/usage.js';
 import { formatSchemaErrors, validateSchema } from '../schema/validate.js';
 import { withTimeout } from '../policy/ExecutionPolicy.js';
 import EVIDENCE_SCHEMA from './evidenceSchema.js';
@@ -68,12 +69,12 @@ export class AgentRuntime {
 
     const contract = await this.contracts.contractsFor(definition);
     const mode = definition.schemaMode ?? 'enforce';
-    const diagnostics = { mode, repairs: [], attempts: 0 };
+    const diagnostics = { mode, repairs: [], attempts: 0, spend: {} };
 
     const started = Date.now();
     const withDiagnostics = (response) => ({
       ...response,
-      metrics: { ...response.metrics, duration: response.metrics?.duration ?? Date.now() - started },
+      metrics: { ...response.metrics, ...diagnostics.spend, duration: response.metrics?.duration ?? Date.now() - started },
       contract: diagnostics
     });
 
@@ -124,7 +125,9 @@ export class AgentRuntime {
         timeoutMs,
         `${definition.id}:${request.capability}`
       );
-      return normalizeAgentResponse(raw);
+      const response = normalizeAgentResponse(raw);
+      addMeasuredMetrics(diagnostics.spend ??= {}, response.metrics);
+      return response;
     } catch (error) {
       return agentFailed(error instanceof Error ? error.message : String(error));
     }
@@ -171,7 +174,7 @@ export class AgentRuntime {
       diagnostics.output = detail;
       if (attempt === maxAttempts) break;
 
-      const repaired = await this.#requestRepair(provider, definition, request, current, schema, checked.errors, signal);
+      const repaired = await this.#requestRepair(provider, definition, request, current, schema, checked.errors, signal, diagnostics);
       // A deterministic agent has no repair round to offer; re-asking it would
       // return the identical payload forever, so stop at the first no-op.
       if (!repaired || sameResult(repaired.result, current.result)) break;
@@ -192,7 +195,7 @@ export class AgentRuntime {
     return { ...current, status: 'partial', reason: current.reason ?? `output-schema-violation: ${diagnostics.output}` };
   }
 
-  async #requestRepair(provider, definition, request, response, schema, errors, signal) {
+  async #requestRepair(provider, definition, request, response, schema, errors, signal, diagnostics) {
     if (typeof provider.supportsRepair === 'function' && !provider.supportsRepair(definition)) return null;
 
     const repairRequest = {
@@ -210,7 +213,7 @@ export class AgentRuntime {
         })
       }
     };
-    const repaired = await this.#invokeOnce(provider, definition, repairRequest, signal, { attempts: 0 });
+    const repaired = await this.#invokeOnce(provider, definition, repairRequest, signal, diagnostics);
     return repaired.status === 'success' || repaired.status === 'partial' ? repaired : null;
   }
 

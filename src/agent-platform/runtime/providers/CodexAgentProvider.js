@@ -19,20 +19,36 @@
  */
 
 import { AgentProvider } from './AgentProvider.js';
-import { agentFailed } from '../../protocol/response.js';
-import { CODEX_RUNTIME_NOT_IMPLEMENTED } from '../CodexTaskRuntime.js';
+import { agentFailed, agentSuccess } from '../../protocol/response.js';
+import { CodexTaskRuntime } from '../CodexTaskRuntime.js';
+import { randomUUID } from 'node:crypto';
 
 /**
- * Orchestrator entry for Codex. Registered so `provider: "codex"` is a known
- * transport; execution is reserved.
- *
- * TODO: spawn / call Codex and map its result onto AgentResponse.
+ * Orchestrator entry using the same local CLI transport as durable bot tasks.
  */
 export class CodexAgentProvider extends AgentProvider {
   static kind = 'codex';
 
-  async invoke(definition) {
-    // TODO: execute `definition` through Codex CLI or SDK.
-    return agentFailed(`${CODEX_RUNTIME_NOT_IMPLEMENTED}:${definition?.id ?? 'codex'}`);
+  constructor({ cwd = process.cwd(), spawnProcess } = {}) {
+    super();
+    this.cwd = cwd;
+    this.spawnProcess = spawnProcess;
+  }
+
+  async invoke(definition, request) {
+    const runtime = new CodexTaskRuntime({ spawnProcess: this.spawnProcess });
+    try {
+      const result = await runtime.run({ id: randomUUID(), model: definition.model }, JSON.stringify({
+        goal: request.goal, input: request.input, context: request.context, constraints: request.constraints
+      }), {
+        cwd: definition.cwd ?? request.context?.root ?? this.cwd,
+        mode: definition.runtime === 'cloud' ? 'cloud' : 'local',
+        executionMode: request.capability === 'implementation' && request.constraints?.readOnly !== true ? 'agent' : 'plan',
+        tokenBudget: request.constraints?.tokenBudget ?? 12000,
+        codex: { ...definition.codex, ...(request.constraints?.timeoutMs ? { timeoutMs: request.constraints.timeoutMs } : {}) }
+      });
+      return agentSuccess(result, { metrics: { tokens: result.usage.totalTokens, cost: result.usage.cost } });
+    } catch (error) { return agentFailed(error.message); }
+    finally { await runtime.closeAll(); }
   }
 }

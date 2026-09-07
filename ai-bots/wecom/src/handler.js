@@ -37,9 +37,10 @@ import {
 } from './media.js';
 import { formatListReply, formatStatusReply, formatTaskFooter } from './notify.js';
 import { parseWeComQuote } from './quote.js';
-import { canControlTask, listOpenTasks, listOwnerContinuable, resolveWeComAction } from './resolver.js';
+import { canAccessTask, canControlTask, listOpenTasks, listOwnerContinuable, resolveWeComAction } from './resolver.js';
 import { sessionKeyFromSource, sourceFromFrame } from './session.js';
 import { pickSmalltalkReply } from './smalltalk.js';
+import { fastIntent } from './understand.js';
 import { formatWorkspaceList } from './workspace.js';
 
 export const UNDERSTANDING_TEXT = '正在理解分析中…';
@@ -152,11 +153,17 @@ export async function handleWeComMessage(frame, {
     if (settled === PENDING) await stream.push(UNDERSTANDING_TEXT);
     command.intent = settled === PENDING ? await pending : settled;
     if (command.intent) await stream.push(formatIntentStage(command.intent));
+    if (command.intent?.kind === 'code' && command.intent.confidence < 0.5) {
+      const reply = '还不能确定要执行什么，请补充具体问题、目标仓库或需要修改的内容。';
+      await stream.push(reply, { finish: true });
+      return { skipped: false, command, action: { type: 'clarify' }, intent: command.intent, reply };
+    }
 
     // A question that needs no repository is answered here and now. Spinning up
     // an agent, a branch and a task record to say one paragraph is theatre.
-    if (chat && command.intent?.kind === 'question' && command.intent.needsCode === false) {
-      const answer = await chat.reply(command.text);
+    if (['question', 'analysis'].includes(command.intent?.kind) && command.intent.needsCode === false) {
+      const answer = await Promise.resolve().then(() => chat?.reply(command.text)).catch(() => null)
+        || '暂时无法回答这个问题，请稍后重试。';
       if (answer) {
         const streamId = await stream.push(answer, { finish: true });
         const action = { type: 'answer' };
@@ -251,7 +258,12 @@ export async function handleWeComMessage(frame, {
     // Who said it travels with the text: the agent has to know whether this is
     // the task owner changing the requirement or a bystander adding detail.
     const author = { userId: source.userId ?? null, role: action.actorRole ?? 'owner' };
-    void Promise.resolve(manager.continue(action.task.id, followUp, { author })).catch((error) => {
+    const nextIntent = fastIntent(action.message, { hasActiveTask: true });
+    const executionIntent = nextIntent?.kind === 'code' || ['apply', 'ship'].includes(nextIntent?.action)
+      ? { ...nextIntent, kind: 'code', needsCode: true } : nextIntent;
+    const nextModel = action.task.provider !== 'codex' && ['code', 'analysis', 'question'].includes(executionIntent?.kind) && author.role === 'owner'
+      ? models?.select?.({ stage: 'task', intent: executionIntent, text: action.message })?.model : null;
+    void Promise.resolve(manager.continue(action.task.id, followUp, { author, intent: executionIntent, ...(nextModel ? { model: nextModel } : {}), messageId: msgid })).catch((error) => {
       const message = error instanceof Error ? error.message : String(error);
       if (/task-already-active/.test(message)) {
         logger.event?.('task.followup.queued', { taskId: action.task.id });
@@ -329,7 +341,7 @@ export function formatIntentStage(intent) {
   if (!intent) return UNDERSTANDING_TEXT;
   // A question is about to be answered, not turned into a task; calling it one
   // sets the wrong expectation for the message that follows.
-  if (intent.kind === 'question' && intent.needsCode === false) return THINKING_TEXT;
+  if (['question', 'analysis'].includes(intent.kind) && intent.needsCode === false) return THINKING_TEXT;
   const head = `这是一个**${intent.label}**任务，正在进一步解析中…`;
   return intent.summary ? `${head}\n> ${intent.summary}` : head;
 }
@@ -411,6 +423,13 @@ export async function handleWeComCard(frame, {
   const sessionKey = sessionKeyFromSource(source);
   const waiting = pending?.get(sessionKey);
   const attachments = waiting?.attachments ?? [];
+  if (['status', 'process', 'cancel'].includes(parsed.action) && parsed.value) {
+    const task = await manager.get(parsed.value).catch(() => null);
+    if (!task || !canAccessTask(task, source)) {
+      await pushText(sendText, source, `找不到任务 ${parsed.value}`, logger);
+      return { skipped: true, reason: 'task-inaccessible' };
+    }
+  }
   logger.event?.('card.in', {
     ...summarizeWeComFrame(frame),
     conversationId: source.conversationId,
@@ -458,18 +477,19 @@ export async function handleWeComCard(frame, {
       await pushText(sendText, source, `任务 **${parsed.value}** 由 ${target.source?.userId ?? '其他人'} 发起，只有发起人能终止。`, logger);
       return { skipped: true, reason: 'not-task-owner' };
     }
+    try {
+      await manager.cancel(parsed.value);
+    } catch (error) {
+      logger.error?.(`wecom-card-cancel-failed:${parsed.value}:${describeWeComError(error)}`);
+      await pushText(sendText, source, `任务 ${parsed.value} 取消未成功，请查询状态后重试。`, logger);
+      return { skipped: false, action: { type: 'error' }, error };
+    }
     if (updateCard) {
       try {
         await updateCard(frame, buildCancelledCard(parsed.value, parsed.cardTaskId));
       } catch (error) {
         logger.error?.(`wecom-card-update-failed:${parsed.value}:${describeWeComError(error)}`);
       }
-    }
-    await progress?.beginCancel?.(parsed.value);
-    try {
-      await manager.cancel(parsed.value);
-    } catch (error) {
-      logger.error?.(`wecom-card-cancel-failed:${parsed.value}:${describeWeComError(error)}`);
     }
     await progress?.cancel?.(parsed.value);
     if (!updateCard) {
@@ -627,6 +647,7 @@ function buildActionContext({ source, config, workspaces, attachments = [], mode
     switchWorkspace: (target) => workspaces?.switchTo?.(target, { conversationId: sessionKey }),
     rememberWorkspace: (_conversationId, workspace) => workspaces?.remember?.(sessionKey, workspace),
     selectModel: models ? (input) => models.select({ ...input, attachments }) : null,
+    codexModel: config?.codex?.model ?? null,
     attachments,
     quote,
     tapd: config?.tapd ?? { enabled: true },

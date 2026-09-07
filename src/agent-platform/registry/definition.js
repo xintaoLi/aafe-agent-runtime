@@ -147,6 +147,7 @@ export function createAgentDefinition(id, partial = {}) {
     ref: partial.ref ?? endpoint ?? `builtin:${id}`,
     model: partial.model ?? null,
     runtime: partial.runtime ?? null,
+    codex: partial.codex ? { ...partial.codex } : null,
     apiKeyEnv: partial.apiKeyEnv ?? null,
     apiKey: partial.apiKey ?? null,
     repository: partial.repository ?? partial.repositories ?? partial.repo ?? null,

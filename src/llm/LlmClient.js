@@ -33,6 +33,9 @@
  * @property {number} [timeoutMs]
  */
 
+import { estimateTokens } from '../ide-bridge/context/tokens.js';
+import { normalizeUsage } from './usage.js';
+
 export class LlmClient {
   /**
    * @param {LlmSettings} settings
@@ -44,6 +47,9 @@ export class LlmClient {
     this.timeoutMs = settings.timeoutMs ?? 60000;
     this.apiKey = settings.apiKey ?? env[settings.apiKeyEnv ?? 'AAFE_LLM_API_KEY'] ?? null;
     this.fetchImpl = fetchImpl;
+    this.maxOutputTokens = settings.maxOutputTokens ?? 2048;
+    this.tokenBudget = settings.tokenBudget ?? 12000;
+    this.onUsage = settings.onUsage ?? (() => {});
   }
 
   /**
@@ -65,9 +71,11 @@ export class LlmClient {
    * @param {{role:string,content:string}[]} messages
    * @returns {Promise<{ status:'success'|'failed', content?:string, reason?:string, usage?:object }>}
    */
-  async chat(messages, { responseFormat = null, temperature = this.temperature } = {}) {
+  async chat(messages, { responseFormat = null, temperature = this.temperature, maxOutputTokens = this.maxOutputTokens } = {}) {
     const reason = this.unavailableReason();
     if (reason) return { status: 'failed', reason };
+    const estimatedContextTokens = estimateTokens(messages);
+    if (estimatedContextTokens > this.tokenBudget) return { status: 'failed', reason: `llm-context-budget-exceeded:${estimatedContextTokens}/${this.tokenBudget}` };
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
@@ -82,6 +90,7 @@ export class LlmClient {
           model: this.model,
           temperature,
           messages,
+          max_tokens: maxOutputTokens,
           ...(responseFormat ? { response_format: responseFormat } : {})
         }),
         signal: controller.signal
@@ -90,9 +99,10 @@ export class LlmClient {
         return { status: 'failed', reason: `llm-http-${response.status}` };
       }
       const payload = await response.json();
+      try { this.onUsage({ model: this.model, estimatedContextTokens, usage: normalizeUsage(payload.usage) }); } catch { /* telemetry must not fail a call */ }
       const content = payload?.choices?.[0]?.message?.content;
       if (typeof content !== 'string') {
-        return { status: 'failed', reason: 'llm-empty-completion' };
+        return { status: 'failed', reason: 'llm-empty-completion', usage: payload.usage ?? {} };
       }
       return { status: 'success', content, usage: payload.usage ?? {} };
     } catch (error) {
@@ -115,7 +125,7 @@ export class LlmClient {
     if (result.status !== 'success') return result;
     const parsed = parseJsonLoose(result.content);
     if (!parsed) {
-      return { status: 'failed', reason: 'llm-invalid-json', content: result.content };
+      return { status: 'failed', reason: 'llm-invalid-json', content: result.content, usage: result.usage };
     }
     return { status: 'success', data: parsed, usage: result.usage };
   }

@@ -19,11 +19,12 @@
  */
 
 import { pathToFileURL } from 'node:url';
+import path from 'node:path';
+import { createMessageInbox } from './inbox.js';
 import { createTaskManager } from '../../../src/agent-platform/tasks/index.js';
 import { resolveCursorMcpForRun, toCursorMcpServers } from '../../../src/cli/agentMcp.js';
 import { createTaskManagerOptions, loadWeComBotConfig, persistCurrentWorkspace } from './config.js';
 import { createWeComLogger, describeWeComError, resolveWeComLogConfig } from './logger.js';
-import { createMessageDedup } from './dedup.js';
 import { createWeComGateway } from './gateway.js';
 import { handleWeComCard, handleWeComMedia, handleWeComMessage } from './handler.js';
 import { HELP_TEXT, WELCOME_TEXT } from './help.js';
@@ -73,7 +74,7 @@ export async function startWeComBot(options = {}) {
   });
   const mcp = options.mcpServers
     ? { servers: options.mcpServers }
-    : await resolveCursorMcpForRun(config.agent?.mcp, {
+    : config.agent?.provider === 'codex' ? { servers: [] } : await resolveCursorMcpForRun(config.agent?.mcp, {
       root: config.root,
       env: options.env ?? process.env
     });
@@ -97,7 +98,9 @@ export async function startWeComBot(options = {}) {
     logger
   });
 
-  const dedup = options.dedup ?? createMessageDedup();
+  const dedup = options.dedup ?? null;
+  const inbox = options.inbox ?? createMessageInbox({ file: config.root ? path.join(config.root, '.aafe', 'wecom', 'inbox.json') : null });
+  await inbox.ready?.();
   const pending = options.pending ?? createPendingStore();
   const workspaces = options.workspaces ?? createWorkspaceStore(config, {
     persistCurrent: (id) => persistCurrentWorkspace(config.localConfigPath, id)
@@ -140,9 +143,7 @@ export async function startWeComBot(options = {}) {
     }),
     onStall: (taskId) => {
       logger.event?.('progress.stalled', { taskId });
-      void Promise.resolve(manager.cancel(taskId)).catch((error) => {
-        logger.error?.(`wecom-task-stall-cancel-failed:${taskId}:${describeWeComError(error)}`);
-      });
+      // Silence is a transport observation, not proof that a tool stopped.
     },
     logger
   });
@@ -165,11 +166,11 @@ export async function startWeComBot(options = {}) {
       });
   };
 
-  gateway.onText((frame) => guard('message', () => handleWeComMessage(frame, {
+  gateway.onText((frame) => guard('message', () => inbox.dispatch(frame, () => handleWeComMessage(frame, {
     manager, replyAck, replyProgress, replyCard, progress, pending, workspaces, config, dedup,
     understanding, chat, models, logger
-  })));
-  gateway.onCard?.((frame) => guard('card', () => handleWeComCard(frame, {
+  }))));
+  gateway.onCard?.((frame) => guard('card', () => inbox.dispatch(frame, () => handleWeComCard(frame, {
     manager,
     models,
     sendText: (content, source) => gateway.sendMarkdown(source, content),
@@ -179,13 +180,14 @@ export async function startWeComBot(options = {}) {
     workspaces,
     config,
     logger
-  })));
-  gateway.onMedia((frame) => guard('media', () => handleWeComMedia(frame, {
+  }))));
+  gateway.onMedia((frame) => guard('media', () => inbox.dispatch(frame, () => handleWeComMedia(frame, {
     manager,
     replyAck,
     replyProgress,
     replyCard,
     understanding,
+    chat,
     models,
     progress,
     pending,
@@ -194,7 +196,7 @@ export async function startWeComBot(options = {}) {
     dedup,
     logger,
     downloadFile: (url, aeskey) => gateway.downloadFile(url, aeskey)
-  })));
+  }))));
   // The full manual belongs to first contact only. WeCom fires this every time
   // someone opens the conversation, so returning visitors get one warm line
   // instead of the command list again.

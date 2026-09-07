@@ -33,7 +33,7 @@ export function parseWeComCommand(raw) {
   const body = stripped.replace(PREFIX, '').trim();
   if (!body) return { type: 'help' };
 
-  let match = body.match(/^(?:用\s*)?codex(?:\s*做)?\s*[:：]\s*(.*)$/is);
+  let match = body.match(/^(?:用\s*)?(?:codex|chatgpt)(?:\s*做)?\s*[:：]\s*(.*)$/is);
   if (match) {
     const requirement = match[1].trim();
     return requirement

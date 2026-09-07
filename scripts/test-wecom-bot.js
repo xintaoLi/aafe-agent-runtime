@@ -19,7 +19,7 @@
  */
 
 import assert from 'node:assert/strict';
-import { access, mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { access, mkdir, mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -336,6 +336,51 @@ const fromCodex = await loadWeComBotConfig({
 assert.equal(fromCodex.agent.provider, 'codex');
 assert.equal(createTaskManagerOptions(fromCodex).runtimeOptions.provider, 'codex');
 
+// Exercise real JSON parsing/normalization, not just injected config objects.
+const groupedRoot = await mkdtemp(path.join(os.tmpdir(), 'aafe-wecom-grouped-'));
+try {
+  await writeFile(path.join(groupedRoot, 'wecom.local.json'), JSON.stringify({
+    botId: 'group-bot', secret: 'group-secret', provider: 'codex',
+    apiKey: 'legacy-cursor', model: 'legacy-model', codexApiKey: 'legacy-codex',
+    cursor: { apiKey: 'group-cursor', model: 'cursor-model',
+      models: { default: 'cursor-default', rules: [] }, autoCreatePR: false },
+    codex: { CODEX_API_KEY: 'group-codex', apiKey: 'old-group-key', executable: '/fixture/codex', model: 'codex-model', timeoutMs: 12345 }
+  }));
+  const c = await loadWeComBotConfig({ root: groupedRoot, env: {} });
+  assert.equal(c.apiKey, 'group-codex');
+  assert.equal(c.cursor.apiKey, 'group-cursor');
+  assert.equal(c.agent.model, 'codex-model');
+  assert.equal(c.codex.executable, '/fixture/codex');
+  assert.equal(c.codex.timeoutMs, 12345);
+  assert.equal(c.intent.cursorApiKey, null);
+  assert.equal(createTaskManagerOptions(c).runtimeOptions.codex.timeoutMs, 12345);
+  assert.equal(createTaskManagerOptions(c).runtimeOptions.codex.apiKey, 'group-codex');
+  assert.equal(createTaskManagerOptions(c).runtimeOptions.apiKey, 'group-cursor');
+  assert.equal(createTaskManagerOptions(c).runtimeOptions.model, 'cursor-model');
+  const switched = await loadWeComBotConfig({ root: groupedRoot, env: { AAFE_WECOM_PROVIDER: 'cursor' } });
+  assert.equal(switched.apiKey, 'group-cursor');
+  assert.equal(switched.agent.model, 'cursor-model');
+  assert.equal(switched.models.default, 'cursor-default');
+  assert.equal(switched.agent.autoCreatePR, false);
+  assert.equal(switched.codex.apiKey, 'group-codex');
+  const overrides = await loadWeComBotConfig({ root: groupedRoot, env: {
+    AAFE_WECOM_PROVIDER: 'cursor', CURSOR_API_KEY: 'env-cursor',
+    AAFE_WECOM_CURSOR_MODEL: 'env-model', CODEX_API_KEY: 'env-codex'
+  } });
+  assert.equal(overrides.cursor.apiKey, 'env-cursor');
+  assert.equal(overrides.cursor.model, 'env-model');
+  assert.equal(overrides.codex.apiKey, 'env-codex');
+  assert.equal(createTaskManagerOptions({ ...c, cursor: { ...c.cursor, apiKey: null } }).runtimeOptions.apiKey, null);
+  const persisted = JSON.parse(await readFile(path.join(groupedRoot, 'wecom.local.json'), 'utf8'));
+  persisted.codex.CODEX_API_KEY = '';
+  await writeFile(path.join(groupedRoot, 'wecom.local.json'), JSON.stringify(persisted));
+  assert.equal((await loadWeComBotConfig({ root: groupedRoot, env: {} })).codex.apiKey, 'old-group-key');
+  delete persisted.codex.apiKey;
+  delete persisted.codexApiKey;
+  await writeFile(path.join(groupedRoot, 'wecom.local.json'), JSON.stringify(persisted));
+  assert.equal((await loadWeComBotConfig({ root: groupedRoot, env: {} })).codex.apiKey, null);
+} finally { await rm(groupedRoot, { recursive: true, force: true }); }
+
 const envRoot = await mkdtemp(path.join(os.tmpdir(), 'aafe-wecom-env-'));
 await mkdir(path.join(envRoot, 'ai-bots/wecom'), { recursive: true });
 await writeFile(path.join(envRoot, 'ai-bots/wecom/.env'), [
@@ -382,7 +427,7 @@ assert.equal(missingRepo.type, 'need-workspace');
 
 const createdLocal = await resolveWeComAction(
   { type: 'workspace-choice', text: '本地', requirement: '增加搜索' },
-  { source: sourceFromFrame(textFrame), repository: null, requireWorkspace: true, botRoot: tmp },
+  { source: { ...sourceFromFrame(textFrame), messageId: 'workspace-choice' }, repository: null, requireWorkspace: true, botRoot: tmp },
   manager
 );
 assert.equal(createdLocal.type, 'created');
@@ -2106,8 +2151,8 @@ assert.equal(stallPushed.at(-1).includes('**✅ 最终结论**'), false);
 stallClock += 15 * MINUTE;
 await stallHub.tick();
 assert.equal(stalledIds[0], 'task-stall');
-assert.equal(stallHub.has('task-stall'), false);
-assert.match(stallPushed.at(-1), /\*\*✅ 最终结论\*\*/);
+assert.equal(stallHub.has('task-stall'), true);
+assert.equal(stallPushed.at(-1).includes('**✅ 最终结论**'), false);
 assert.match(stallPushed.at(-1), /停止等待|长时间无新输出/);
 await stallHub.close();
 
@@ -2329,7 +2374,7 @@ assert.equal(gateway.client.sentMedia.mediaType, 'file');
 assert.equal(classifyIntentByRules('帮我修一下登录按钮点击没反应').kind, 'code');
 assert.equal(classifyIntentByRules('帮我修一下登录按钮点击没反应').needsCode, true);
 assert.equal(classifyIntentByRules('分析一下这次变更的影响面').kind, 'analysis');
-assert.equal(classifyIntentByRules('分析一下这次变更的影响面').needsCode, false);
+assert.equal(classifyIntentByRules('分析一下这次变更的影响面').needsCode, true);
 assert.equal(classifyIntentByRules('composer 是什么意思').kind, 'question');
 assert.equal(classifyIntentByRules('再加上一个开关', { hasActiveTask: true }).kind, 'followup');
 // The same words without an open task are a fresh request, not a follow-up.
@@ -2546,7 +2591,7 @@ const analysisHandled = await handleWeComMessage({
       return {
         kind: 'analysis',
         label: '分析排查',
-        needsCode: false,
+        needsCode: true,
         summary: '看重连逻辑',
         confidence: 0.9,
         source: 'rules-fast'
@@ -2559,12 +2604,11 @@ const analysisHandled = await handleWeComMessage({
 assert.equal(stageReplies.length, 1);
 assert.match(stageReplies[0], /这是一个\*\*分析排查\*\*任务，正在进一步解析中…/);
 assert.match(stageReplies[0], /看重连逻辑/);
-// Analysis touches no repository, so it runs in the bot directory right away.
-assert.equal(analysisHandled.action.type, 'created');
-assert.equal(analysisHandled.action.task.workspace.cwd, path.resolve('/bot/root'));
+// Repository analysis must choose its target instead of guessing the bot root.
+assert.equal(analysisHandled.action.type, 'need-workspace');
 assert.equal(analysisHandled.intent.kind, 'analysis');
 assert.equal(stageUpdates[0].streamId, 'stream-intent');
-assert.match(stageUpdates[0].content, /分析排查/);
+assert.match(stageUpdates[0].content, /仓库/);
 // The stage the user must see cannot be dropped by the non-blocking path.
 assert.equal(stageUpdates[0].blocking, true);
 
@@ -2588,7 +2632,7 @@ await handleWeComMessage({
       return {
         kind: 'analysis',
         label: '分析排查',
-        needsCode: false,
+        needsCode: true,
         summary: '看按钮改色',
         confidence: 0.9,
         source: 'llm'
@@ -2644,8 +2688,7 @@ const codeHandled = await handleWeComMessage({
     }
   }
 });
-// Analysis that wants to read a repository still runs in the bot directory
-// instead of spending a turn on a question.
+// Repository-dependent analysis requires an explicit target.
 const readingAnalysis = await resolveWeComAction({
   type: 'create',
   requirement: '分析一下断线重连',
@@ -2656,8 +2699,7 @@ const readingAnalysis = await resolveWeComAction({
   requireWorkspace: true,
   workspaces: []
 }, createFakeManager());
-assert.equal(readingAnalysis.action ?? readingAnalysis.type, 'created');
-assert.equal(readingAnalysis.task.workspace.cwd, path.resolve('/bot/root'));
+assert.equal(readingAnalysis.type, 'need-workspace');
 
 assert.equal(codeHandled.action.type, 'need-workspace');
 assert.match(codeStageReplies[0], /代码开发/);
@@ -2788,12 +2830,12 @@ const modelRouted = await handleWeComMessage({
   replyAck: async (_frame, content) => { modelReplies.push(content); return 'stream-model'; },
   replyProgress: async (_frame, _streamId, content) => { modelReplies.push(content); },
   progress: { open() {} },
-  config: { root: '/bot/root' },
+  config: { root: '/bot/root', repository: 'owner/repo' },
   dedup: createMessageDedup(),
   models: router,
   understanding: {
     async analyze() {
-      return { kind: 'analysis', label: '分析排查', needsCode: false, summary: '看重连', confidence: 0.9, source: 'rules-fast' };
+      return { kind: 'analysis', label: '分析排查', needsCode: true, summary: '看重连', confidence: 0.9, source: 'rules-fast' };
     }
   }
 });
@@ -2823,7 +2865,7 @@ assert.equal(codeRouted.action.task.model, 'grok-4.6');
 assert.equal(codeRouted.action.model.ruleId, 'complex-code');
 
 // Without a router the task carries no model and the manager default applies.
-assert.equal(analysisHandled.action.task.model, undefined);
+assert.equal(analysisHandled.action.task, undefined);
 
 const modelCheckOut = [];
 const checkCode = await checkWeComModels('/tmp/app', {
@@ -2930,7 +2972,8 @@ const chatDegraded = await handleWeComMessage({
     }
   }
 });
-assert.equal(chatDegraded.action.type, 'created');
+assert.equal(chatDegraded.action.type, 'answer');
+assert.match(chatDegraded.reply, /稍后重试/);
 
 // A chat responder with nothing configured stays quiet rather than throwing.
 const idleChat = createChatResponder({ settings: { enabled: false } });

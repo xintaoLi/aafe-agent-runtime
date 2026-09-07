@@ -65,6 +65,7 @@ export class TaskStore {
       // tasks created before model routing; those fall back to the runtime default.
       model: partial.model ?? null,
       provider: partial.provider ?? 'cursor',
+      codex: { agentId: partial.codex?.agentId ?? null, activeRunId: partial.codex?.activeRunId ?? null, runs: clone(partial.codex?.runs ?? []) },
       status: partial.status ?? 'created',
       cursor: {
         agentId: partial.cursor?.agentId ?? null,
@@ -128,6 +129,7 @@ export class TaskStore {
         ...clone(patch ?? {}),
         id,
         cursor: patch?.cursor ? { ...current.cursor, ...clone(patch.cursor) } : current.cursor,
+        codex: patch?.codex ? { ...current.codex, ...clone(patch.codex) } : current.codex,
         sdd: patch?.sdd ? { ...(current.sdd ?? {}), ...clone(patch.sdd) } : current.sdd,
         updatedAt: new Date().toISOString()
       };

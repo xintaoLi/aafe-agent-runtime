@@ -962,14 +962,13 @@ try {
 }
 
 {
-  const { CodexTaskRuntime, CODEX_RUNTIME_NOT_IMPLEMENTED } = await import('../src/agent-platform/runtime/CodexTaskRuntime.js');
+  const { CodexTaskRuntime } = await import('../src/agent-platform/runtime/CodexTaskRuntime.js');
   const { createTaskRuntime } = await import('../src/agent-platform/runtime/createTaskRuntime.js');
   const runtime = createTaskRuntime('codex');
   assert.equal(runtime instanceof CodexTaskRuntime, true);
-  await assert.rejects(() => runtime.run({ id: 'task-codex-1' }), /codex-runtime-not-implemented/);
-  assert.equal((await runtime.cancel()).reason, CODEX_RUNTIME_NOT_IMPLEMENTED);
-  const recovered = await runtime.recover({ id: 'task-codex-1' });
-  assert.equal(recovered.status, 'missing');
+  await assert.rejects(() => runtime.run({ id: 'task-codex-1' }), /codex-task-prompt-required/);
+  assert.equal((await runtime.cancel()).reason, 'codex-process-not-owned');
+  await assert.rejects(() => runtime.recover({ id: 'task-codex-1' }), /codex-run-stale/);
 
   let cursorCalled = false;
   const fakeCursor = {
@@ -985,6 +984,7 @@ try {
       root: codexRoot,
       output: '.aafe',
       runtime: fakeCursor,
+      runtimeOptions: { codex: { executable: '/nonexistent-aafe-test/codex' } },
       validateProjectRuntime: false,
       recoverOnStart: false,
       workspaceOptions: { worktrees: false }
@@ -997,7 +997,7 @@ try {
     const result = await manager.start(task.id);
     assert.equal(cursorCalled, false);
     assert.equal(result.status, 'failed');
-    assert.match(result.error, /codex-runtime-not-implemented/);
+    assert.match(result.error, /codex-cli-not-found/);
     await manager.close();
   } finally {
     await rm(codexRoot, { recursive: true, force: true });

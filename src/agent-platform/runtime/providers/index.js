@@ -44,6 +44,6 @@ export function createDefaultProviders({ implementations = {}, cwd = process.cwd
     mcp: new McpAgentProvider({ cwd }),
     ide: new IdeAgentProvider({ mode: developer.mode ?? 'current' }),
     cursor: new CursorSdkAgentProvider({ cwd }),
-    codex: new CodexAgentProvider()
+    codex: new CodexAgentProvider({ cwd })
   };
 }

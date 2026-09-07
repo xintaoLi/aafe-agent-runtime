@@ -18,21 +18,28 @@
  * IN THE SOFTWARE.
  */
 
-import { CodexTaskRuntime } from './CodexTaskRuntime.js';
-import { CursorTaskRuntime } from './CursorTaskRuntime.js';
-
-export const TASK_RUNTIME_PROVIDERS = Object.freeze(['cursor', 'codex']);
-
-export function normalizeTaskRuntimeProvider(value, fallback = 'cursor') {
-  const raw = String(value ?? '').trim().toLowerCase();
-  return TASK_RUNTIME_PROVIDERS.includes(raw) ? raw : fallback;
+// Usage reported by providers is distinct from locally estimated prompt size.
+// Unknown fields remain null; cached input is a subset of input, never additive.
+export function normalizeUsage(raw) {
+  const u = raw ?? {};
+  const number = (...values) => values.find((v) => typeof v === 'number' && Number.isFinite(v) && v >= 0) ?? null;
+  const inputTokens = number(u.inputTokens, u.input_tokens, u.prompt_tokens);
+  const outputTokens = number(u.outputTokens, u.output_tokens, u.completion_tokens);
+  return {
+    inputTokens,
+    outputTokens,
+    cachedInputTokens: number(u.cachedInputTokens, u.cached_input_tokens, u.input_tokens_details?.cached_tokens, u.prompt_tokens_details?.cached_tokens),
+    totalTokens: number(u.totalTokens, u.total_tokens, u.tokens,
+      inputTokens !== null && outputTokens !== null ? inputTokens + outputTokens : null),
+    cost: number(u.cost)
+  };
 }
 
-/**
- * Durable task execution backend: Cursor SDK or local Codex CLI.
- */
-export function createTaskRuntime(provider, options = {}) {
-  const kind = normalizeTaskRuntimeProvider(provider);
-  if (kind === 'codex') return new CodexTaskRuntime(options);
-  return new CursorTaskRuntime(options);
+export function addMeasuredMetrics(total, metrics = {}) {
+  for (const key of ['tokens', 'cost']) {
+    if (typeof metrics[key] === 'number' && Number.isFinite(metrics[key]) && metrics[key] >= 0) {
+      total[key] = (total[key] ?? 0) + metrics[key];
+    }
+  }
+  return total;
 }

@@ -58,7 +58,7 @@ export const HELP_TEXT = [
   '进行中的消息下方有「查看完整过程」「终止」按钮；点按钮即可，也可发送「终止」或「终止 <TaskID>」。',
   '也可以用显式命令：',
   '- 做：<需求>  创建任务并立刻返回 Task ID（默认 Cursor）',
-  '- Codex：<需求>  用 Codex 引擎创建任务（入口已预留，执行待接入）',
+  '- Codex：<需求> / ChatGPT：<需求>  用本机 Codex CLI 执行（需先登录并选择本地仓库）',
   '- 继续 <TaskID>：<补充>  在同一 Agent 上继续',
   '- 状态 <TaskID>  查看任务',
   '- 取消 <TaskID>  取消任务',
