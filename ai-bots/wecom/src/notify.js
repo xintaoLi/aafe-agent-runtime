@@ -42,13 +42,19 @@ export function createRateLimiter({ maxPerMinute = 30, now = () => Date.now() } 
   };
 }
 
-export function formatTaskNotify(task, event = {}) {
+export function formatTaskNotify(task, event = {}, { includeConclusion = true } = {}) {
   const status = event.status ?? task.status;
   const lines = [
     `任务 **${task.id}** ${statusLabel(status)}`,
     '',
     `需求：${task.requirement ?? task.goal ?? '-'}`
   ];
+  if (includeConclusion) {
+    const conclusion = extractTaskConclusion(task, event);
+    if (conclusion) {
+      lines.push('', '**✅ 最终结论**', conclusion);
+    }
+  }
   const files = extractChangedFiles(task);
   if (files.length) {
     lines.push('', '改动文件：', ...files.slice(0, 20).map((file) => `- ${file}`));
@@ -71,7 +77,12 @@ export function formatTaskFooter(taskId, { running = false } = {}) {
   const id = String(taskId ?? '').trim();
   if (!id) return '';
   const lines = [`对话 ID：\`${id}\``];
-  if (running) lines.push(`终止：发送 \`终止 ${id}\``);
+  // Stream markdown cannot host a callback. The clickable controls are the
+  // template-card buttons under the message; the typed command is the fallback
+  // when the combined stream+card frame was rejected.
+  if (running) {
+    lines.push(`展开或停止请点消息下方按钮；也可发送 \`终止 ${id}\``);
+  }
   return lines.join('\n');
 }
 
@@ -155,6 +166,24 @@ function statusLabel(status) {
   return status ?? '已更新';
 }
 
+function extractTaskConclusion(task, event = {}) {
+  const status = event.status ?? task.status;
+  const text = String(
+    task?.result?.text
+    ?? task?.result?.execution?.text
+    ?? ''
+  ).trim();
+  if (status === 'failed' || event.type === 'task.failed') {
+    return text || task.error || event.error || '任务失败，未返回详细原因。';
+  }
+  if (status === 'cancelled' || event.type === 'task.cancelled') {
+    return text || '任务已终止。';
+  }
+  if (text) return text;
+  if (status === 'completed') return '任务已完成，但 Agent 未给出文字说明。';
+  return '任务已结束，未返回文字结论。';
+}
+
 function extractChangedFiles(task) {
   const git = task.result?.execution?.git ?? task.result?.git ?? null;
   const files = git?.files ?? git?.changedFiles ?? git?.diffs ?? [];
@@ -164,7 +193,12 @@ function extractChangedFiles(task) {
     .filter(Boolean);
 }
 
+/**
+ * The task carries its PR since the manager started lifting it out of the run
+ * result; the dig through `result` stays for tasks written before that.
+ */
 function extractPr(task) {
+  if (task.pullRequest?.url) return task.pullRequest.url;
   const git = task.result?.execution?.git ?? task.result?.git ?? null;
   return git?.prUrl
     ?? git?.pullRequestUrl

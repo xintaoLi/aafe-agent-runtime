@@ -17,6 +17,13 @@
       "baseBranch": "main"
     }
   ],
+  "tapd": {
+    "enabled": true
+  },
+  "repo": {
+    "githubAccessToken": null,
+    "gongfengAccessToken": null
+  },
   "log": {
     "enabled": false
   },
@@ -36,6 +43,12 @@
         "stage": "intent",
         "model": "gpt-5.4-mini",
         "note": "每条消息必过：实测稳态 3.8s / 3-3 准确，gemini-3.8-flash 同样准但要 8.8s"
+      },
+      {
+        "id": "chat-reply",
+        "stage": "chat",
+        "model": "gpt-5.4-mini",
+        "note": "闲聊问答：不读仓库，要的是快"
       },
       {
         "id": "trivial-edit",

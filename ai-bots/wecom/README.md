@@ -96,6 +96,16 @@ aafe wecom --root=/path/to/project --config=/path/to/wecom.local.json
 node /path/to/aafe-agent-runtime/ai-bots/wecom/bin/wecom.js
 ```
 
+开发本机器人本身时，在 `ai-bots/wecom` 下用 npm script（`--root` 已指向仓库根）：
+
+```bash
+npm run dev          # node --watch + WECOM_LOG=1 / level=debug，改代码自动重启
+npm start            # 同样以仓库根为项目根启动，不带 watch 与 debug 日志
+npm run check:models # 只校验 models 规则表，不建长连接
+```
+
+`npm run dev` 会重连长连接，同一 Bot 只能有一条连接：跑 dev 前先停掉其它实例。
+
 启动成功后日志会出现 `wecom-bot connecting` / `authenticated`。进程不要退出。
 
 - `SIGINT` / `SIGTERM`：先断开企微长连接，再关闭本机 runtime。

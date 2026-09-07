@@ -35,6 +35,25 @@ export function createWeComGateway({
   maxReconnectAttempts = -1
 } = {}) {
   if (!WSClient) throw new Error('wecom-ws-client-missing');
+  /**
+   * `stream_with_template_card` puts an interactive button inside the live
+   * message instead of a second card message. WeCom accepts the card only once
+   * per message, so the caller attaches it on a single frame.
+   *
+   * @returns {Promise<boolean>} false when unsupported or rejected, so the
+   * caller can still deliver the text on a plain stream frame.
+   */
+  async function streamWithCard(frame, streamId, content, finish, card) {
+    if (typeof client.replyStreamWithCard !== 'function') return false;
+    try {
+      await client.replyStreamWithCard(frame, streamId, content, finish, { templateCard: card });
+      return true;
+    } catch (error) {
+      logger.warn?.(`wecom-stream-card-failed:${describeWeComError(error)}`);
+      return false;
+    }
+  }
+
   const client = new WSClient({
     botId,
     secret,
@@ -109,10 +128,12 @@ export function createWeComGateway({
         text: { content }
       });
     },
-    async replyAck(frame, content, { finish = true } = {}) {
+    async replyAck(frame, content, { finish = true, card = null } = {}) {
       const streamId = generateReqId('stream');
-      await client.replyStream(frame, streamId, content, finish);
-      return streamId;
+      let cardAttached = false;
+      if (card) cardAttached = await streamWithCard(frame, streamId, content, finish, card);
+      if (!cardAttached) await client.replyStream(frame, streamId, content, finish);
+      return { streamId, cardAttached };
     },
     async replyCard(frame, card) {
       if (!card) return null;
@@ -139,11 +160,16 @@ export function createWeComGateway({
      * Non-blocking drops a frame when the previous one is still unacked, which
      * is right for animation but wrong for a stage the user must see.
      */
-    async replyProgress(frame, streamId, content, finish = false, { blocking = false } = {}) {
-      if (!finish && !blocking && typeof client.replyStreamNonBlocking === 'function') {
-        return client.replyStreamNonBlocking(frame, streamId, content, finish);
+    async replyProgress(frame, streamId, content, finish = false, { blocking = false, card = null } = {}) {
+      if (card && await streamWithCard(frame, streamId, content, finish, card)) {
+        return { cardAttached: true };
       }
-      return client.replyStream(frame, streamId, content, finish);
+      if (!finish && !blocking && typeof client.replyStreamNonBlocking === 'function') {
+        await client.replyStreamNonBlocking(frame, streamId, content, finish);
+        return { cardAttached: false };
+      }
+      await client.replyStream(frame, streamId, content, finish);
+      return { cardAttached: false };
     },
     async sendMessage(chatid, body) {
       return client.sendMessage(chatid, body);

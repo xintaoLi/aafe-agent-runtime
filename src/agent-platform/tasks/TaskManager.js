@@ -23,6 +23,12 @@ import { TaskScheduler } from './TaskScheduler.js';
 import { CursorTaskRuntime } from '../runtime/CursorTaskRuntime.js';
 import { assertCloudProjectReadiness } from '../runtime/CloudProjectReadiness.js';
 import { isTerminalTaskStatus } from './TaskState.js';
+import { buildTapdPromptSection, isPlatformTaskIdBranch, isTapdAssociatedBranch } from './tapdPolicy.js';
+import { WorkspaceManager } from '../workspace/WorkspaceManager.js';
+import {
+  buildRepoAuthPromptSection,
+  resolveWorkspaceRepoEnv
+} from './workspaceRepoEnv.js';
 
 /**
  * AAFE's business state owner. Cursor owns execution; this manager owns which
@@ -39,15 +45,22 @@ export class TaskManager {
     runtimeOptions = {},
     validateProjectRuntime = true,
     recoverOnStart = true,
+    workspaces = null,
+    workspaceOptions = {},
+    repoAuth = {},
     onEvent = () => {}
   } = {}) {
     this.root = root;
     this.output = output;
     this.store = store ?? new TaskStore({ root, output });
+    // One checkout per task. Without it two runs on the same repository share a
+    // git index and overwrite each other's work.
+    this.workspaces = workspaces ?? new WorkspaceManager(workspaceOptions);
     this.onEvent = onEvent;
     this.listeners = new Set();
     this.validateProjectRuntime = validateProjectRuntime;
     this.recoverOnStart = recoverOnStart;
+    this.repoAuth = repoAuth ?? {};
     this.runtimeOptions = { ...runtimeOptions };
     this.runtime = runtime ?? new CursorTaskRuntime({
       onEvent: (event) => {
@@ -80,8 +93,37 @@ export class TaskManager {
   }
 
   async initialize(options = {}) {
+    await this.reclaimWorkspaces(options);
     if (options.recoverOnStart === false || this.recoverOnStart === false) return [];
     return this.recover(options);
+  }
+
+  /**
+   * Give back the checkouts of tasks that are over and left nothing behind.
+   * Without this the worktree directory grows by one checkout per task ever
+   * run; with it, only the ones still holding uncommitted changes survive,
+   * because for those the worktree is the single copy of that work.
+   */
+  async reclaimWorkspaces({ limit = 200 } = {}) {
+    const reclaimed = [];
+    try {
+      const done = await this.store.list({
+        statuses: ['completed', 'failed', 'cancelled'],
+        limit
+      });
+      for (const task of done) {
+        if (task.execution?.mode !== 'worktree' || !task.execution.repoRoot) continue;
+        const result = await this.workspaces.remove(task.id, { repoRoot: task.execution.repoRoot });
+        if (!result?.removed) continue;
+        reclaimed.push(task.id);
+        await this.store.appendEvent(task.id, 'task.workspace.reclaimed', {
+          path: result.path
+        }).catch(() => {});
+      }
+    } catch {
+      // Reclaiming disk is never worth failing a startup over.
+    }
+    return reclaimed;
   }
 
   async start(taskId, options = {}) {
@@ -216,12 +258,18 @@ export class TaskManager {
     context.conversation ??= { messages: [] };
     context.conversation.messages ??= [];
     const text = String(message);
+    // A task can be added to by more than one person in a group chat, so the
+    // record keeps who said what: the agent has to weigh the owner's words
+    // above a bystander's, and cannot do that from merged text alone.
+    const author = normalizeAuthor(options.author, task);
     context.conversation.messages.push({
       role: 'user',
       content: text,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      ...(author ? { author } : {})
     });
-    context.pendingFollowUps = [...(context.pendingFollowUps ?? []), text];
+    if (author) context.participants = mergeParticipant(context.participants, author);
+    context.pendingFollowUps = [...(context.pendingFollowUps ?? []), { text, author }];
     await this.store.replaceContext(taskId, context);
 
     if (task.status === 'running' || this.scheduler.has(taskId)) {
@@ -246,7 +294,7 @@ export class TaskManager {
       return { ...task, followUpQueued: true };
     }
     if (task.status === 'cancelled') return task;
-    const prompt = pending.join('\n\n');
+    const prompt = pending.map((item) => renderFollowUp(item, task)).join('\n\n');
     context.pendingFollowUps = [];
     await this.store.replaceContext(taskId, context);
     try {
@@ -268,19 +316,21 @@ export class TaskManager {
 
   async #execute(taskId, options) {
     let task = await this.#require(taskId);
-    // A new attempt owns the outcome, so the previous attempt's error must not
-    // survive into the next result.
-    task = await this.store.transition(taskId, 'running', { error: null });
-    const context = await this.store.getContext(taskId);
-    const fullPrompt = buildTaskPrompt(task, context);
-    const prompt = options.prompt ?? fullPrompt;
-    const workspaceRuntime = runtimeOptionsFromWorkspace(task);
-
+    // Claimed before `running`: a task waiting for another task's checkout is
+    // still queued, and calling that running makes the wait look like a hung
+    // agent.
+    const lease = await this.workspaces.acquire(task);
     try {
+      task = await this.#applyLease(taskId, lease);
+      // A new attempt owns the outcome, so the previous attempt's error must not
+      // survive into the next result.
+      task = await this.store.transition(taskId, 'running', { error: null });
+      const context = await this.store.getContext(taskId);
+      const runOptions = await this.#runtimeRunOptions(task, lease, options);
+      const fullPrompt = buildTaskPrompt(task, context, lease, { envVars: runOptions.envVars });
+      const prompt = options.prompt ?? fullPrompt;
       const result = await this.runtime.run(task, prompt, {
-        ...this.runtimeOptions,
-        ...workspaceRuntime,
-        ...options,
+        ...runOptions,
         fallbackPrompt: fullPrompt,
         idempotencyKey: options.idempotencyKey ?? `aafe-run-${task.id}-${task.cursor?.runs?.length ?? 0}`,
         onBinding: async ({ agentId, runId }) => {
@@ -297,7 +347,7 @@ export class TaskManager {
           });
         }
       });
-      return this.#finish(taskId, result, options);
+      return await this.#finish(taskId, result, options);
     } catch (error) {
       const latest = await this.#require(taskId);
       if (latest.status === 'cancelled') {
@@ -313,19 +363,64 @@ export class TaskManager {
       await this.runtime.close(taskId);
       this.#publish({ type: 'task.failed', taskId, error: failed.error });
       return failed;
+    } finally {
+      this.workspaces.release(taskId);
     }
   }
 
+  /**
+   * The lease is written onto the task before the run starts, so every later
+   * address of this work — recovery, cancellation, the next follow-up — reaches
+   * the same checkout instead of the workspace it was configured from.
+   */
+  async #applyLease(taskId, lease) {
+    const execution = {
+      mode: lease.mode,
+      cwd: lease.cwd,
+      repoRoot: lease.repoRoot,
+      baseRef: lease.baseRef,
+      branch: lease.branch ?? null,
+      port: lease.port,
+      acquiredAt: lease.acquiredAt
+    };
+    return this.store.update(taskId, { execution }, {
+      eventType: 'task.workspace.leased',
+      eventPayload: execution
+    });
+  }
+
+  async #runtimeRunOptions(task, lease, options = {}) {
+    return runtimeRunOptions(this, task, lease, options);
+  }
+
   async #recoverRunning(task, options) {
+    const lease = await this.workspaces.acquire(task);
     try {
       const result = await this.runtime.recover(task, {
-        ...this.runtimeOptions,
-        ...runtimeOptionsFromWorkspace(task),
-        ...options
+        ...await this.#runtimeRunOptions(task, lease, options)
       });
-      return this.#finish(task.id, result, options);
+      return await this.#finish(task.id, result, options);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      if (/cursor-run-stale/.test(message)) {
+        // Interrupted, not broken. Re-running it unasked would restart work the
+        // user may no longer want, so park it in a terminal state and let them
+        // resume it by name; leaving it `running` makes it shadow every later
+        // message that looks like a follow-up. Cancel the leftover Cursor run
+        // first, or the next 继续 hits "already has active run".
+        try {
+          await this.runtime.cancel(task, {
+            ...await this.#runtimeRunOptions(task, lease, options)
+          });
+        } catch { /* parking still has to happen */ }
+        await this.runtime.close(task.id);
+        const parked = await this.store.transition(task.id, 'failed', {
+          error: 'task-interrupted:process-restart',
+          event: { recovery: true, stale: true }
+        });
+        this.#publish({ type: 'task.failed', taskId: task.id, error: parked.error, task: parked });
+        return parked;
+      }
       if (/cursor-run-recover-failed/.test(message)) {
         // The previous Run is gone but the task and its context survived, so
         // reattaching fails while re-running the task is still correct.
@@ -337,8 +432,11 @@ export class TaskManager {
         error: message,
         event: { recovery: true }
       });
+      this.#publish({ type: 'task.failed', taskId: task.id, error: failed.error, task: failed });
       await this.runtime.close(task.id);
       return failed;
+    } finally {
+      this.workspaces.release(task.id);
     }
   }
 
@@ -354,7 +452,8 @@ export class TaskManager {
     const branch = result.git?.branches?.find((entry) => entry.branch)?.branch ?? task.taskBranch;
     task = await this.store.update(taskId, {
       cursor: { ...task.cursor, activeRunId: null, runs },
-      taskBranch: branch
+      taskBranch: branch,
+      pullRequest: extractPullRequest(result) ?? task.pullRequest ?? null
     }, {
       eventType: 'task.cursor.result',
       eventPayload: result
@@ -451,8 +550,77 @@ function isolatedContext(context, input) {
     plan: base.plan ?? null,
     constraints: base.constraints ?? [],
     metadata: base.metadata ?? {},
-    attachments: base.attachments ?? []
+    attachments: base.attachments ?? [],
+    tapd: base.tapd ?? null
   };
+}
+
+/**
+ * The role is derived, not trusted: whoever created the task owns it, so a
+ * caller cannot promote a bystander by mislabelling them.
+ */
+function normalizeAuthor(author, task) {
+  if (!author) return null;
+  const userId = String(author.userId ?? '').trim();
+  if (!userId) return null;
+  const owner = task?.source?.userId ?? null;
+  const foreign = Boolean(owner) && userId !== owner;
+  return { userId, role: author.role === 'participant' || foreign ? 'participant' : 'owner' };
+}
+
+function mergeParticipant(list, author) {
+  const existing = Array.isArray(list) ? list : [];
+  const index = existing.findIndex((item) => item?.userId === author.userId);
+  if (index < 0) return [...existing, { ...author, messages: 1 }];
+  const next = [...existing];
+  next[index] = {
+    ...existing[index],
+    role: author.role,
+    messages: Number(existing[index].messages ?? 0) + 1
+  };
+  return next;
+}
+
+/**
+ * Follow-ups are merged into one prompt, so a bystander's note has to say so
+ * inline; otherwise it reads as the owner changing their mind and the agent
+ * reprioritises the whole task around a side remark. Plain strings come from
+ * tasks queued before authorship was recorded and still have to run.
+ */
+function renderFollowUp(item, task) {
+  if (typeof item === 'string') return item;
+  const text = String(item?.text ?? '');
+  const author = item?.author ?? null;
+  if (author?.role !== 'participant') return text;
+  const owner = task?.source?.userId ? `，任务发起人是 ${task.source.userId}` : '';
+  return `[参与者 ${author.userId} 的补充${owner}：作为参考信息，不要因此覆盖发起人的要求]\n${text}`;
+}
+
+/**
+ * A run reports its PR in whichever shape the provider used. Reading it once
+ * here keeps every consumer — notify, cards, TAPD backfill — off the nested
+ * git payload, and keeps an earlier PR when a later run reports none.
+ */
+export function extractPullRequest(result) {
+  const git = result?.git ?? result?.execution?.git ?? null;
+  if (!git) return null;
+  const first = Array.isArray(git.prs) ? git.prs[0] : null;
+  const url = git.prUrl ?? git.pullRequestUrl ?? first?.url ?? null;
+  if (!url) return null;
+  const number = Number.parseInt(first?.number ?? String(url).match(/\/(?:pull|merge_requests)\/(\d+)/)?.[1], 10);
+  return {
+    provider: prProvider(url),
+    number: Number.isInteger(number) ? number : null,
+    url: String(url),
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function prProvider(url) {
+  const value = String(url);
+  if (/github\./i.test(value)) return 'github';
+  if (/gitlab|git\.woa\.com|tgit/i.test(value)) return 'gitlab';
+  return 'other';
 }
 
 function normalizeRepository(repository, baseBranch) {
@@ -463,7 +631,8 @@ function normalizeRepository(repository, baseBranch) {
   return { ...structuredClone(repository), ...(baseBranch ? { baseBranch } : {}) };
 }
 
-function buildTaskPrompt(task, context) {
+export function buildTaskPrompt(task, context, lease = null, extras = {}) {
+  const requested = requestedTapdBranch(task?.taskBranch);
   return [
     'You are the coding execution agent managed by AAFE.',
     'Use the project Rules and Skills provided by Cursor native project discovery.',
@@ -471,7 +640,11 @@ function buildTaskPrompt(task, context) {
     '',
     `Task ID: ${task.id}`,
     `Requirement: ${task.requirement ?? task.goal}`,
-    task.taskBranch ? `Requested task branch: ${task.taskBranch}` : null,
+    requested ? `Candidate TAPD branch: ${requested}` : null,
+    ...buildWorkspacePromptSection(lease ?? task?.execution),
+    ...buildRepoAuthPromptSection(extras.envVars),
+    '',
+    ...buildTapdPromptSection(task, context),
     '',
     'Task-specific context:',
     JSON.stringify(context, null, 2),
@@ -480,23 +653,76 @@ function buildTaskPrompt(task, context) {
   ].filter(Boolean).join('\n');
 }
 
-function runtimeOptionsFromWorkspace(task) {
+/**
+ * The agent has to know the checkout is its own, or it will reach for the main
+ * one out of habit — and that the detached HEAD is deliberate, or it will treat
+ * it as damage to repair instead of the branch it is supposed to create.
+ */
+export function buildWorkspacePromptSection(execution) {
+  if (!execution?.cwd) return [];
+  const lines = [''];
+  if (execution.mode === 'worktree') {
+    lines.push(
+      `Isolated workspace: ${execution.cwd}`,
+      'This git worktree belongs to this task alone. Work only inside it and never cd to the main checkout.',
+      execution.branch
+        ? `Already on this task's branch ${execution.branch}; stay on it.`
+        : `HEAD is detached from ${execution.baseRef ?? 'the base ref'} on purpose: create this task's development branch here per the AAFE branch rules before committing.`
+    );
+  } else if (execution.mode === 'shared') {
+    lines.push(
+      `Workspace: ${execution.cwd} (shared checkout, held exclusively for this run)`
+    );
+  }
+  if (execution.port) {
+    lines.push(`Reserved port: ${execution.port}. Bind any dev server, preview or test server to it so parallel tasks do not collide.`);
+  }
+  return lines;
+}
+
+function requestedTapdBranch(taskBranch) {
+  if (!taskBranch || isPlatformTaskIdBranch(taskBranch)) return null;
+  return isTapdAssociatedBranch(taskBranch) ? taskBranch : null;
+}
+
+async function runtimeRunOptions(manager, task, lease, options = {}) {
+  const envVars = await resolveWorkspaceRepoEnv(task, lease, process.env, {
+    overrideConfig: manager.repoAuth?.overrideConfig,
+    aafeRoot: manager.repoAuth?.aafeRoot ?? manager.root
+  });
+  return {
+    ...manager.runtimeOptions,
+    ...runtimeOptionsFromWorkspace(task, lease),
+    ...options,
+    envVars: {
+      ...envVars,
+      ...(manager.runtimeOptions.envVars ?? {}),
+      ...(options.envVars ?? {})
+    }
+  };
+}
+
+function runtimeOptionsFromWorkspace(task, lease = null) {
   const workspace = task?.workspace ?? {};
   // A task may name its own model; without one the manager default applies.
   const model = task?.model ? { model: task.model } : {};
+  // The leased directory outranks the configured one: once a task has been
+  // given a worktree, every later run, recovery and cancellation has to address
+  // that same checkout or it will act on somebody else's files.
+  const cwd = lease?.cwd ?? task?.execution?.cwd ?? workspace.cwd;
   if (workspace.repository) {
     return {
       ...model,
       repository: workspace.repository,
-      cwd: workspace.cwd,
+      cwd,
       mode: 'cloud'
     };
   }
-  if (workspace.cwd) {
+  if (cwd) {
     return {
       ...model,
       repository: null,
-      cwd: workspace.cwd,
+      cwd,
       mode: 'local'
     };
   }

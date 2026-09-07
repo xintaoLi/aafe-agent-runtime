@@ -19,12 +19,13 @@
  */
 
 import {
+  buildTaskCard,
   buildCancelledCard,
   buildWorkspacePickerCard,
   buildWorkspaceSwitchedCard,
   parseCardEvent
 } from './cards.js';
-import { HELP_TEXT, MEDIA_UNSUPPORTED_TEXT } from './help.js';
+import { HELP_TEXT, IDENTITY_TEXT, MEDIA_UNSUPPORTED_TEXT, UNCLEAR_TEXT, greetingText } from './help.js';
 import { analyzeWeComIntent } from './intent.js';
 import { describeWeComError, summarizeWeComFrame } from './logger.js';
 import {
@@ -35,16 +36,21 @@ import {
   weComMediaDir
 } from './media.js';
 import { formatListReply, formatStatusReply, formatTaskFooter } from './notify.js';
-import { listOpenTasks, resolveWeComAction } from './resolver.js';
+import { parseWeComQuote } from './quote.js';
+import { canControlTask, listOpenTasks, resolveWeComAction } from './resolver.js';
 import { sessionKeyFromSource, sourceFromFrame } from './session.js';
+import { pickSmalltalkReply } from './smalltalk.js';
 import { formatWorkspaceList } from './workspace.js';
 
 export const UNDERSTANDING_TEXT = '正在理解分析中…';
 const INTENT_ACK_GRACE_MS = 150;
 const PENDING = Symbol('intent-pending');
 
+export const THINKING_TEXT = '让我想想…';
+
 const CONTROL_TYPES = new Set([
   'help',
+  'smalltalk',
   'list',
   'cancel',
   'implicit-cancel',
@@ -68,6 +74,8 @@ export async function handleWeComMessage(frame, {
   models = null,
   attachments = [],
   understanding = null,
+  chat = null,
+  random = Math.random,
   intentAckGraceMs = INTENT_ACK_GRACE_MS,
   logger = console
 } = {}) {
@@ -79,12 +87,28 @@ export async function handleWeComMessage(frame, {
 
   const source = sourceFromFrame(frame);
   const sessionKey = sessionKeyFromSource(source);
+  const quote = parseWeComQuote(frame);
   logger.event?.('message.in', {
     ...summarizeWeComFrame(frame),
     conversationId: source.conversationId,
     userId: source.userId,
-    sessionKey
+    sessionKey,
+    quoted: quote.present
   });
+
+  // WeCom only pushes group messages that @ the bot, so this is a second line
+  // of defence rather than the gate. It logs by default instead of dropping,
+  // because a mixed message can carry the mention outside the text items and
+  // silently swallowing a real request is worse than handling a stray one.
+  if (source.chattype === 'group' && !mentionsAnyone(frame)) {
+    logger.event?.('message.skip', {
+      msgid,
+      reason: 'group-no-mention',
+      enforced: Boolean(config?.requireGroupMention)
+    });
+    if (config?.requireGroupMention) return { skipped: true, reason: 'group-no-mention' };
+  }
+
   const command = bindPendingCommand(
     analyzeWeComIntent(frame?.body?.text?.content),
     pending?.get(sessionKey)
@@ -92,12 +116,32 @@ export async function handleWeComMessage(frame, {
   // Control words ("状态"/"终止"/"列表") stay on the regex fast path: a model
   // round trip would cost seconds before a stop can even be attempted.
   const stream = createReplyStream({ frame, replyAck, replyProgress, logger });
+
+  // Saying hello is a conversation, not a command. Dumping the manual here is
+  // what made the bot feel mechanical, so these get a real answer instead.
+  if (command.type === 'smalltalk') {
+    const answer = await smalltalkReply(command, { manager, source, random, logger });
+    const streamId = await stream.push(answer, { finish: true });
+    const action = { type: 'smalltalk', kind: command.kind };
+    logger.event?.('message.out', {
+      msgid,
+      conversationId: source.conversationId,
+      command: command.type,
+      intent: command.kind,
+      action: action.type,
+      taskId: null,
+      streamId
+    });
+    return { skipped: false, command, action, intent: null, reply: answer };
+  }
+
   if (understanding && command.type === 'implicit-route') {
     const pending = analyzeIntent(command, {
       understanding,
       manager,
       source,
       attachments,
+      quote,
       logger
     });
     // Most messages are classified without a model, so announcing the analysis
@@ -107,6 +151,26 @@ export async function handleWeComMessage(frame, {
     if (settled === PENDING) await stream.push(UNDERSTANDING_TEXT);
     command.intent = settled === PENDING ? await pending : settled;
     if (command.intent) await stream.push(formatIntentStage(command.intent));
+
+    // A question that needs no repository is answered here and now. Spinning up
+    // an agent, a branch and a task record to say one paragraph is theatre.
+    if (chat && command.intent?.kind === 'question' && command.intent.needsCode === false) {
+      const answer = await chat.reply(command.text);
+      if (answer) {
+        const streamId = await stream.push(answer, { finish: true });
+        const action = { type: 'answer' };
+        logger.event?.('message.out', {
+          msgid,
+          conversationId: source.conversationId,
+          command: command.type,
+          intent: command.intent.kind,
+          action: action.type,
+          taskId: null,
+          streamId
+        });
+        return { skipped: false, command, action, intent: command.intent, reply: answer };
+      }
+    }
   }
 
   const action = await resolveWeComAction(command, buildActionContext({
@@ -114,7 +178,8 @@ export async function handleWeComMessage(frame, {
     config,
     workspaces,
     attachments,
-    models
+    models,
+    quote
   }), manager);
 
   if (action.type === 'need-workspace') {
@@ -131,15 +196,29 @@ export async function handleWeComMessage(frame, {
 
   const reply = replyForAction(action, command, { workspaces, config, attachments });
   const keepOpen = action.type === 'created' || action.type === 'continue';
-  const card = cardForAction(action, { workspaces: workspaces?.list?.() ?? config?.workspaces ?? [] });
+  const pickerCard = cardForAction(action, { workspaces: workspaces?.list?.() ?? config?.workspaces ?? [] });
+  const taskCard = keepOpen && action.task?.id ? buildTaskCard(action.task) : null;
   // The live view appends the footer itself, so the header it reuses stays clean.
   const ack = withTaskFooter(reply, action.task);
-  const streamId = await stream.push(ack, { finish: !keepOpen });
-  if (card) {
+  // WeCom accepts a card only on the frame that opens the stream. Classification
+  // may have already opened it, so a later combo attach can miss; then the
+  // buttons go out as a standalone card instead of fake markdown.
+  const streamId = await stream.push(ack, {
+    finish: !keepOpen,
+    card: taskCard
+  });
+  if (pickerCard) {
     try {
-      await replyCard?.(frame, card);
+      await replyCard?.(frame, pickerCard);
     } catch (error) {
       logger.error?.(`wecom-reply-card-failed:${describeWeComError(error)}`);
+    }
+  }
+  if (taskCard && !stream.cardAttached) {
+    try {
+      await replyCard?.(frame, taskCard);
+    } catch (error) {
+      logger.error?.(`wecom-task-card-failed:${describeWeComError(error)}`);
     }
   }
   if (keepOpen && progress && action.task?.id) {
@@ -163,7 +242,10 @@ export async function handleWeComMessage(frame, {
   }
   if (action.type === 'continue') {
     const followUp = [action.message, formatAttachmentNote(attachments)].filter(Boolean).join('\n\n');
-    void Promise.resolve(manager.continue(action.task.id, followUp)).catch((error) => {
+    // Who said it travels with the text: the agent has to know whether this is
+    // the task owner changing the requirement or a bystander adding detail.
+    const author = { userId: source.userId ?? null, role: action.actorRole ?? 'owner' };
+    void Promise.resolve(manager.continue(action.task.id, followUp, { author })).catch((error) => {
       const message = error instanceof Error ? error.message : String(error);
       if (/task-already-active/.test(message)) {
         logger.event?.('task.followup.queued', { taskId: action.task.id });
@@ -185,21 +267,31 @@ export async function handleWeComMessage(frame, {
     intent: command?.intent?.kind ?? null,
     action: action?.type ?? null,
     taskId: action?.task?.id ?? null,
+    // Which evidence bound the message, so a wrong target is explainable from
+    // the log rather than reconstructed from the conversation.
+    anchor: action?.anchor ?? null,
+    anchorVia: action?.via ?? null,
+    anchorConfidence: action?.confidence ?? null,
     streamId
   });
   return { skipped: false, command, action, intent: command.intent ?? null, reply: ack };
 }
 
-async function analyzeIntent(command, { understanding, manager, source, attachments, logger }) {
-  let hasOpenTask = false;
+async function analyzeIntent(command, { understanding, manager, source, attachments, quote, logger }) {
+  let hasActiveTask = false;
   try {
-    hasOpenTask = (await listOpenTasks(manager, source, { match: 'owner' })).length > 0;
+    hasActiveTask = (await listOpenTasks(manager, source, { match: 'owner' })).length > 0;
   } catch {
     // A listing failure must not block classification; assume a fresh request.
   }
   let intent;
   try {
-    intent = await understanding.analyze({ text: command.text, attachments, hasOpenTask });
+    intent = await understanding.analyze({
+      text: command.text,
+      attachments,
+      hasActiveTask,
+      quote
+    });
   } catch (error) {
     // Routing by keyword is still better than dropping the turn.
     logger.error?.(`wecom-intent-failed:${error instanceof Error ? error.message : error}`);
@@ -225,8 +317,30 @@ function waitFor(ms, value) {
 
 export function formatIntentStage(intent) {
   if (!intent) return UNDERSTANDING_TEXT;
+  // A question is about to be answered, not turned into a task; calling it one
+  // sets the wrong expectation for the message that follows.
+  if (intent.kind === 'question' && intent.needsCode === false) return THINKING_TEXT;
   const head = `这是一个**${intent.label}**任务，正在进一步解析中…`;
   return intent.summary ? `${head}\n> ${intent.summary}` : head;
+}
+
+/**
+ * Greetings, identity and gibberish are answered from local text: the bot
+ * already knows what it is, and a model round trip would make the cheapest
+ * messages the slowest ones. Only open questions are worth the call.
+ */
+async function smalltalkReply(command, { manager, source, random, logger }) {
+  if (command.kind === 'identity') return IDENTITY_TEXT;
+  const canned = pickSmalltalkReply(command.kind, { random });
+  if (canned) return canned;
+  if (command.kind === 'greeting') {
+    const open = await listOpenTasks(manager, source).catch((error) => {
+      logger?.warn?.(`wecom-open-tasks-failed:${error instanceof Error ? error.message : error}`);
+      return [];
+    });
+    return greetingText(open);
+  }
+  return UNCLEAR_TEXT;
 }
 
 /**
@@ -235,23 +349,39 @@ export function formatIntentStage(intent) {
  */
 function createReplyStream({ frame, replyAck, replyProgress, logger = console }) {
   let streamId = null;
+  let cardAttached = false;
   return {
     get id() {
       return streamId;
     },
-    async push(content, { finish = false } = {}) {
+    get cardAttached() {
+      return cardAttached;
+    },
+    async push(content, { finish = false, card = null } = {}) {
       if (!streamId) {
-        streamId = await replyAck?.(frame, content, { finish });
+        const ack = unwrapStreamAck(await replyAck?.(frame, content, { finish, card }));
+        streamId = ack.streamId;
+        if (ack.cardAttached) cardAttached = true;
         return streamId;
       }
       if (!replyProgress) return streamId;
       try {
-        await replyProgress(frame, streamId, content, finish, { blocking: true });
+        const result = await replyProgress(frame, streamId, content, finish, { blocking: true, card });
+        if (result?.cardAttached) cardAttached = true;
       } catch (error) {
         logger.error?.(`wecom-stream-update-failed:${describeWeComError(error)}`);
       }
       return streamId;
     }
+  };
+}
+
+function unwrapStreamAck(result) {
+  if (!result) return { streamId: null, cardAttached: false };
+  if (typeof result === 'string') return { streamId: result, cardAttached: false };
+  return {
+    streamId: result.streamId ?? result.id ?? null,
+    cardAttached: Boolean(result.cardAttached)
   };
 }
 
@@ -278,7 +408,46 @@ export async function handleWeComCard(frame, {
     value: parsed.value ?? null
   });
 
+  // Reading is open to the whole conversation, so this needs no owner check —
+  // and it must not disturb the card, which still belongs to the running task.
+  if (parsed.action === 'status' && parsed.value) {
+    const task = await manager.get(parsed.value).catch(() => null);
+    const text = task
+      ? formatStatusReply(task, manager.stats?.() ?? null)
+      : `找不到任务 ${parsed.value}`;
+    await pushText(sendText, source, text, logger);
+    logger.event?.('card.out', {
+      conversationId: source.conversationId,
+      command: 'status',
+      action: task ? 'status' : 'error',
+      taskId: parsed.value
+    });
+    return { skipped: false, command: { type: 'status', taskId: parsed.value }, action: { type: 'status', task }, reply: text };
+  }
+
+  if (parsed.action === 'process' && parsed.value) {
+    const text = progress?.renderProcess?.(parsed.value)
+      || `找不到任务 ${parsed.value} 的过程记录。任务结束后过程会保留一段时间，也可发送 \`状态 ${parsed.value}\`。`;
+    await pushText(sendText, source, text, logger);
+    logger.event?.('card.out', {
+      conversationId: source.conversationId,
+      command: 'process',
+      action: 'process',
+      taskId: parsed.value
+    });
+    return { skipped: false, command: { type: 'process', taskId: parsed.value }, action: { type: 'process' }, reply: text };
+  }
+
   if (parsed.action === 'cancel' && parsed.value) {
+    // The card is visible to the whole group, so the button has to answer to
+    // the same owner check the typed command does; otherwise the permission
+    // gate is one tap wide.
+    const target = await manager.get(parsed.value).catch(() => null);
+    if (target && !canControlTask(target, source)) {
+      logger.event?.('card.denied', { taskId: parsed.value, userId: source.userId ?? null });
+      await pushText(sendText, source, `任务 **${parsed.value}** 由 ${target.source?.userId ?? '其他人'} 发起，只有发起人能终止。`, logger);
+      return { skipped: true, reason: 'not-task-owner' };
+    }
     if (updateCard) {
       try {
         await updateCard(frame, buildCancelledCard(parsed.value, parsed.cardTaskId));
@@ -286,12 +455,13 @@ export async function handleWeComCard(frame, {
         logger.error?.(`wecom-card-update-failed:${parsed.value}:${describeWeComError(error)}`);
       }
     }
-    void progress?.cancel?.(parsed.value);
+    await progress?.beginCancel?.(parsed.value);
     try {
       await manager.cancel(parsed.value);
     } catch (error) {
       logger.error?.(`wecom-card-cancel-failed:${parsed.value}:${describeWeComError(error)}`);
     }
+    await progress?.cancel?.(parsed.value);
     if (!updateCard) {
       await pushText(sendText, source, `已取消任务 **${parsed.value}**`, logger);
     }
@@ -431,7 +601,7 @@ function bindPendingCommand(command, waiting) {
   };
 }
 
-function buildActionContext({ source, config, workspaces, attachments = [], models = null }) {
+function buildActionContext({ source, config, workspaces, attachments = [], models = null, quote = null }) {
   const sessionKey = sessionKeyFromSource(source);
   return {
     source,
@@ -445,8 +615,25 @@ function buildActionContext({ source, config, workspaces, attachments = [], mode
     switchWorkspace: (target) => workspaces?.switchTo?.(target, { conversationId: sessionKey }),
     rememberWorkspace: (_conversationId, workspace) => workspaces?.remember?.(sessionKey, workspace),
     selectModel: models ? (input) => models.select({ ...input, attachments }) : null,
-    attachments
+    attachments,
+    quote,
+    tapd: config?.tapd ?? { enabled: true }
   };
+}
+
+/**
+ * The mention is plain text in the body, not a structured field, so this is all
+ * there is to look at. Mixed messages are flattened first because the `@` may
+ * sit in a different item than the request.
+ */
+function mentionsAnyone(frame) {
+  const body = frame?.body ?? {};
+  const parts = [body.text?.content ?? ''];
+  for (const item of body.mixed?.msg_item ?? []) {
+    if (item?.text?.content) parts.push(item.text.content);
+  }
+  const raw = parts.join(' ').trim();
+  return raw.length === 0 || raw.includes('@');
 }
 
 function withTaskFooter(text, task) {
@@ -473,7 +660,9 @@ function replyForAction(action, command, extras = {}) {
   }
   if (action.type === 'continue') {
     return withAttachments(
-      `**${action.task.id}** 继续\n${action.message}`,
+      [`**${action.task.id}** 继续`, action.message, continueNote(action)]
+        .filter(Boolean)
+        .join('\n'),
       extras.attachments
     );
   }
@@ -499,6 +688,28 @@ function replyForAction(action, command, extras = {}) {
     return formatWorkspaceList(extras.workspaces?.list?.() ?? [], extras.workspaces?.getActive?.()?.id);
   }
   return HELP_TEXT;
+}
+
+/**
+ * An implicit binding is a guess, so it is stated out loud with the way out of
+ * it in the same line: the user sees the wrong target on the next message
+ * instead of discovering it in the agent's report.
+ */
+function continueNote(action) {
+  const notes = [];
+  if (action.anchor === 'active') {
+    notes.push('已追加到你最近活跃的任务。要换目标请引用那条任务消息，或发送「继续 <TaskID>：<补充>」。');
+  } else if (action.via === 'requirement-match') {
+    notes.push('按引用内容匹配到该任务。');
+  } else if (action.via === 'tapd-story') {
+    notes.push('按引用里的 TAPD 单号匹配到该任务。');
+  } else if (action.via === 'task-suffix') {
+    notes.push('按 Task ID 后缀匹配到该任务。');
+  }
+  if (action.actorRole === 'participant' && action.ownerId) {
+    notes.push(`已作为 ${action.ownerId} 任务的补充记录。`);
+  }
+  return notes.length ? `_${notes.join(' ')}_` : null;
 }
 
 function describeTaskWorkspace(workspace) {

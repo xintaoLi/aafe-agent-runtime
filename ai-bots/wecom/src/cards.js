@@ -18,15 +18,61 @@
  * IN THE SOFTWARE.
  */
 
+const STATUS_TITLE = Object.freeze({
+  created: '准备任务',
+  queued: '任务排队中',
+  running: '⚙️ 执行中',
+  waiting: '任务等待补充',
+  verifying: '任务验证中',
+  blocked: '任务被阻塞'
+});
+
 /**
- * WeCom long-connection has no stream-plus-card message, so terminating lives
- * in the live stream text. This card only answers clicks on cards already sent
- * to a chat before that change.
+ * Rides along with the live progress message via `stream_with_template_card`,
+ * so stopping a run is one click instead of copying an id back into the chat.
+ *
+ * It carries what the group needs to tell one running task from another —
+ * whose it is, what it is about, which checkout it holds — because in a room
+ * with three tasks in flight an id alone identifies nothing to a human.
  */
+export function buildTaskCard(task) {
+  const id = typeof task === 'string' ? task : String(task?.id ?? '');
+  const detail = typeof task === 'string' ? null : task;
+  const card = {
+    card_type: 'button_interaction',
+    main_title: { title: STATUS_TITLE[detail?.status] ?? '⚙️ 执行中', desc: id },
+    // Reading comes before stopping, in both senses: it is the safer action and
+    // the one anyone in the group is allowed to take.
+    button_list: [
+      { text: '查看状态', style: 1, key: `status:${id}` },
+      { text: '查看完整过程', style: 1, key: `process:${id}` },
+      { text: '终止', style: 3, key: `cancel:${id}` }
+    ],
+    task_id: freshCardTaskId('run', id)
+  };
+  const sub = taskSubTitle(detail);
+  if (sub) card.sub_title_text = sub;
+  return card;
+}
+
+function taskSubTitle(task) {
+  if (!task) return '';
+  const parts = [];
+  const goal = clip(String(task.requirement ?? task.goal ?? '').replace(/\s+/g, ' ').trim(), 40);
+  if (goal) parts.push(goal);
+  if (task.source?.userId) parts.push(`发起人 ${task.source.userId}`);
+  // The worktree is the difference between "the agent is editing my files" and
+  // "the agent is editing its own copy", which is the first thing anyone asks
+  // once more than one task is live.
+  if (task.execution?.mode === 'worktree') parts.push('独立工作区');
+  if (task.execution?.port) parts.push(`端口 ${task.execution.port}`);
+  return parts.join(' · ');
+}
+
 export function buildCancelledCard(taskId, cardTaskId) {
   return {
     card_type: 'text_notice',
-    main_title: { title: '任务已终止', desc: String(taskId) },
+    main_title: { title: '⛔ 已终止', desc: String(taskId) },
     task_id: cardTaskId || freshCardTaskId('run', taskId)
   };
 }

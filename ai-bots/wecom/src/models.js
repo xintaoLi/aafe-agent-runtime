@@ -20,9 +20,15 @@
 
 import { INTENT_KINDS } from './understand.js';
 
-export const MODEL_STAGES = Object.freeze(['intent', 'task']);
+export const MODEL_STAGES = Object.freeze(['intent', 'chat', 'task']);
 export const DEFAULT_TASK_MODEL = 'grok-4.6';
-export const DEFAULT_INTENT_MODEL = 'gemini-3.8-flash';
+/**
+ * Measured on this repo over three representative messages: 3.8s steady state
+ * and 3/3 correct, against 8.8s for `gemini-3.8-flash` at the same accuracy.
+ * `gpt-5.4-nano` was 0.2s faster but misread a bug report as a question, and
+ * one misroute costs far more than the 0.2s.
+ */
+export const DEFAULT_FAST_MODEL = 'gpt-5.4-mini';
 
 /**
  * Built-in routing expressed as data, in the same shape a user rule takes, so
@@ -34,8 +40,14 @@ export const DEFAULT_MODEL_RULES = Object.freeze([
   {
     id: 'intent-classify',
     stage: 'intent',
-    model: DEFAULT_INTENT_MODEL,
+    model: DEFAULT_FAST_MODEL,
     note: '意图/文本分类：一行标签不值得用推理模型'
+  },
+  {
+    id: 'chat-reply',
+    stage: 'chat',
+    model: DEFAULT_FAST_MODEL,
+    note: '闲聊问答：不读仓库，要的是快'
   },
   {
     id: 'complex-code',
@@ -46,7 +58,7 @@ export const DEFAULT_MODEL_RULES = Object.freeze([
   {
     id: 'simple-analysis',
     intent: ['analysis', 'question'],
-    model: DEFAULT_INTENT_MODEL,
+    model: DEFAULT_FAST_MODEL,
     note: '简单分析与问答：快模型足够'
   },
   {

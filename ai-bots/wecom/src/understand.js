@@ -23,6 +23,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { LlmClient } from '../../../src/llm/LlmClient.js';
 import { isNewWork } from './intent.js';
+import { scanTaskId } from './quote.js';
 
 export const INTENT_KINDS = Object.freeze(['code', 'analysis', 'question', 'followup']);
 
@@ -50,7 +51,9 @@ const SYSTEM_PROMPT = [
   '- 改代码 / 修 bug / 实现功能 / 重构 / 提交 PR → kind=code，needs_code=true',
   '- 排查原因 / 分析影响面 / 评估方案 / 读代码回答问题 → kind=analysis，needs_code 取决于是否必须读某个仓库',
   '- 概念问答 / 与具体仓库无关的请求 → kind=question，needs_code=false',
-  '- 明显是在补充上一轮任务（有未结束任务且文本像追加说明）→ kind=followup',
+  '- 明显是在补充上一轮任务（has_active_task 为 true 且文本像追加说明）→ kind=followup',
+  '- 带 quoted 字段说明用户引用了历史消息，除非另起新需求，否则是对被引用任务的补充 → kind=followup',
+  '- 提交 / 提 PR / 合并 / 推送 / 回填 TAPD / 重跑测试 这类流程动作是在推进已有任务 → kind=followup，不要当成新需求',
   'TAPD 链接、需求单标题、缺陷描述通常是 code。'
 ].join('\n');
 
@@ -58,8 +61,39 @@ const CODE_HINT = /(?:修复|修一下|改一下|改下|实现|开发|重构|新
 const ANALYSIS_HINT = /(?:分析|排查|定位|评估|梳理|影响面|影响范围|为什么|为何|原因|怎么回事|看一下|看看|了解|对比|调研|总结)/i;
 const QUESTION_HINT = /(?:是什么|什么意思|怎么用|如何使用|区别|介绍一下|解释)/i;
 const FOLLOW_HINT = /^(?:再|继续|补充|还要|顺便|另外|不对|这里|那个|加上|不要)/;
+// Ship verbs — commit, PR, merge, TAPD backfill, run the tests again — happen
+// to work that already exists. Read as new work they produce a task whose
+// requirement is literally "提交 PR", which is how a ship instruction ends up
+// starting something instead of finishing it.
+//
+// Two shapes qualify, because the same verb carries different weight depending
+// on where it sits. A message that is nothing but the instruction is one
+// wherever it lands, including with nothing running, where "there is nothing to
+// submit" is the honest answer. Mid-sentence the verb is only a hint —
+// 「购物车合并逻辑有问题」 is a defect report — so it needs live work or a quote
+// behind it before it counts.
+const SHIP_VERB = [
+  '提交', 'commit',
+  '推送', 'push',
+  '(?:提|开|发起|建)\\s*(?:一?个)?\\s*(?:pr|mr)',
+  '合并', 'merge',
+  '回填', '自测', '重跑', '重新跑', '继续跑'
+].join('|');
+const SHIP_ONLY = new RegExp(`^(?:请?\\s*(?:帮我|帮忙|麻烦)?\\s*)?(?:继续|接着)?\\s*(?:${SHIP_VERB})[\\s\\S]{0,24}$`, 'i');
+const SHIP_HINT = new RegExp(
+  `(?:${SHIP_VERB}|同步\\s*(?:到)?\\s*tapd|跑(?:一下)?(?:测试|自测|e2e)|解决冲突)`,
+  'i'
+);
 
-const LEAD = '^(?:请)?(?:帮我|帮忙|麻烦)?\\s*';
+function isShipInstruction(body, { anchored = false } = {}) {
+  if (isNewWork(body)) return false;
+  return SHIP_ONLY.test(body) || (anchored && SHIP_HINT.test(body));
+}
+
+// A pasted link ahead of the request is not a reason to fall back to the model,
+// so the verb may follow one. Anchored otherwise, so "再帮我看看" stays a
+// follow-up rather than becoming new work.
+const LEAD = '(?:^|\\n)\\s*(?:https?:\\/\\/\\S+\\s+)?(?:请)?(?:帮我|帮忙|麻烦)?\\s*';
 const CODE_LEAD = new RegExp(`${LEAD}(?:修复|修一下|修好|修|改一下|改下|改成|改|实现|开发|重构|新增|加个|接入|上线|优化|支持|fix|implement|refactor)`, 'i');
 const ANALYSIS_LEAD = new RegExp(`${LEAD}(?:分析|排查|定位|评估|梳理|调研|总结|对比|看一下|看看|查一下|为什么|为何)`, 'i');
 
@@ -70,17 +104,33 @@ const ANALYSIS_LEAD = new RegExp(`${LEAD}(?:分析|排查|定位|评估|梳理|�
  * task. It answers only when the signal is unmistakable and returns null
  * otherwise, which is exactly where a model is worth waiting for.
  */
-export function fastIntent(text, { attachments = [], hasOpenTask = false } = {}) {
+export function fastIntent(text, { attachments = [], hasActiveTask = false, quote = null } = {}) {
   const body = String(text ?? '').trim();
   if (!body) return null;
   const code = CODE_HINT.test(body);
   const analysis = ANALYSIS_HINT.test(body);
 
+  // A Task ID, typed out or sitting in the footer of the quoted reply, is the
+  // strongest reference there is; a model cannot improve on a target the user
+  // wrote down. Waiting for one is what made `提交 PR 回填` take 25 seconds and
+  // get sent three times.
+  if (scanTaskId(body) || (quote?.present && scanTaskId(quote.text))) {
+    return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.95, source: 'rules-fast' });
+  }
+  // Quoting a message while work is live is a deliberate reference to it, so
+  // the addendum is settled without asking a model. Routing confirms which task
+  // the quote actually points at.
+  if (quote?.present && hasActiveTask && !isNewWork(body)) {
+    return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.85, source: 'rules-fast' });
+  }
   // A TAPD story or a bracketed defect title is always code work.
   if (isNewWork(body) && !ANALYSIS_LEAD.test(body)) {
     return intent({ kind: 'code', needsCode: true, summary: clip(body), confidence: 0.9, source: 'rules-fast' });
   }
-  if (hasOpenTask && FOLLOW_HINT.test(body) && !CODE_LEAD.test(body)) {
+  if (!ANALYSIS_LEAD.test(body) && isShipInstruction(body, { anchored: hasActiveTask || Boolean(quote?.present) })) {
+    return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.85, source: 'rules-fast', action: 'ship' });
+  }
+  if (hasActiveTask && FOLLOW_HINT.test(body) && !CODE_LEAD.test(body)) {
     return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.8, source: 'rules-fast' });
   }
   if (ANALYSIS_LEAD.test(body) && !code) {
@@ -92,11 +142,10 @@ export function fastIntent(text, { attachments = [], hasOpenTask = false } = {})
   if (QUESTION_HINT.test(body) && !code && !analysis && !attachments.length) {
     return intent({ kind: 'question', needsCode: false, summary: clip(body), confidence: 0.8, source: 'rules-fast' });
   }
-  // Unrecognised text next to an open task is an addendum, which is what the
-  // keyword router already assumed; classifying it again changes nothing.
-  if (hasOpenTask && !isNewWork(body)) {
-    return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.6, source: 'rules-fast' });
-  }
+  // An open task must not turn every unrecognised sentence into an addendum:
+  // that is how "我想下班" ended up appended to a TAPD story. Without a
+  // follow-up word (handled above) the signal is genuinely weak, which is
+  // exactly the traffic a model is worth waiting for.
   return null;
 }
 
@@ -104,11 +153,15 @@ export function fastIntent(text, { attachments = [], hasOpenTask = false } = {})
  * Rules are the floor, not the ceiling: the bot must keep routing when the
  * model is unreachable, slow, or answers with something unparsable.
  */
-export function classifyIntentByRules(text, { attachments = [], hasOpenTask = false } = {}) {
+export function classifyIntentByRules(text, { attachments = [], hasActiveTask = false } = {}) {
   const body = String(text ?? '').trim();
   const withMedia = attachments.length ? `${body} ${attachments.map((item) => item.filename ?? '').join(' ')}` : body;
-  if (hasOpenTask && FOLLOW_HINT.test(body)) {
+  if (hasActiveTask && FOLLOW_HINT.test(body)) {
     return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.4, source: 'rules' });
+  }
+  // Ahead of CODE_HINT, which reads 提交 as a reason to start something.
+  if (isShipInstruction(body, { anchored: hasActiveTask })) {
+    return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.5, source: 'rules', action: 'ship' });
   }
   if (CODE_HINT.test(withMedia)) {
     return intent({ kind: 'code', needsCode: true, summary: clip(body), confidence: 0.5, source: 'rules' });
@@ -193,15 +246,18 @@ export function createIntentAnalyzer({
 
   return {
     backend,
-    async analyze({ text, attachments = [], hasOpenTask = false } = {}) {
-      const fast = fastIntent(text, { attachments, hasOpenTask });
+    async analyze({ text, attachments = [], hasActiveTask = false, quote = null } = {}) {
+      const fast = fastIntent(text, { attachments, hasActiveTask, quote });
       if (fast) return fast;
-      const fallback = classifyIntentByRules(text, { attachments, hasOpenTask });
+      const fallback = classifyIntentByRules(text, { attachments, hasActiveTask });
       if (backend === 'rules') return fallback;
       const payload = {
         text: String(text ?? ''),
         attachments: attachments.map((item) => ({ type: item.type ?? null, filename: item.filename ?? null })),
-        has_open_task: Boolean(hasOpenTask)
+        has_active_task: Boolean(hasActiveTask),
+        // What was quoted decides whether this is an addendum, so the model has
+        // to see it too; clipped because only the gist changes the answer.
+        ...(quote?.present ? { quoted: clip(quote.text || quote.note || '', 200) } : {})
       };
       const startedAt = now();
       try {
@@ -246,14 +302,18 @@ export function describeIntent(value) {
   return value.summary ? `${label}（${value.summary}）` : label;
 }
 
-function intent({ kind, needsCode, summary, confidence, source }) {
+function intent({ kind, needsCode, summary, confidence, source, action = null }) {
   return {
     kind,
     label: INTENT_LABELS[kind] ?? '待定',
     needsCode: Boolean(needsCode),
     summary: summary ?? '',
     confidence,
-    source
+    source,
+    // `ship` marks the instructions routing must not guess a target for:
+    // commit, push, PR, merge, TAPD backfill. Which task they land on is not
+    // recoverable by sending another message.
+    ...(action ? { action } : {})
   };
 }
 

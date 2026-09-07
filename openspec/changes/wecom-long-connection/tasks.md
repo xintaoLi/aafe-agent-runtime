@@ -57,3 +57,51 @@
 - [x] Model pinned on the task at creation and reused by resume / follow-up runs
 - [x] Rule validation: structure everywhere, model names against the account list at boot (advisory)
 - [x] `aafe wecom --check-models [--probe=...] [--offline]` gates a new rule and exits non-zero on invalid
+- [x] Greeting / identity / junk answered conversationally, not with the command list
+- [x] Full manual only on first contact per user, or when explicitly asked
+- [x] Repository-free questions answered in place via the `chat` stage instead of becoming tasks
+- [x] 20-line local chit-chat pool picked at random; whole-message patterns keep defects out
+- [x] 终止 button attached to the live message via `stream_with_template_card`, text fallback kept
+- [x] Agent startup collapsed to a single `准备任务` / `⌛ 思考中`; process list reserved for real steps
+- [x] A finished task is never continued implicitly; explicit `继续` names the last one for copying
+- [x] An open task no longer turns unrecognised text into an addendum; weak input asks instead of guessing
+- [x] New-work verbs recognised after a pasted link, still not mid-message
+- [x] Killed local runs parked as interrupted at startup instead of hanging in `running` or re-running unasked
+- [x] Context anchor before routing: Task ID in text → quoted message → last active task; a reference may revive a finished task
+- [x] Quotes followed by reading their text (printed Task ID, else full requirement match), since WeCom omits the quoted msgid
+- [x] Weak input appends to the last active task and the reply names the target plus how to retarget it
+- [x] Group bystanders contribute only through a reference, recorded as participants with the owner kept in the follow-up prompt
+- [x] Group @ guard as second-line defence: logged by default, enforced by `requireGroupMention`
+- [x] Task ID tails (`#cccc3333`) count as references while exactly one task ends in one
+- [x] Quoted Task IDs go through the same lookup typed ones do, so a reference survives leaving the recent list
+- [x] A quoted TAPD link matches the task created from that ticket, whatever the wording around it
+- [x] Two live tasks with nothing choosing between them ask instead of taking the newest
+- [x] A task untouched beyond 12h is named rather than appended to; a reference still resumes it
+- [x] Anchor evidence (kind / via / confidence) travels into the turn's log
+- [x] Task ID in text or quote classifies without a model, running task or not
+- [x] Ship instructions (commit / PR / merge / 回填 / rerun) route to the anchor instead of creating `提交 PR` tasks
+- [x] One git worktree per task, detached from the base ref, so parallel tasks stop sharing a git index
+- [x] Remote base ref preferred over a same-named local branch, so a task is not cut from a stale trunk
+- [x] Non-repository / worktree-less / worktrees-off checkouts fall back to a directory lock instead of overlapping
+- [x] A port per live task, named in the prompt and returned to the pool on release
+- [x] Ignored-but-required paths (`node_modules`) borrowed into the worktree, without leaving it dirty
+- [x] Lease (`execution`) written on the task, so recovery, follow-up and cancel address the same checkout
+- [x] `pullRequest` lifted onto the task instead of being dug out of `result.execution.git`
+- [x] Task index narrows candidates by conversation / user / status before any task file is read
+- [x] Only the task owner may terminate, on the typed command and on the card button alike
+- [x] Submit instructions hold a much shorter staleness window than ordinary follow-ups
+- [x] Task card names the requirement, the owner, the isolated workspace and the port
+- [x] Build caches inside borrowed `node_modules` stay per-task, so parallel builds stop overwriting each other
+- [x] A re-created worktree resumes the task's own branch instead of detaching and stranding its commits
+- [x] Ambiguity is still a question, but a ranked one: candidates ordered by wording and recency, requirement shown, clear favourite marked
+- [x] A message naming two tasks runs against neither and asks for them to be sent separately
+- [x] Task card carries 查看状态 ahead of 终止, open to anyone in the room
+- [x] Process box shows three lines by default; 查看完整过程 pushes the hierarchical remainder
+- [x] Stream markdown does not fake tappable 查看完整思考过程 / 点击终止; buttons live on the Template Card
+- [x] Finished views always carry a ✅ 最终结论, including stall, interrupt and process exit
+- [x] Push keepalives continue while silent; a stall window cancels instead of freezing
+- [x] Continue after a hung run cancels the leftover Cursor run instead of failing on “already has active run”
+- [x] Failed 最终结论 names the actual error, not “未返回详细原因”
+- [x] Agent UI protocol: status labels, last-3 thinking preview, thinking/result split, canceling then canceled
+- [x] Local runs inject workspace `repo.githubAccessToken` into `GITHUB_TOKEN` and git extraheader
+- [x] GitHub token degrades WeCom overlay → current AAFE `.aafe.config.json` → workspace project config

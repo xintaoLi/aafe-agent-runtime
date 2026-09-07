@@ -26,20 +26,24 @@ import { createWeComLogger, describeWeComError, resolveWeComLogConfig } from './
 import { createMessageDedup } from './dedup.js';
 import { createWeComGateway } from './gateway.js';
 import { handleWeComCard, handleWeComMedia, handleWeComMessage } from './handler.js';
+import { HELP_TEXT, WELCOME_TEXT } from './help.js';
 import { attachWeComNotifier } from './notify.js';
 import { createModelRouter, validateModelRules } from './models.js';
 import { createPendingStore } from './pending.js';
 import { createWeComProgressHub } from './progress.js';
+import { sessionKeyFromSource, sourceFromFrame } from './session.js';
+import { createChatResponder } from './chat.js';
 import { createIntentAnalyzer } from './understand.js';
 import { createWorkspaceStore } from './workspace.js';
 
-export { loadWeComBotConfig, createTaskManagerOptions } from './config.js';
+export { loadWeComBotConfig, createTaskManagerOptions, resolveWeComTapdConfig, resolveWeComRepoConfig } from './config.js';
 export { parseWeComCommand, stripMentions } from './commands.js';
 export { analyzeWeComIntent } from './intent.js';
 export { createMessageDedup } from './dedup.js';
 export { resolveWeComAction } from './resolver.js';
 export { attachWeComNotifier, formatTaskNotify } from './notify.js';
 export { createWeComProgressHub, formatProgressEvent, renderProgressView } from './progress.js';
+export { buildAgentUIState, getThinkingPreview, renderAgentUI } from './ui.js';
 export { handleWeComMessage, handleWeComCard, handleWeComMedia } from './handler.js';
 export { createWeComGateway } from './gateway.js';
 export { createWorkspaceStore, classifyWorkspaceTarget } from './workspace.js';
@@ -120,8 +124,26 @@ export async function startWeComBot(options = {}) {
     selectModel: (input) => models.model(input),
     logger
   });
+  const chat = options.chat ?? createChatResponder({
+    settings: config.intent ?? {},
+    env: options.env ?? process.env,
+    selectModel: (input) => models.model(input),
+    logger
+  });
   const progress = options.progress ?? createWeComProgressHub({
     replyProgress: (frame, streamId, content, finish) => gateway.replyProgress(frame, streamId, content, finish),
+    // Once the stream expires the bot can only write by sending a new message.
+    pushMessage: (target, content) => gateway.sendMessage(target.chatid, {
+      msgtype: 'markdown',
+      markdown: { content },
+      chat_type: target.chatType
+    }),
+    onStall: (taskId) => {
+      logger.event?.('progress.stalled', { taskId });
+      void Promise.resolve(manager.cancel(taskId)).catch((error) => {
+        logger.error?.(`wecom-task-stall-cancel-failed:${taskId}:${describeWeComError(error)}`);
+      });
+    },
     logger
   });
   attachWeComNotifier({
@@ -145,7 +167,7 @@ export async function startWeComBot(options = {}) {
 
   gateway.onText((frame) => guard('message', () => handleWeComMessage(frame, {
     manager, replyAck, replyProgress, replyCard, progress, pending, workspaces, config, dedup,
-    understanding, models, logger
+    understanding, chat, models, logger
   })));
   gateway.onCard?.((frame) => guard('card', () => handleWeComCard(frame, {
     manager,
@@ -173,7 +195,16 @@ export async function startWeComBot(options = {}) {
     logger,
     downloadFile: (url, aeskey) => gateway.downloadFile(url, aeskey)
   })));
-  gateway.onEnterChat((frame) => guard('welcome', () => gateway.replyWelcome(frame)));
+  // The full manual belongs to first contact only. WeCom fires this every time
+  // someone opens the conversation, so returning visitors get one warm line
+  // instead of the command list again.
+  const greeted = options.greeted ?? new Set();
+  gateway.onEnterChat((frame) => guard('welcome', async () => {
+    const who = sessionKeyFromSource(sourceFromFrame(frame));
+    const first = !greeted.has(who);
+    greeted.add(who);
+    await gateway.replyWelcome(frame, first ? HELP_TEXT : WELCOME_TEXT);
+  }));
 
   let shuttingDown = false;
   const shutdown = async (reason) => {

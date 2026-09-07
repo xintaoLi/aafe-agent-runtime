@@ -18,32 +18,59 @@
  * IN THE SOFTWARE.
  */
 
-import { formatTaskFooter, formatTaskNotify } from './notify.js';
+import { describeWeComError } from './logger.js';
+import { formatTaskNotify } from './notify.js';
+import { notifyTargetFromSource, sourceFromFrame } from './session.js';
+import {
+  buildAgentUIState,
+  lastThinkingActivity,
+  mergeText,
+  renderAgentUI
+} from './ui.js';
 
 const TERMINAL = new Set(['task.finished', 'task.failed', 'task.cancelled']);
+/**
+ * Bringing an agent up is five events the user cannot act on, and listing them
+ * as "过程" made the boot sequence look like the work. They now only move the
+ * one-line status, and everything before the first token reads as 准备任务. Only
+ * events worth interrupting for are logged into the process list.
+ */
 const STATUS = {
-  'scheduler.queued': '排队中',
-  'scheduler.started': '开始执行',
-  'cursor.agent.created': '正在创建 Agent',
-  'cursor.agent.resumed': '已接上 Agent',
-  'cursor.run.started': 'Agent 输出中',
-  'task.cursor.bound': '已绑定 Run',
-  'cursor.run.recovered': '已恢复 Run',
-  'cursor.run.completed': '本轮 Run 结束',
-  'task.followup.queued': '已收到补充，当前轮结束后继续',
-  'task.followup.pending': '补充已排队，即将开始下一轮',
-  'task.blocked': '被阻塞',
-  'task.failed': '失败',
-  'task.cancelled': '已取消'
+  'scheduler.queued': { status: 'created' },
+  'scheduler.started': { status: 'created' },
+  'cursor.agent.created': { status: 'created' },
+  'cursor.agent.resumed': { status: 'created' },
+  'task.cursor.bound': { status: 'created' },
+  'cursor.run.started': { status: 'thinking' },
+  'cursor.run.recovered': { status: 'thinking' },
+  'cursor.run.completed': { status: 'thinking' },
+  'task.followup.queued': { status: 'thinking', log: '已收到补充' },
+  'task.followup.pending': { status: 'thinking', log: '即将开始下一轮' },
+  'task.blocked': { status: 'failed', log: '被阻塞' },
+  'task.failed': { status: 'failed', log: '失败' },
+  'task.cancelled': { status: 'canceled', log: '已取消' }
 };
 const MAX_BLOCKS = 80;
 const MAX_BYTES = 18_000;
-const PROCESS_VISIBLE = 5;
-const CURRENT_LINE_MAX = 80;
-const SUMMARY_MAX = 1200;
+const ARCHIVE_LIMIT = 80;
 const TEXT_FLUSH_MS = 800;
 const HEARTBEAT_MS = 45_000;
 const DANCE_MS = 2_500;
+const STALL_MS = 15 * 60_000;
+
+/**
+ * WeCom stops accepting updates 10 minutes after the message that opened the
+ * stream, and a code task routinely outlives that. The stream is closed one
+ * minute early on purpose: hitting 846608 costs the frame that carried it, so
+ * the last thing the user sees would be a view with no explanation in it.
+ * After that the progress keeps flowing as pushed messages, which is the only
+ * channel a bot can still write to on its own.
+ */
+const STREAM_TTL_MS = 9 * 60_000;
+const PUSH_INTERVAL_MS = 3 * 60_000;
+// A pushed message is a normal markdown message, far tighter than a stream.
+const PUSH_MAX_BYTES = 3_000;
+const STREAM_EXPIRED_ERRCODE = 846608;
 
 /**
  * A WeCom stream reply is plain markdown text with no spinner element, so the
@@ -62,7 +89,15 @@ export function formatProgressEvent(event = {}) {
   const type = event.type;
   if (!type) return null;
   if (TERMINAL.has(type)) return { kind: 'terminal', type };
-  if (STATUS[type]) return { kind: 'status', text: STATUS[type], extra: event.payload?.error ?? event.error ?? event.reason };
+  const status = STATUS[type];
+  if (status) {
+    return {
+      kind: 'status',
+      text: status.status ?? status.text,
+      log: status.log || false,
+      extra: event.payload?.error ?? event.error ?? event.reason
+    };
+  }
   if (type === 'cursor.message') return formatCursorMessage(event.payload);
   return null;
 }
@@ -71,68 +106,44 @@ export function renderProgressView({
   header,
   transcript = [],
   footer = '',
-  status = 'running',
+  status = 'thinking',
   finished = false,
   tick = 0,
-  taskId = ''
+  taskId = '',
+  // A pushed message never refreshes, so an animation frame would freeze there
+  // as a stray character instead of reading as motion.
+  animate = true,
+  expanded = false,
+  maxBytes = MAX_BYTES
 } = {}) {
-  const process = [];
-  let current = '';
-  let lastAssistant = '';
-  for (const block of transcript) {
-    if (block.kind === 'tool' || block.kind === 'status') {
-      const rendered = renderProcessLine(block);
-      if (rendered) process.push(rendered);
-      continue;
-    }
-    if (block.kind === 'assistant') {
-      lastAssistant = String(block.text ?? '').trim();
-      if (lastAssistant) current = clipHead(lastAssistant, CURRENT_LINE_MAX);
-      continue;
-    }
-    if (block.kind === 'thinking' && !current) {
-      const thinking = String(block.text ?? '').trim();
-      if (thinking) current = clipHead(thinking, CURRENT_LINE_MAX);
-    }
-  }
-
-  const hidden = Math.max(0, process.length - PROCESS_VISIBLE);
-  const visible = process.slice(-PROCESS_VISIBLE);
-  const parts = [];
-  if (header) parts.push(finished ? header : danceOnTitle(header, tick));
-  parts.push(`**Agent** · ${status}`);
-  if (visible.length) {
-    const title = process.length > PROCESS_VISIBLE
-      ? `**过程** · ${process.length} 步`
-      : '**过程**';
-    const lines = [title, ...visible];
-    if (hidden > 0) lines.push(`_… 另有 ${hidden} 步已收起_`);
-    parts.push(lines.join('\n'));
-  } else if (!finished) {
-    parts.push('_等待 Agent 输出…_');
-  }
-  if (!finished && current) parts.push(`**正在**\n${current}`);
-  if (finished) {
-    const summary = [clipSummary(lastAssistant, SUMMARY_MAX), footer].filter(Boolean).join('\n\n');
-    if (summary) parts.push(`---\n**结果**\n${summary}`);
-    // The terminal footer already carries the id, so only add it when missing.
-    if (!footer) appendTaskFooter(parts, taskId, false);
-  } else {
-    if (footer) parts.push(`---\n${footer}`);
-    appendTaskFooter(parts, taskId, true);
-  }
-  return clipUtf8KeepEnds(parts.filter(Boolean).join('\n\n'), MAX_BYTES);
+  const dancing = animate && !finished && status !== 'canceling' && status !== 'canceled'
+    && status !== 'completed' && status !== 'failed';
+  return clipUtf8KeepEnds(renderAgentUI(buildAgentUIState({
+    header: header && dancing ? danceOnTitle(header, tick) : header,
+    transcript,
+    footer,
+    status,
+    finished,
+    expanded,
+    taskId
+  })), maxBytes);
 }
 
 export function createWeComProgressHub({
   replyProgress,
+  pushMessage,
   logger = console,
   now = () => Date.now(),
   textFlushMs = TEXT_FLUSH_MS,
   heartbeatMs = HEARTBEAT_MS,
-  danceMs = DANCE_MS
+  danceMs = DANCE_MS,
+  streamTtlMs = STREAM_TTL_MS,
+  pushIntervalMs = PUSH_INTERVAL_MS,
+  stallMs = STALL_MS,
+  onStall = null
 } = {}) {
   const sessions = new Map();
+  const archives = new Map();
   // The title animation needs its own cadence: without it the frame would only
   // advance when the Agent emits something, so a silent step looks frozen.
   const tickMs = danceMs > 0 ? Math.max(500, danceMs) : Math.min(heartbeatMs, 15_000);
@@ -141,14 +152,33 @@ export function createWeComProgressHub({
 
   async function tickAll() {
     for (const session of [...sessions.values()]) {
+      if (session.finished) continue;
+      if (stallMs > 0 && now() - session.lastEventAt >= stallMs) {
+        await stallSession(session);
+        continue;
+      }
       await flushSession(session, { heartbeat: true });
     }
   }
 
-  async function flushSession(session, { finish = false, footer = '', heartbeat = false } = {}) {
+  /**
+   * @param handoff true when the notifier will send its own terminal message,
+   * so a session already on the pushed channel must not send a second one.
+   */
+  async function flushSession(session, { finish = false, footer = '', heartbeat = false, handoff = false } = {}) {
     if (!session || session.finished) return false;
+    if (heartbeat && !finish && !shouldTick(session, now())) return false;
+    if (session.mode === 'stream' && !finish && streamAged(session, now())) {
+      await closeAgedStream(session);
+      if (session.finished) return false;
+    }
+    return session.mode === 'push'
+      ? pushSession(session, { finish, footer, handoff })
+      : streamSession(session, { finish, footer, handoff });
+  }
+
+  async function streamSession(session, { finish, footer, handoff }) {
     const ts = now();
-    if (heartbeat && !finish && !shouldTick(session, ts)) return false;
     session.updatedAt = ts;
     session.lastFlushAt = ts;
     const content = renderProgressView({
@@ -160,6 +190,7 @@ export function createWeComProgressHub({
       tick: session.tick,
       taskId: session.taskId
     });
+    capture(session, { finished: finish });
     if (!finish) session.tick += 1;
     try {
       await replyProgress?.(session.frame, session.streamId, content, finish);
@@ -169,36 +200,193 @@ export function createWeComProgressHub({
       }
       return true;
     } catch (error) {
-      logger.error?.(`wecom-progress-failed:${session.taskId}:${error instanceof Error ? error.message : error}`);
+      // The frame that hit the expiry is lost, so the pushed channel has to
+      // resend it rather than wait out an interval.
+      if (isStreamExpired(error) && canPush(session)) {
+        logger.event?.('progress.degraded', { taskId: session.taskId, reason: 'expired', to: 'push' });
+        session.mode = 'push';
+        session.pushedAt = 0;
+        session.dirty = false;
+        return pushSession(session, { finish, footer, handoff });
+      }
+      const reason = describeWeComError(error);
+      logger.error?.(`wecom-progress-failed:${session.taskId}:${reason}`);
+      logger.event?.('progress.failed', { taskId: session.taskId, error: reason });
       session.finished = true;
       sessions.delete(session.taskId);
       return false;
     }
   }
 
+  async function pushSession(session, { finish, footer, handoff }) {
+    const ts = now();
+    if (finish) {
+      session.finished = true;
+      capture(session, { finished: true });
+      sessions.delete(session.taskId);
+      if (handoff || !canPush(session)) return false;
+    } else if (session.pushedAt && ts - session.pushedAt < pushIntervalMs) {
+      session.dirty = true;
+      return true;
+    }
+    const content = renderProgressView({
+      header: session.header,
+      transcript: session.transcript,
+      status: session.status,
+      footer: footer || (finish ? '' : RUNNING_NOTICE),
+      finished: finish,
+      animate: false,
+      taskId: session.taskId,
+      maxBytes: PUSH_MAX_BYTES
+    });
+    capture(session, { finished: finish });
+    session.updatedAt = ts;
+    session.lastFlushAt = ts;
+    session.pushedAt = ts;
+    session.dirty = false;
+    try {
+      await pushMessage?.(session.target, content);
+      logger.event?.('progress.push', { taskId: session.taskId, finish });
+      return true;
+    } catch (error) {
+      const reason = describeWeComError(error);
+      logger.error?.(`wecom-progress-push-failed:${session.taskId}:${reason}`);
+      logger.event?.('progress.push.failed', { taskId: session.taskId, error: reason });
+      session.finished = true;
+      sessions.delete(session.taskId);
+      return false;
+    }
+  }
+
+  /**
+   * Closing the stream ourselves keeps the explanation visible: the frame still
+   * lands, so the user reads why the live view stopped instead of watching it
+   * freeze mid-task.
+   */
+  async function closeAgedStream(session) {
+    const handoff = canPush(session);
+    const content = renderProgressView({
+      header: session.header,
+      transcript: session.transcript,
+      status: session.status,
+      footer: handoff ? handoffNotice(pushIntervalMs) : STREAM_STOP_NOTICE,
+      // The task is still running, so this is a closed stream, not a result.
+      finished: false,
+      animate: false,
+      taskId: session.taskId
+    });
+    capture(session, { finished: false });
+    try {
+      await replyProgress?.(session.frame, session.streamId, content, true);
+    } catch (error) {
+      logger.event?.('progress.stream.close.failed', {
+        taskId: session.taskId,
+        error: describeWeComError(error)
+      });
+    }
+    logger.event?.('progress.degraded', { taskId: session.taskId, reason: 'ttl', to: handoff ? 'push' : 'none' });
+    if (!handoff) {
+      session.finished = true;
+      sessions.delete(session.taskId);
+      return;
+    }
+    session.mode = 'push';
+    // The frame just sent carries the current view, so the first pushed update
+    // waits a full interval instead of repeating it.
+    session.pushedAt = now();
+    session.dirty = false;
+  }
+
+  function canPush(session) {
+    return Boolean(pushMessage && session.target);
+  }
+
+  function streamAged(session, ts) {
+    return streamTtlMs > 0 && ts - session.openedAt >= streamTtlMs;
+  }
+
   function shouldTick(session, ts) {
+    if (session.mode === 'push') return ts - session.pushedAt >= pushIntervalMs;
+    if (streamAged(session, ts)) return true;
     if (danceMs > 0 && ts - session.lastFlushAt >= danceMs) return true;
     return ts - session.updatedAt >= heartbeatMs;
   }
 
+  async function stallSession(session) {
+    if (!session || session.finished) return false;
+    session.status = 'failed';
+    const current = lastActivity(session);
+    appendBlock(session, { kind: 'status', text: '长时间无新输出' });
+    const extra = current
+      ? `最后进展：${current}`
+      : '期间没有任何新的过程输出';
+    logger.event?.('progress.stalled', { taskId: session.taskId });
+    const flushed = await flushSession(session, {
+      finish: true,
+      footer: `${extra}。发送 \`继续 ${session.taskId}\` 可重试。`
+    });
+    try {
+      await onStall?.(session.taskId);
+    } catch (error) {
+      logger.error?.(`wecom-progress-stall-failed:${session.taskId}:${describeWeComError(error)}`);
+    }
+    return flushed;
+  }
+
+  function capture(session, extra = {}) {
+    if (!session?.taskId) return;
+    archives.set(session.taskId, {
+      header: session.header,
+      transcript: session.transcript.slice(),
+      status: extra.status ?? session.status,
+      finished: extra.finished ?? session.finished,
+      taskId: session.taskId
+    });
+    if (archives.size <= ARCHIVE_LIMIT) return;
+    const oldest = archives.keys().next().value;
+    archives.delete(oldest);
+  }
+
   return {
-    open({ taskId, frame, streamId, header }) {
+    open({ taskId, frame, streamId, header, source }) {
       if (!taskId || !frame || !streamId) return;
       sessions.set(taskId, {
         taskId,
         frame,
         streamId,
         header,
+        // Where progress goes once the stream expires. A conversation we cannot
+        // address actively simply loses the live view at that point.
+        target: notifyTargetFromSource(source ?? sourceFromFrame(frame)),
+        mode: 'stream',
         transcript: [],
-        status: '启动中',
+        status: 'created',
+        openedAt: now(),
         updatedAt: now(),
+        lastEventAt: now(),
         lastFlushAt: 0,
+        pushedAt: 0,
+        dirty: false,
         tick: 0,
         finished: false
       });
     },
     has(taskId) {
       return sessions.has(taskId);
+    },
+    renderProcess(taskId) {
+      const snap = sessions.get(taskId) ?? archives.get(taskId);
+      if (!snap) return '';
+      return renderProgressView({
+        header: snap.header,
+        transcript: snap.transcript,
+        status: snap.status,
+        finished: snap.finished,
+        expanded: true,
+        animate: false,
+        taskId: snap.taskId,
+        maxBytes: MAX_BYTES
+      });
     },
     async tick() {
       return tickAll();
@@ -208,23 +396,34 @@ export function createWeComProgressHub({
       if (!session || session.finished) return false;
       const item = formatProgressEvent(event);
       if (!item) return false;
+      session.lastEventAt = now();
       if (item.kind === 'terminal') {
-        session.status = item.type === 'task.failed' ? '失败' : item.type === 'task.cancelled' ? '已取消' : '已完成';
+        session.status = item.type === 'task.failed' ? 'failed' : item.type === 'task.cancelled' ? 'canceled' : 'completed';
         return flushSession(session, {
           finish: true,
-          footer: formatTaskNotify(task ?? event.task ?? { id: event.taskId, status: event.status }, event)
+          // On the pushed channel the notifier already owns the terminal
+          // message, and it carries the files, PR and media this view does not.
+          handoff: true,
+          footer: formatTaskNotify(task ?? event.task ?? { id: event.taskId, status: event.status }, event, {
+            includeConclusion: false
+          })
         });
       }
       if (item.kind === 'status') {
         session.status = item.text;
-        appendBlock(session, { kind: 'status', text: item.extra ? `${item.text}：${item.extra}` : item.text });
+        if (item.log || item.extra) {
+          const line = typeof item.log === 'string' ? item.log : item.text;
+          appendBlock(session, { kind: 'status', text: item.extra ? `${line}：${item.extra}` : line });
+        }
         return flushSession(session);
       }
       if (item.kind === 'tool') {
+        if (session.status === 'created' || session.status === 'thinking') session.status = 'executing';
         appendBlock(session, item);
         return flushSession(session);
       }
       if (item.kind === 'thinking' || item.kind === 'assistant') {
+        if (session.status === 'created') session.status = 'thinking';
         const last = session.transcript[session.transcript.length - 1];
         const same = last?.kind === item.kind;
         mergeTextBlock(session, item);
@@ -237,17 +436,23 @@ export function createWeComProgressHub({
     async fail(taskId, error) {
       const session = sessions.get(taskId);
       if (!session) return false;
-      session.status = '失败';
+      session.status = 'failed';
       appendBlock(session, { kind: 'status', text: `启动失败：${error instanceof Error ? error.message : error}` });
       return flushSession(session, {
         finish: true,
         footer: `任务 **${taskId}** 启动失败`
       });
     },
+    async beginCancel(taskId) {
+      const session = sessions.get(taskId);
+      if (!session || session.finished) return false;
+      session.status = 'canceling';
+      return flushSession(session, { finish: false });
+    },
     async cancel(taskId) {
       const session = sessions.get(taskId);
       if (!session) return false;
-      session.status = '已取消';
+      session.status = 'canceled';
       return flushSession(session, {
         finish: true,
         footer: `任务 **${taskId}** 已终止`
@@ -256,7 +461,10 @@ export function createWeComProgressHub({
     async close() {
       clearInterval(timer);
       for (const session of [...sessions.values()]) {
-        await flushSession(session, { finish: true, footer: '进程退出，任务仍在后台。完成后如可推送会再通知。' });
+        await flushSession(session, {
+          finish: true,
+          footer: `机器人进程退出，本轮未完成。重启后会标记为中断，发送 \`继续 ${session.taskId}\` 可恢复。`
+        });
       }
     }
   };
@@ -274,9 +482,19 @@ export function formatCursorMessage(payload = {}) {
   return null;
 }
 
-function appendTaskFooter(parts, taskId, running) {
-  const footer = formatTaskFooter(taskId, { running });
-  if (footer) parts.push(`---\n${footer}`);
+const STREAM_STOP_NOTICE = '实时进度已到企微 10 分钟上限，且无法继续推送。请发送 `状态` 查询；完成后如可推送会再通知。';
+const RUNNING_NOTICE = '任务仍在执行，尚无结果。';
+
+function handoffNotice(pushIntervalMs) {
+  const minutes = Math.max(1, Math.round(pushIntervalMs / 60_000));
+  return `实时进度已到企微 10 分钟上限，任务仍在后台运行。\n后续进度改为每约 ${minutes} 分钟单独发一条，完成后推送结果。`;
+}
+
+export function isStreamExpired(error) {
+  const code = Number(error?.errcode ?? error?.errCode);
+  if (code === STREAM_EXPIRED_ERRCODE) return true;
+  const message = String(error?.errmsg ?? error?.errMsg ?? error?.message ?? '');
+  return /stream message update expired/i.test(message);
 }
 
 function danceOnTitle(header, tick) {
@@ -285,29 +503,8 @@ function danceOnTitle(header, tick) {
   return lines.join('\n');
 }
 
-function renderProcessLine(block) {
-  if (!block) return '';
-  if (block.kind === 'tool') {
-    const tools = block.tools ?? [{ name: block.name, detail: block.detail }];
-    return tools
-      .map((tool) => `> ${tool.name}${tool.detail ? ` \`${clipHead(tool.detail, 48)}\`` : ''}`)
-      .join('\n');
-  }
-  if (block.kind === 'status') return `> ${block.text}`;
-  return '';
-}
-
-function clipHead(text, max) {
-  const value = String(text ?? '').replace(/\s+/g, ' ').trim();
-  if (value.length <= max) return value;
-  return `${value.slice(0, max)}…`;
-}
-
-function clipSummary(text, max) {
-  const value = String(text ?? '').trim();
-  if (!value) return '';
-  if (value.length <= max) return value;
-  return `…${value.slice(-max)}`;
+function lastActivity(session) {
+  return lastThinkingActivity(session?.transcript ?? []);
 }
 
 function appendBlock(session, block) {
@@ -375,15 +572,6 @@ function toolDetail(tool) {
   const command = input.command ?? input.cmd;
   if (file && query) return `${file} · ${query}`;
   return String(file ?? query ?? command ?? '').slice(0, 160);
-}
-
-function mergeText(previous, next) {
-  const incoming = String(next ?? '');
-  if (!incoming) return previous ?? '';
-  if (!previous) return incoming;
-  if (incoming.startsWith(previous)) return incoming;
-  if (previous.endsWith(incoming)) return previous;
-  return `${previous}${incoming}`;
 }
 
 function clipUtf8KeepEnds(text, maxBytes) {

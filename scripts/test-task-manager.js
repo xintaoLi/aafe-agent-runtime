@@ -20,7 +20,7 @@
 
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
@@ -30,12 +30,20 @@ import {
   assertCloudProjectReadiness,
   inspectCloudProjectReadiness
 } from '../src/agent-platform/runtime/CloudProjectReadiness.js';
-import { TaskManager } from '../src/agent-platform/tasks/TaskManager.js';
+import { TaskManager, buildTaskPrompt } from '../src/agent-platform/tasks/TaskManager.js';
+import {
+  buildRepoAuthPromptSection,
+  resolveWorkspaceRepoAuth,
+  resolveWorkspaceRepoEnv,
+  workspaceConfigDirs
+} from '../src/agent-platform/tasks/workspaceRepoEnv.js';
 import { TaskScheduler } from '../src/agent-platform/tasks/TaskScheduler.js';
 import { TaskStore } from '../src/agent-platform/tasks/TaskStore.js';
+import { DEFAULT_SHARED_PATHS, WorkspaceManager } from '../src/agent-platform/workspace/WorkspaceManager.js';
 
 const execFileAsync = promisify(execFile);
 const fixture = await mkdtemp(path.join(os.tmpdir(), 'aafe-task-manager-'));
+const exists = (target) => lstat(target).then(() => true, () => false);
 
 try {
   // --- durable state and strict context isolation ---------------------------
@@ -143,6 +151,30 @@ try {
   assert.equal(localState.lastCreate.cloud, undefined);
   await localRuntime.closeAll();
 
+  const injectedShell = { CURSOR_API_KEY: 'cursor_test' };
+  const injectRuntime = new CursorTaskRuntime({
+    env: injectedShell,
+    importSdk: async () => localSdk
+  });
+  await injectRuntime.run({
+    id: 'cursor-local-env',
+    repository: null,
+    cursor: { agentId: null }
+  }, 'push', {
+    cwd: '/tmp/aafe-local-agent',
+    mode: 'local',
+    envVars: {
+      GITHUB_TOKEN: 'ghp_injected',
+      GH_TOKEN: 'ghp_injected',
+      GIT_CONFIG_COUNT: '1',
+      GIT_CONFIG_KEY_0: 'http.https://github.com/.extraheader',
+      GIT_CONFIG_VALUE_0: 'AUTHORIZATION: bearer ghp_injected'
+    }
+  });
+  assert.equal(injectedShell.GITHUB_TOKEN, 'ghp_injected');
+  assert.equal(injectedShell.GIT_CONFIG_VALUE_0.includes('ghp_injected'), true);
+  await injectRuntime.closeAll();
+
   const resumedRuntime = new CursorTaskRuntime({
     env: { CURSOR_API_KEY: 'cursor_test' },
     importSdk: async () => sdk
@@ -212,7 +244,13 @@ try {
   assert.equal(localResumeState.creates, 0);
   await localResumeRuntime.closeAll();
 
-  await localResumeRuntime.recover(localTask, { cwd: '/tmp/aafe-workspace', mode: 'local' });
+  // A local Run still marked running after a restart is a leftover of the dead
+  // process. Streaming it would block forever, which is what left tasks stuck
+  // in `running` and made them shadow every later message.
+  await assert.rejects(
+    localResumeRuntime.recover(localTask, { cwd: '/tmp/aafe-workspace', mode: 'local' }),
+    /cursor-run-stale/
+  );
   assert.deepEqual(localResumeState.getRunArgs.options, { runtime: 'local', cwd: '/tmp/aafe-workspace' });
   await localResumeRuntime.cancel(localTask, { cwd: '/tmp/aafe-workspace', mode: 'local' });
   assert.deepEqual(localResumeState.cancelArgs.options, { runtime: 'local', cwd: '/tmp/aafe-workspace' });
@@ -263,6 +301,43 @@ try {
   assert.ok(lostEvents.includes('cursor.agent.lost'));
   assert.ok(lostEvents.includes('cursor.agent.recreated'));
   await lostRuntime.closeAll();
+
+  // A leftover Cursor run must not block 继续: cancel it, then send again.
+  const conflictState = { sends: 0, cancels: 0 };
+  const conflictSdk = {
+    Agent: {
+      async create() { throw new Error('must resume the existing agent'); },
+      async resume(agentId) {
+        return {
+          agentId,
+          async send() {
+            conflictState.sends += 1;
+            if (conflictState.sends === 1) {
+              throw new Error('Agent agent-busy already has active run');
+            }
+            return fakeRun('run-after-cancel');
+          },
+          async [Symbol.asyncDispose]() {}
+        };
+      },
+      async getRun() { return fakeRun('x'); },
+      async cancelRun() { conflictState.cancels += 1; }
+    }
+  };
+  const conflictRuntime = new CursorTaskRuntime({
+    env: { CURSOR_API_KEY: 'cursor_test' },
+    importSdk: async () => conflictSdk
+  });
+  const conflictResult = await conflictRuntime.run({
+    id: 'cursor-busy',
+    repository: null,
+    workspace: { cwd: '/tmp/aafe-workspace', mode: 'local' },
+    cursor: { agentId: 'agent-busy', activeRunId: 'run-hung' }
+  }, '继续', { cwd: '/tmp/aafe-workspace', mode: 'local' });
+  assert.equal(conflictState.sends, 2);
+  assert.equal(conflictState.cancels, 1);
+  assert.equal(conflictResult.runId, 'run-after-cancel');
+  await conflictRuntime.closeAll();
 
   // --- manager binds execution to isolated durable tasks -------------------
   const managerRoot = path.join(fixture, 'manager');
@@ -343,7 +418,9 @@ try {
   const queued = await continueManager.continue('active-task', 'plus tests');
   assert.equal(queued.status, 'running');
   assert.equal(queued.followUpQueued, true);
-  assert.deepEqual((await continueManager.getContext('active-task')).pendingFollowUps, ['plus tests']);
+  assert.deepEqual((await continueManager.getContext('active-task')).pendingFollowUps, [
+  { text: 'plus tests', author: null }
+]);
   releaseContinue();
   const firstFinished = await firstRun;
   assert.equal(firstFinished.status, 'waiting');
@@ -353,6 +430,54 @@ try {
   assert.equal(continueRuns, 2);
   assert.deepEqual((await continueManager.getContext('active-task')).pendingFollowUps ?? [], []);
   await continueManager.close();
+
+  // --- a follow-up carries who wrote it ------------------------------------
+  // In a group chat several people add to one task, and the agent has to weigh
+  // the owner's words above a bystander's, which merged text cannot express.
+  const authorRoot = path.join(fixture, 'follow-up-author');
+  const authorPrompts = [];
+  const authorManager = new TaskManager({
+    root: authorRoot,
+    runtime: {
+      async run(task, prompt) {
+        authorPrompts.push(prompt);
+        return { agentId: 'agent-x', runId: `run-${authorPrompts.length}`, status: 'finished', text: 'ok', git: {} };
+      },
+      async recover() { return { status: 'finished', text: 'x' }; },
+      async cancel() { return { cancelled: true }; },
+      async close() {},
+      async closeAll() {}
+    },
+    validateProjectRuntime: false
+  });
+  await authorManager.create({
+    id: 'group-task',
+    requirement: 'first',
+    source: { type: 'wecom', conversationId: 'chat-9', userId: 'user-a' }
+  });
+  await authorManager.start('group-task');
+  // A queue written before authorship existed still has to run.
+  const legacyContext = await authorManager.getContext('group-task');
+  legacyContext.pendingFollowUps = ['旧格式的补充'];
+  await authorManager.store.replaceContext('group-task', legacyContext);
+  await authorManager.continue('group-task', '这里还要考虑灰度', {
+    author: { userId: 'user-b', role: 'participant' }
+  });
+  const authorPrompt = authorPrompts.at(-1);
+  assert.match(authorPrompt, /旧格式的补充/);
+  assert.match(authorPrompt, /参与者 user-b 的补充，任务发起人是 user-a/);
+  assert.match(authorPrompt, /这里还要考虑灰度/);
+  const authorContext = await authorManager.getContext('group-task');
+  assert.deepEqual(authorContext.conversation.messages.at(-1).author, { userId: 'user-b', role: 'participant' });
+  assert.deepEqual(authorContext.participants, [{ userId: 'user-b', role: 'participant', messages: 1 }]);
+  // The role is derived from the task, so a caller cannot promote a bystander.
+  await authorManager.continue('group-task', '再补一句', { author: { userId: 'user-b', role: 'owner' } });
+  assert.match(authorPrompts.at(-1), /参与者 user-b/);
+  assert.equal((await authorManager.getContext('group-task')).participants[0].messages, 2);
+  // The owner's own addendum reads as the requirement itself, unannotated.
+  await authorManager.continue('group-task', '范围收一下', { author: { userId: 'user-a', role: 'owner' } });
+  assert.equal(authorPrompts.at(-1), '范围收一下');
+  await authorManager.close();
 
   // --- a successful retry drops the previous attempt's error ---------------
   const retryRoot = path.join(fixture, 'retry-error');
@@ -402,6 +527,54 @@ try {
   assert.equal(recoveredTask.status, 'completed');
   await recoveryManager.close();
 
+  // --- a run that died with its process is parked, not silently re-run ------
+  const staleRoot = path.join(fixture, 'stale-run');
+  const staleStore = new TaskStore({ root: staleRoot });
+  await staleStore.create({
+    id: 'stale-task',
+    requirement: 'interrupted',
+    status: 'running',
+    cursor: { agentId: 'agent-stale', activeRunId: 'run-stale' }
+  }, {});
+  let staleRuns = 0;
+  let staleCancels = 0;
+  const recoveredEvents = [];
+  const staleManager = new TaskManager({
+    root: staleRoot,
+    store: staleStore,
+    runtime: {
+      async run() {
+        staleRuns += 1;
+        return { agentId: 'agent-stale', runId: 'run-new', status: 'finished', text: 'ok', git: {} };
+      },
+      async recover() {
+        throw new Error('cursor-run-stale:local run run-stale did not survive the restart');
+      },
+      async cancel() {
+        staleCancels += 1;
+        return { cancelled: true };
+      },
+      async close() {},
+      async closeAll() {}
+    },
+    validateProjectRuntime: false
+  });
+  staleManager.subscribe((event) => recoveredEvents.push(event));
+  const staleRecovery = await staleManager.recover();
+  const parked = await staleRecovery[0].promise;
+  assert.equal(parked.status, 'failed');
+  assert.equal(parked.error, 'task-interrupted:process-restart');
+  assert.equal(recoveredEvents.some((event) => event.type === 'task.failed'), true);
+  assert.equal(staleCancels, 1);
+  // Re-running yesterday's requirement unasked is the surprise we are avoiding.
+  assert.equal(staleRuns, 0);
+  // Terminal means it no longer counts as live work competing for follow-ups.
+  assert.deepEqual((await staleManager.list({ statuses: ['running'] })).length, 0);
+  const resumedStale = await staleManager.start('stale-task');
+  assert.equal(resumedStale.status, 'completed');
+  assert.equal(staleRuns, 1);
+  await staleManager.close();
+
   // --- Cloud clone must contain tracked native Cursor pointers -------------
   const readyRoot = path.join(fixture, 'ready');
   await mkdir(path.join(readyRoot, '.ai-agent'), { recursive: true });
@@ -440,6 +613,350 @@ try {
   await execFileAsync('git', ['add', '.'], { cwd: readyRoot });
   readiness = await assertCloudProjectReadiness(readyRoot);
   assert.equal(readiness.ready, true);
+
+  // --- one checkout per task ------------------------------------------------
+  const repo = path.join(fixture, 'worktree-repo');
+  await mkdir(repo, { recursive: true });
+  await execFileAsync('git', ['init', '-q', '-b', 'main', '.'], { cwd: repo });
+  await writeFile(path.join(repo, 'a.txt'), 'hello\n', 'utf8');
+  await writeFile(path.join(repo, '.gitignore'), 'node_modules/\n', 'utf8');
+  await mkdir(path.join(repo, 'node_modules', 'left-pad'), { recursive: true });
+  await writeFile(path.join(repo, 'node_modules', 'left-pad', 'package.json'), '{"v":1}\n', 'utf8');
+  await execFileAsync('git', ['add', '-A'], { cwd: repo });
+  await execFileAsync('git', [
+    '-c', 'user.email=t@example.com', '-c', 'user.name=t', 'commit', '-qm', 'init'
+  ], { cwd: repo });
+
+  const workspaces = new WorkspaceManager({ logger: { warn() {} } });
+  const inRepo = (id) => ({ id, baseBranch: 'main', workspace: { cwd: repo, mode: 'local' } });
+  const leaseA = await workspaces.acquire(inRepo('task-wt-a'));
+  const leaseB = await workspaces.acquire(inRepo('task-wt-b'));
+  assert.equal(leaseA.mode, 'worktree');
+  assert.equal(leaseB.mode, 'worktree');
+  // The whole point: two live tasks on one repository do not share a directory.
+  assert.notEqual(leaseA.cwd, leaseB.cwd);
+  assert.notEqual(leaseA.port, leaseB.port);
+  assert.equal(leaseA.baseRef, 'main');
+  // Acquiring twice for one task is the recovery path, not a second checkout.
+  assert.equal((await workspaces.acquire(inRepo('task-wt-a'))).cwd, leaseA.cwd);
+  const { stdout: worktreeList } = await execFileAsync('git', ['worktree', 'list'], { cwd: repo });
+  assert.ok(worktreeList.includes('task-wt-a') && worktreeList.includes('task-wt-b'));
+  // The checkouts must not surface as untracked files in the main tree.
+  const { stdout: repoStatus } = await execFileAsync('git', ['status', '--porcelain'], { cwd: repo });
+  assert.equal(repoStatus.trim(), '');
+
+  // Installed dependencies are borrowed, or the agent's first move in a fresh
+  // checkout is an install and the self-test gate never runs.
+  assert.equal(
+    (await readFile(path.join(leaseA.cwd, 'node_modules', 'left-pad', 'package.json'), 'utf8')).trim(),
+    '{"v":1}'
+  );
+  // Borrowing must not leave the worktree dirty, in either checkout.
+  const { stdout: leasedStatus } = await execFileAsync('git', ['status', '--porcelain'], { cwd: leaseA.cwd });
+  assert.equal(leasedStatus.trim(), '');
+
+  // Dependencies are read-only in practice and safe to share; the build caches
+  // that live among them are not, and two tasks writing one cache is how a task
+  // ends up shipping another task's output.
+  await writeFile(path.join(leaseA.cwd, 'node_modules', '.cache', 'build.json'), 'from-a\n', 'utf8');
+  await writeFile(path.join(leaseB.cwd, 'node_modules', '.cache', 'build.json'), 'from-b\n', 'utf8');
+  assert.equal(
+    (await readFile(path.join(leaseA.cwd, 'node_modules', '.cache', 'build.json'), 'utf8')).trim(),
+    'from-a'
+  );
+  assert.equal(
+    (await readFile(path.join(leaseB.cwd, 'node_modules', '.cache', 'build.json'), 'utf8')).trim(),
+    'from-b'
+  );
+  assert.equal(await exists(path.join(repo, 'node_modules', '.cache', 'build.json')), false,
+    'a task must not write its build cache into the main checkout');
+  // Shadowing the caches means `node_modules` itself is a real directory, which
+  // the repository's own ignore rule already covers.
+  assert.equal((await lstat(path.join(leaseA.cwd, 'node_modules'))).isSymbolicLink(), false);
+  assert.equal((await lstat(path.join(leaseA.cwd, 'node_modules', 'left-pad'))).isSymbolicLink(), true);
+  assert.equal(
+    (await readFile(path.join(repo, '.git', 'info', 'exclude'), 'utf8').catch(() => '')).includes('AAFE'),
+    false,
+    'nothing has to be excluded when the borrowed path is a real directory'
+  );
+  // Naming the same path in config means what the default means, or a project
+  // would lose cache isolation for having spelled `node_modules` out.
+  assert.deepEqual(new WorkspaceManager({ share: ['node_modules'] }).share, [...DEFAULT_SHARED_PATHS]);
+  // Anything else is borrowed whole, and a whole-directory symlink is the case
+  // git will not ignore on its own.
+  const built = path.join(repo, 'dist');
+  await mkdir(built, { recursive: true });
+  await writeFile(path.join(built, 'app.js'), 'built\n', 'utf8');
+  await writeFile(path.join(repo, '.gitignore'), 'node_modules/\ndist/\n', 'utf8');
+  await execFileAsync('git', [
+    '-c', 'user.email=t@example.com', '-c', 'user.name=t', 'commit', '-qam', 'ignore dist'
+  ], { cwd: repo });
+  const whole = new WorkspaceManager({ share: ['dist'], logger: { warn() {} } });
+  const wholeLease = await whole.acquire(inRepo('task-wt-dist'));
+  assert.equal((await lstat(path.join(wholeLease.cwd, 'dist'))).isSymbolicLink(), true);
+  const { stdout: distStatus } = await execFileAsync('git', ['status', '--porcelain'], { cwd: wholeLease.cwd });
+  assert.equal(distStatus.trim(), '', 'a borrowed symlink has to be excluded or every worktree is dirty');
+  whole.release('task-wt-dist');
+  await whole.remove('task-wt-dist', { repoRoot: repo, force: true });
+
+  // Tracked content is never replaced by a link to the main checkout.
+  const tracked = new WorkspaceManager({ share: ['a.txt'], logger: { warn() {} } });
+  const noShare = await tracked.acquire(inRepo('task-wt-tracked'));
+  assert.equal((await readFile(path.join(noShare.cwd, 'a.txt'), 'utf8')).trim(), 'hello');
+  assert.equal((await lstat(path.join(noShare.cwd, 'a.txt'))).isSymbolicLink(), false);
+  tracked.release('task-wt-tracked');
+  await tracked.remove('task-wt-tracked', { repoRoot: repo, force: true });
+
+  // A task is provisioned detached because the branch it will develop on is the
+  // agent's to name. Once it has one, a re-created checkout must resume it:
+  // detaching again would strand every commit the task has already made.
+  assert.equal(leaseB.branch, null);
+  await execFileAsync('git', ['switch', '-q', '-c', 'feat/ai/#4242'], { cwd: leaseB.cwd });
+  await writeFile(path.join(leaseB.cwd, 'a.txt'), 'changed by b\n', 'utf8');
+  await execFileAsync('git', [
+    '-c', 'user.email=t@example.com', '-c', 'user.name=t', 'commit', '-qam', 'work'
+  ], { cwd: leaseB.cwd });
+  workspaces.release('task-wt-b');
+  assert.equal((await workspaces.remove('task-wt-b', { repoRoot: repo })).removed, true);
+  const resumed = await workspaces.acquire({
+    ...inRepo('task-wt-b'),
+    taskBranch: 'feat/ai/#4242'
+  });
+  assert.equal(resumed.branch, 'feat/ai/#4242');
+  assert.equal((await readFile(path.join(resumed.cwd, 'a.txt'), 'utf8')).trim(), 'changed by b');
+  workspaces.release('task-wt-b');
+  await workspaces.remove('task-wt-b', { repoRoot: repo, force: true });
+  // A branch the repository has never heard of is not a reason to fail to
+  // provision; the task is simply started detached as usual.
+  const unknownBranch = await workspaces.acquire({
+    ...inRepo('task-wt-c'),
+    taskBranch: 'feat/ai/#never'
+  });
+  assert.equal(unknownBranch.branch, null);
+  assert.equal(unknownBranch.baseRef, 'main');
+  workspaces.release('task-wt-c');
+  await workspaces.remove('task-wt-c', { repoRoot: repo, force: true });
+
+  // A worktree still holding uncommitted work is the only copy of it.
+  await writeFile(path.join(leaseA.cwd, 'scratch.txt'), 'unsaved\n', 'utf8');
+  assert.equal(workspaces.release('task-wt-a').taskId, 'task-wt-a');
+  assert.equal((await workspaces.remove('task-wt-a', { repoRoot: repo })).reason, 'dirty');
+  assert.equal((await workspaces.remove('task-wt-a', { repoRoot: repo, force: true })).removed, true);
+
+  // --- a directory that cannot be a worktree is held exclusively instead ----
+  const plain = path.join(fixture, 'not-a-repo');
+  await mkdir(plain, { recursive: true });
+  const shares = new WorkspaceManager({ logger: { warn() {} } });
+  const held = await shares.acquire({ id: 'task-plain-a', workspace: { cwd: plain } });
+  assert.equal(held.mode, 'shared');
+  let secondArrived = false;
+  const waiting = shares.acquire({ id: 'task-plain-b', workspace: { cwd: plain } })
+    .then((lease) => { secondArrived = true; return lease; });
+  await delay(30);
+  assert.equal(secondArrived, false, 'a shared checkout must not be handed to two tasks at once');
+  shares.release('task-plain-a');
+  const queuedLease = await waiting;
+  assert.equal(queuedLease.cwd, held.cwd);
+  assert.equal(queuedLease.port, held.port, 'a released port returns to the pool');
+  shares.release('task-plain-b');
+
+  // Worktrees can be turned off; the lock is what remains.
+  const flat = new WorkspaceManager({ worktrees: false });
+  assert.equal((await flat.acquire(inRepo('task-flat'))).mode, 'shared');
+  flat.release('task-flat');
+
+  // --- the lease and the PR are facts about the task, not log lines ---------
+  let leasedPrompt = '';
+  const leasedStore = new TaskStore({ root: path.join(fixture, 'leased') });
+  await writeFile(path.join(repo, '.aafe.config.json'), JSON.stringify({
+    repo: { githubAccessToken: 'ghp_workspace_cfg' }
+  }), 'utf8');
+  let leasedEnvVars = null;
+  const leasedManager = new TaskManager({
+    root: path.join(fixture, 'leased'),
+    store: leasedStore,
+    runtime: {
+      async run(task, prompt, options = {}) {
+        leasedPrompt = prompt;
+        leasedEnvVars = options.envVars ?? null;
+        // The agent must be inside its own checkout, not the repository root.
+        assert.ok(prompt.includes(task.execution.cwd));
+        return {
+          agentId: 'agent-lease',
+          runId: 'run-lease',
+          status: 'finished',
+          text: 'ok',
+          git: { branches: [{ branch: 'feat/ai/#1' }], prUrl: 'https://github.com/o/r/pull/7' }
+        };
+      },
+      async recover() { return { status: 'finished', text: 'x' }; },
+      async cancel() { return { cancelled: true }; },
+      async close() {},
+      async closeAll() {}
+    },
+    validateProjectRuntime: false,
+    workspaces: new WorkspaceManager({ logger: { warn() {} } })
+  });
+  const leased = await leasedManager.create({
+    goal: 'lease me',
+    baseBranch: 'main',
+    workspace: { cwd: repo, mode: 'local' }
+  });
+  const previousGithub = process.env.GITHUB_TOKEN;
+  const previousGh = process.env.GH_TOKEN;
+  delete process.env.GITHUB_TOKEN;
+  delete process.env.GH_TOKEN;
+  try {
+    await leasedManager.start(leased.id);
+  } finally {
+    if (previousGithub === undefined) delete process.env.GITHUB_TOKEN;
+    else process.env.GITHUB_TOKEN = previousGithub;
+    if (previousGh === undefined) delete process.env.GH_TOKEN;
+    else process.env.GH_TOKEN = previousGh;
+  }
+  const settled = await leasedStore.get(leased.id);
+  assert.equal(leasedEnvVars?.GITHUB_TOKEN, 'ghp_workspace_cfg');
+  assert.match(leasedPrompt, /GITHUB_TOKEN \/ GH_TOKEN/);
+  assert.equal(leasedPrompt.includes('ghp_workspace_cfg'), false);
+  assert.equal(settled.execution.mode, 'worktree');
+  assert.ok(settled.execution.cwd.includes(leased.id));
+  assert.ok(settled.execution.port > 0);
+  assert.ok((await leasedStore.events(leased.id)).some((e) => e.type === 'task.workspace.leased'));
+  // The run reported a PR, so reading it no longer means digging through result.
+  assert.equal(settled.pullRequest.url, 'https://github.com/o/r/pull/7');
+  assert.equal(settled.pullRequest.provider, 'github');
+  assert.equal(settled.pullRequest.number, 7);
+  // Released once the run is over, so the next task may have the port.
+  assert.equal(leasedManager.workspaces.get(leased.id), null);
+
+  // A finished task's checkout is given back, or the directory grows by one per
+  // task ever run.
+  assert.deepEqual(await leasedManager.reclaimWorkspaces(), [leased.id]);
+  assert.ok((await leasedStore.events(leased.id)).some((e) => e.type === 'task.workspace.reclaimed'));
+  assert.deepEqual(await leasedManager.reclaimWorkspaces(), [], 'already reclaimed is not reclaimed twice');
+
+  assert.match(leasedPrompt, /Isolated workspace:/);
+  // Detached is deliberate; an agent told nothing would treat it as damage.
+  assert.match(leasedPrompt, /HEAD is detached/);
+  assert.match(leasedPrompt, new RegExp(`Reserved port: ${settled.execution.port}`));
+  assert.equal(buildTaskPrompt(settled, {}, null).includes('Reserved port'), true);
+  assert.equal(buildTaskPrompt({ id: 'x', goal: 'y' }, {}).includes('Isolated workspace'), false);
+  assert.match(
+    buildTaskPrompt({ id: 'x', goal: 'y' }, {}, null, { envVars: { GITHUB_TOKEN: 'secret' } }),
+    /GitHub auth is already in this process environment/
+  );
+  assert.equal(
+    buildTaskPrompt({ id: 'x', goal: 'y' }, {}, null, { envVars: { GITHUB_TOKEN: 'secret' } }).includes('secret'),
+    false
+  );
+
+  const nestedDirs = workspaceConfigDirs(
+    { workspace: { cwd: '/repo/bklog/web' } },
+    { cwd: '/repo/.aafe/worktrees/task-1', repoRoot: '/repo' }
+  );
+  assert.equal(nestedDirs[0], path.resolve('/repo/bklog/web'));
+  assert.ok(nestedDirs.some((dir) => dir.endsWith(path.join('task-1', 'bklog', 'web'))));
+  const fromNestedConfig = await resolveWorkspaceRepoEnv(
+    { workspace: { cwd: '/missing' } },
+    { cwd: '/work', repoRoot: '/repo' },
+    {},
+    {
+      readConfig: async (dir) => (
+        dir === path.resolve('/repo/bklog/web')
+          ? { repo: { githubAccessToken: 'ghp_nested' } }
+          : null
+      )
+    }
+  );
+  assert.equal(fromNestedConfig.GITHUB_TOKEN, undefined);
+  const fromInstall = await resolveWorkspaceRepoEnv(
+    { workspace: { cwd: '/repo/bklog/web' } },
+    { cwd: '/repo/.aafe/worktrees/task-1', repoRoot: '/repo' },
+    {},
+    {
+      readConfig: async (dir) => (
+        dir === path.resolve('/repo/bklog/web')
+          ? { repo: { githubAccessToken: 'ghp_nested' } }
+          : null
+      )
+    }
+  );
+  assert.equal(fromInstall.GITHUB_TOKEN, 'ghp_nested');
+  assert.equal(fromInstall.GIT_CONFIG_VALUE_0.includes('ghp_nested'), true);
+  assert.equal(buildRepoAuthPromptSection(fromInstall).join('\n').includes('ghp_nested'), false);
+
+  const wecomWins = await resolveWorkspaceRepoAuth(
+    { workspace: { cwd: '/repo/web' } },
+    null,
+    {},
+    {
+      overrideConfig: { repo: { githubAccessToken: 'ghp_wecom' } },
+      aafeConfig: { repo: { githubAccessToken: 'ghp_aafe' } },
+      readConfig: async (dir) => (
+        dir === path.resolve('/repo/web')
+          ? { repo: { githubAccessToken: 'ghp_workspace' } }
+          : null
+      )
+    }
+  );
+  assert.equal(wecomWins.source, 'wecom');
+  assert.equal(wecomWins.envVars.GITHUB_TOKEN, 'ghp_wecom');
+
+  const aafeWins = await resolveWorkspaceRepoAuth(
+    { workspace: { cwd: '/repo/web' } },
+    null,
+    {},
+    {
+      overrideConfig: { repo: { githubAccessToken: null } },
+      aafeConfig: { repo: { githubAccessToken: 'ghp_aafe' } },
+      readConfig: async (dir) => (
+        dir === path.resolve('/repo/web')
+          ? { repo: { githubAccessToken: 'ghp_workspace' } }
+          : null
+      )
+    }
+  );
+  assert.equal(aafeWins.source, 'aafe');
+  assert.equal(aafeWins.envVars.GITHUB_TOKEN, 'ghp_aafe');
+
+  const workspaceWins = await resolveWorkspaceRepoAuth(
+    { workspace: { cwd: '/repo/web' } },
+    null,
+    {},
+    {
+      aafeConfig: { repo: {} },
+      readConfig: async (dir) => (
+        dir === path.resolve('/repo/web')
+          ? { repo: { githubAccessToken: 'ghp_workspace' } }
+          : null
+      )
+    }
+  );
+  assert.equal(workspaceWins.source, 'workspace');
+  assert.equal(workspaceWins.envVars.GITHUB_TOKEN, 'ghp_workspace');
+
+  // --- the index narrows candidates without becoming the truth --------------
+  const indexed = new TaskStore({ root: path.join(fixture, 'indexed') });
+  await indexed.create({ id: 'idx-a', goal: 'A', source: { type: 'wecom', conversationId: 'room-1', userId: 'ann' } });
+  await indexed.create({ id: 'idx-b', goal: 'B', source: { type: 'wecom', conversationId: 'room-1', userId: 'bob' } });
+  await indexed.create({ id: 'idx-c', goal: 'C', source: { type: 'wecom', conversationId: 'room-2', userId: 'ann' } });
+  await indexed.create({ id: 'idx-d', goal: 'D', source: { type: 'cli' } });
+  assert.deepEqual(
+    (await indexed.list({ conversationId: 'room-1' })).map((task) => task.id).sort(),
+    ['idx-a', 'idx-b']
+  );
+  assert.deepEqual((await indexed.list({ conversationId: 'room-1', userId: 'ann' })).map((t) => t.id), ['idx-a']);
+  assert.deepEqual((await indexed.list({ sourceType: 'cli' })).map((t) => t.id), ['idx-d']);
+  assert.equal((await indexed.list({})).length, 4);
+  await indexed.transition('idx-a', 'queued');
+  assert.deepEqual((await indexed.list({ statuses: ['queued'] })).map((t) => t.id), ['idx-a']);
+  // A task written without the index still has to be found and repaired into it.
+  await rm(path.join(fixture, 'indexed', '.aafe', 'tasks', 'index.json'), { force: true });
+  assert.equal((await indexed.list({ conversationId: 'room-1' })).length, 2);
+  assert.equal((await indexed.list({ conversationId: 'room-1' })).length, 2);
+  // An index entry pointing at a task that is gone must not resurrect it.
+  await rm(path.join(fixture, 'indexed', '.aafe', 'tasks', 'idx-c'), { recursive: true, force: true });
+  assert.deepEqual((await indexed.list({ userId: 'ann' })).map((t) => t.id), ['idx-a']);
 } finally {
   await rm(fixture, { recursive: true, force: true });
 }

@@ -176,3 +176,12 @@
 {"path":"ai-bots/wecom/src/media.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-03T11:59:48.305Z"}
 {"path":"ai-bots/wecom/src/workspace.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-04T02:56:13.726Z"}
 {"path":"ai-bots/wecom/src/understand.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-04T03:18:54.242Z"}
+{"path":"ai-bots/wecom/src/models.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-04T03:53:49.590Z"}
+{"path":"ai-bots/wecom/src/chat.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-04T04:20:13.940Z"}
+{"path":"ai-bots/wecom/src/smalltalk.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-04T04:26:03.345Z"}
+{"path":"ai-bots/wecom/src/quote.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-04T07:22:17.350Z"}
+{"path":"ai-bots/wecom/src/context.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-04T07:22:17.442Z"}
+{"path":"src/agent-platform/tasks/tapdPolicy.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-04T07:49:31.112Z"}
+{"path":"ai-bots/wecom/src/candidates.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-04T09:36:22.959Z"}
+{"path":"src/agent-platform/tasks/workspaceRepoEnv.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-05T06:24:48.161Z"}
+{"path":"ai-bots/wecom/src/ui.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-07T02:33:03.459Z"}

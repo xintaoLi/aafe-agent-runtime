@@ -13,6 +13,11 @@
   "engines": {
     "node": ">=18"
   },
+  "scripts": {
+    "start": "node ../../bin/aafe.js wecom --root=../..",
+    "dev": "WECOM_LOG=1 WECOM_LOG_LEVEL=debug node --watch ../../bin/aafe.js wecom --root=../..",
+    "check:models": "node ../../bin/aafe.js wecom --check-models --root=../.."
+  },
   "dependencies": {
     "@wecom/aibot-node-sdk": "^1.0.7"
   }

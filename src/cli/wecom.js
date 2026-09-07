@@ -91,7 +91,7 @@ export async function checkWeComModels(root, {
   out.log('规则表（顺序即优先级，已剔除无效规则）：');
   for (const rule of router.list()) {
     const when = [
-      rule.stage === 'intent' ? 'stage=intent' : null,
+      rule.stage === 'task' ? null : `stage=${rule.stage}`,
       rule.intent ? `intent=${rule.intent.join('|')}` : null,
       rule.match ? `match=/${rule.match}/i` : null,
       rule.not ? `not=/${rule.not}/i` : null,

@@ -189,6 +189,40 @@ export function withRepoTokenEnv(projectConfig = {}, env = process.env) {
   return next;
 }
 
+export const GITHUB_HTTP_EXTRAHEADER_KEY = 'http.https://github.com/.extraheader';
+
+export function githubHttpExtraHeader(token) {
+  return `AUTHORIZATION: bearer ${token}`;
+}
+
+/**
+ * Token env plus git config so a plain `git push` to github.com authenticates
+ * without putting the token in a remote URL. Existing GIT_CONFIG_* entries win.
+ */
+export function withGithubGitAuthEnv(projectConfig = {}, env = process.env) {
+  const next = withRepoTokenEnv(projectConfig, env);
+  const token = String(next.GITHUB_TOKEN || next.GH_TOKEN || '').trim();
+  if (!token) return next;
+  return applyGitConfigValue(next, GITHUB_HTTP_EXTRAHEADER_KEY, githubHttpExtraHeader(token));
+}
+
+export function applyGitConfigValue(env, key, value) {
+  const next = { ...env };
+  const parsed = Number.parseInt(String(next.GIT_CONFIG_COUNT ?? '0'), 10);
+  const count = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  for (let i = 0; i < count; i += 1) {
+    if (String(next[`GIT_CONFIG_KEY_${i}`] ?? '') !== key) continue;
+    if (!String(next[`GIT_CONFIG_VALUE_${i}`] ?? '').trim()) {
+      next[`GIT_CONFIG_VALUE_${i}`] = value;
+    }
+    return next;
+  }
+  next[`GIT_CONFIG_KEY_${count}`] = key;
+  next[`GIT_CONFIG_VALUE_${count}`] = value;
+  next.GIT_CONFIG_COUNT = String(count + 1);
+  return next;
+}
+
 export function expandRepoSecretRef(value, env = process.env) {
   if (typeof value !== 'string') return null;
   const expanded = value.replace(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, name) => String(env[name] ?? ''));

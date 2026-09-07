@@ -24,6 +24,12 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { checkWeComModels, parseWeComArgs } from '../src/cli/wecom.js';
+import { createChatResponder } from '../ai-bots/wecom/src/chat.js';
+import {
+  SMALLTALK_KINDS,
+  SMALLTALK_REPLIES,
+  pickSmalltalkReply
+} from '../ai-bots/wecom/src/smalltalk.js';
 import {
   DEFAULT_MODEL_RULES,
   createModelRouter,
@@ -33,7 +39,7 @@ import {
 import { startWeComBot } from '../ai-bots/wecom/src/index.js';
 import { parseWeComCommand, stripMentions } from '../ai-bots/wecom/src/commands.js';
 import { analyzeWeComIntent } from '../ai-bots/wecom/src/intent.js';
-import { parseCardEvent, buildCancelledCard, freshCardTaskId } from '../ai-bots/wecom/src/cards.js';
+import { parseCardEvent, buildTaskCard, buildCancelledCard, freshCardTaskId } from '../ai-bots/wecom/src/cards.js';
 import { handleWeComCard, handleWeComMedia } from '../ai-bots/wecom/src/handler.js';
 import { createPendingStore } from '../ai-bots/wecom/src/pending.js';
 import {
@@ -45,8 +51,14 @@ import {
   createTaskManagerOptions,
   loadWeComBotConfig,
   resolveWeComIntentConfig,
-  resolveWeComModelConfig
+  resolveWeComModelConfig,
+  resolveWeComRepoConfig,
+  resolveWeComTapdConfig
 } from '../ai-bots/wecom/src/config.js';
+import {
+  buildTaskPrompt,
+  parseTapdAssociation
+} from '../src/agent-platform/tasks/index.js';
 import {
   classifyIntentByRules,
   createIntentAnalyzer,
@@ -58,7 +70,7 @@ import { inferMediaType, mediaRequirement, parseWeComMedia } from '../ai-bots/we
 import { createMessageDedup } from '../ai-bots/wecom/src/dedup.js';
 import { createWeComGateway } from '../ai-bots/wecom/src/gateway.js';
 import { handleWeComMessage } from '../ai-bots/wecom/src/handler.js';
-import { HELP_TEXT } from '../ai-bots/wecom/src/help.js';
+import { HELP_TEXT, IDENTITY_TEXT, WELCOME_TEXT } from '../ai-bots/wecom/src/help.js';
 import {
   attachWeComNotifier,
   createRateLimiter,
@@ -70,10 +82,27 @@ import {
   createWeComProgressHub,
   danceFrame,
   formatProgressEvent,
+  isStreamExpired,
   renderProgressView
 } from '../ai-bots/wecom/src/progress.js';
+import {
+  buildAgentUIState,
+  getThinkingPreview,
+  resolveAgentUiStatus
+} from '../ai-bots/wecom/src/ui.js';
+import { resolveTaskAnchor } from '../ai-bots/wecom/src/context.js';
+import { extractKeywords, leadingCandidate, scoreTaskCandidates } from '../ai-bots/wecom/src/candidates.js';
+import { parseWeComQuote, scanTaskId, scanTaskIds, scanTaskSuffixes } from '../ai-bots/wecom/src/quote.js';
 import { resolveWeComAction } from '../ai-bots/wecom/src/resolver.js';
 import { conversationIdFromFrame, sessionKeyFromSource, sourceFromFrame } from '../ai-bots/wecom/src/session.js';
+
+/**
+ * Follow-up routing reads how long ago a task was touched, so fixtures date
+ * themselves against the run rather than against a day in 2026.
+ */
+const MINUTE = 60_000;
+const HOUR = 60 * MINUTE;
+const isoAgo = (ms) => new Date(Date.now() - ms).toISOString();
 
 assert.equal(stripMentions('@RobotA @AAFE 做：增加搜索'), '做：增加搜索');
 assert.deepEqual(parseWeComCommand('@AAFE 做：增加用户手机号搜索'), {
@@ -118,8 +147,34 @@ assert.equal(parseWeComCommand('终止 T001').type, 'cancel');
 assert.equal(parseWeComCommand('停止当前任务').type, 'implicit-cancel');
 assert.deepEqual(parseWeComCommand('你好'), { type: 'freeform', text: '你好' });
 assert.equal(parseWeComCommand('做：').type, 'help');
-assert.equal(analyzeWeComIntent('你好').type, 'help');
-assert.equal(analyzeWeComIntent('谢谢').type, 'ack');
+// A greeting is a conversation opener, not a request for the command list.
+assert.deepEqual(analyzeWeComIntent('你好'), { type: 'smalltalk', kind: 'greeting', text: '你好' });
+assert.equal(analyzeWeComIntent('在吗').kind, 'greeting');
+assert.equal(analyzeWeComIntent('你是谁').kind, 'identity');
+assert.equal(analyzeWeComIntent('你能做什么').kind, 'identity');
+assert.equal(analyzeWeComIntent('会说话吗').kind, 'identity');
+assert.equal(analyzeWeComIntent('1233').kind, 'unclear');
+// The manual still has an explicit way in.
+assert.equal(analyzeWeComIntent('帮助').type, 'help');
+assert.equal(analyzeWeComIntent('help').type, 'help');
+assert.equal(analyzeWeComIntent('菜单').type, 'help');
+// Chit-chat is answered from the local pool, never by a model.
+assert.equal(analyzeWeComIntent('谢谢').kind, 'thanks');
+assert.equal(analyzeWeComIntent('你好厉害').kind, 'praise');
+assert.equal(analyzeWeComIntent('今天天气不错').kind, 'casual');
+assert.equal(analyzeWeComIntent('下班了').kind, 'farewell');
+assert.equal(analyzeWeComIntent('拜拜').kind, 'farewell');
+// Acknowledging an in-flight task is still its own thing.
+assert.equal(analyzeWeComIntent('收到').type, 'ack');
+assert.equal(analyzeWeComIntent('好的').type, 'ack');
+// Real work never gets mistaken for chit-chat: the patterns match whole
+// messages only, so a defect that happens to contain one of these words stays
+// a defect.
+assert.equal(analyzeWeComIntent('修一下登录页的报错').type, 'implicit-route');
+assert.equal(analyzeWeComIntent('天气组件不对，改一下').type, 'implicit-route');
+assert.equal(analyzeWeComIntent('这个下班打卡页面白屏了').type, 'implicit-route');
+assert.equal(analyzeWeComIntent('厉害的功能都没实现').type, 'implicit-route');
+assert.equal(analyzeWeComIntent('感谢页的样式错了').type, 'implicit-route');
 assert.equal(analyzeWeComIntent('怎么样了').type, 'implicit-status');
 assert.deepEqual(analyzeWeComIntent('加上单测'), {
   type: 'implicit-route',
@@ -133,9 +188,18 @@ assert.deepEqual(analyzeWeComIntent(tapdPaste), {
   prefer: 'new'
 });
 assert.equal(analyzeWeComIntent('登录页按钮颜色需要改成品牌色').prefer, 'work');
+// Real traffic pastes the link first and states the request underneath, and the
+// parser collapses that newline. Anchoring to the message alone read it as a
+// weak signal, which is what let an open task claim it.
+assert.equal(
+  analyzeWeComIntent('https://github.com/TencentBlueKing/bk-monitor/pull/12347\n分析一下这个 PR是否会对当前 Master 产生副作用').prefer,
+  'new'
+);
+// Still anchored enough that an addendum stays an addendum.
+assert.equal(analyzeWeComIntent('再帮我看看这里').prefer, 'follow');
 // Digits alone are not a requirement, so they never reach a task or a model.
-assert.equal(analyzeWeComIntent('1233').type, 'help');
-assert.equal(analyzeWeComIntent('???').type, 'help');
+assert.equal(analyzeWeComIntent('1233').type, 'smalltalk');
+assert.equal(analyzeWeComIntent('???').kind, 'unclear');
 assert.equal(analyzeWeComIntent('1、2、3都执行，TAPD MCP已有').type, 'implicit-route');
 
 const textFrame = {
@@ -222,6 +286,8 @@ assert.equal(localManagerOptions.runtimeOptions.apiKey, 'crsr_local');
 assert.equal(localManagerOptions.runtimeOptions.model, 'grok-4.6');
 assert.equal(localManagerOptions.runtimeOptions.mode, 'cloud');
 assert.equal(localManagerOptions.validateProjectRuntime, true);
+assert.equal(localManagerOptions.repoAuth.aafeRoot, tmp);
+assert.equal(localManagerOptions.repoAuth.overrideConfig, null);
 
 const noRepoManagerOptions = createTaskManagerOptions({
   root: tmp,
@@ -268,6 +334,7 @@ const created = await resolveWeComAction(
 assert.equal(created.type, 'created');
 assert.equal(created.start, true);
 assert.equal(created.task.source.type, 'wecom');
+assert.equal(created.task.taskBranch, null);
 assert.match(created.task.id, /^task-/);
 
 const missingRepo = await resolveWeComAction(
@@ -347,9 +414,11 @@ const handled = await handleWeComMessage({
 assert.equal(handled.action.type, 'created');
 assert.equal(replies[0].includes(handled.action.task.id), true);
 assert.equal(ackFinishes[0], false);
-// Terminating lives in the live stream text, not in a separate card.
-assert.equal(opened.some((item) => item.card), false);
-assert.match(replies[0], new RegExp(`终止：发送 \`终止 ${handled.action.task.id}\``));
+// Mock replyAck does not confirm the combo frame, so the buttons go out as a
+// standalone card instead of fake markdown.
+assert.equal(opened.some((item) => item.card?.button_list?.some((button) => button.key === `cancel:${handled.action.task.id}`)), true);
+assert.match(replies[0], new RegExp(`终止 ${handled.action.task.id}`));
+assert.equal(replies[0].includes('**点击终止**'), false);
 assert.match(replies[0], new RegExp(`对话 ID：\`${handled.action.task.id}\``));
 const openedSession = opened.find((item) => item.taskId);
 // The header the live view reuses stays free of the footer it appends itself.
@@ -359,10 +428,40 @@ assert.equal(openedSession.streamId, 'stream-create');
 await delay(10);
 assert.deepEqual(started, [handled.action.task.id]);
 
+// A greeting gets a greeting back, not the manual, and no task is created.
+const helloReplies = [];
+const helloHandled = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'hello-1', text: { content: '你好' } }
+}, {
+  manager: createFakeManager(),
+  replyAck: async (_frame, content) => { helloReplies.push(content); },
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(helloHandled.action.type, 'smalltalk');
+assert.equal(helloReplies[0].includes('Task ID'), false);
+assert.match(helloReplies[0], /有什么要我做的/);
+
+// The bot answers "who are you" from what it knows, with no model call.
+const whoReplies = [];
+await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'who-1', text: { content: '你是谁' } }
+}, {
+  manager: createFakeManager(),
+  replyAck: async (_frame, content) => { whoReplies.push(content); },
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup(),
+  chat: { async reply() { throw new Error('identity must not call a model'); } }
+});
+assert.equal(whoReplies[0], IDENTITY_TEXT);
+
+// The manual is still one word away.
 const helpReplies = [];
 await handleWeComMessage({
   ...textFrame,
-  body: { ...textFrame.body, msgid: 'help-1', text: { content: '你好' } }
+  body: { ...textFrame.body, msgid: 'help-1', text: { content: '帮助' } }
 }, {
   manager: createFakeManager(),
   replyAck: async (_frame, content) => { helpReplies.push(content); },
@@ -384,6 +483,10 @@ const tapdHandled = await handleWeComMessage({
 });
 assert.equal(tapdHandled.action.type, 'created');
 assert.equal(tapdHandled.action.task.requirement, tapdPaste);
+assert.equal(tapdHandled.action.task.taskBranch, null);
+assert.equal(tapdHandled.action.task.context.tapd.enabled, true);
+assert.equal(tapdHandled.action.task.context.tapd.association.shortId, '137887277');
+assert.equal(tapdHandled.action.task.context.tapd.association.entryType, 'story');
 assert.equal(tapdReplies[0].includes(tapdHandled.action.task.id), true);
 await delay(10);
 assert.deepEqual(tapdStarted, [tapdHandled.action.task.id]);
@@ -413,21 +516,22 @@ const staleAndDone = createFakeManager();
 await staleAndDone.create({
   id: 'task-stale-running',
   status: 'running',
-  updatedAt: '2026-09-03T11:14:14.600Z',
+  updatedAt: isoAgo(2 * HOUR),
   source: sourceFromFrame(textFrame),
   goal: 'stale'
 });
 staleAndDone.tasks[0].status = 'running';
-staleAndDone.tasks[0].updatedAt = '2026-09-03T11:14:14.600Z';
 await staleAndDone.create({
   id: 'task-just-done',
   status: 'completed',
-  updatedAt: '2026-09-03T12:13:27.724Z',
+  updatedAt: isoAgo(MINUTE),
   source: sourceFromFrame(textFrame),
   goal: 'done'
 });
 staleAndDone.tasks[1].status = 'completed';
-staleAndDone.tasks[1].updatedAt = '2026-09-03T12:13:27.724Z';
+// A finished task must not absorb a later message: that is how an unrelated
+// sentence got appended to a TAPD story and re-ran it hours later. The live
+// task takes it instead, even though the finished one was touched later.
 const latestFollow = await handleWeComMessage({
   ...textFrame,
   body: {
@@ -442,7 +546,51 @@ const latestFollow = await handleWeComMessage({
   dedup: createMessageDedup()
 });
 assert.equal(latestFollow.action.type, 'continue');
-assert.equal(latestFollow.action.task.id, 'task-just-done');
+assert.equal(latestFollow.action.task.id, 'task-stale-running');
+assert.equal(latestFollow.action.anchor, 'active');
+// An implicit target is stated with the way to change it, so a wrong guess
+// surfaces on the next message instead of inside the agent's report.
+assert.match(latestFollow.reply, /已追加到你最近活跃的任务/);
+
+// Naming it explicitly still resumes it.
+const explicitFollow = await handleWeComMessage({
+  ...textFrame,
+  body: {
+    ...textFrame.body,
+    msgid: 'follow-latest-2',
+    text: { content: '继续 task-just-done：1、析影响范围并做最小收敛自测' }
+  }
+}, {
+  manager: staleAndDone,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(explicitFollow.action.type, 'continue');
+assert.equal(explicitFollow.action.task.id, 'task-just-done');
+
+// Once nothing is live, an explicit `继续` names the last finished task instead
+// of dead-ending, so resuming it costs one copied line.
+const doneOnly = createFakeManager();
+await doneOnly.create({
+  id: 'task-only-done',
+  status: 'completed',
+  updatedAt: '2026-09-03T12:13:27.724Z',
+  source: sourceFromFrame(textFrame),
+  goal: 'done'
+});
+doneOnly.tasks[0].status = 'completed';
+const bareContinue = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'bare-continue-1', text: { content: '继续：加上单测' } }
+}, {
+  manager: doneOnly,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(bareContinue.action.type, 'error');
+assert.equal(bareContinue.action.message.includes('继续 task-only-done：'), true);
 
 const groupFrame = {
   headers: { req_id: 'req-g' },
@@ -460,7 +608,7 @@ const groupManager = createFakeManager();
 await groupManager.create({
   id: 'task-owner-a',
   status: 'running',
-  updatedAt: '2026-09-03T12:00:00.000Z',
+  updatedAt: isoAgo(20 * MINUTE),
   source: { type: 'wecom', conversationId: 'chat-9', chattype: 'group', userId: 'user-a' },
   goal: 'A 的任务'
 });
@@ -477,7 +625,7 @@ assert.notEqual(groupSteal.action.task?.id, 'task-owner-a');
 await groupManager.create({
   id: 'task-owner-b',
   status: 'running',
-  updatedAt: '2026-09-03T12:10:00.000Z',
+  updatedAt: isoAgo(10 * MINUTE),
   source: { type: 'wecom', conversationId: 'chat-9', chattype: 'group', userId: 'user-b' },
   goal: 'B 的任务'
 });
@@ -543,6 +691,615 @@ const groupOtherPath = await handleWeComMessage({
 });
 assert.notEqual(groupOtherPath.action.type, 'created');
 assert.equal(groupPending.get('chat-9::user-a')?.type, 'need-workspace');
+
+// --- quoting a message anchors the turn to the task it names ---------------
+// WeCom sends the quoted content without its msgid, so the Task ID printed in
+// every task reply is the only reliable handle.
+const quoteFrame = {
+  ...textFrame,
+  body: {
+    ...textFrame.body,
+    quote: {
+      msgtype: 'mixed',
+      mixed: {
+        msg_item: [
+          { msgtype: 'text', text: { content: '结果\n复制按钮已修好。' } },
+          { msgtype: 'text', text: { content: '对话 ID：`task-20260903124651-e441a17b`' } }
+        ]
+      }
+    }
+  }
+};
+const parsedQuote = parseWeComQuote(quoteFrame);
+assert.equal(parsedQuote.present, true);
+assert.match(parsedQuote.text, /复制按钮已修好/);
+assert.equal(scanTaskId(parsedQuote.text), 'task-20260903124651-e441a17b');
+assert.equal(parseWeComQuote(textFrame).present, false);
+assert.equal(parseWeComQuote({ body: { quote: { msgtype: 'image', image: {} } } }).note, '引用了一条图片消息');
+assert.equal(parseWeComQuote({ body: { quote: { msgtype: 'voice', voice: { content: '再加个开关' } } } }).text, '再加个开关');
+// The loose id pattern the command parser accepts would match ordinary words,
+// so this one is anchored to the generated shape.
+assert.equal(scanTaskId('继续 task-abc：补充'), null);
+assert.equal(scanTaskId('to do: tests'), null);
+
+const quotedManager = createFakeManager();
+await quotedManager.create({
+  id: 'task-20260903124651-e441a17b',
+  status: 'completed',
+  updatedAt: isoAgo(3 * HOUR),
+  source: sourceFromFrame(textFrame),
+  requirement: '【日志检索结果复制按钮失效】',
+  goal: '【日志检索结果复制按钮失效】'
+});
+quotedManager.tasks[0].status = 'completed';
+await quotedManager.create({
+  id: 'task-20260904090000-11112222',
+  status: 'running',
+  updatedAt: isoAgo(30 * MINUTE),
+  source: sourceFromFrame(textFrame),
+  requirement: '另一个需求',
+  goal: '另一个需求'
+});
+quotedManager.tasks[1].status = 'running';
+// A quote outranks both the live task and the wording: 4 says a finished task
+// is out of the running unless it is referenced, and this references it.
+const revived = await handleWeComMessage({
+  ...quoteFrame,
+  body: { ...quoteFrame.body, msgid: 'quote-1', text: { content: '这里还要加上单测' } }
+}, {
+  manager: quotedManager,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(revived.action.type, 'continue');
+assert.equal(revived.action.task.id, 'task-20260903124651-e441a17b');
+assert.equal(revived.action.anchor, 'quoted');
+assert.equal(revived.action.via, 'task-id');
+// The user chose the target, so there is nothing to warn them about.
+assert.equal(/已追加到你最近活跃的任务/.test(revived.reply), false);
+
+// Quoting one's own original requirement carries no id, so the requirement
+// text is the fallback.
+const byText = await handleWeComMessage({
+  ...textFrame,
+  body: {
+    ...textFrame.body,
+    msgid: 'quote-2',
+    text: { content: '这里还要加上单测' },
+    quote: { msgtype: 'text', text: { content: '【日志检索结果复制按钮失效】 麻烦看下' } }
+  }
+}, {
+  manager: quotedManager,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(byText.action.task.id, 'task-20260903124651-e441a17b');
+assert.equal(byText.action.via, 'requirement-match');
+assert.match(byText.reply, /按引用内容匹配到该任务/);
+
+// A quote that matches nothing degrades to normal routing rather than binding
+// to a task by accident.
+const unmatchedQuote = await handleWeComMessage({
+  ...textFrame,
+  body: {
+    ...textFrame.body,
+    msgid: 'quote-3',
+    text: { content: '这里还要加上单测' },
+    quote: { msgtype: 'text', text: { content: '同事发的一句无关的话' } }
+  }
+}, {
+  manager: quotedManager,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(unmatchedQuote.action.task.id, 'task-20260904090000-11112222');
+assert.equal(unmatchedQuote.action.anchor, 'active');
+
+// A Task ID typed into free text is as explicit as quoting it.
+const namedInText = await handleWeComMessage({
+  ...textFrame,
+  body: {
+    ...textFrame.body,
+    msgid: 'quote-4',
+    text: { content: 'task-20260903124651-e441a17b 这里还要加上单测' }
+  }
+}, {
+  manager: quotedManager,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(namedInText.action.task.id, 'task-20260903124651-e441a17b');
+assert.equal(namedInText.action.anchor, 'explicit');
+
+// A mistyped id reports the miss instead of falling through to live work.
+const namedMissing = await handleWeComMessage({
+  ...textFrame,
+  body: {
+    ...textFrame.body,
+    msgid: 'quote-5',
+    text: { content: 'task-20260903124651-ffffffff 这里还要加上单测' }
+  }
+}, {
+  manager: quotedManager,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(namedMissing.action.type, 'error');
+assert.match(namedMissing.action.message, /找不到任务 task-20260903124651-ffffffff/);
+
+// --- group: a bystander contributes on purpose, and is recorded as one -----
+const anchorGroup = createFakeManager();
+await anchorGroup.create({
+  id: 'task-20260904100000-aaaabbbb',
+  status: 'running',
+  updatedAt: isoAgo(15 * MINUTE),
+  source: { type: 'wecom', conversationId: 'chat-9', chattype: 'group', userId: 'user-a' },
+  requirement: 'A 的任务',
+  goal: 'A 的任务'
+});
+anchorGroup.tasks[0].status = 'running';
+const bystanderQuote = await handleWeComMessage({
+  ...groupFrame,
+  body: {
+    ...groupFrame.body,
+    msgid: 'g-anchor-1',
+    from: { userid: 'user-b' },
+    text: { content: '@AAFE 这里还要考虑灰度' },
+    quote: { msgtype: 'text', text: { content: '对话 ID：`task-20260904100000-aaaabbbb`' } }
+  }
+}, {
+  manager: anchorGroup,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(bystanderQuote.action.type, 'continue');
+assert.equal(bystanderQuote.action.task.id, 'task-20260904100000-aaaabbbb');
+assert.equal(bystanderQuote.action.actorRole, 'participant');
+assert.equal(bystanderQuote.action.ownerId, 'user-a');
+assert.match(bystanderQuote.reply, /已作为 user-a 任务的补充记录/);
+assert.deepEqual(anchorGroup.continues.at(-1).options.author, { userId: 'user-b', role: 'participant' });
+
+// Without that reference the same words are refused: an implicit reply must
+// never merge into work somebody else started.
+const bystanderPlain = await handleWeComMessage({
+  ...groupFrame,
+  body: {
+    ...groupFrame.body,
+    msgid: 'g-anchor-2',
+    from: { userid: 'user-b' },
+    text: { content: '@AAFE 再加上灰度' }
+  }
+}, {
+  manager: anchorGroup,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(bystanderPlain.action.type, 'error');
+assert.match(bystanderPlain.action.message, /请引用那条任务消息，或带上 Task ID/);
+assert.match(bystanderPlain.action.message, /task-20260904100000-aaaabbbb/);
+
+// The owner's own addendum stays an owner addendum.
+const ownerAddendum = await handleWeComMessage({
+  ...groupFrame,
+  body: {
+    ...groupFrame.body,
+    msgid: 'g-anchor-3',
+    from: { userid: 'user-a' },
+    text: { content: '@AAFE 再加上灰度' }
+  }
+}, {
+  manager: anchorGroup,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(ownerAddendum.action.type, 'continue');
+assert.equal(ownerAddendum.action.actorRole, 'owner');
+assert.deepEqual(anchorGroup.continues.at(-1).options.author, { userId: 'user-a', role: 'owner' });
+
+// The @ guard is a second line of defence: it logs by default, because a mixed
+// message can carry the mention outside the text and dropping a real request
+// is worse than handling a stray one.
+const guardEvents = [];
+const unmentioned = {
+  ...groupFrame,
+  body: { ...groupFrame.body, msgid: 'g-guard-1', from: { userid: 'user-a' }, text: { content: '做：修一下登录页' } }
+};
+const guardLogged = await handleWeComMessage(unmentioned, {
+  manager: createFakeManager(),
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup(),
+  logger: { event: (type, payload) => guardEvents.push({ type, payload }), error() {}, warn() {} }
+});
+assert.equal(guardLogged.action.type, 'created');
+assert.equal(guardEvents.some((item) => item.payload?.reason === 'group-no-mention'), true);
+const guardStrict = await handleWeComMessage({
+  ...unmentioned,
+  body: { ...unmentioned.body, msgid: 'g-guard-2' }
+}, {
+  manager: createFakeManager(),
+  replyAck: async () => {},
+  config: { repository: 'owner/repo', requireGroupMention: true },
+  dedup: createMessageDedup()
+});
+assert.deepEqual(guardStrict, { skipped: true, reason: 'group-no-mention' });
+assert.equal(
+  (await loadWeComBotConfig({
+    root: tmp,
+    env: { WECOM_BOT_ID: 'b', WECOM_BOT_SECRET: 's', AAFE_WECOM_REQUIRE_GROUP_MENTION: '1' }
+  })).requireGroupMention,
+  true
+);
+
+// --- anchor precedence, without the message plumbing ----------------------
+const anchorTasks = [
+  {
+    id: 'task-20260904120000-cccc1111',
+    status: 'running',
+    source: { type: 'wecom', conversationId: 'chat-9', userId: 'user-a' },
+    requirement: '最新的活跃任务'
+  },
+  {
+    id: 'task-20260904110000-cccc2222',
+    status: 'running',
+    source: { type: 'wecom', conversationId: 'chat-9', userId: 'user-a' },
+    requirement: '更早的活跃任务'
+  },
+  {
+    id: 'task-20260904100000-cccc3333',
+    status: 'completed',
+    source: { type: 'wecom', conversationId: 'chat-9', userId: 'user-a' },
+    requirement: '已经结束的任务'
+  }
+];
+const anchorSource = { type: 'wecom', conversationId: 'chat-9', chattype: 'group', userId: 'user-a' };
+// Two live tasks and nothing choosing between them: picking the newest would
+// point an agent at the wrong branch without anybody noticing, so the anchor
+// declines and hands back what the speaker has to choose from.
+const activeAnchor = await resolveTaskAnchor({ tasks: anchorTasks, source: anchorSource, text: '再加上单测' });
+assert.equal(activeAnchor.kind, 'ambiguous');
+assert.equal(activeAnchor.taskId, null);
+assert.deepEqual(activeAnchor.candidates.map((task) => task.id), [
+  'task-20260904120000-cccc1111',
+  'task-20260904110000-cccc2222'
+]);
+// One live task is unambiguous again.
+const soleActive = await resolveTaskAnchor({
+  tasks: [anchorTasks[0], anchorTasks[2]],
+  source: anchorSource,
+  text: '再加上单测'
+});
+assert.equal(soleActive.kind, 'active');
+assert.equal(soleActive.taskId, 'task-20260904120000-cccc1111');
+assert.equal(soleActive.actorRole, 'owner');
+assert.equal(soleActive.confidence, 0.6);
+// Gone quiet for long enough that continuing it is a guess about yesterday.
+const staleAnchor = await resolveTaskAnchor({
+  tasks: [{ ...anchorTasks[0], updatedAt: isoAgo(30 * HOUR) }],
+  source: anchorSource,
+  text: '再加上单测'
+});
+assert.equal(staleAnchor.kind, 'stale');
+assert.equal(staleAnchor.candidates[0].id, 'task-20260904120000-cccc1111');
+// The window is what makes it stale, not the presence of a timestamp.
+assert.equal((await resolveTaskAnchor({
+  tasks: [{ ...anchorTasks[0], updatedAt: isoAgo(30 * HOUR) }],
+  source: anchorSource,
+  text: '再加上单测',
+  staleMs: 48 * HOUR
+})).kind, 'active');
+// Only a reference reaches the finished one.
+const doneAnchor = await resolveTaskAnchor({
+  tasks: anchorTasks,
+  source: anchorSource,
+  text: '再加上单测',
+  quote: { present: true, text: '对话 ID：task-20260904100000-cccc3333' }
+});
+assert.equal(doneAnchor.kind, 'quoted');
+assert.equal(doneAnchor.taskId, 'task-20260904100000-cccc3333');
+// A speaker with no task of their own sees the others' live work, not an
+// anchor into it.
+const foreign = await resolveTaskAnchor({
+  tasks: anchorTasks,
+  source: { ...anchorSource, userId: 'user-c' },
+  text: '再加上单测'
+});
+assert.equal(foreign.kind, 'none');
+assert.equal(foreign.foreignActive.length, 2);
+// An id outside this conversation is still resolvable, and reports the miss.
+const viaLookup = await resolveTaskAnchor({
+  tasks: [],
+  source: anchorSource,
+  text: '继续 task-20260904100000-cccc3333',
+  lookup: async () => anchorTasks[2]
+});
+assert.equal(viaLookup.kind, 'explicit');
+assert.equal(viaLookup.confidence, 1);
+assert.equal((await resolveTaskAnchor({ tasks: [], source: anchorSource, text: 'task-20260904100000-cccc3333' })).kind, 'missing');
+// A quoted id gets the same lookup a typed one does: a conversation only keeps
+// its recent tasks, and a reference must not depend on which of the two ways
+// the user chose to point at it.
+const quotedLookup = await resolveTaskAnchor({
+  tasks: [],
+  source: anchorSource,
+  text: '这里还要加上单测',
+  quote: { present: true, text: '对话 ID：`task-20260904100000-cccc3333`' },
+  lookup: async () => anchorTasks[2]
+});
+assert.equal(quotedLookup.kind, 'quoted');
+assert.equal(quotedLookup.taskId, 'task-20260904100000-cccc3333');
+// The tail of an id is what people retype off a footer, and it counts while
+// exactly one task ends in it.
+assert.deepEqual(scanTaskSuffixes('接着做 #cccc3333 这个'), ['cccc3333']);
+assert.deepEqual(scanTaskSuffixes('task-20260904100000-cccc3333'), []);
+assert.deepEqual(scanTaskSuffixes('20260904 12345678'), []);
+const bySuffix = await resolveTaskAnchor({
+  tasks: anchorTasks,
+  source: anchorSource,
+  text: '#cccc3333 这里还要加上单测'
+});
+assert.equal(bySuffix.kind, 'explicit');
+assert.equal(bySuffix.via, 'task-suffix');
+assert.equal(bySuffix.taskId, 'task-20260904100000-cccc3333');
+// Two tasks ending the same way make it a coin flip, so it stops being a
+// reference and the live-task rules take over.
+assert.equal((await resolveTaskAnchor({
+  tasks: [
+    { ...anchorTasks[0], id: 'task-20260904120000-cccc3333' },
+    { ...anchorTasks[1], id: 'task-20260904110000-cccc3333' }
+  ],
+  source: anchorSource,
+  text: '#cccc3333 这里还要加上单测'
+})).kind, 'ambiguous');
+// Two tails naming two different tasks is not ambiguity, it is two references,
+// and one instruction cannot be run against both.
+assert.deepEqual(scanTaskIds('对比 task-20260904120000-cccc1111 和 task-20260904110000-cccc2222'), [
+  'task-20260904120000-cccc1111',
+  'task-20260904110000-cccc2222'
+]);
+const twoIds = await resolveTaskAnchor({
+  tasks: anchorTasks,
+  source: anchorSource,
+  text: 'task-20260904120000-cccc1111 和 task-20260904110000-cccc2222 都提 PR'
+});
+assert.equal(twoIds.kind, 'multiple');
+assert.equal(twoIds.taskId, null);
+assert.deepEqual(twoIds.candidates.map((task) => task.id), [
+  'task-20260904120000-cccc1111',
+  'task-20260904110000-cccc2222'
+]);
+assert.equal((await resolveTaskAnchor({
+  tasks: anchorTasks,
+  source: anchorSource,
+  text: '#cccc1111 和 #cccc2222 都提 PR'
+})).kind, 'multiple');
+// Repeating one id is still one reference.
+assert.equal((await resolveTaskAnchor({
+  tasks: anchorTasks,
+  source: anchorSource,
+  text: 'task-20260904120000-cccc1111 再看看 task-20260904120000-cccc1111'
+})).kind, 'explicit');
+const anchorManager = {
+  async list() { return anchorTasks; },
+  async get(id) { return anchorTasks.find((task) => task.id === id) ?? null; }
+};
+const multipleReply = await resolveWeComAction(
+  { type: 'implicit-route', text: 'task-20260904120000-cccc1111 和 task-20260904110000-cccc2222 都提 PR' },
+  { source: anchorSource },
+  anchorManager
+);
+assert.equal(multipleReply.type, 'error');
+assert.match(multipleReply.message, /一条指令只能作用于一个/);
+assert.equal(multipleReply.message.includes('task-20260904120000-cccc1111'), true);
+assert.equal(multipleReply.message.includes('task-20260904110000-cccc2222'), true);
+
+// --- candidate ranking: still a question, but a better one ------------------
+// Chinese has no word boundaries, so bigrams stand in for tokenisation.
+assert.equal(extractKeywords('接口超时问题').has('超时'), true);
+assert.equal(extractKeywords('timeout 改成 10s').has('timeout'), true);
+// Two-letter latin words and stopwords are coincidence, not subject matter.
+assert.equal(extractKeywords('fix the ui').size, 0);
+const rankTasks = [
+  {
+    id: 'task-20260904120000-eeee1111',
+    status: 'running',
+    updatedAt: isoAgo(5 * HOUR),
+    source: { type: 'wecom', conversationId: 'chat-9', userId: 'user-a' },
+    requirement: '首页性能优化，减少首屏加载'
+  },
+  {
+    id: 'task-20260904110000-eeee2222',
+    status: 'running',
+    updatedAt: isoAgo(4 * HOUR),
+    source: { type: 'wecom', conversationId: 'chat-9', userId: 'user-a' },
+    requirement: '修复登录接口 timeout'
+  }
+];
+const ranked = await resolveTaskAnchor({
+  tasks: rankTasks,
+  source: anchorSource,
+  text: 'timeout 改成 10 秒'
+});
+// The gate does not move: two live tasks still produce a question.
+assert.equal(ranked.kind, 'ambiguous');
+// What moves is the order, and the reason behind it.
+assert.deepEqual(ranked.candidates.map((task) => task.id), [
+  'task-20260904110000-eeee2222',
+  'task-20260904120000-eeee1111'
+]);
+assert.equal(ranked.ranking[0].taskId, 'task-20260904110000-eeee2222');
+assert.equal(ranked.ranking[0].reasons.some((r) => r.type === 'semantic_similarity'), true);
+assert.equal(leadingCandidate(ranked.ranking).taskId, 'task-20260904110000-eeee2222');
+const rankManager = { async list() { return rankTasks; }, async get() { return null; } };
+const rankedReply = await resolveWeComAction(
+  { type: 'implicit-route', text: 'timeout 改成 10 秒' },
+  { source: anchorSource },
+  rankManager
+);
+assert.match(rankedReply.message, /多个未结束任务/);
+assert.match(rankedReply.message, /task-20260904110000-eeee2222（running · user-a · 内容最接近）/);
+// The requirement is what tells the two apart, so the choice carries it.
+assert.match(rankedReply.message, /修复登录接口 timeout/);
+assert.equal(
+  rankedReply.message.indexOf('eeee2222') < rankedReply.message.indexOf('eeee1111'),
+  true
+);
+// Wording that favours neither must not be dressed up as a recommendation.
+const tied = await resolveTaskAnchor({ tasks: rankTasks, source: anchorSource, text: '这个也改一下' });
+assert.equal(tied.kind, 'ambiguous');
+assert.equal(leadingCandidate(tied.ranking), null);
+assert.equal((await resolveWeComAction(
+  { type: 'implicit-route', text: '这个也改一下' },
+  { source: anchorSource },
+  rankManager
+)).message.includes('内容最接近'), false);
+// Recency alone ranks but never recommends.
+const byRecency = scoreTaskCandidates(rankTasks, { text: '这个也改一下' });
+assert.deepEqual(byRecency.map((entry) => entry.taskId), [
+  'task-20260904110000-eeee2222',
+  'task-20260904120000-eeee1111'
+]);
+assert.deepEqual(byRecency.map((entry) => entry.reasons.map((r) => r.type)), [['recent_task'], ['recent_task']]);
+// A quoted TAPD link is the handle the task was created from, even when the
+// wording around it changed.
+const storyTasks = [{
+  id: 'task-20260904130000-dddd4444',
+  status: 'completed',
+  source: { type: 'wecom', conversationId: 'chat-9', userId: 'user-a' },
+  requirement: '【容器场景 WebConsole 入口丢失】https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081137887748'
+}];
+const byStory = await resolveTaskAnchor({
+  tasks: storyTasks,
+  source: anchorSource,
+  text: '还要处理灰度',
+  quote: { present: true, text: '需求：https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081137887748' }
+});
+assert.equal(byStory.kind, 'quoted');
+assert.equal(byStory.via, 'tapd-story');
+assert.equal(byStory.taskId, 'task-20260904130000-dddd4444');
+
+// --- the anchor gates seen through the handler ----------------------------
+const twoLive = createFakeManager();
+for (const id of ['task-live-1', 'task-live-2']) {
+  await twoLive.create({
+    id,
+    status: 'running',
+    updatedAt: isoAgo(5 * MINUTE),
+    source: sourceFromFrame(textFrame),
+    goal: id
+  });
+  twoLive.tasks.at(-1).status = 'running';
+}
+const twoLiveWeak = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'gate-1', text: { content: '这个也顺便处理下' } }
+}, {
+  manager: twoLive,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(twoLiveWeak.action.type, 'error');
+assert.match(twoLiveWeak.action.message, /task-live-1/);
+assert.match(twoLiveWeak.action.message, /task-live-2/);
+// New work is still its own task; the gate only guards messages that were
+// about to land on a guess.
+const twoLiveNew = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'gate-2', text: { content: '【登录页按钮失效】麻烦修一下' } }
+}, {
+  manager: twoLive,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(twoLiveNew.action.type, 'created');
+
+const longQuiet = createFakeManager();
+await longQuiet.create({
+  id: 'task-yesterday',
+  status: 'running',
+  updatedAt: isoAgo(30 * HOUR),
+  source: sourceFromFrame(textFrame),
+  goal: '昨天的任务'
+});
+longQuiet.tasks[0].status = 'running';
+const quietWeak = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'gate-3', text: { content: '这个也顺便处理下' } }
+}, {
+  manager: longQuiet,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(quietWeak.action.type, 'error');
+assert.match(quietWeak.action.message, /继续 task-yesterday：/);
+// Pointing at it explicitly still works, however long it has been quiet.
+const quietNamed = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'gate-4', text: { content: '继续 task-yesterday：这个也顺便处理下' } }
+}, {
+  manager: longQuiet,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(quietNamed.action.type, 'continue');
+
+// A ship instruction with nothing to ship says so instead of creating a task
+// whose requirement is 提交 PR 回填.
+const nothingToShip = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'gate-5', text: { content: '提交 PR 回填' } }
+}, {
+  manager: createFakeManager(),
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup(),
+  understanding: { analyze: async (input) => fastIntent(input.text, input) }
+});
+assert.equal(nothingToShip.action.type, 'error');
+assert.equal(nothingToShip.intent.kind, 'followup');
+
+// The same words against a quoted finished task resume it, which is the turn
+// that used to wait on a model and get sent three times.
+const shipped = createFakeManager();
+await shipped.create({
+  id: 'task-20260904072702-23adbfed',
+  status: 'completed',
+  updatedAt: isoAgo(4 * MINUTE),
+  source: sourceFromFrame(textFrame),
+  requirement: '【容器场景 WebConsole 入口丢失】',
+  goal: '【容器场景 WebConsole 入口丢失】'
+});
+shipped.tasks[0].status = 'completed';
+const shipReply = await handleWeComMessage({
+  ...textFrame,
+  body: {
+    ...textFrame.body,
+    msgid: 'gate-6',
+    text: { content: '提交 PR 回填' },
+    quote: { msgtype: 'text', text: { content: '对话 ID：`task-20260904072702-23adbfed`' } }
+  }
+}, {
+  manager: shipped,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup(),
+  understanding: { analyze: async (input) => fastIntent(input.text, input) }
+});
+assert.equal(shipReply.action.type, 'continue');
+assert.equal(shipReply.action.task.id, 'task-20260904072702-23adbfed');
+assert.equal(shipReply.intent.source, 'rules-fast');
 
 const alreadyActiveReplies = [];
 const alreadyActiveFailed = [];
@@ -661,7 +1418,7 @@ const cardHandled = await handleWeComCard({
 });
 assert.equal(cardHandled.action.type, 'cancelled');
 assert.equal(cancelManager.tasks[0].status, 'cancelled');
-assert.equal(cancelUpdates[0].main_title.title, '任务已终止');
+assert.equal(cancelUpdates[0].main_title.title, '⛔ 已终止');
 assert.equal(cancelUpdates[0].task_id, 'run_task-card-1');
 
 // WeCom nests the click payload under `template_card_event`.
@@ -775,6 +1532,8 @@ assert.match(formatTaskNotify(notifyTask), /task-done/);
 assert.match(formatTaskNotify(notifyTask), /src\/a\.js/);
 assert.match(formatTaskNotify(notifyTask), /https:\/\/example.com\/pr\/1/);
 assert.match(formatTaskNotify(notifyTask), /对话 ID：`task-done`$/);
+assert.match(formatTaskNotify(notifyTask), /\*\*✅ 最终结论\*\*/);
+assert.match(formatTaskNotify(notifyTask), /任务已完成，但 Agent 未给出文字说明/);
 // A retry that succeeded must not report the previous attempt's error.
 assert.equal(
   formatTaskNotify({ ...notifyTask, error: 'cursor-agent-open-failed:Agent x not found' })
@@ -786,7 +1545,7 @@ assert.match(
   /错误：boom/
 );
 assert.equal(formatTaskFooter('task-1'), '对话 ID：`task-1`');
-assert.equal(formatTaskFooter('task-1', { running: true }), '对话 ID：`task-1`\n终止：发送 `终止 task-1`');
+assert.equal(formatTaskFooter('task-1', { running: true }), '对话 ID：`task-1`\n展开或停止请点消息下方按钮；也可发送 `终止 task-1`');
 assert.equal(formatTaskFooter(null), '');
 assert.match(formatListReply([]), /没有未结束/);
 
@@ -808,7 +1567,7 @@ assert.equal(sent[0].body.msgtype, 'markdown');
 assert.match(sent[0].body.markdown.content, /已完成/);
 
 assert.equal(formatProgressEvent({ type: 'cursor.run.started' }).kind, 'status');
-assert.match(formatProgressEvent({ type: 'cursor.run.started' }).text, /Agent 输出中/);
+assert.equal(formatProgressEvent({ type: 'cursor.run.started' }).text, 'thinking');
 assert.equal(formatProgressEvent({
   type: 'cursor.message',
   payload: { type: 'tool_call', message: { toolCall: { name: 'Read', input: { path: 'src/a.js' } } } }
@@ -833,7 +1592,7 @@ assert.match(renderProgressView({
   transcript: [
     { kind: 'tool', tools: [{ name: 'Read', detail: 'src/a.js' }] }
   ]
-}), /Read/);
+}), /正在读取文件/);
 const collapsed = renderProgressView({
   header: '**t1**',
   transcript: [
@@ -844,11 +1603,11 @@ const collapsed = renderProgressView({
     { kind: 'assistant', text: '这一段过程草稿不应整段铺在过程里' }
   ]
 });
-assert.match(collapsed, /另有 3 步已收起/);
+assert.match(collapsed, /查看完整过程/);
 assert.match(collapsed, /src\/f7\.js/);
 assert.equal(collapsed.includes('src/f0.js'), false);
-assert.match(collapsed, /\*\*正在\*\*/);
-assert.equal(collapsed.includes('**结果**'), false);
+assert.match(collapsed, /正在读取文件/);
+assert.equal(collapsed.includes('**✅ 最终结论**'), false);
 const finishedView = renderProgressView({
   header: '**t1**',
   transcript: [
@@ -858,9 +1617,9 @@ const finishedView = renderProgressView({
   footer: '任务 **t1** 已完成',
   finished: true
 });
-assert.match(finishedView, /\*\*结果\*\*/);
+assert.match(finishedView, /\*\*✅ 最终结论\*\*/);
 assert.match(finishedView, /复制按钮已修好/);
-assert.match(finishedView, /已完成/);
+assert.match(finishedView, /已完成 1 个分析步骤/);
 assert.equal(finishedView.includes('**正在**'), false);
 // The title dances while the task runs and stops once the stream is finished.
 assert.equal(finishedView.includes('🐧'), false);
@@ -883,7 +1642,9 @@ const runningBox = renderProgressView({
   transcript: [{ kind: 'tool', tools: [{ name: 'Read', detail: 'src/a.js' }] }],
   taskId: 'task-live'
 });
-assert.match(runningBox, /终止：发送 `终止 task-live`$/);
+assert.match(runningBox, /展开或停止请点消息下方按钮/);
+assert.match(runningBox, /终止 task-live/);
+assert.equal(runningBox.includes('**点击终止**'), false);
 assert.match(runningBox, /对话 ID：`task-live`/);
 assert.equal(
   renderProgressView({
@@ -892,9 +1653,97 @@ assert.equal(
     footer: formatTaskNotify({ id: 'task-live', status: 'completed', requirement: '需求' }),
     finished: true,
     taskId: 'task-live'
-  }).includes('终止：发送'),
+  }).includes('终止：'),
   false
 );
+const emptyFinish = renderProgressView({
+  header: '**t-empty**',
+  transcript: [{ kind: 'tool', tools: [{ name: 'Read', detail: 'src/a.js' }] }],
+  status: '已完成',
+  finished: true,
+  taskId: 't-empty'
+});
+assert.match(emptyFinish, /\*\*✅ 最终结论\*\*/);
+assert.match(emptyFinish, /未给出文字说明/);
+const expandedProcess = renderProgressView({
+  header: '**t1**',
+  transcript: [
+    { kind: 'tool', tools: [{ name: 'Shell', detail: 'ls' }] },
+    { kind: 'tool', tools: [{ name: 'Shell', detail: 'git status' }] },
+    { kind: 'tool', tools: [{ name: 'Read', detail: 'src/a.js' }] }
+  ],
+  expanded: true,
+  animate: false
+});
+assert.match(expandedProcess, /\*\*Shell\*\* · 2 次/);
+assert.match(expandedProcess, /git status/);
+assert.match(expandedProcess, /\*\*Read\*\*/);
+const failedView = renderProgressView({
+  header: '**t-fail**',
+  transcript: [],
+  status: '失败',
+  finished: true,
+  footer: formatTaskNotify({
+    id: 't-fail',
+    status: 'failed',
+    requirement: '需求',
+    error: 'cursor-run-start-failed:Agent x already has active run'
+  }, {}, { includeConclusion: false }),
+  taskId: 't-fail'
+});
+assert.match(failedView, /\*\*✅ 最终结论\*\*/);
+assert.match(failedView, /already has active run/);
+assert.equal(failedView.includes('未返回详细原因'), false);
+
+assert.deepEqual(getThinkingPreview(['a', 'b', 'c', 'd', 'e']), ['c', 'd', 'e']);
+assert.equal(resolveAgentUiStatus({ status: 'created' }), 'created');
+assert.equal(resolveAgentUiStatus({ status: 'thinking' }), 'thinking');
+assert.equal(resolveAgentUiStatus({
+  status: 'thinking',
+  transcript: [{ kind: 'tool', tools: [{ name: 'Read', detail: 'a.js' }] }]
+}), 'executing');
+assert.equal(resolveAgentUiStatus({ status: 'canceled', finished: true }), 'canceled');
+const cancelingView = renderProgressView({
+  header: '**t-stop**',
+  status: 'canceling',
+  transcript: [{ kind: 'tool', tools: [{ name: 'Read', detail: 'src/a.js' }] }],
+  taskId: 't-stop'
+});
+assert.match(cancelingView, /⏹ 正在终止/);
+assert.match(cancelingView, /正在停止当前任务/);
+assert.equal(cancelingView.includes('点击终止'), false);
+const canceledView = renderProgressView({
+  header: '**t-stop**',
+  status: 'canceled',
+  finished: true,
+  transcript: [
+    { kind: 'tool', tools: [{ name: 'Read', detail: 'src/a.js' }] },
+    { kind: 'tool', tools: [{ name: 'Grep', detail: 'copy' }] }
+  ],
+  taskId: 't-stop'
+});
+assert.match(canceledView, /⛔ 已终止/);
+assert.match(canceledView, /任务已被用户终止/);
+assert.match(canceledView, /已完成：/);
+assert.match(canceledView, /正在读取文件/);
+assert.equal(canceledView.includes('**✅ 最终结论**'), false);
+const cotCollapsed = renderProgressView({
+  header: '**t-cot**',
+  transcript: [{ kind: 'thinking', text: '我现在考虑是不是应该先调用 AST Agent，但是又需要判断当前文件是否存在' }]
+});
+assert.match(cotCollapsed, /正在分析…/);
+assert.equal(cotCollapsed.includes('AST Agent'), false);
+const uiState = buildAgentUIState({
+  transcript: [
+    { kind: 'tool', tools: [{ name: 'Read', detail: 'a.js' }] },
+    { kind: 'assistant', text: '问题在复制按钮。' }
+  ],
+  finished: true,
+  status: 'completed'
+});
+assert.equal(uiState.status, 'completed');
+assert.equal(uiState.thinking.total, 1);
+assert.match(uiState.result.content, /问题在复制按钮/);
 
 const streamUpdates = [];
 const hub = createWeComProgressHub({
@@ -912,7 +1761,7 @@ hub.open({
 });
 await hub.handle({ type: 'cursor.run.started', taskId: 'task-live' });
 assert.equal(streamUpdates.at(-1).finish, false);
-assert.match(streamUpdates.at(-1).content, /Agent 输出中/);
+assert.match(streamUpdates.at(-1).content, /思考中/);
 await hub.handle({
   type: 'cursor.message',
   taskId: 'task-live',
@@ -989,6 +1838,180 @@ assert.equal(streamUpdates.at(-1).finish, true);
 assert.match(streamUpdates.at(-1).content, /已完成/);
 assert.equal(streamedFinish.length, 0);
 await hub.close();
+
+// WeCom closes a stream 10 minutes after the message that opened it, and a code
+// task routinely runs longer. The live view is wrapped up with an explanation
+// and the progress continues as pushed messages.
+let ttlClock = 1_780_000_000_000;
+const ttlStream = [];
+const ttlPushed = [];
+const ttlHub = createWeComProgressHub({
+  replyProgress: async (_frame, _streamId, content, finish) => { ttlStream.push({ content, finish }); },
+  pushMessage: async (target, content) => { ttlPushed.push({ target, content }); },
+  now: () => ttlClock,
+  heartbeatMs: 60_000,
+  danceMs: 0,
+  streamTtlMs: 9 * MINUTE,
+  pushIntervalMs: 3 * MINUTE
+});
+ttlHub.open({ taskId: 'task-long', frame: textFrame, streamId: 'stream-long', header: '**task-long**' });
+await ttlHub.handle({ type: 'cursor.run.started', taskId: 'task-long' });
+assert.equal(ttlStream.length, 1);
+assert.equal(ttlStream[0].finish, false);
+
+ttlClock += 9 * MINUTE;
+await ttlHub.handle({
+  taskId: 'task-long',
+  type: 'cursor.message',
+  payload: { type: 'assistant', text: '还在改代码' }
+});
+assert.equal(ttlStream.length, 2);
+assert.equal(ttlStream.at(-1).finish, true, '到期前自己收尾，不等企微拒绝');
+assert.match(ttlStream.at(-1).content, /10 分钟上限/);
+assert.match(ttlStream.at(-1).content, /每约 3 分钟/);
+assert.equal(ttlStream.at(-1).content.includes('**✅ 最终结论**'), false, '任务还没结束，不能当结论收');
+assert.equal(ttlStream.at(-1).content.includes('🐧'), false);
+assert.equal(ttlPushed.length, 0, '收尾帧刚带过当前进展，不立刻重复推');
+
+ttlClock += MINUTE;
+await ttlHub.tick();
+assert.equal(ttlPushed.length, 0, '推送间隔内攒着');
+ttlClock += 2 * MINUTE;
+await ttlHub.tick();
+assert.equal(ttlPushed.length, 1);
+assert.equal(ttlPushed[0].target.chatid, 'user-a');
+assert.match(ttlPushed[0].content, /还在改代码/);
+assert.equal(ttlPushed[0].content.includes('🐧'), false, '静态消息不做动画');
+
+const longFinish = [];
+attachWeComNotifier({
+  manager: {
+    subscribe(listener) {
+      listeners.push(listener);
+      return () => {};
+    },
+    async get() { return notifyTask; }
+  },
+  sendMessage: async (chatid, body) => { longFinish.push({ chatid, body }); },
+  progress: ttlHub
+});
+await listeners.at(-1)({
+  type: 'task.finished',
+  taskId: 'task-long',
+  status: 'completed',
+  task: { ...notifyTask, id: 'task-long' }
+});
+assert.equal(ttlPushed.length, 1, '终态归 notifier 发，进度通道不重复推一条');
+assert.equal(longFinish.length, 1);
+assert.match(longFinish[0].body.markdown.content, /已完成/);
+assert.equal(ttlHub.has('task-long'), false);
+await ttlHub.close();
+
+// The SDK rejects with the raw ack frame, so the expiry has to be recognised
+// on `errcode` rather than on an Error message.
+assert.equal(isStreamExpired({
+  errcode: 846608,
+  errmsg: 'stream message update expired (>10 minutes),cannot update'
+}), true);
+assert.equal(isStreamExpired(new Error('boom')), false);
+
+const expiredPushed = [];
+const expiredLogs = [];
+const expiredHub = createWeComProgressHub({
+  replyProgress: async () => {
+    throw { errcode: 846608, errmsg: 'stream message update expired (>10 minutes),cannot update' };
+  },
+  pushMessage: async (_target, content) => { expiredPushed.push(content); },
+  logger: { error: (line) => expiredLogs.push(line), event: () => {} },
+  now: () => 1_780_000_000_000,
+  heartbeatMs: 60_000,
+  danceMs: 0
+});
+expiredHub.open({ taskId: 'task-expired', frame: textFrame, streamId: 'stream-expired', header: '**task-expired**' });
+await expiredHub.handle({
+  taskId: 'task-expired',
+  type: 'cursor.message',
+  payload: { type: 'assistant', text: '仍在跑' }
+});
+assert.equal(expiredPushed.length, 1, '被拒的那一帧改用推送补上，不能丢');
+assert.match(expiredPushed[0], /仍在跑/);
+assert.equal(expiredLogs.length, 0, '过期是预期内的降级，不算错误');
+assert.equal(expiredHub.has('task-expired'), true, '会话继续存活');
+await expiredHub.close();
+
+// Any other ack failure still ends the session, but the log has to name it.
+const deadLogs = [];
+const deadHub = createWeComProgressHub({
+  replyProgress: async () => { throw { errcode: 40001, errmsg: 'invalid credential' }; },
+  logger: { error: (line) => deadLogs.push(line), event: () => {} },
+  now: () => 1_780_000_000_000,
+  heartbeatMs: 60_000,
+  danceMs: 0
+});
+deadHub.open({ taskId: 'task-dead', frame: textFrame, streamId: 'stream-dead', header: '**task-dead**' });
+await deadHub.handle({ taskId: 'task-dead', type: 'cursor.message', payload: { type: 'assistant', text: 'x' } });
+assert.equal(deadHub.has('task-dead'), false);
+assert.match(deadLogs[0], /wecom-progress-failed:task-dead:40001:invalid credential/);
+assert.equal(deadLogs[0].includes('[object Object]'), false);
+
+// Without a push channel the expiry can only be announced, not worked around.
+let soloClock = 1_780_000_000_000;
+const soloStream = [];
+const soloHub = createWeComProgressHub({
+  replyProgress: async (_frame, _streamId, content, finish) => { soloStream.push({ content, finish }); },
+  now: () => soloClock,
+  heartbeatMs: 60_000,
+  danceMs: 0,
+  streamTtlMs: 9 * MINUTE
+});
+soloHub.open({ taskId: 'task-solo', frame: textFrame, streamId: 'stream-solo', header: '**task-solo**' });
+soloClock += 9 * MINUTE;
+await soloHub.handle({ taskId: 'task-solo', type: 'cursor.message', payload: { type: 'assistant', text: 'y' } });
+assert.equal(soloStream.at(-1).finish, true);
+assert.match(soloStream.at(-1).content, /完成后如可推送会再通知|完成后会单独发消息通知/);
+assert.equal(soloHub.has('task-solo'), false);
+
+// A silent Agent on the push channel still gets keepalives, then a stall
+// concludes instead of freezing on "仍在后台运行".
+let stallClock = 1_780_000_000_000;
+const stallPushed = [];
+const stalledIds = [];
+const stallHub = createWeComProgressHub({
+  replyProgress: async () => {},
+  pushMessage: async (_target, content) => { stallPushed.push(content); },
+  now: () => stallClock,
+  heartbeatMs: 60_000,
+  danceMs: 0,
+  streamTtlMs: 9 * MINUTE,
+  pushIntervalMs: 3 * MINUTE,
+  stallMs: 15 * MINUTE,
+  onStall: async (taskId) => { stalledIds.push(taskId); }
+});
+stallHub.open({
+  taskId: 'task-stall',
+  frame: textFrame,
+  streamId: 'stream-stall',
+  header: '**task-stall**',
+  source: sourceFromFrame(textFrame)
+});
+await stallHub.handle({
+  taskId: 'task-stall',
+  type: 'cursor.message',
+  payload: { type: 'assistant', text: '正在创建 PR' }
+});
+stallClock += 9 * MINUTE;
+await stallHub.tick();
+stallClock += 3 * MINUTE;
+await stallHub.tick();
+assert.match(stallPushed.at(-1) ?? '', /正在创建 PR|仍在执行/);
+assert.equal(stallPushed.at(-1).includes('**✅ 最终结论**'), false);
+stallClock += 15 * MINUTE;
+await stallHub.tick();
+assert.equal(stalledIds[0], 'task-stall');
+assert.equal(stallHub.has('task-stall'), false);
+assert.match(stallPushed.at(-1), /\*\*✅ 最终结论\*\*/);
+assert.match(stallPushed.at(-1), /停止等待|长时间无新输出/);
+await stallHub.close();
 
 class FakeWSClient {
   constructor(options) { this.options = options; this.handlers = new Map(); }
@@ -1067,13 +2090,13 @@ const startedBot = await startWeComBot({
   exitOnShutdown: false,
   installSignals: false,
   mcpServers: {},
-  listModels: async () => ['grok-4.6', 'gemini-3.8-flash'],
+  listModels: async () => ['grok-4.6', 'gemini-3.8-flash', 'gpt-5.4-mini'],
   env: {}
 });
 // Boot checks model names once: a rule naming a model the account cannot run
 // is dropped here instead of failing when a task starts.
 assert.equal(startedBot.models.list().some((rule) => rule.id === 'ghost'), false);
-assert.equal(startedBot.models.model({ stage: 'intent', text: 'x' }), 'gemini-3.8-flash');
+assert.equal(startedBot.models.model({ stage: 'intent', text: 'x' }), 'gpt-5.4-mini');
 assert.deepEqual(recovered, ['ok']);
 assert.equal(startedBot.gateway.client.connected, true);
 await startedBot.shutdown('test');
@@ -1133,7 +2156,7 @@ await handleWeComMessage({
 });
 assert.equal(captured[0].name, 'message.in');
 assert.equal(captured.at(-1).name, 'message.out');
-assert.equal(captured.at(-1).data.command, 'help');
+assert.equal(captured.at(-1).data.command, 'smalltalk');
 
 assert.equal(parseWeComMedia({
   body: { msgtype: 'voice', voice: { content: '做：增加搜索' } }
@@ -1210,7 +2233,7 @@ assert.equal(classifyIntentByRules('帮我修一下登录按钮点击没反应')
 assert.equal(classifyIntentByRules('分析一下这次变更的影响面').kind, 'analysis');
 assert.equal(classifyIntentByRules('分析一下这次变更的影响面').needsCode, false);
 assert.equal(classifyIntentByRules('composer 是什么意思').kind, 'question');
-assert.equal(classifyIntentByRules('再加上一个开关', { hasOpenTask: true }).kind, 'followup');
+assert.equal(classifyIntentByRules('再加上一个开关', { hasActiveTask: true }).kind, 'followup');
 // The same words without an open task are a fresh request, not a follow-up.
 assert.notEqual(classifyIntentByRules('再加上一个开关').kind, 'followup');
 // Unclassifiable text keeps the old behaviour of asking for a repository.
@@ -1339,20 +2362,63 @@ assert.equal(tapdPasteIntent.kind, 'code');
 assert.equal((await countingAnalyzer.analyze({ text: '帮我修一下登录按钮' })).source, 'rules-fast');
 assert.equal((await countingAnalyzer.analyze({ text: '分析一下这次变更的影响面' })).kind, 'analysis');
 assert.equal((await countingAnalyzer.analyze({ text: 'composer 是什么意思' })).kind, 'question');
-// Real traffic: an addendum to the one open task never needed a model either.
-const addendum = await countingAnalyzer.analyze({
-  text: '1、析影响范围并做最小收敛自测\n2、 Commit / 提 PR',
-  hasOpenTask: true
-});
+// A follow-up word next to an open task still needs no model.
+const addendum = await countingAnalyzer.analyze({ text: '再补充一点：加上单测', hasActiveTask: true });
 assert.equal(addendum.kind, 'followup');
 assert.equal(addendum.source, 'rules-fast');
 assert.equal(modelCalls, 0);
+// A quote next to live work is a reference, so even wording that carries no
+// signal skips the model.
+const quotedAddendum = await countingAnalyzer.analyze({
+  text: '这个也要',
+  hasActiveTask: true,
+  quote: { present: true, text: '对话 ID：task-20260903111407-a9a64f81' }
+});
+assert.equal(quotedAddendum.kind, 'followup');
+assert.equal(quotedAddendum.source, 'rules-fast');
+// Quoting while starting something else is still new work.
+assert.equal(
+  fastIntent('帮我修一下另一个 bug', { hasActiveTask: true, quote: { present: true, text: 'x' } }).kind,
+  'code'
+);
+assert.equal(modelCalls, 0);
+// Without one, an open task no longer makes every sentence an addendum. Left
+// unchecked that rule appended "我想下班" to a TAPD story; it is now the
+// model's call.
+assert.equal(fastIntent('我想下班', { hasActiveTask: true }), null);
+// Ship verbs are the exception: commit, PR, TAPD backfill and rerunning the
+// tests all happen to work that already exists, so they resolve without a
+// model instead of reading as a new task called 提交 PR.
+const shipIntent = fastIntent('1、析影响范围并做最小收敛自测\n2、 Commit / 提 PR', { hasActiveTask: true });
+assert.equal(shipIntent.kind, 'followup');
+assert.equal(shipIntent.source, 'rules-fast');
+for (const line of ['提交 PR 回填', '提交并执行PR和回填', '帮我合并一下', '重跑一下自测']) {
+  assert.equal(fastIntent(line).kind, 'followup', line);
+}
+// A Task ID outranks everything, in the text or in what was quoted.
+const namedIntent = fastIntent('task-20260904072702-23adbfed 继续提交并执行PR和回填');
+assert.equal(namedIntent.kind, 'followup');
+assert.equal(namedIntent.confidence, 0.95);
+// The quoted task had already finished, which used to send this to the model.
+assert.equal(
+  fastIntent('提交 PR 回填', {
+    hasActiveTask: false,
+    quote: { present: true, text: '对话 ID：`task-20260904072702-23adbfed`' }
+  }).kind,
+  'followup'
+);
+// Starting something new is still new work, ship verb or not.
+assert.equal(fastIntent('帮我实现一键提交功能').kind, 'code');
+// And mid-sentence the verb is just a word: with nothing live behind it this
+// is a defect report, so it goes to the model like any other.
+assert.equal(fastIntent('购物车合并逻辑有问题'), null);
+assert.equal(fastIntent('购物车合并逻辑有问题', { hasActiveTask: true }).kind, 'followup');
 // Only genuinely ambiguous new work is worth the wait.
 assert.equal((await countingAnalyzer.analyze({ text: AMBIGUOUS })).source, 'cursor');
 assert.equal(modelCalls, 1);
 assert.equal(fastIntent(AMBIGUOUS), null);
 // A leading verb decides new work even while a task is open.
-assert.equal(fastIntent('帮我修一下另一个 bug', { hasOpenTask: true }).kind, 'code');
+assert.equal(fastIntent('帮我修一下另一个 bug', { hasActiveTask: true }).kind, 'code');
 
 const stageReplies = [];
 const stageUpdates = [];
@@ -1531,11 +2597,11 @@ assert.equal(controlReplies.length, 1);
 const modelReplies = [];
 const router = createModelRouter({ logger: { error() {} } });
 // Requirement 1: classification always takes the fast model.
-assert.equal(router.model({ stage: 'intent', text: '随便什么文本' }), 'gemini-3.8-flash');
+assert.equal(router.model({ stage: 'intent', text: '随便什么文本' }), 'gpt-5.4-mini');
 // Requirement 2: code work and anything architectural takes the reasoning model.
 assert.equal(router.select({ stage: 'task', intent: { kind: 'code' }, text: '修按钮' }).ruleId, 'code-work');
 assert.equal(router.model({ stage: 'task', intent: { kind: 'code' }, text: '修按钮' }), 'grok-4.6');
-assert.equal(router.model({ stage: 'task', intent: { kind: 'analysis' }, text: '看看重连日志' }), 'gemini-3.8-flash');
+assert.equal(router.model({ stage: 'task', intent: { kind: 'analysis' }, text: '看看重连日志' }), 'gpt-5.4-mini');
 // Order is priority: architecture beats the plain analysis rule.
 const architectural = router.select({ stage: 'task', intent: { kind: 'analysis' }, text: '分析一下整体架构分层' });
 assert.equal(architectural.ruleId, 'complex-code');
@@ -1594,7 +2660,7 @@ const resilient = createModelRouter({
   logger: { error: (message) => droppedErrors.push(message) }
 });
 assert.equal(droppedErrors.length, 1);
-assert.equal(resilient.model({ stage: 'intent', text: 'x' }), 'gemini-3.8-flash');
+assert.equal(resilient.model({ stage: 'intent', text: 'x' }), 'gpt-5.4-mini');
 
 const modelConfig = resolveWeComModelConfig({
   local: { models: { default: 'claude-opus-5', rules: [{ id: 'mine', model: 'grok-4.5', match: 'x' }] } }
@@ -1624,10 +2690,10 @@ const modelRouted = await handleWeComMessage({
     }
   }
 });
-assert.equal(modelRouted.action.task.model, 'gemini-3.8-flash');
+assert.equal(modelRouted.action.task.model, 'gpt-5.4-mini');
 assert.equal(modelRouted.action.model.ruleId, 'simple-analysis');
 // The user can see which model the task got.
-assert.match(modelReplies.join('\n'), /gemini-3\.8-flash/);
+assert.match(modelReplies.join('\n'), /gpt-5\.4-mini/);
 
 const codeRouted = await handleWeComMessage({
   ...textFrame,
@@ -1663,7 +2729,7 @@ const checkCode = await checkWeComModels('/tmp/app', {
   out: { log: (line) => modelCheckOut.push(line), error: (line) => modelCheckOut.push(line), warn() {} }
 });
 assert.equal(checkCode, 0);
-assert.match(modelCheckOut.join('\n'), /intent-classify\s+→ gemini-3\.8-flash/);
+assert.match(modelCheckOut.join('\n'), /intent-classify\s+→ gpt-5\.4-mini/);
 assert.match(modelCheckOut.join('\n'), /任务执行 · intent=analysis\s+→ grok-4\.6\s+（complex-code）/);
 assert.match(modelCheckOut.join('\n'), /校验通过/);
 
@@ -1686,19 +2752,624 @@ const onlineCode = await checkWeComModels('/tmp/app', {
     apiKey: 'crsr_x',
     models: resolveWeComModelConfig({ local: { models: { rules: [{ id: 'x', model: 'ghost-1' }] } } })
   }),
-  listModels: async () => ['grok-4.6', 'gemini-3.8-flash'],
+  listModels: async () => ['grok-4.6', 'gemini-3.8-flash', 'gpt-5.4-mini'],
   out: { log: (line) => onlineOut.push(line), error: (line) => onlineOut.push(line), warn() {} }
 });
 assert.equal(onlineCode, 1);
 assert.match(onlineOut.join('\n'), /模型不存在：ghost-1/);
 assert.match(onlineOut.join('\n'), /校验未通过/);
 
+// An open question is answered in the same turn instead of becoming a task.
+const askReplies = [];
+const asked = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'ask-1', text: { content: 'composer 和 auto 模式有什么区别' } }
+}, {
+  manager: {
+    async create() { throw new Error('a question must not create a task'); },
+    async start() {}, async list() { return []; }, stats() { return {}; }
+  },
+  replyAck: async (_frame, content) => { askReplies.push(content); return 'stream-ask'; },
+  replyProgress: async (_frame, _id, content) => { askReplies.push(content); },
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup(),
+  chat: { async reply() { return 'auto 会替你挑模型，composer 是 Cursor 自研的快模型。'; } },
+  understanding: {
+    async analyze() {
+      return { kind: 'question', label: '问答', needsCode: false, summary: '', confidence: 0.9, source: 'stub' };
+    }
+  }
+});
+assert.equal(asked.action.type, 'answer');
+assert.equal(asked.reply, 'auto 会替你挑模型，composer 是 Cursor 自研的快模型。');
+// It is an answer in progress, not a task being prepared.
+assert.equal(askReplies.some((line) => line.includes('任务，正在进一步解析中')), false);
+
+// A question that needs the repository still becomes a task.
+const repoQuestion = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'ask-2', text: { content: '这个 bot 的重连是怎么实现的' } }
+}, {
+  manager: createFakeManager(),
+  replyAck: async () => 'stream-ask-2',
+  replyProgress: async () => {},
+  progress: { open() {} },
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup(),
+  chat: { async reply() { throw new Error('repo questions must not be answered blind'); } },
+  understanding: {
+    async analyze() {
+      return { kind: 'question', label: '问答', needsCode: true, summary: '', confidence: 0.9, source: 'stub' };
+    }
+  }
+});
+assert.equal(repoQuestion.action.type, 'created');
+
+// When the model is unreachable the turn still ends with something useful.
+const chatDegraded = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'ask-3', text: { content: 'composer 是什么' } }
+}, {
+  manager: createFakeManager(),
+  replyAck: async () => 'stream-ask-3',
+  replyProgress: async () => {},
+  progress: { open() {} },
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup(),
+  chat: { async reply() { return null; } },
+  understanding: {
+    async analyze() {
+      return { kind: 'question', label: '问答', needsCode: false, summary: '', confidence: 0.9, source: 'stub' };
+    }
+  }
+});
+assert.equal(chatDegraded.action.type, 'created');
+
+// A chat responder with nothing configured stays quiet rather than throwing.
+const idleChat = createChatResponder({ settings: { enabled: false } });
+assert.equal(idleChat.backend, 'none');
+assert.equal(await idleChat.reply('在吗'), null);
+const cursorChat = createChatResponder({
+  settings: { cursorApiKey: 'crsr_x' },
+  selectModel: ({ stage }) => (stage === 'chat' ? 'gpt-5.4-mini' : null),
+  importSdk: async () => ({
+    Agent: {
+      async prompt(_text, options) {
+        assert.equal(options.model.id, 'gpt-5.4-mini');
+        return { status: 'finished', result: '```\n就是个快模型。\n```' };
+      }
+    }
+  })
+});
+assert.equal(cursorChat.backend, 'cursor');
+// The fence a model adds around prose is not part of the answer.
+assert.equal(await cursorChat.reply('composer 是什么'), '就是个快模型。');
+const brokenChat = createChatResponder({
+  settings: { cursorApiKey: 'crsr_x' },
+  logger: { warn() {} },
+  importSdk: async () => ({ Agent: { async prompt() { throw new Error('nope'); } } })
+});
+assert.equal(await brokenChat.reply('x'), null);
+
+// The chat stage is routable like any other.
+assert.equal(createModelRouter({ logger: { error() {} } }).model({ stage: 'chat', text: 'x' }), 'gpt-5.4-mini');
+assert.equal(validateModelRules([{ id: 'c', model: 'x', stage: 'chat' }]).ok, true);
+
+// The manual greets a newcomer once; coming back does not repeat it.
+const welcomed = [];
+const greeted = new Set();
+const welcomeBot = await startWeComBot({
+  config: { root: tmp, botId: 'bot', secret: 'secret', agent: { mcp: { enabled: false } } },
+  manager: { async initialize() { return []; }, subscribe() { return () => {}; }, async close() {} },
+  WSClient: FakeWSClient,
+  keepAlive: false,
+  exitOnShutdown: false,
+  installSignals: false,
+  mcpServers: {},
+  listModels: async () => { throw new Error('offline'); },
+  greeted,
+  env: {}
+});
+welcomeBot.gateway.client.replyWelcome = async (_frame, body) => { welcomed.push(body.text.content); };
+const enterChat = welcomeBot.gateway.client.handlers.get('event.enter_chat');
+const enterFrame = (userid) => ({ headers: { req_id: `w-${userid}` }, body: { aibotid: 'bot', chattype: 'single', from: { userid } } });
+await enterChat(enterFrame('newcomer'));
+await enterChat(enterFrame('newcomer'));
+await enterChat(enterFrame('someone-else'));
+await delay(10);
+assert.equal(welcomed[0], HELP_TEXT);
+// Re-opening the chat must not re-print the manual.
+assert.equal(welcomed[1], WELCOME_TEXT);
+assert.equal(welcomed[2], HELP_TEXT);
+await welcomeBot.shutdown('test');
+
+// Twenty lines across four groups, all non-empty and distinct.
+const pool = Object.values(SMALLTALK_REPLIES).flat();
+assert.equal(pool.length, 20);
+assert.equal(new Set(pool).size, 20);
+assert.equal(pool.every((line) => typeof line === 'string' && line.trim().length > 0), true);
+assert.deepEqual(SMALLTALK_KINDS, ['praise', 'casual', 'farewell', 'thanks']);
+// Picking is random but stays inside the group and never runs off the end.
+assert.equal(pickSmalltalkReply('praise', { random: () => 0 }), SMALLTALK_REPLIES.praise[0]);
+assert.equal(pickSmalltalkReply('praise', { random: () => 0.999 }), SMALLTALK_REPLIES.praise.at(-1));
+assert.equal(pickSmalltalkReply('praise', { random: () => 1 }), SMALLTALK_REPLIES.praise.at(-1));
+assert.equal(pickSmalltalkReply('nope'), null);
+assert.equal(SMALLTALK_REPLIES.casual.includes(pickSmalltalkReply('casual')), true);
+// Over many turns the bot does not repeat itself, which is the whole point.
+const seen = new Set();
+for (let i = 0; i < 200; i += 1) seen.add(pickSmalltalkReply('farewell'));
+assert.equal(seen.size, SMALLTALK_REPLIES.farewell.length);
+
+// Chit-chat is answered locally: no model, no task, and a line from the pool.
+for (const [text, kind] of [['你好厉害', 'praise'], ['今天天气不错', 'casual'], ['拜拜', 'farewell'], ['谢谢', 'thanks']]) {
+  const replies = [];
+  const result = await handleWeComMessage({
+    ...textFrame,
+    body: { ...textFrame.body, msgid: `chat-${kind}`, text: { content: text } }
+  }, {
+    manager: {
+      async create() { throw new Error('chit-chat must not create a task'); },
+      async start() {}, async list() { return []; }, stats() { return {}; }
+    },
+    replyAck: async (_frame, content) => { replies.push(content); },
+    config: { repository: 'owner/repo' },
+    dedup: createMessageDedup(),
+    chat: { async reply() { throw new Error('chit-chat must not call a model'); } },
+    understanding: { async analyze() { throw new Error('chit-chat must not be classified'); } },
+    random: () => 0
+  });
+  assert.equal(result.action.type, 'smalltalk');
+  assert.equal(result.action.kind, kind);
+  assert.equal(replies[0], SMALLTALK_REPLIES[kind][0]);
+}
+
+// Thanking the bot with nothing running is small talk, not a reason for a manual.
+const idleThanks = [];
+await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'thanks-idle', text: { content: '收到' } }
+}, {
+  manager: createFakeManager(),
+  replyAck: async (_frame, content) => { idleThanks.push(content); },
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(idleThanks[0].includes('Task ID'), false);
+assert.equal(SMALLTALK_REPLIES.thanks.includes(idleThanks[0]), true);
+
+// Bringing the agent up is one line, not a five-step checklist.
+for (const type of ['scheduler.queued', 'scheduler.started', 'cursor.agent.created', 'cursor.agent.resumed', 'task.cursor.bound']) {
+  const item = formatProgressEvent({ type });
+  assert.equal(item.text, 'created');
+  assert.equal(item.log, false);
+}
+// Things the user might act on are still written into the process list.
+assert.equal(formatProgressEvent({ type: 'task.followup.queued' }).log, '已收到补充');
+assert.equal(formatProgressEvent({ type: 'task.blocked' }).log, '被阻塞');
+// An error carries detail worth keeping even on a silent status.
+assert.equal(formatProgressEvent({ type: 'cursor.run.completed', error: 'boom' }).extra, 'boom');
+
+const bootFrames = [];
+const bootHub = createWeComProgressHub({
+  replyProgress: async (_frame, _streamId, content) => { bootFrames.push(content); },
+  danceMs: 0,
+  heartbeatMs: 60_000
+});
+bootHub.open({ taskId: 'task-boot', frame: textFrame, streamId: 'stream-boot', header: '**task-boot**' });
+for (const type of ['scheduler.queued', 'scheduler.started', 'cursor.agent.resumed', 'cursor.run.started']) {
+  await bootHub.handle({ taskId: 'task-boot', type });
+}
+const booting = bootFrames.at(-1);
+// No process list and no placeholder while starting: the status line says it.
+assert.equal(booting.includes('思考过程'), false);
+assert.equal(booting.includes('等待 Agent 输出'), false);
+assert.equal(booting.includes('排队中'), false);
+assert.equal(booting.includes('已接上 Agent'), false);
+assert.match(booting, /\*\*⌛ 思考中\*\*/);
+// Real work does show up.
+await bootHub.handle({
+  taskId: 'task-boot',
+  type: 'cursor.message',
+  payload: { tools: [{ name: 'shell', detail: 'npm test' }] }
+});
+assert.match(bootFrames.at(-1), /\*\*⚙️ 执行中\*\*/);
+assert.match(bootFrames.at(-1), /正在执行命令/);
+await bootHub.close();
+
+// Terminating is a button on the live message, not a command to retype.
+const cancelCard = buildTaskCard('task-live');
+assert.equal(cancelCard.card_type, 'button_interaction');
+// Reading before stopping: the safer action, and the one anyone may take.
+assert.deepEqual(cancelCard.button_list.map((button) => button.key), ['status:task-live', 'process:task-live', 'cancel:task-live']);
+assert.deepEqual(cancelCard.button_list.map((button) => button.text), ['查看状态', '查看完整过程', '终止']);
+assert.equal(cancelCard.main_title.desc, 'task-live');
+// Two cards for one task must not collide on task_id (WeCom errcode 42014).
+assert.notEqual(buildTaskCard('task-live').task_id, cancelCard.task_id);
+// The click routes back to the cancel action already handled.
+assert.deepEqual(parseCardEvent({
+  body: { event: { template_card_event: { event_key: 'cancel:task-live', task_id: cancelCard.task_id } } }
+}), { action: 'cancel', value: 'task-live', cardTaskId: cancelCard.task_id });
+
+// The card rides on the same stream frame as the acknowledgement.
+const carded = [];
+const cardedTask = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'card-1', text: { content: '做：修一下复制按钮' } }
+}, {
+  manager: createFakeManager(),
+  replyAck: async (_frame, content, options) => { carded.push({ content, ...options }); return 'stream-card'; },
+  replyProgress: async () => {},
+  progress: { open() {} },
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+const ackFrame = carded.at(-1);
+assert.deepEqual(
+  ackFrame.card.button_list.map((button) => button.key),
+  [`status:${cardedTask.action.task.id}`, `process:${cardedTask.action.task.id}`, `cancel:${cardedTask.action.task.id}`]
+);
+assert.equal(ackFrame.finish, false);
+assert.equal(ackFrame.card.button_list.at(-1).text, '终止');
+
+const comboCards = [];
+await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'card-combo', text: { content: '做：修一下复制按钮' } }
+}, {
+  manager: createFakeManager(),
+  replyAck: async (_frame, content, options) => {
+    carded.push({ content, ...options });
+    return { streamId: 'stream-combo', cardAttached: true };
+  },
+  replyCard: async (_frame, card) => { comboCards.push(card); },
+  progress: { open() {} },
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(comboCards.length, 0, 'combo 已带上按钮时不要再发一张卡片');
+
+// A turn that ends immediately has nothing to terminate, so it carries no card.
+const plain = [];
+await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'card-2', text: { content: '帮助' } }
+}, {
+  manager: createFakeManager(),
+  replyAck: async (_frame, content, options) => { plain.push({ content, ...options }); },
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup()
+});
+assert.equal(plain[0].card ?? null, null);
+
+// The gateway prefers stream_with_template_card and falls back to plain text.
+const cardCalls = [];
+const cardGateway = createWeComGateway({
+  botId: 'b',
+  secret: 's',
+  WSClient: class {
+    on() {}
+    connect() {}
+    async replyStream(_frame, _id, content) { cardCalls.push({ kind: 'stream', content }); }
+    async replyStreamWithCard(_frame, _id, content, _finish, options) {
+      cardCalls.push({ kind: 'card', content, key: options.templateCard.button_list.at(-1).key });
+    }
+  },
+  logger: { warn() {} }
+});
+await cardGateway.replyAck(textFrame, '跑起来了', { finish: false, card: buildTaskCard('task-x') });
+assert.deepEqual(cardCalls, [{ kind: 'card', content: '跑起来了', key: 'cancel:task-x' }]);
+const noCardGateway = createWeComGateway({
+  botId: 'b',
+  secret: 's',
+  WSClient: class {
+    on() {}
+    connect() {}
+    async replyStream(_frame, _id, content) { cardCalls.push({ kind: 'fallback', content }); }
+  },
+  logger: { warn() {} }
+});
+await noCardGateway.replyAck(textFrame, '跑起来了', { finish: false, card: buildTaskCard('task-x') });
+assert.equal(cardCalls.at(-1).kind, 'fallback');
+
+const tapdUrl = 'https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081137887748';
+assert.deepEqual(parseTapdAssociation(`【容器 WebConsole】 ${tapdUrl}`), {
+  url: tapdUrl,
+  workspaceId: '10158081',
+  entryType: 'story',
+  entryId: '1010158081137887748',
+  shortId: '137887748',
+  branchType: 'feat'
+});
+assert.equal(parseTapdAssociation('增加搜索'), null);
+assert.equal(resolveWeComTapdConfig({ project: { tapd: { enabled: false, pr_field: 'source' } } }).enabled, true);
+assert.equal(resolveWeComTapdConfig({ project: { tapd: { enabled: false, pr_field: 'source' } } }).pr_field, 'source');
+assert.equal(resolveWeComTapdConfig({ project: { tapd: { enabled: false } } }).projectEnabled, false);
+assert.equal(resolveWeComTapdConfig({
+  project: { tapd: { enabled: true } },
+  local: { tapd: { enabled: false } }
+}).enabled, false);
+assert.equal(resolveWeComTapdConfig({
+  env: { AAFE_WECOM_TAPD_ENABLED: '0' },
+  local: { tapd: { enabled: true } }
+}).enabled, false);
+
+assert.equal(resolveWeComRepoConfig({
+  local: { repo: { githubAccessToken: 'ghp_wecom_local' } }
+}).githubAccessToken, 'ghp_wecom_local');
+assert.equal(resolveWeComRepoConfig({
+  env: { AAFE_WECOM_GITHUB_TOKEN: 'ghp_wecom_env' },
+  local: { repo: { githubAccessToken: 'ghp_wecom_local' } }
+}).githubAccessToken, 'ghp_wecom_env');
+assert.equal(resolveWeComRepoConfig({ local: {} }).githubAccessToken, null);
+
+const repoRoot = await mkdtemp(path.join(os.tmpdir(), 'aafe-wecom-repo-'));
+await writeFile(path.join(repoRoot, 'wecom.local.json'), JSON.stringify({
+  botId: 'bot',
+  secret: 'secret',
+  repo: { githubAccessToken: 'ghp_wecom_file' }
+}), 'utf8');
+const repoFromLocal = await loadWeComBotConfig({ root: repoRoot, env: {}, readConfig: async () => ({}) });
+assert.equal(repoFromLocal.repo.githubAccessToken, 'ghp_wecom_file');
+assert.equal(
+  createTaskManagerOptions(repoFromLocal).repoAuth.overrideConfig.repo.githubAccessToken,
+  'ghp_wecom_file'
+);
+
+const projectTapdOff = await mkdtemp(path.join(os.tmpdir(), 'aafe-wecom-tapd-'));
+await writeFile(path.join(projectTapdOff, '.aafe.config.json'), JSON.stringify({
+  tapd: { enabled: false, pr_field: 'custom_field_pr' },
+  agent: { repository: 'owner/repo' }
+}), 'utf8');
+const tapdFromProject = await loadWeComBotConfig({
+  root: projectTapdOff,
+  env: { WECOM_BOT_ID: 'bot', WECOM_BOT_SECRET: 'secret' }
+});
+assert.equal(tapdFromProject.tapd.enabled, true);
+assert.equal(tapdFromProject.tapd.pr_field, 'custom_field_pr');
+assert.equal(tapdFromProject.tapd.projectEnabled, false);
+
+const wecomTapdOff = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'tapd-off-1', text: { content: tapdPaste } }
+}, {
+  manager: createFakeManager(),
+  replyAck: async () => {},
+  config: { repository: 'owner/repo', tapd: { enabled: false } },
+  dedup: createMessageDedup()
+});
+assert.equal(wecomTapdOff.action.task.taskBranch, null);
+assert.equal(wecomTapdOff.action.task.context.tapd.enabled, false);
+assert.equal(wecomTapdOff.action.task.context.tapd.association.shortId, '137887277');
+
+const tapdPrompt = buildTaskPrompt({
+  id: 'task-20260904072702-23adbfed',
+  requirement: `【容器 WebConsole】 ${tapdUrl}`,
+  source: { type: 'wecom' }
+}, {
+  userRequest: `【容器 WebConsole】 ${tapdUrl}`,
+  tapd: {
+    enabled: true,
+    association: parseTapdAssociation(tapdUrl)
+  }
+});
+assert.equal(tapdPrompt.includes('Requested task branch:'), false);
+assert.equal(tapdPrompt.includes('aafe/task/task-20260904072702-23adbfed'), false);
+assert.match(tapdPrompt, /short_id=137887748/);
+assert.match(tapdPrompt, /#137887748/);
+assert.match(tapdPrompt, /overrides the target project/);
+assert.match(tapdPrompt, /--story=137887748/);
+
+const platformBranchPrompt = buildTaskPrompt({
+  id: 'task-x',
+  requirement: '增加搜索',
+  taskBranch: 'aafe/task/task-x',
+  source: { type: 'wecom' }
+}, { userRequest: '增加搜索' });
+assert.equal(platformBranchPrompt.includes('Requested task branch:'), false);
+assert.equal(platformBranchPrompt.includes('Candidate TAPD branch:'), false);
+
+// --- only the owner may end a run ------------------------------------------
+const ownedManager = createFakeManager();
+ownedManager.tasks.push({
+  id: 'task-owned',
+  status: 'running',
+  updatedAt: isoAgo(MINUTE),
+  source: { type: 'wecom', conversationId: 'room-1', userId: 'ann' },
+  goal: 'ann 的任务'
+});
+const groupSource = (userId) => ({ type: 'wecom', chattype: 'group', conversationId: 'room-1', userId });
+
+const strangerCancel = await resolveWeComAction(
+  { type: 'cancel', taskId: 'task-owned' },
+  { source: groupSource('bob') },
+  ownedManager
+);
+assert.equal(strangerCancel.type, 'error');
+assert.match(strangerCancel.message, /只有发起人能终止/);
+assert.equal(ownedManager.tasks[0].status, 'running', '一个旁观者不能停掉别人正在跑的 Agent');
+
+// Seeing it is still everyone's right; only stopping it is not.
+const strangerStatus = await resolveWeComAction(
+  { type: 'status', taskId: 'task-owned' },
+  { source: groupSource('bob') },
+  ownedManager
+);
+assert.equal(strangerStatus.type, 'status');
+
+const ownerCancel = await resolveWeComAction(
+  { type: 'cancel', taskId: 'task-owned' },
+  { source: groupSource('ann') },
+  ownedManager
+);
+assert.equal(ownerCancel.type, 'cancelled');
+
+// The button is visible to the whole group, so it answers to the same check.
+const cardManager = createFakeManager();
+cardManager.tasks.push({
+  id: 'task-carded',
+  status: 'running',
+  source: { type: 'wecom', conversationId: 'room-1', userId: 'ann' },
+  goal: 'ann 的任务'
+});
+const deniedTexts = [];
+const deniedTap = await handleWeComCard({
+  body: {
+    chattype: 'group',
+    chatid: 'room-1',
+    from: { userid: 'bob' },
+    event: { eventtype: 'template_card_event', template_card_event: { event_key: 'cancel:task-carded' } }
+  }
+}, {
+  manager: cardManager,
+  sendText: async (content) => { deniedTexts.push(content); }
+});
+assert.equal(deniedTap.skipped, true);
+assert.equal(deniedTap.reason, 'not-task-owner');
+assert.equal(cardManager.tasks[0].status, 'running');
+assert.match(deniedTexts.join('\n'), /只有发起人能终止/);
+
+// Reading is the other half of that check: a bystander who may not stop the
+// task may still see where it got to, without retyping the id.
+assert.deepEqual(parseCardEvent({
+  body: { event: { template_card_event: { event_key: 'status:task-carded' } } }
+}), { action: 'status', value: 'task-carded', cardTaskId: null });
+const viewedTexts = [];
+const viewedTap = await handleWeComCard({
+  body: {
+    chattype: 'group',
+    chatid: 'room-1',
+    from: { userid: 'bob' },
+    event: { eventtype: 'template_card_event', template_card_event: { event_key: 'status:task-carded' } }
+  }
+}, {
+  manager: cardManager,
+  sendText: async (content) => { viewedTexts.push(content); }
+});
+assert.equal(viewedTap.skipped, false);
+assert.equal(viewedTap.action.type, 'status');
+assert.equal(cardManager.tasks[0].status, 'running');
+assert.match(viewedTexts.join('\n'), /task-carded/);
+
+const processTexts = [];
+const processHub = createWeComProgressHub({
+  replyProgress: async () => {},
+  danceMs: 0,
+  heartbeatMs: 60_000,
+  stallMs: 0
+});
+processHub.open({
+  taskId: 'task-carded',
+  frame: textFrame,
+  streamId: 'stream-process',
+  header: '**task-carded**'
+});
+await processHub.handle({
+  taskId: 'task-carded',
+  type: 'cursor.message',
+  payload: { tools: [{ name: 'Shell', detail: 'ls' }, { name: 'Shell', detail: 'git status' }] }
+});
+const processTap = await handleWeComCard({
+  body: {
+    chattype: 'group',
+    chatid: 'room-1',
+    from: { userid: 'bob' },
+    event: { eventtype: 'template_card_event', template_card_event: { event_key: 'process:task-carded' } }
+  }
+}, {
+  manager: cardManager,
+  progress: processHub,
+  sendText: async (content) => { processTexts.push(content); }
+});
+assert.equal(processTap.action.type, 'process');
+assert.match(processTexts.join('\n'), /思考过程/);
+assert.match(processTexts.join('\n'), /\*\*Shell\*\* · 2 次/);
+await processHub.close();
+
+const ownerTap = await handleWeComCard({
+  body: {
+    chattype: 'group',
+    chatid: 'room-1',
+    from: { userid: 'ann' },
+    event: { eventtype: 'template_card_event', template_card_event: { event_key: 'cancel:task-carded' } }
+  }
+}, { manager: cardManager, sendText: async () => {} });
+assert.equal(ownerTap.action.type, 'cancelled');
+assert.equal(cardManager.tasks[0].status, 'cancelled');
+
+// --- a submit instruction will not claim a task that has gone quiet ---------
+const shipManager = createFakeManager();
+shipManager.tasks.push({
+  id: 'task-quiet',
+  status: 'waiting',
+  updatedAt: isoAgo(3 * HOUR),
+  source: { type: 'wecom', conversationId: 'user-a', userId: 'user-a' },
+  goal: '昨天的活'
+});
+const shipContext = { source: sourceFromFrame(textFrame) };
+const submitIntent = { kind: 'followup', label: '追加', needsCode: false, confidence: 0.85, action: 'ship' };
+
+const shipGated = await resolveWeComAction(
+  { type: 'implicit-route', text: '提 PR', intent: submitIntent },
+  shipContext,
+  shipManager
+);
+assert.equal(shipGated.type, 'error');
+assert.match(shipGated.message, /提交类操作不会自动认领旧任务/);
+assert.match(shipGated.message, /task-quiet/);
+
+// The same task, three hours old, still takes an ordinary addendum: the higher
+// bar is for the actions that cannot be undone by sending another message.
+const plainFollowUp = await resolveWeComAction(
+  { type: 'implicit-route', text: '再补一个空态', intent: { kind: 'followup', label: '追加', needsCode: false, confidence: 0.85 } },
+  shipContext,
+  shipManager
+);
+assert.equal(plainFollowUp.type, 'continue');
+assert.equal(plainFollowUp.task.id, 'task-quiet');
+// The evidence that bound it survives into the action the handler logs.
+assert.equal(plainFollowUp.anchor, 'active');
+assert.equal(plainFollowUp.confidence, 0.6);
+
+// Warm work is shipped without ceremony.
+shipManager.tasks[0].updatedAt = isoAgo(10 * MINUTE);
+const shipWarm = await resolveWeComAction(
+  { type: 'implicit-route', text: '提 PR', intent: submitIntent },
+  shipContext,
+  shipManager
+);
+assert.equal(shipWarm.type, 'continue');
+assert.equal(shipWarm.task.id, 'task-quiet');
+
+assert.equal(fastIntent('提 PR', { hasActiveTask: true })?.action, 'ship');
+assert.equal(fastIntent('增加手机号搜索')?.action, undefined);
+
+// --- the task card names the task, not just its id --------------------------
+const richCard = buildTaskCard({
+  id: 'task-rich',
+  status: 'running',
+  requirement: '增加手机号搜索',
+  source: { type: 'wecom', userId: 'ann' },
+  execution: { mode: 'worktree', port: 41003 }
+});
+assert.equal(richCard.main_title.title, '⚙️ 执行中');
+assert.equal(richCard.main_title.desc, 'task-rich');
+assert.match(richCard.sub_title_text, /增加手机号搜索/);
+assert.match(richCard.sub_title_text, /发起人 ann/);
+assert.match(richCard.sub_title_text, /独立工作区/);
+assert.match(richCard.sub_title_text, /端口 41003/);
+assert.deepEqual(richCard.button_list.map((b) => b.key), ['status:task-rich', 'process:task-rich', 'cancel:task-rich']);
+// A bare id is still enough to draw one.
+assert.equal(buildTaskCard('task-plain').main_title.desc, 'task-plain');
+assert.equal(buildTaskCard('task-plain').sub_title_text, undefined);
+
 console.log('wecom bot tests passed');
 
 function createFakeManager({ onStart } = {}) {
   const tasks = [];
+  const continues = [];
   return {
     tasks,
+    continues,
     async create(input) {
       const task = { ...input, status: 'created' };
       tasks.push(task);
@@ -1710,7 +3381,8 @@ function createFakeManager({ onStart } = {}) {
       if (task) task.status = 'running';
       return task;
     },
-    async continue(id, message) {
+    async continue(id, message, options = {}) {
+      continues.push({ id, message, options });
       onStart?.(id);
       return { id, message, status: 'running' };
     },

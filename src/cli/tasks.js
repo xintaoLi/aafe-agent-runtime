@@ -100,7 +100,7 @@ async function createAndMaybeRun(manager, options, agent) {
     requirement,
     repository,
     baseBranch: options.baseBranch ?? 'main',
-    taskBranch: options.taskBranch ?? `aafe/task/${id}`,
+    taskBranch: options.taskBranch ?? null,
     source: options.source ? { type: options.source } : null,
     context: { userRequest: requirement }
   });

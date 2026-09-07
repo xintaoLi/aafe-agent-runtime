@@ -22,7 +22,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { resolveAgentModeConfig } from '../../../src/cli/agentMode.js';
 import { resolveWeComLogConfig, normalizeLogValue } from './logger.js';
-import { DEFAULT_INTENT_MODEL, DEFAULT_TASK_MODEL, mergeModelRules, validateModelRules } from './models.js';
+import { DEFAULT_TASK_MODEL, mergeModelRules, validateModelRules } from './models.js';
 import { parseWorkspaces } from './workspace.js';
 
 const DEFAULT_WS_URL = 'wss://openws.work.weixin.qq.com';
@@ -75,15 +75,44 @@ export async function loadWeComBotConfig({
     baseBranch,
     workspaces,
     currentWorkspace: firstNonEmpty(local.currentWorkspace, env.AAFE_WECOM_WORKSPACE) ?? workspaces[0]?.id ?? null,
+    // WeCom already only pushes group messages that mention the bot, so the
+    // in-process check is off by default: enable it when a group must never act
+    // on anything but an explicit @.
+    requireGroupMention: parseBoolean(
+      env.AAFE_WECOM_REQUIRE_GROUP_MENTION ?? local.requireGroupMention,
+      false
+    ),
     localConfigPath: local.path ?? null,
     log: resolveWeComLogConfig({ env, local, root: projectRoot }),
     intent: resolveWeComIntentConfig({ env, local, apiKey }),
     models: resolveWeComModelConfig({ env, local, model }),
+    tapd: resolveWeComTapdConfig({ env, local, project: projectConfig }),
+    repo: resolveWeComRepoConfig({ env, local }),
     agent: {
       ...agent,
       apiKey: apiKey ?? agent.apiKey ?? null,
       model: model ?? agent.model ?? null
     }
+  };
+}
+
+/**
+ * WeCom TAPD is on by default and overrides the target project's tapd.enabled.
+ * Other project tapd fields (pr_field, status maps) still inherit unless WeCom
+ * sets the same key.
+ */
+export function resolveWeComTapdConfig({ env = {}, local = {}, project = {} } = {}) {
+  const projectTapd = isPlainObject(project.tapd) ? { ...project.tapd } : {};
+  const localTapd = isPlainObject(local.tapd) ? { ...local.tapd } : {};
+  const enabled = parseBoolean(
+    env.AAFE_WECOM_TAPD_ENABLED ?? localTapd.enabled,
+    true
+  );
+  return {
+    ...projectTapd,
+    ...localTapd,
+    enabled,
+    projectEnabled: projectTapd.enabled === true
   };
 }
 
@@ -122,6 +151,43 @@ export function resolveWeComModelConfig({ env = {}, local = {}, model = null } =
   return { default: fallback, rules: mergeModelRules(rules), configErrors: errors };
 }
 
+/**
+ * WeCom `repo` overlay only. Missing tokens fall through at task start:
+ * WeCom → current AAFE `.aafe.config.json` → workspace project config.
+ */
+export function resolveWeComRepoConfig({ env = {}, local = {} } = {}) {
+  const localRepo = isPlainObject(local.repo) ? local.repo : {};
+  return {
+    githubAccessToken: firstNonEmpty(
+      env.AAFE_WECOM_GITHUB_TOKEN,
+      env.WECOM_GITHUB_TOKEN,
+      localRepo.githubAccessToken
+    ),
+    gongfengAccessToken: firstNonEmpty(
+      env.AAFE_WECOM_GONGFENG_TOKEN,
+      env.WECOM_GONGFENG_TOKEN,
+      localRepo.gongfengAccessToken
+    ),
+    reviewers: Array.isArray(localRepo.reviewers) ? localRepo.reviewers : undefined,
+    labels: Array.isArray(localRepo.labels) ? localRepo.labels : undefined
+  };
+}
+
+export function wecomRepoOverrideConfig(repo) {
+  if (!isPlainObject(repo)) return null;
+  const github = String(repo.githubAccessToken ?? '').trim();
+  const gongfeng = String(repo.gongfengAccessToken ?? '').trim();
+  if (!github && !gongfeng) return null;
+  return {
+    repo: {
+      githubAccessToken: github || null,
+      gongfengAccessToken: gongfeng || null,
+      ...(Array.isArray(repo.reviewers) ? { reviewers: repo.reviewers } : {}),
+      ...(Array.isArray(repo.labels) ? { labels: repo.labels } : {})
+    }
+  };
+}
+
 export function createTaskManagerOptions(config, extra = {}) {
   const agent = config.agent ?? {};
   const manager = agent.manager ?? {};
@@ -142,6 +208,18 @@ export function createTaskManagerOptions(config, extra = {}) {
     validateProjectRuntime: extra.validateProjectRuntime
       ?? (useCloud ? manager.validateProjectRuntime ?? true : false),
     recoverOnStart: extra.recoverOnStart ?? manager.recoverOnStart ?? true,
+    // One git worktree per task, so several people's tasks can run against one
+    // local repository at once. `worktrees: false` falls back to a lock on the
+    // shared checkout, which serialises them instead.
+    workspaceOptions: {
+      ...(manager.worktrees === undefined ? {} : { worktrees: manager.worktrees }),
+      ...(manager.portRange ? { portRange: manager.portRange } : {}),
+      ...(manager.shareIntoWorktree ? { share: manager.shareIntoWorktree } : {})
+    },
+    repoAuth: {
+      overrideConfig: wecomRepoOverrideConfig(config.repo),
+      aafeRoot: extra.aafeRoot ?? config.root
+    },
     runtimeOptions: {
       apiKey: extra.apiKey ?? config.apiKey ?? agent.apiKey,
       apiKeyEnv: agent.apiKeyEnv,
@@ -212,11 +290,14 @@ export function normalizeLocalWeComValues(raw = {}) {
     repository: raw.repository ?? raw.AAFE_WECOM_REPOSITORY,
     baseBranch: raw.baseBranch ?? raw.AAFE_WECOM_BASE_BRANCH,
     currentWorkspace: raw.currentWorkspace ?? raw.AAFE_WECOM_WORKSPACE,
+    requireGroupMention: raw.requireGroupMention ?? raw.AAFE_WECOM_REQUIRE_GROUP_MENTION,
     model: raw.model ?? raw.AAFE_WECOM_MODEL ?? raw.WECOM_MODEL,
     workspaces: raw.workspaces,
     log: normalizeLogValue(raw.log ?? raw.WECOM_LOG),
     intent: raw.intent,
-    models: raw.models
+    models: raw.models,
+    tapd: raw.tapd,
+    repo: isPlainObject(raw.repo) ? raw.repo : undefined
   });
 }
 
@@ -245,6 +326,10 @@ async function readProjectConfig(root) {
   } catch {
     return {};
   }
+}
+
+function isPlainObject(value) {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function firstNonEmpty(...values) {
