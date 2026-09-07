@@ -122,7 +122,7 @@ export function defaultAgentsConfig() {
  * @param {object} projectConfig Parsed `.aafe.config.json`, for deprecated keys.
  * @returns {{ config: object, warnings: string[] }}
  */
-export const AGENT_PROVIDERS = Object.freeze(['local', 'http', 'cli', 'mcp', 'ide', 'cursor']);
+export const AGENT_PROVIDERS = Object.freeze(['local', 'http', 'cli', 'mcp', 'ide', 'cursor', 'codex']);
 
 /**
  * A `ref` that the provider cannot parse only fails at invocation time, deep

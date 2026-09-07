@@ -30,7 +30,7 @@ export const WELCOME_TEXT = [
  * only shows up on first contact or when someone asks for it.
  */
 export const IDENTITY_TEXT = [
-  '我是 AAFE 研发助手，接在 Cursor Agent 上。',
+  '我是 AAFE 研发助手，默认接在 Cursor Agent 上，也可以指定 Codex。',
   '你可以把需求、缺陷、TAPD 链接直接发我，我会拉分支、改代码、自测、提 PR 并回填单据；',
   '也可以只让我读代码回答问题、分析影响面，不动仓库。',
   '想看完整命令发「帮助」。'
@@ -57,7 +57,8 @@ export const HELP_TEXT = [
   '代码任务会使用已配置仓库；未配置时先选本地目录或远程仓库，再按 AAFE git 流程执行。',
   '进行中的消息下方有「查看完整过程」「终止」按钮；点按钮即可，也可发送「终止」或「终止 <TaskID>」。',
   '也可以用显式命令：',
-  '- 做：<需求>  创建任务并立刻返回 Task ID',
+  '- 做：<需求>  创建任务并立刻返回 Task ID（默认 Cursor）',
+  '- Codex：<需求>  用 Codex 引擎创建任务（入口已预留，执行待接入）',
   '- 继续 <TaskID>：<补充>  在同一 Agent 上继续',
   '- 状态 <TaskID>  查看任务',
   '- 取消 <TaskID>  取消任务',

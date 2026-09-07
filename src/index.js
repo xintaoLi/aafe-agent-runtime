@@ -69,6 +69,8 @@ export {
   parseOpenSpecRequirements,
   mergeOpenSpecDelta,
   CursorTaskRuntime,
+  CodexTaskRuntime,
+  createTaskRuntime,
   inspectCloudProjectReadiness,
   assertCloudProjectReadiness,
   createPlanner,
@@ -89,6 +91,7 @@ export {
   HttpAgentProvider,
   CliAgentProvider,
   IdeAgentProvider,
+  CodexAgentProvider,
   createDefaultProviders
 } from './agent-platform/runtime/providers/index.js';
 export {

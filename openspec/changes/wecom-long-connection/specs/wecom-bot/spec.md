@@ -907,3 +907,21 @@ The token MUST NOT appear in prompts, logs, or remote URLs. Existing shell
 - THEN `GITHUB_TOKEN` is set from that workspace config
 - AND `git push` to github.com uses `http.extraheader`
 - AND the prompt names that GitHub auth is already in the environment without printing the token
+
+### Requirement: Codex runtime entry
+The bot MUST accept Codex as a task runtime entry without requiring the
+Codex execution implementation. `Codex：<需求>` and config `provider: "codex"`
+MUST create a TaskManager task with `provider=codex`. Starting that task MAY
+fail with `codex-runtime-not-implemented` until the Codex runtime is wired.
+
+#### Scenario: Explicit Codex create command
+- GIVEN a text message `Codex：增加搜索`
+- WHEN the bot handles the message
+- THEN it creates a TaskManager task whose `provider` is `codex`
+- AND it ACKs the Task ID
+
+#### Scenario: Default remains Cursor
+- GIVEN a text message `做：增加搜索`
+- AND WeCom config does not set `provider`
+- WHEN the bot handles the message
+- THEN the created task `provider` is `cursor`

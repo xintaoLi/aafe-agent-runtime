@@ -109,6 +109,16 @@ assert.deepEqual(parseWeComCommand('@AAFE 做：增加用户手机号搜索'), {
   type: 'create',
   requirement: '增加用户手机号搜索'
 });
+assert.deepEqual(parseWeComCommand('Codex：增加搜索'), {
+  type: 'create',
+  requirement: '增加搜索',
+  provider: 'codex'
+});
+assert.deepEqual(parseWeComCommand('用 Codex 做：修登录'), {
+  type: 'create',
+  requirement: '修登录',
+  provider: 'codex'
+});
 assert.deepEqual(parseWeComCommand('继续 task-20260903120000-abcd1234：补测试'), {
   type: 'continue',
   taskId: 'task-20260903120000-abcd1234',
@@ -280,11 +290,13 @@ assert.equal(fromLocal.secret, 'local-secret');
 assert.equal(fromLocal.apiKey, 'crsr_local');
 assert.equal(fromLocal.repository, 'local/repo');
 assert.equal(fromLocal.agent.model, 'grok-4.6');
+assert.equal(fromLocal.agent.provider, 'cursor');
 assert.equal(fromLocal.workspaces[0].repository, 'local/repo');
 const localManagerOptions = createTaskManagerOptions(fromLocal);
 assert.equal(localManagerOptions.runtimeOptions.apiKey, 'crsr_local');
 assert.equal(localManagerOptions.runtimeOptions.model, 'grok-4.6');
 assert.equal(localManagerOptions.runtimeOptions.mode, 'cloud');
+assert.equal(localManagerOptions.runtimeOptions.provider, 'cursor');
 assert.equal(localManagerOptions.validateProjectRuntime, true);
 assert.equal(localManagerOptions.repoAuth.aafeRoot, tmp);
 assert.equal(localManagerOptions.repoAuth.overrideConfig, null);
@@ -313,6 +325,17 @@ assert.equal(envWins.botId, 'env-bot');
 assert.equal(envWins.apiKey, 'crsr_env');
 assert.equal(envWins.agent.model, 'composer-2.5');
 
+const fromCodex = await loadWeComBotConfig({
+  root: tmp,
+  env: {
+    WECOM_BOT_ID: 'codex-bot',
+    WECOM_BOT_SECRET: 'codex-secret',
+    AAFE_WECOM_PROVIDER: 'codex'
+  }
+});
+assert.equal(fromCodex.agent.provider, 'codex');
+assert.equal(createTaskManagerOptions(fromCodex).runtimeOptions.provider, 'codex');
+
 const envRoot = await mkdtemp(path.join(os.tmpdir(), 'aafe-wecom-env-'));
 await mkdir(path.join(envRoot, 'ai-bots/wecom'), { recursive: true });
 await writeFile(path.join(envRoot, 'ai-bots/wecom/.env'), [
@@ -336,6 +359,19 @@ assert.equal(created.start, true);
 assert.equal(created.task.source.type, 'wecom');
 assert.equal(created.task.taskBranch, null);
 assert.match(created.task.id, /^task-/);
+assert.equal(created.task.provider, 'cursor');
+
+{
+  const codexManager = createFakeManager();
+  const createdCodex = await resolveWeComAction(
+    { type: 'create', requirement: '用 Codex 修登录', provider: 'codex' },
+    { source: sourceFromFrame(textFrame), repository: 'owner/repo', baseBranch: 'main' },
+    codexManager
+  );
+  assert.equal(createdCodex.type, 'created');
+  assert.equal(createdCodex.task.provider, 'codex');
+  assert.equal(createdCodex.provider, 'codex');
+}
 
 const missingRepo = await resolveWeComAction(
   { type: 'create', requirement: '增加搜索' },

@@ -69,6 +69,8 @@ cp wecom.local.json.example wecom.local.json
 
 走 Cloud 时再加 `"repository": "owner/repo"`。
 
+可选 `"provider": "cursor" | "codex"`。`codex` 只接通入口：任务会标成 Codex，执行实现仍是 TODO。也可用环境变量 `AAFE_WECOM_PROVIDER`。
+
 也支持 `.env`（可带 `export`）：
 
 ```
@@ -120,7 +122,9 @@ npm run check:models # 只校验 models 规则表，不建长连接
 
 | 你在企微说 | AAFE 做什么 |
 | --- | --- |
-| `做：增加用户手机号搜索` | `TaskManager.create` + 异步 `start`，立刻回 Task ID |
+| `做：增加用户手机号搜索` | `TaskManager.create` + 异步 `start`（默认 Cursor），立刻回 Task ID |
+| `Codex：增加用户手机号搜索` | 同样创建任务，但 `provider=codex`。执行引擎入口已预留，实现待接入 |
+| `继续 task-xxxx：补单测` | 同一 Agent 上新 Run |
 | `继续 task-xxxx：补单测` | 同一 Cursor Agent 上新 Run |
 | `状态 task-xxxx` | 读任务状态 |
 | `取消 task-xxxx` | 取消队列或运行中的任务 |
@@ -149,6 +153,7 @@ npm run check:models # 只校验 models 规则表，不建长连接
 
 ```text
 做：<需求>
+Codex：<需求>
 继续 <TaskID>：<补充>
 状态 <TaskID>
 取消 <TaskID>

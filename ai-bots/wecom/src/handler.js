@@ -188,6 +188,7 @@ export async function handleWeComMessage(frame, {
       type: 'need-workspace',
       requirement: action.requirement,
       intent: action.intent ?? null,
+      provider: action.provider ?? command.provider ?? null,
       source,
       attachments
     });
@@ -483,7 +484,8 @@ export async function handleWeComCard(frame, {
         type: 'workspace-choice',
         target: parsed.value,
         requirement: waiting.requirement,
-        intent: waiting.intent ?? null
+        intent: waiting.intent ?? null,
+        provider: waiting.provider ?? null
       }
       : { type: 'workspace-switch', target: parsed.value };
     const action = await resolveWeComAction(command, buildActionContext({
@@ -606,7 +608,8 @@ function bindPendingCommand(command, waiting) {
     text,
     target: text,
     requirement: waiting.requirement,
-    intent: waiting.intent ?? null
+    intent: waiting.intent ?? null,
+    provider: waiting.provider ?? command.provider ?? null
   };
 }
 
@@ -626,7 +629,8 @@ function buildActionContext({ source, config, workspaces, attachments = [], mode
     selectModel: models ? (input) => models.select({ ...input, attachments }) : null,
     attachments,
     quote,
-    tapd: config?.tapd ?? { enabled: true }
+    tapd: config?.tapd ?? { enabled: true },
+    provider: config?.agent?.provider ?? 'cursor'
   };
 }
 
@@ -662,8 +666,9 @@ function replyForAction(action, command, extras = {}) {
     const where = describeTaskWorkspace(action.workspace ?? action.task?.workspace);
     const kind = action.intent?.label ? ` · ${action.intent.label}` : '';
     const model = action.task?.model ? ` · ${action.task.model}` : '';
+    const engine = action.task?.provider === 'codex' || action.provider === 'codex' ? ' · Codex' : '';
     return withAttachments(
-      `**${action.task.id}**${kind}${model}\n${action.task.requirement}\n${where}`,
+      `**${action.task.id}**${kind}${model}${engine}\n${action.task.requirement}\n${where}`,
       extras.attachments
     );
   }

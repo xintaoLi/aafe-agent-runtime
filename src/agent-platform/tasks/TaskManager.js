@@ -20,7 +20,7 @@
 
 import { TaskStore } from './TaskStore.js';
 import { TaskScheduler } from './TaskScheduler.js';
-import { CursorTaskRuntime } from '../runtime/CursorTaskRuntime.js';
+import { createTaskRuntime, normalizeTaskRuntimeProvider } from '../runtime/createTaskRuntime.js';
 import { assertCloudProjectReadiness } from '../runtime/CloudProjectReadiness.js';
 import { isTerminalTaskStatus } from './TaskState.js';
 import { buildTapdPromptSection, isPlatformTaskIdBranch, isTapdAssociatedBranch } from './tapdPolicy.js';
@@ -31,8 +31,9 @@ import {
 } from './workspaceRepoEnv.js';
 
 /**
- * AAFE's business state owner. Cursor owns execution; this manager owns which
- * execution belongs to which isolated task and what the task means.
+ * AAFE's business state owner. The selected runtime (Cursor, or the reserved
+ * Codex entry) owns execution; this manager owns which execution belongs to
+ * which isolated task and what the task means.
  */
 export class TaskManager {
   constructor({
@@ -62,11 +63,14 @@ export class TaskManager {
     this.recoverOnStart = recoverOnStart;
     this.repoAuth = repoAuth ?? {};
     this.runtimeOptions = { ...runtimeOptions };
-    this.runtime = runtime ?? new CursorTaskRuntime({
+    this.runtime = runtime ?? createTaskRuntime(runtimeOptions.provider, {
       onEvent: (event) => {
         void this.#recordRuntimeEvent(event);
       }
     });
+    this.runtimeByProvider = new Map([
+      [this.runtime.kind ?? normalizeTaskRuntimeProvider(runtimeOptions.provider), this.runtime]
+    ]);
     this.scheduler = scheduler ?? new TaskScheduler({
       maxConcurrentTasks,
       onEvent: (event) => this.#publish(event)
@@ -82,6 +86,8 @@ export class TaskManager {
       goal: input.goal ?? input.requirement,
       requirement: input.requirement,
       source: input.source,
+      provider: input.provider,
+      model: input.model,
       repository: normalizeRepository(input.repository ?? input.workspace?.repository, input.baseBranch ?? input.workspace?.baseBranch),
       workspace: input.workspace ?? null,
       baseBranch: input.baseBranch ?? input.workspace?.baseBranch,
@@ -161,7 +167,7 @@ export class TaskManager {
     const queued = this.scheduler.cancelQueued(taskId);
     let runtime = { cancelled: false, reason: 'not-running' };
     if (!queued && task.status === 'running') {
-      runtime = await this.runtime.cancel(task, {
+      runtime = await this.#runtimeFor(task).cancel(task, {
         ...this.runtimeOptions,
         ...runtimeOptionsFromWorkspace(task)
       });
@@ -172,7 +178,7 @@ export class TaskManager {
         event: { queued, runtime }
       });
     }
-    await this.runtime.close(taskId);
+    await this.#closeRuntime(taskId, task);
     this.#publish({ type: 'task.cancelled', taskId, queued, runtime });
     return task;
   }
@@ -249,7 +255,30 @@ export class TaskManager {
   }
 
   async close() {
-    await this.runtime.closeAll();
+    const seen = new Set();
+    for (const runtime of this.runtimeByProvider.values()) {
+      if (seen.has(runtime)) continue;
+      seen.add(runtime);
+      await runtime.closeAll();
+    }
+  }
+
+  #runtimeFor(task = null) {
+    const requested = normalizeTaskRuntimeProvider(
+      task?.provider ?? this.runtimeOptions.provider ?? this.runtime?.kind
+    );
+    if (!this.runtimeByProvider.has(requested)) {
+      this.runtimeByProvider.set(requested, createTaskRuntime(requested, {
+        onEvent: (event) => {
+          void this.#recordRuntimeEvent(event);
+        }
+      }));
+    }
+    return this.runtimeByProvider.get(requested);
+  }
+
+  async #closeRuntime(taskId, task = null) {
+    await this.#runtimeFor(task).close(taskId);
   }
 
   async #continue(taskId, message, options = {}) {
@@ -329,7 +358,7 @@ export class TaskManager {
       const runOptions = await this.#runtimeRunOptions(task, lease, options);
       const fullPrompt = buildTaskPrompt(task, context, lease, { envVars: runOptions.envVars });
       const prompt = options.prompt ?? fullPrompt;
-      const result = await this.runtime.run(task, prompt, {
+      const result = await this.#runtimeFor(task).run(task, prompt, {
         ...runOptions,
         fallbackPrompt: fullPrompt,
         idempotencyKey: options.idempotencyKey ?? `aafe-run-${task.id}-${task.cursor?.runs?.length ?? 0}`,
@@ -351,7 +380,7 @@ export class TaskManager {
     } catch (error) {
       const latest = await this.#require(taskId);
       if (latest.status === 'cancelled') {
-        await this.runtime.close(taskId);
+        await this.#closeRuntime(taskId, latest);
         return latest;
       }
       const status = /cancel/i.test(error instanceof Error ? error.message : String(error))
@@ -360,7 +389,7 @@ export class TaskManager {
       const failed = await this.store.transition(taskId, status, {
         error: error instanceof Error ? error.message : String(error)
       });
-      await this.runtime.close(taskId);
+      await this.#closeRuntime(taskId, failed);
       this.#publish({ type: 'task.failed', taskId, error: failed.error });
       return failed;
     } finally {
@@ -396,7 +425,7 @@ export class TaskManager {
   async #recoverRunning(task, options) {
     const lease = await this.workspaces.acquire(task);
     try {
-      const result = await this.runtime.recover(task, {
+      const result = await this.#runtimeFor(task).recover(task, {
         ...await this.#runtimeRunOptions(task, lease, options)
       });
       return await this.#finish(task.id, result, options);
@@ -409,11 +438,11 @@ export class TaskManager {
         // message that looks like a follow-up. Cancel the leftover Cursor run
         // first, or the next 继续 hits "already has active run".
         try {
-          await this.runtime.cancel(task, {
+          await this.#runtimeFor(task).cancel(task, {
             ...await this.#runtimeRunOptions(task, lease, options)
           });
         } catch { /* parking still has to happen */ }
-        await this.runtime.close(task.id);
+        await this.#closeRuntime(task.id, task);
         const parked = await this.store.transition(task.id, 'failed', {
           error: 'task-interrupted:process-restart',
           event: { recovery: true, stale: true }
@@ -425,7 +454,7 @@ export class TaskManager {
         // The previous Run is gone but the task and its context survived, so
         // reattaching fails while re-running the task is still correct.
         await this.store.appendEvent(task.id, 'task.run.reattach.failed', { error: message });
-        await this.runtime.close(task.id);
+        await this.#closeRuntime(task.id, task);
         return this.#execute(task.id, options);
       }
       const failed = await this.store.transition(task.id, 'failed', {
@@ -433,7 +462,7 @@ export class TaskManager {
         event: { recovery: true }
       });
       this.#publish({ type: 'task.failed', taskId: task.id, error: failed.error, task: failed });
-      await this.runtime.close(task.id);
+      await this.#closeRuntime(task.id, task);
       return failed;
     } finally {
       this.workspaces.release(task.id);
@@ -443,7 +472,7 @@ export class TaskManager {
   async #finish(taskId, result, options) {
     let task = await this.#require(taskId);
     if (task.status === 'cancelled') {
-      await this.runtime.close(taskId);
+      await this.#closeRuntime(taskId, task);
       return task;
     }
     const runs = (task.cursor?.runs ?? []).map((run) => run.runId === result.runId
@@ -500,7 +529,7 @@ export class TaskManager {
       task = await this.store.transition(taskId, 'completed', { error: null, result });
     }
 
-    await this.runtime.close(taskId);
+    await this.#closeRuntime(taskId, task);
     this.#publish({ type: 'task.finished', taskId, status: task.status, result: task.result });
     return task;
   }

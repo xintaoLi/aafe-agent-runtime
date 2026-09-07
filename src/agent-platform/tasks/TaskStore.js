@@ -64,6 +64,7 @@ export class TaskStore {
       // Pinned at creation so every run of this task uses one model. Absent on
       // tasks created before model routing; those fall back to the runtime default.
       model: partial.model ?? null,
+      provider: partial.provider ?? 'cursor',
       status: partial.status ?? 'created',
       cursor: {
         agentId: partial.cursor?.agentId ?? null,

@@ -38,7 +38,7 @@
  * @property {string} name
  * @property {string} description
  * @property {string[]} capabilities
- * @property {'local'|'http'|'cli'|'mcp'|'ide'|'cursor'} provider
+ * @property {'local'|'http'|'cli'|'mcp'|'ide'|'cursor'|'codex'} provider
  * @property {string} [ref]           Provider-specific locator (builtin:<id>, URL, argv template).
  * @property {string|null} [endpoint] Canonical address for remote agents; `ref` is derived from it.
  * @property {string} [model]

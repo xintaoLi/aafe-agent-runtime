@@ -206,7 +206,7 @@ async function runDeveloperAgent(root, task, result, options, platform) {
   const overlay = platform.agentsConfig.agent ?? {};
   const provider = resolveDeveloperProvider(options, developer, overlay);
   if (!provider) return null;
-  if (provider !== 'cursor') {
+  if (provider !== 'cursor' && provider !== 'codex') {
     return agentSkipped(`developer-provider-not-executable:${provider}`);
   }
 
@@ -220,9 +220,11 @@ async function runDeveloperAgent(root, task, result, options, platform) {
   const mcpServers = toCursorMcpServers(mcp.servers);
 
   const definition = createAgentDefinition('developer-agent', {
-    name: 'AAFE Cursor Developer Agent',
-    description: 'Executes the implementation phase through Cursor SDK.',
-    provider: 'cursor',
+    name: provider === 'codex' ? 'AAFE Codex Developer Agent' : 'AAFE Cursor Developer Agent',
+    description: provider === 'codex'
+      ? 'Reserved Codex implementation entry.'
+      : 'Executes the implementation phase through Cursor SDK.',
+    provider,
     ref: options.agentRuntime ?? overlay.mode ?? developer.ref ?? developer.runtime ?? 'local',
     runtime: options.agentRuntime ?? overlay.mode ?? developer.runtime ?? null,
     model: options.model ?? overlay.model ?? developer.model ?? null,
@@ -284,8 +286,11 @@ async function runDeveloperAgent(root, task, result, options, platform) {
 function resolveDeveloperProvider(options, developer, overlay = {}) {
   if (options.agent === 'off') return null;
   if (options.agent) return options.agent;
-  if (isAgentModeEnabled(overlay) && (overlay.provider ?? 'cursor') === 'cursor') return 'cursor';
-  return developer.provider === 'cursor' ? 'cursor' : null;
+  const overlayProvider = overlay.provider ?? 'cursor';
+  if (isAgentModeEnabled(overlay) && (overlayProvider === 'cursor' || overlayProvider === 'codex')) {
+    return overlayProvider;
+  }
+  return developer.provider === 'cursor' || developer.provider === 'codex' ? developer.provider : null;
 }
 
 function buildCursorImplementationPrompt(task, contextPackage) {

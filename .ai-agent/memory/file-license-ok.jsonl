@@ -185,3 +185,6 @@
 {"path":"ai-bots/wecom/src/candidates.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-04T09:36:22.959Z"}
 {"path":"src/agent-platform/tasks/workspaceRepoEnv.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-05T06:24:48.161Z"}
 {"path":"ai-bots/wecom/src/ui.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-07T02:33:03.459Z"}
+{"path":"src/agent-platform/runtime/CodexTaskRuntime.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-07T06:51:33.614Z"}
+{"path":"src/agent-platform/runtime/createTaskRuntime.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-07T06:51:33.615Z"}
+{"path":"src/agent-platform/runtime/providers/CodexAgentProvider.js","ok":true,"fp":"blueking-mit-v1","style":"block-star","at":"2026-09-07T06:51:33.615Z"}
