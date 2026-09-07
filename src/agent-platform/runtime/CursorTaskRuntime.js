@@ -18,20 +18,27 @@
  * IN THE SOFTWARE.
  */
 
+import { cloudSafeEnvVars } from '../tasks/workspaceRepoEnv.js';
+
 const DEFAULT_API_KEY_ENV = 'CURSOR_API_KEY';
 const DEFAULT_MODEL = 'composer-2.5';
 
 /**
- * Durable Cursor Cloud runtime. A task owns one Agent and may create many Runs.
+ * Durable Cursor runtime. A task owns one Agent and may create many Runs.
+ * With a repository it uses Cloud; without one it uses a local Agent on cwd.
  * The SDK handle is process-local; the persisted agent id is enough to resume it.
  */
 export class CursorTaskRuntime {
   constructor({
     env = process.env,
+    shellEnv = null,
     importSdk = null,
     onEvent = () => {}
   } = {}) {
     this.env = env;
+    // Local Cursor shells inherit process env, not a detached copy. Tests may
+    // pass a fake object so injection stays off the real process.
+    this.shellEnv = shellEnv ?? env;
     this.importSdk = importSdk ?? (() => import('@cursor/sdk'));
     this.onEvent = onEvent;
     this.sessions = new Map();
@@ -39,17 +46,27 @@ export class CursorTaskRuntime {
   }
 
   async run(task, prompt, options = {}) {
-    const { sdk, agent, apiKey } = await this.#agentFor(task, options);
+    this.#applyLocalShellEnv(task, options);
+    let { sdk, agent, apiKey, recreated } = await this.#agentFor(task, options);
     const sendOptions = {};
     if (options.mcpServers && Object.keys(options.mcpServers).length) {
       sendOptions.mcpServers = options.mcpServers;
     }
     if (options.idempotencyKey) sendOptions.idempotencyKey = options.idempotencyKey;
+    this.#attachCloudRunEnv(task, options, sendOptions);
+
+    // A replacement Agent has no Cursor-side history, so the durable AAFE
+    // context has to be replayed instead of only the latest follow-up.
+    const message = recreated && options.fallbackPrompt ? options.fallbackPrompt : prompt;
 
     let run;
     try {
-      run = await agent.send(prompt, sendOptions);
+      const started = await this.#startRun(task, agent, message, sendOptions, options);
+      run = started.run;
+      agent = started.agent;
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (/^cursor-/.test(message)) throw error;
       throw cursorError('cursor-run-start-failed', error);
     }
 
@@ -98,15 +115,22 @@ export class CursorTaskRuntime {
     if (!agentId || !runId) return { status: 'missing', agentId, runId };
 
     const { Agent } = await this.#sdk();
-    const apiKey = this.#apiKey(options);
+    // A local Run only exists inside the process that started it, so after a
+    // restart it is gone rather than merely unreachable.
+    const local = runtimeKind(task, options) === 'local';
     let run;
     try {
-      run = await Agent.getRun(runId, { runtime: 'cloud', agentId, apiKey });
+      run = await Agent.getRun(runId, this.#runScope(task, options, agentId));
     } catch (error) {
-      throw cursorError('cursor-run-recover-failed', error);
+      throw cursorError(local ? 'cursor-run-stale' : 'cursor-run-recover-failed', error);
     }
 
     if (run.status === 'running') {
+      // Nobody is left to finish it, and streaming it would block until this
+      // process dies too, which is what left tasks stuck in `running`.
+      if (local) {
+        throw cursorError('cursor-run-stale', new Error(`local run ${runId} did not survive the restart`));
+      }
       this.activeRuns.set(task.id, run);
       this.#emit(task.id, 'cursor.run.recovered', { agentId, runId }, options);
       const text = [];
@@ -144,11 +168,7 @@ export class CursorTaskRuntime {
     const agentId = task.cursor?.agentId;
     if (!runId || !agentId) return { cancelled: false, reason: 'no-active-run' };
     const { Agent } = await this.#sdk();
-    await Agent.cancelRun(runId, {
-      runtime: 'cloud',
-      agentId,
-      apiKey: this.#apiKey(options)
-    });
+    await Agent.cancelRun(runId, this.#runScope(task, options, agentId));
     this.#emit(task.id, 'cursor.run.cancelled', { runId }, options);
     return { cancelled: true, runId };
   }
@@ -171,34 +191,155 @@ export class CursorTaskRuntime {
 
     const sdk = await this.#sdk();
     const apiKey = this.#apiKey(options);
-    let agent;
-    try {
-      if (task.cursor?.agentId) {
-        agent = await sdk.Agent.resume(task.cursor.agentId, {
-          apiKey,
-          ...(options.mcpServers ? { mcpServers: options.mcpServers } : {})
-        });
-      } else {
-        agent = await sdk.Agent.create(this.#createOptions(task, options, apiKey));
+    const previousAgentId = task.cursor?.agentId ?? null;
+    let agent = null;
+    let recreated = false;
+
+    if (previousAgentId) {
+      try {
+        agent = await sdk.Agent.resume(previousAgentId, this.#resumeOptions(task, options, apiKey));
+      } catch (error) {
+        if (!isAgentMissing(error)) throw cursorError('cursor-agent-open-failed', error);
+        // The Agent expired or lives in another local store. The task keeps its
+        // own durable context, so a replacement Agent can carry the work on.
+        recreated = true;
+        this.#emit(task.id, 'cursor.agent.lost', {
+          agentId: previousAgentId,
+          reason: errorMessage(error)
+        }, options);
       }
-    } catch (error) {
-      throw cursorError('cursor-agent-open-failed', error);
     }
 
-    const session = { sdk, apiKey, agent };
+    if (!agent) {
+      try {
+        agent = await sdk.Agent.create(this.#createOptions(task, options, apiKey, recreated));
+      } catch (error) {
+        throw cursorError('cursor-agent-open-failed', error);
+      }
+    }
+
+    const session = { sdk, apiKey, agent, recreated };
     this.sessions.set(task.id, session);
-    this.#emit(task.id, task.cursor?.agentId ? 'cursor.agent.resumed' : 'cursor.agent.created', {
-      agentId: agent.agentId
+    this.#emit(task.id, agentOpenEvent(previousAgentId, recreated), {
+      agentId: agent.agentId,
+      previousAgentId
     }, options);
     return session;
   }
 
-  #createOptions(task, options, apiKey) {
+  /**
+   * Cursor refuses a second send while a Run is still active. A hung attempt
+   * (or a parked restart) often leaves that Run behind, so continue would
+   * otherwise fail with "already has active run".
+   */
+  async #startRun(task, agent, message, sendOptions, options) {
+    try {
+      return { run: await agent.send(message, sendOptions), agent };
+    } catch (error) {
+      if (!isActiveRunConflict(error)) throw error;
+      this.#emit(task.id, 'cursor.run.conflict', {
+        agentId: agent.agentId,
+        reason: errorMessage(error)
+      }, options);
+      await this.#releaseLeftoverRun(task, options, agent);
+      try {
+        return { run: await agent.send(message, sendOptions), agent };
+      } catch (retryError) {
+        if (!isActiveRunConflict(retryError)) throw retryError;
+        const replacement = await this.#replaceAgent(task, options);
+        return {
+          run: await replacement.agent.send(options.fallbackPrompt || message, sendOptions),
+          agent: replacement.agent
+        };
+      }
+    }
+  }
+
+  async #releaseLeftoverRun(task, options, agent) {
+    const active = this.activeRuns.get(task.id);
+    if (active && typeof active.cancel === 'function') {
+      try { await active.cancel(); } catch { /* leftover */ }
+      if (this.activeRuns.get(task.id) === active) this.activeRuns.delete(task.id);
+    }
+    const runId = task.cursor?.activeRunId ?? active?.id ?? null;
+    const agentId = task.cursor?.agentId ?? agent?.agentId ?? null;
+    if (!runId || !agentId) return;
+    if (active?.id && active.id === runId) return;
+    try {
+      const { Agent } = await this.#sdk();
+      await Agent.cancelRun(runId, this.#runScope(task, options, agentId));
+      this.#emit(task.id, 'cursor.run.cancelled', { runId, reason: 'stale-active-run' }, options);
+    } catch {
+      /* the send retry reports whether the Agent is free */
+    }
+  }
+
+  async #replaceAgent(task, options) {
+    const previousAgentId = task.cursor?.agentId ?? null;
+    await this.close(task.id);
+    const session = await this.#agentFor({
+      ...task,
+      cursor: { ...(task.cursor ?? {}), agentId: null, activeRunId: null }
+    }, options);
+    session.recreated = true;
+    this.#emit(task.id, 'cursor.agent.recreated', {
+      agentId: session.agent.agentId,
+      previousAgentId,
+      reason: 'stale-active-run'
+    }, options);
+    return session;
+  }
+
+  #resumeOptions(task, options, apiKey) {
+    const scope = this.#localScope(task, options);
+    return {
+      apiKey,
+      model: { id: options.model ?? DEFAULT_MODEL },
+      ...(scope ? { local: scope } : {}),
+      ...(options.mcpServers && Object.keys(options.mcpServers).length
+        ? { mcpServers: options.mcpServers }
+        : {})
+    };
+  }
+
+  /**
+   * A local Agent lives in the store of the workspace it was created in, so
+   * resume, getRun and cancelRun all have to name that cwd again.
+   */
+  #localScope(task, options) {
+    if (runtimeKind(task, options) !== 'local') return null;
+    const cwd = options.cwd ?? task.workspace?.cwd ?? options.root ?? process.cwd();
+    return { cwd };
+  }
+
+  #runScope(task, options, agentId) {
+    const scope = this.#localScope(task, options);
+    if (scope) return { runtime: 'local', cwd: scope.cwd };
+    return { runtime: 'cloud', agentId, apiKey: this.#apiKey(options) };
+  }
+
+  #createOptions(task, options, apiKey, recreated = false) {
     const repositories = normalizeRepositories(
       options.repository ?? options.repositories ?? task.repository,
       task.baseBranch
     );
-    if (repositories.length === 0) throw new Error('cursor-cloud-repository-missing');
+    const baseKey = options.agentIdempotencyKey ?? `aafe-agent-${task.id}`;
+    const create = {
+      apiKey,
+      model: { id: options.model ?? DEFAULT_MODEL },
+      name: options.name ?? `AAFE ${task.id}`,
+      ...(options.mcpServers && Object.keys(options.mcpServers).length
+        ? { mcpServers: options.mcpServers }
+        : {}),
+      idempotencyKey: recreated ? `${baseKey}-${Date.now()}` : baseKey
+    };
+
+    if (repositories.length === 0) {
+      create.local = {
+        cwd: options.cwd ?? task.workspace?.cwd ?? options.root ?? process.cwd()
+      };
+      return create;
+    }
 
     const cloud = {
       repos: repositories,
@@ -206,18 +347,34 @@ export class CursorTaskRuntime {
       skipReviewerRequest: options.skipReviewerRequest !== false
     };
     if (options.environment) cloud.env = normalizeEnvironment(options.environment);
-    if (options.envVars && Object.keys(options.envVars).length) cloud.envVars = options.envVars;
+    const cloudVars = cloudSafeEnvVars(options.envVars);
+    if (Object.keys(cloudVars).length) cloud.envVars = cloudVars;
+    create.cloud = cloud;
+    return create;
+  }
 
-    return {
-      apiKey,
-      model: { id: options.model ?? DEFAULT_MODEL },
-      name: options.name ?? `AAFE ${task.id}`,
-      cloud,
-      ...(options.mcpServers && Object.keys(options.mcpServers).length
-        ? { mcpServers: options.mcpServers }
-        : {}),
-      idempotencyKey: options.agentIdempotencyKey ?? `aafe-agent-${task.id}`
-    };
+  /**
+   * Local agents inherit this process's environment. Inject before create/send
+   * so git / gh / aafe repo pr see GITHUB_TOKEN without reading a gitignored
+   * config file from a worktree.
+   */
+  #applyLocalShellEnv(task, options) {
+    if (runtimeKind(task, options) !== 'local') return;
+    const vars = options.envVars;
+    if (!vars || typeof vars !== 'object') return;
+    for (const [key, value] of Object.entries(vars)) {
+      if (!key || value == null || value === '') continue;
+      if (String(this.shellEnv[key] ?? '').trim()) continue;
+      this.shellEnv[key] = String(value);
+    }
+  }
+
+  #attachCloudRunEnv(task, options, sendOptions) {
+    if (runtimeKind(task, options) !== 'cloud') return sendOptions;
+    const cloudVars = cloudSafeEnvVars(options.envVars);
+    if (!Object.keys(cloudVars).length) return sendOptions;
+    sendOptions.cloud = { ...(sendOptions.cloud ?? {}), envVars: cloudVars };
+    return sendOptions;
   }
 
   async #sdk() {
@@ -247,6 +404,17 @@ export class CursorTaskRuntime {
   }
 }
 
+function runtimeKind(task, options = {}) {
+  const mode = String(options.mode ?? options.runtime ?? '').toLowerCase();
+  if (mode === 'local') return 'local';
+  if (mode === 'cloud') return 'cloud';
+  const repositories = normalizeRepositories(
+    options.repository ?? options.repositories ?? task.repository,
+    task.baseBranch
+  );
+  return repositories.length === 0 ? 'local' : 'cloud';
+}
+
 function normalizeRepositories(value, defaultRef) {
   const entries = Array.isArray(value) ? value : (value ? [value] : []);
   return entries.map((entry) => {
@@ -268,18 +436,69 @@ function normalizeEnvironment(value) {
   return value;
 }
 
+function extractContentBlocks(message) {
+  const content = message?.message?.content ?? message?.content;
+  return Array.isArray(content) ? content : [];
+}
+
 function extractText(message) {
-  const blocks = message?.message?.content;
-  if (!Array.isArray(blocks)) return [];
-  return blocks
+  return extractContentBlocks(message)
     .filter((block) => block?.type === 'text' && typeof block.text === 'string')
     .map((block) => block.text);
+}
+
+function extractThinking(message) {
+  return extractContentBlocks(message)
+    .filter((block) => ['thinking', 'reasoning', 'thought'].includes(block?.type))
+    .map((block) => block.thinking ?? block.text ?? block.reasoning ?? '')
+    .filter(Boolean)
+    .join('');
+}
+
+function extractTools(message) {
+  const tools = [];
+  const type = String(message?.type ?? '');
+  if (/tool/i.test(type)) {
+    const raw = message.toolCall ?? message.tool_call ?? message;
+    const name = raw.name ?? raw.toolName ?? raw.function?.name;
+    if (name) tools.push({ name, detail: toolDetail(raw) });
+  }
+  for (const block of extractContentBlocks(message)) {
+    if (!/tool/i.test(String(block?.type ?? ''))) continue;
+    const name = block.name ?? block.toolName ?? block.tool_call?.name ?? block.toolCall?.name;
+    if (name) tools.push({ name, detail: toolDetail(block) });
+  }
+  return dedupeTools(tools);
+}
+
+function toolDetail(tool) {
+  const input = tool.input ?? tool.args ?? tool.arguments ?? tool.params
+    ?? tool.toolCall?.input ?? tool.tool_call?.input ?? {};
+  if (typeof input === 'string') return input.slice(0, 160);
+  if (!input || typeof input !== 'object') return '';
+  const file = input.path ?? input.file ?? input.filename ?? input.target_file ?? input.uri;
+  const query = input.query ?? input.pattern ?? input.grep ?? input.search;
+  const command = input.command ?? input.cmd;
+  if (file && query) return `${file} · ${query}`;
+  return String(file ?? query ?? command ?? input.url ?? '').slice(0, 160);
+}
+
+function dedupeTools(tools) {
+  const seen = new Set();
+  return tools.filter((tool) => {
+    const key = `${tool.name}:${tool.detail}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function normalizeMessage(message) {
   return {
     type: message?.type ?? 'unknown',
     text: extractText(message).join(''),
+    thinking: extractThinking(message),
+    tools: extractTools(message),
     message: serializable(message)
   };
 }
@@ -323,9 +542,35 @@ function serializable(value) {
 }
 
 function cursorError(prefix, error) {
-  const message = error instanceof Error ? error.message : String(error);
-  const wrapped = new Error(`${prefix}:${message}`);
+  const wrapped = new Error(`${prefix}:${errorMessage(error)}`);
   wrapped.cause = error;
   wrapped.retryable = error?.isRetryable === true;
   return wrapped;
+}
+
+function errorMessage(error) {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === 'object') {
+    const known = error.message ?? error.errmsg ?? error.error;
+    if (known) return String(known);
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return String(error);
+    }
+  }
+  return String(error);
+}
+
+function isAgentMissing(error) {
+  return /not found|does not exist|no such agent|unknown agent/i.test(errorMessage(error));
+}
+
+function isActiveRunConflict(error) {
+  return /already has active run|active run in progress|run already (?:active|running)/i.test(errorMessage(error));
+}
+
+function agentOpenEvent(previousAgentId, recreated) {
+  if (recreated) return 'cursor.agent.recreated';
+  return previousAgentId ? 'cursor.agent.resumed' : 'cursor.agent.created';
 }

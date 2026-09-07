@@ -26,7 +26,9 @@ import { assertTaskTransition, isTaskStatus } from './TaskState.js';
 const TASK_FILE = 'task.json';
 const CONTEXT_FILE = 'context.json';
 const EVENTS_FILE = 'events.jsonl';
+const INDEX_FILE = 'index.json';
 const TASK_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+const TAPD_ID = /\/(?:story|bug|task)\/detail\/(\d+)/i;
 
 /**
  * Durable file-backed task state. Each task owns one directory, context file
@@ -37,7 +39,9 @@ export class TaskStore {
     this.root = root;
     this.output = output;
     this.tasksDir = path.join(root, output, 'tasks');
+    this.indexFile = path.join(this.tasksDir, INDEX_FILE);
     this.writeQueues = new Map();
+    this.indexQueue = Promise.resolve();
   }
 
   async create(partial = {}, context = {}) {
@@ -53,9 +57,13 @@ export class TaskStore {
       goal: partial.goal ?? partial.requirement ?? '',
       requirement: partial.requirement ?? null,
       source: clone(partial.source ?? null),
-      repository: clone(partial.repository ?? null),
-      baseBranch: partial.baseBranch ?? partial.repository?.baseBranch ?? partial.repository?.branch ?? null,
+      repository: clone(partial.repository ?? partial.workspace?.repository ?? null),
+      workspace: clone(partial.workspace ?? null),
+      baseBranch: partial.baseBranch ?? partial.workspace?.baseBranch ?? partial.repository?.baseBranch ?? partial.repository?.branch ?? null,
       taskBranch: partial.taskBranch ?? null,
+      // Pinned at creation so every run of this task uses one model. Absent on
+      // tasks created before model routing; those fall back to the runtime default.
+      model: partial.model ?? null,
       status: partial.status ?? 'created',
       cursor: {
         agentId: partial.cursor?.agentId ?? null,
@@ -63,6 +71,12 @@ export class TaskStore {
         runs: clone(partial.cursor?.runs ?? [])
       },
       sdd: clone(partial.sdd ?? null),
+      // Where this task's work actually happens, written when a workspace is
+      // leased. Without it the only record of the checkout is a log line.
+      execution: clone(partial.execution ?? null),
+      // Lifted out of the run result: a PR is a fact about the task, and every
+      // reader was otherwise digging through `result.execution.git`.
+      pullRequest: clone(partial.pullRequest ?? null),
       result: clone(partial.result ?? null),
       error: partial.error ?? null,
       createdAt: partial.createdAt ?? now,
@@ -78,6 +92,7 @@ export class TaskStore {
         status: task.status
       }));
     });
+    await this.#touchIndex(task);
     return clone(task);
   }
 
@@ -121,6 +136,7 @@ export class TaskStore {
           status: next.status
         }));
       }
+      await this.#touchIndex(next);
       return clone(next);
     });
   }
@@ -143,6 +159,7 @@ export class TaskStore {
         to: status,
         ...clone(payload.event ?? {})
       }));
+      await this.#touchIndex(next);
       return clone(next);
     });
   }
@@ -168,7 +185,64 @@ export class TaskStore {
     }
   }
 
-  async list({ statuses = null, limit = 100 } = {}) {
+  /**
+   * The index decides which tasks are worth opening. A caller that only wants
+   * one conversation's tasks would otherwise read every task file on disk to
+   * throw almost all of them away, and that cost lands on the path where a chat
+   * message is waiting for an answer.
+   *
+   * It is a cache, never the truth: the directory listing still drives the
+   * result, an id the index has not seen is read anyway, and a stale entry is
+   * corrected by the task file it points at.
+   */
+  async list({
+    statuses = null,
+    conversationId = null,
+    userId = null,
+    sourceType = null,
+    limit = 100
+  } = {}) {
+    const ids = await this.#taskIds();
+    if (!ids.length) return [];
+    const filters = {
+      allowed: Array.isArray(statuses) && statuses.length ? new Set(statuses) : null,
+      conversationId,
+      userId,
+      sourceType
+    };
+    const index = await this.#readIndex();
+    const known = [];
+    const unknown = [];
+    for (const id of ids) {
+      const entry = index?.tasks?.[id];
+      if (entry) known.push({ id, entry });
+      else unknown.push(id);
+    }
+
+    const tasks = [];
+    for (const id of unknown) {
+      const task = await this.get(id);
+      if (!task) continue;
+      tasks.push(task);
+      await this.#touchIndex(task);
+    }
+    const candidates = known
+      .filter(({ entry }) => matches(entry, filters))
+      .sort((a, b) => String(b.entry.updatedAt).localeCompare(String(a.entry.updatedAt)))
+      .slice(0, Math.max(0, limit));
+    for (const { id } of candidates) {
+      const task = await this.get(id);
+      if (task) tasks.push(task);
+      else await this.#dropFromIndex(id);
+    }
+
+    return tasks
+      .filter((task) => matches(indexEntry(task), filters))
+      .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))
+      .slice(0, Math.max(0, limit));
+  }
+
+  async #taskIds() {
     let entries = [];
     try {
       entries = await readdir(this.tasksDir, { withFileTypes: true });
@@ -176,16 +250,46 @@ export class TaskStore {
       if (error?.code === 'ENOENT') return [];
       throw error;
     }
-    const allowed = Array.isArray(statuses) && statuses.length ? new Set(statuses) : null;
-    const tasks = [];
-    for (const entry of entries) {
-      if (!entry.isDirectory() || !TASK_ID_PATTERN.test(entry.name)) continue;
-      const task = await this.get(entry.name);
-      if (task && (!allowed || allowed.has(task.status))) tasks.push(task);
-    }
-    return tasks
-      .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))
-      .slice(0, Math.max(0, limit));
+    return entries
+      .filter((entry) => entry.isDirectory() && TASK_ID_PATTERN.test(entry.name))
+      .map((entry) => entry.name);
+  }
+
+  async #readIndex() {
+    return readJson(this.indexFile);
+  }
+
+  #touchIndex(task) {
+    return this.#writeIndex((tasks) => {
+      tasks[task.id] = indexEntry(task);
+      return tasks;
+    });
+  }
+
+  #dropFromIndex(taskId) {
+    return this.#writeIndex((tasks) => {
+      delete tasks[taskId];
+      return tasks;
+    });
+  }
+
+  /**
+   * Serialized against itself so two task writes cannot clobber each other's
+   * entry, and never allowed to fail the write it came from: losing a cache
+   * line is not worth losing a task update.
+   */
+  #writeIndex(mutate) {
+    const next = this.indexQueue.catch(() => {}).then(async () => {
+      const current = (await this.#readIndex()) ?? {};
+      const tasks = mutate({ ...(current.tasks ?? {}) });
+      await atomicJsonWrite(this.indexFile, {
+        version: 1,
+        updatedAt: new Date().toISOString(),
+        tasks
+      });
+    }).catch(() => {});
+    this.indexQueue = next;
+    return next;
   }
 
   async #require(taskId) {
@@ -217,6 +321,36 @@ export class TaskStore {
 export function createTaskId(now = new Date()) {
   const stamp = now.toISOString().replace(/\D/g, '').slice(0, 14);
   return `task-${stamp}-${randomUUID().slice(0, 8)}`;
+}
+
+/**
+ * Only what a caller can filter on before deciding to open the task, plus a
+ * title so a picker can be drawn without reading anything else.
+ */
+function indexEntry(task) {
+  return {
+    status: task.status ?? null,
+    updatedAt: task.updatedAt ?? null,
+    sourceType: task.source?.type ?? null,
+    conversationId: task.source?.conversationId ?? null,
+    userId: task.source?.userId ?? null,
+    title: String(task.requirement ?? task.goal ?? '').slice(0, 120),
+    tapdId: tapdIdOf(task)
+  };
+}
+
+function tapdIdOf(task) {
+  const url = task.source?.tapdUrl ?? task.repository?.tapdUrl ?? null;
+  const match = url ? String(url).match(TAPD_ID) : null;
+  return match ? match[1] : null;
+}
+
+function matches(entry, { allowed, conversationId, userId, sourceType }) {
+  if (allowed && !allowed.has(entry.status)) return false;
+  if (sourceType && entry.sourceType !== sourceType) return false;
+  if (conversationId && entry.conversationId !== conversationId) return false;
+  if (userId && entry.userId !== userId) return false;
+  return true;
 }
 
 function createEvent(taskId, type, payload = {}) {

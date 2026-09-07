@@ -18,9 +18,22 @@
  * IN THE SOFTWARE.
  */
 
-export { TaskManager } from './TaskManager.js';
+export { TaskManager, buildTaskPrompt } from './TaskManager.js';
+export {
+  buildRepoAuthPromptSection,
+  resolveWorkspaceRepoAuth,
+  resolveWorkspaceRepoEnv,
+  workspaceConfigDirs
+} from './workspaceRepoEnv.js';
 export { TaskScheduler } from './TaskScheduler.js';
 export { TaskStore, createTaskId } from './TaskStore.js';
+export {
+  parseTapdAssociation,
+  resolveEffectiveTapd,
+  buildTapdPromptSection,
+  isTapdAssociatedBranch,
+  isPlatformTaskIdBranch
+} from './tapdPolicy.js';
 export {
   TASK_STATUSES,
   TERMINAL_TASK_STATUSES,

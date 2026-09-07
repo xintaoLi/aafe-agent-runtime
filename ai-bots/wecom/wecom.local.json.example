@@ -1,0 +1,107 @@
+{
+  "botId": "your-wecom-bot-id",
+  "secret": "your-wecom-bot-secret",
+  "apiKey": "crsr_your-cursor-api-key",
+  "model": "grok-4.6",
+  "currentWorkspace": "local",
+  "workspaces": [
+    {
+      "id": "local",
+      "name": "当前目录",
+      "cwd": "."
+    },
+    {
+      "id": "demo",
+      "name": "示例远程仓",
+      "repository": "owner/repo",
+      "baseBranch": "main"
+    }
+  ],
+  "tapd": {
+    "enabled": true
+  },
+  "repo": {
+    "githubAccessToken": null,
+    "gongfengAccessToken": null
+  },
+  "log": {
+    "enabled": false
+  },
+  "intent": {
+    "enabled": true,
+    "endpoint": null,
+    "model": null,
+    "apiKeyEnv": "AAFE_LLM_API_KEY",
+    "cursorModel": null,
+    "timeoutMs": 25000
+  },
+  "models": {
+    "default": "grok-4.6",
+    "rules": [
+      {
+        "id": "intent-classify",
+        "stage": "intent",
+        "model": "gpt-5.4-mini",
+        "note": "每条消息必过：实测稳态 3.8s / 3-3 准确，gemini-3.8-flash 同样准但要 8.8s"
+      },
+      {
+        "id": "chat-reply",
+        "stage": "chat",
+        "model": "gpt-5.4-mini",
+        "note": "闲聊问答：不读仓库，要的是快"
+      },
+      {
+        "id": "trivial-edit",
+        "model": "composer-2.5",
+        "intent": [
+          "code"
+        ],
+        "match": "文案|错别字|typo|拼写|样式|css|颜色|间距|注释|readme|文档",
+        "not": "架构|重构|迁移|重写|性能|并发",
+        "minConfidence": 0.6,
+        "note": "机械改动：快且便宜；分类没把握时不降级，交给下面的规则"
+      },
+      {
+        "id": "complex-code",
+        "model": "grok-4.6",
+        "match": "架构|重构|设计方案|技术方案|迁移|重写|性能|并发|数据流|领域模型|依赖治理|多模块|全链路|死锁|内存泄漏",
+        "note": "长链推理：改错的代价远高于 token"
+      },
+      {
+        "id": "deep-debug",
+        "model": "claude-opus-5",
+        "intent": [
+          "code",
+          "analysis"
+        ],
+        "match": "偶现|线上|根因|复现不了|时好时坏|随机出现|概率性",
+        "note": "疑难定位：全表最贵，但命中率低且最省人力"
+      },
+      {
+        "id": "simple-question",
+        "model": "gpt-5.4-mini",
+        "intent": [
+          "question"
+        ],
+        "minConfidence": 0.6,
+        "note": "概念问答不读仓库，快模型足够"
+      },
+      {
+        "id": "simple-analysis",
+        "model": "claude-sonnet-5",
+        "intent": [
+          "analysis"
+        ],
+        "note": "读代码回答：结论错了比慢更贵，不用最快的（原地替换同名内置规则）"
+      },
+      {
+        "id": "code-work",
+        "model": "grok-4.6",
+        "intent": [
+          "code"
+        ],
+        "note": "日常实现与修复的主力"
+      }
+    ]
+  }
+}

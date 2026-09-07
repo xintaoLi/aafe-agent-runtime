@@ -66,6 +66,7 @@ export function resolveLicenseCommentStyle(filePath = '') {
 
   if ([
     'json', 'jsonc', 'json5', 'lock', 'map',
+    'md', 'mdx', 'markdown',
     'png', 'jpg', 'jpeg', 'gif', 'webp', 'ico',
     'woff', 'woff2', 'ttf', 'eot',
     'zip', 'gz', 'tgz', 'bin', 'wasm', 'pdf', 'mp4', 'mp3'
@@ -84,7 +85,7 @@ export function resolveLicenseCommentStyle(filePath = '') {
   }
 
   if ([
-    'html', 'htm', 'xml', 'xhtml', 'vue', 'svelte', 'mdx', 'svg', 'md', 'markdown'
+    'html', 'htm', 'xml', 'xhtml', 'vue', 'svelte', 'svg'
   ].includes(ext)) {
     return 'html';
   }
@@ -484,7 +485,7 @@ Source of truth:
 
 1. Rule: \`${agentPrefix}/rules/new-file-license.mdc\`
 
-**新增文件**加头；**修改且已有 License** 时用本地 CLI 校验/更新（禁止 AI 读 memory 文件）。Do not duplicate project knowledge here.
+**新增**代码/配置文件加头；\`.md\` / \`.mdx\` 文档不加。**修改且已有 License** 时用本地 CLI 校验/更新（禁止 AI 读 memory 文件）。Do not duplicate project knowledge here.
 `;
 }
 
@@ -504,9 +505,10 @@ export function fileLicenseRuleSection(ctx = {}) {
   return [
     '## AAFE 文件 License',
     '',
-    '新增可文本源码文件时，文件顶部必须添加蓝鲸 / BlueKing MIT License 头。',
+    'License 头只加在代码逻辑文件和可注释配置文件上（HTML / JS / TS / Vue、YAML 等）。',
+    '`.md` / `.mdx` 等文档类、json/图片/锁文件：不添加。',
     '修改已有文件且已含 License 时：必须跑本地命令 `aafe license ensure <path>`（禁止 AI 读取 memory JSON/JSONL）。',
-    '按扩展名选择注释标签：`/* */` / `#` / `<!-- -->` / `--`；json/图片/锁文件等跳过。',
+    '按扩展名选择注释标签：`/* */` / `#` / `<!-- -->` / `--`。',
     `Memory（仅 CLI 读写）：\`${fileLicenseMemoryPath(agentPrefix)}\`；详见 \`${agentPrefix}/rules/new-file-license.mdc\`。`,
     ''
   ].join('\n');
@@ -520,7 +522,8 @@ function fileLicenseProjectRuleBody(agentPrefix = '.ai-agent') {
 
 ### A. 新增文件
 
-**Create / Write 新路径**时：必须按文件类型添加标准 License 头（\`skip\` 类型除外）。
+**Create / Write 新路径**时：只给代码逻辑文件和可注释配置文件加标准 License 头（\`skip\` 类型除外）。
+\`.md\` / \`.mdx\` / \`.markdown\` 文档类**不要**加 License 头。
 写完后执行本地命令标记 memory（不要让 AI 手改 memory 文件）：
 
 \`\`\`bash
@@ -531,7 +534,7 @@ aafe license mark <path>
 
 仅当目标文件**已经包含 License 头**时，才检查/更新。**无 License 头**：不要为了补头而改历史文件（除非用户明确要求）。
 
-二进制 / 生成物 / 锁文件：跳过。
+Markdown 文档、二进制 / 生成物 / 锁文件 / JSON：跳过。
 
 ## Memory + 本地快速检查（强制，禁止 AI 反馈）
 
@@ -608,10 +611,10 @@ IN THE SOFTWARE.
 | 风格 | 扩展名 / 文件 | 写法 |
 | --- | --- | --- |
 | \`block-star\` | \`.js\` \`.jsx\` \`.ts\` \`.tsx\` \`.mjs\` \`.cjs\` \`.css\` \`.scss\` \`.less\` \`.java\` \`.go\` \`.rs\` \`.kt\` \`.c\` \`.h\` \`.cpp\` \`.swift\` 等 | \`/*\` + 每行 \` * \` + \` */\` |
-| \`html\` | \`.html\` \`.vue\` \`.svelte\` \`.xml\` \`.svg\` \`.md\` \`.mdx\` | \`<!--\` … \`-->\` |
-| \`line-hash\` | \`.py\` \`.sh\` \`.yaml\` \`.yml\` \`.toml\` \`.rb\` \`Dockerfile\` \`Makefile\` 等 | 每行 \`# \` |
+| \`html\` | \`.html\` \`.vue\` \`.svelte\` \`.xml\` \`.svg\` | \`<!--\` … \`-->\` |
+| \`line-hash\` | \`.py\` \`.sh\` \`.yaml\` \`.yml\` \`.toml\` \`.rb\` \`Dockerfile\` \`Makefile\` 等配置/脚本 | 每行 \`# \` |
 | \`line-dash\` | \`.sql\` | 每行 \`-- \` |
-| \`skip\` | \`.json\` 锁文件、图片、字体、\`*.min.js\` 等 | **不添加** |
+| \`skip\` | \`.md\` \`.mdx\` 文档、\`.json\`、锁文件、图片、字体、\`*.min.js\` 等 | **不添加** |
 
 ### 示例：\`block-star\`（TS/JS/CSS…）
 
@@ -623,7 +626,7 @@ IN THE SOFTWARE.
  */
 \`\`\`
 
-### 示例：\`html\`（Vue/HTML/MD…）
+### 示例：\`html\`（Vue/HTML…）
 
 \`\`\`vue
 <!--
@@ -650,7 +653,8 @@ IN THE SOFTWARE.
 
 ## 禁止
 
-- 新增源码文件却省略 License 头（\`skip\` 类型除外）
+- 新增代码/配置文件却省略 License 头（\`skip\` 类型除外）
+- 给 \`.md\` / \`.mdx\` 文档类文件添加 License 头
 - 用错误注释语法导致语法错误（例如 JSON 内写 \`/* */\`）
 - 改写 License 法律正文（年份替换除外，若项目约定可更新 Copyright 年份）
 - **AI Read/Grep memory 文件或全文对比 License**（必须用 \`aafe license\`）

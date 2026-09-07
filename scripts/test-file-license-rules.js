@@ -1,3 +1,23 @@
+/*
+ * Tencent is pleased to support the open source community by making
+ * 蓝鲸智云PaaS平台 (BlueKing PaaS) available.
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * 蓝鲸智云PaaS平台 (BlueKing PaaS) is licensed under the MIT License.
+ * License for 蓝鲸智云PaaS平台 (BlueKing PaaS):
+ * ---------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, readFile } from 'node:fs/promises';
 import os from 'node:os';
@@ -22,10 +42,17 @@ import { ensureFileLicenseLocal } from '../src/cli/fileLicense.js';
 
 assert.equal(resolveLicenseCommentStyle('src/a.ts'), 'block-star');
 assert.equal(resolveLicenseCommentStyle('src/a.vue'), 'html');
+assert.equal(resolveLicenseCommentStyle('src/page.html'), 'html');
 assert.equal(resolveLicenseCommentStyle('scripts/run.sh'), 'line-hash');
+assert.equal(resolveLicenseCommentStyle('config/app.yaml'), 'line-hash');
 assert.equal(resolveLicenseCommentStyle('db/query.sql'), 'line-dash');
 assert.equal(resolveLicenseCommentStyle('package.json'), 'skip');
+assert.equal(resolveLicenseCommentStyle('README.md'), 'skip');
+assert.equal(resolveLicenseCommentStyle('docs/guide.mdx'), 'skip');
+assert.equal(resolveLicenseCommentStyle('notes.markdown'), 'skip');
 assert.equal(resolveLicenseCommentStyle('Dockerfile'), 'line-hash');
+assert.equal(formatLicenseHeader('README.md'), '');
+assert.equal(inspectFileLicense('# Title\n\nHello.\n', 'README.md').skip, true);
 
 const tsHeader = formatLicenseHeader('src/a.ts');
 assert.match(tsHeader, /^\/\*/);
@@ -97,6 +124,8 @@ assert.match(rule, /block-star/);
 assert.match(rule, /aafe license ensure/);
 assert.match(rule, /禁止.*Read|AI Read/);
 assert.match(rule, /file-license-ok\.jsonl/);
+assert.match(rule, /文档类/);
+assert.match(rule, /`\.md` \/ `\.mdx`/);
 
 const pointer = fileLicenseRuleMdc();
 assert.match(pointer, /new-file-license\.mdc/);

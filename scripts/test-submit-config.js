@@ -18,6 +18,7 @@ import {
   resolveRepoConfig,
   resolveRepoPrMeta,
   stripLegacyE2eRepoTokens,
+  withGithubGitAuthEnv,
   withRepoTokenEnv
 } from '../src/cli/repoConfig.js';
 import {
@@ -137,6 +138,16 @@ assert.equal(withRepoTokenEnv({
 assert.equal(withRepoTokenEnv({
   repo: { githubAccessToken: 'ghp_repo' }
 }, {}).GH_TOKEN, 'ghp_repo');
+const gitAuth = withGithubGitAuthEnv({
+  repo: { githubAccessToken: 'ghp_repo' }
+}, {});
+assert.equal(gitAuth.GITHUB_TOKEN, 'ghp_repo');
+assert.equal(gitAuth.GIT_CONFIG_COUNT, '1');
+assert.equal(gitAuth.GIT_CONFIG_KEY_0, 'http.https://github.com/.extraheader');
+assert.equal(gitAuth.GIT_CONFIG_VALUE_0, 'AUTHORIZATION: bearer ghp_repo');
+assert.equal(withGithubGitAuthEnv({
+  repo: { githubAccessToken: 'ghp_repo' }
+}, { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'user.name', GIT_CONFIG_VALUE_0: 'bot' }).GIT_CONFIG_COUNT, '2');
 
 assert.deepEqual(parseGitRemote('git@github.com:acme/app.git'), {
   host: 'github.com',

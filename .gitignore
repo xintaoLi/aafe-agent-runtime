@@ -4,6 +4,9 @@ dist/
 .env
 .env.*
 !.env.example
+wecom.local.json
+**/wecom.local.json
+!**/wecom.local.json.example
 output/
 .session_tmps/
 # Generated runtime, analysis, knowledge views and local Memory are never committed.
