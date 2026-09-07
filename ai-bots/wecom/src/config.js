@@ -20,7 +20,7 @@
 
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { resolveAgentModeConfig } from '../../../src/cli/agentMode.js';
+import { resolveAgentModeConfig, defaultApiKeyEnvForProvider, normalizeAgentProvider } from '../../../src/cli/agentMode.js';
 import { resolveWeComLogConfig, normalizeLogValue } from './logger.js';
 import { DEFAULT_TASK_MODEL, mergeModelRules, validateModelRules } from './models.js';
 import { parseWorkspaces } from './workspace.js';
@@ -46,7 +46,10 @@ export async function loadWeComBotConfig({
   const agent = resolveAgentModeConfig(projectConfig);
   const explicitPath = localConfigPath ?? env.AAFE_WECOM_CONFIG ?? null;
   const local = await readLocalConfig(projectRoot, { extraPath: explicitPath });
-  const apiKeyEnv = agent.apiKeyEnv ?? 'CURSOR_API_KEY';
+  const apiKeyEnv = agent.apiKeyEnv ?? defaultApiKeyEnvForProvider(agent.provider);
+  const provider = normalizeAgentProvider(
+    firstNonEmpty(env.AAFE_WECOM_PROVIDER, env.WECOM_PROVIDER, local.provider, agent.provider)
+  );
 
   const botId = firstNonEmpty(env.WECOM_BOT_ID, local.botId);
   const secret = firstNonEmpty(env.WECOM_BOT_SECRET, local.secret);
@@ -56,7 +59,15 @@ export async function loadWeComBotConfig({
     );
   }
 
-  const apiKey = firstNonEmpty(env[apiKeyEnv], env.CURSOR_API_KEY, agent.apiKey, local.apiKey);
+  const apiKey = firstNonEmpty(
+    env[apiKeyEnv],
+    env.CURSOR_API_KEY,
+    env.OPENAI_API_KEY,
+    env.CODEX_API_KEY,
+    agent.apiKey,
+    local.apiKey,
+    local.codexApiKey
+  );
   const model = firstNonEmpty(env.AAFE_WECOM_MODEL, env.WECOM_MODEL, local.model) ?? agent.model ?? null;
   const repository = firstNonEmpty(env.AAFE_WECOM_REPOSITORY, local.repository) ?? agent.repository ?? null;
   const baseBranch = firstNonEmpty(env.AAFE_WECOM_BASE_BRANCH, local.baseBranch) ?? 'main';
@@ -90,8 +101,10 @@ export async function loadWeComBotConfig({
     repo: resolveWeComRepoConfig({ env, local }),
     agent: {
       ...agent,
+      provider,
       apiKey: apiKey ?? agent.apiKey ?? null,
-      model: model ?? agent.model ?? null
+      model: model ?? agent.model ?? null,
+      apiKeyEnv
     }
   };
 }
@@ -223,6 +236,7 @@ export function createTaskManagerOptions(config, extra = {}) {
     runtimeOptions: {
       apiKey: extra.apiKey ?? config.apiKey ?? agent.apiKey,
       apiKeyEnv: agent.apiKeyEnv,
+      provider: extra.provider ?? agent.provider ?? 'cursor',
       model: extra.model ?? agent.model,
       repository,
       cwd: extra.cwd ?? active?.cwd ?? config.root,
@@ -286,6 +300,8 @@ export function normalizeLocalWeComValues(raw = {}) {
     botId: raw.botId ?? raw.WECOM_BOT_ID ?? raw.bot_id,
     secret: raw.secret ?? raw.WECOM_BOT_SECRET,
     apiKey: raw.apiKey ?? raw.CURSOR_API_KEY ?? raw.cursorApiKey,
+    codexApiKey: raw.codexApiKey ?? raw.OPENAI_API_KEY ?? raw.CODEX_API_KEY,
+    provider: raw.provider ?? raw.AAFE_WECOM_PROVIDER ?? raw.WECOM_PROVIDER,
     wsUrl: raw.wsUrl ?? raw.WECOM_WS_URL,
     repository: raw.repository ?? raw.AAFE_WECOM_REPOSITORY,
     baseBranch: raw.baseBranch ?? raw.AAFE_WECOM_BASE_BRANCH,

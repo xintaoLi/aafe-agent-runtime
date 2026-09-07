@@ -133,6 +133,18 @@ assert.equal(cursorConfig.config.agents['developer-agent'].provider, 'cursor');
 assert.doesNotMatch(cursorConfig.warnings.join(' '), /unknown provider/);
 assert.equal(createAgentDefinition('developer-agent', cursorConfig.config.agents['developer-agent']).runtime, null);
 
+const codexConfig = resolveAgentsConfig({
+  agents: {
+    'developer-agent': {
+      enabled: true,
+      provider: 'codex',
+      capabilities: ['implementation']
+    }
+  }
+}, {});
+assert.equal(codexConfig.config.agents['developer-agent'].provider, 'codex');
+assert.doesNotMatch(codexConfig.warnings.join(' '), /unknown provider/);
+
 // --- schema validation, coercion and contracts -------------------------------
 const personSchema = {
   type: 'object',
@@ -277,6 +289,10 @@ assert.match(
   /network-disabled-for-cursor-agent/
 );
 assert.equal(new ExecutionPolicy({ allowNetwork: true }).assertProviderAllowed({ id: 'x', provider: 'cursor' }), null);
+assert.match(
+  policy.assertProviderAllowed({ id: 'x', provider: 'codex' }),
+  /network-disabled-for-codex-agent/
+);
 assert.match(
   policy.assertNotDestructive({ id: 'x', provider: 'cli', ref: 'rm -rf {{root}}' }),
   /destructive-operation-denied/
@@ -973,6 +989,16 @@ try {
       });
     assert.equal(missingKey.status, 'failed');
     assert.match(missingKey.reason, /cursor-sdk-api-key-missing/);
+  }
+
+  {
+    const { CodexAgentProvider } = await import('../src/agent-platform/runtime/providers/CodexAgentProvider.js');
+    const reserved = await new CodexAgentProvider().invoke(
+      createAgentDefinition('developer-agent', { provider: 'codex', enabled: true }),
+      { capability: 'implementation', goal: 'g', input: {}, context: {}, constraints: {} }
+    );
+    assert.equal(reserved.status, 'failed');
+    assert.match(reserved.reason, /codex-runtime-not-implemented/);
   }
 
   // --- knowledge write-back --------------------------------------------------

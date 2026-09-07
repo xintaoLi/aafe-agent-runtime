@@ -961,6 +961,49 @@ try {
   await rm(fixture, { recursive: true, force: true });
 }
 
+{
+  const { CodexTaskRuntime, CODEX_RUNTIME_NOT_IMPLEMENTED } = await import('../src/agent-platform/runtime/CodexTaskRuntime.js');
+  const { createTaskRuntime } = await import('../src/agent-platform/runtime/createTaskRuntime.js');
+  const runtime = createTaskRuntime('codex');
+  assert.equal(runtime instanceof CodexTaskRuntime, true);
+  await assert.rejects(() => runtime.run({ id: 'task-codex-1' }), /codex-runtime-not-implemented/);
+  assert.equal((await runtime.cancel()).reason, CODEX_RUNTIME_NOT_IMPLEMENTED);
+  const recovered = await runtime.recover({ id: 'task-codex-1' });
+  assert.equal(recovered.status, 'missing');
+
+  let cursorCalled = false;
+  const fakeCursor = {
+    kind: 'cursor',
+    async run() { cursorCalled = true; throw new Error('cursor-should-not-run'); },
+    async cancel() { return { cancelled: false }; },
+    async close() {},
+    async closeAll() {}
+  };
+  const codexRoot = await mkdtemp(path.join(os.tmpdir(), 'aafe-codex-'));
+  try {
+    const manager = new TaskManager({
+      root: codexRoot,
+      output: '.aafe',
+      runtime: fakeCursor,
+      validateProjectRuntime: false,
+      recoverOnStart: false,
+      workspaceOptions: { worktrees: false }
+    });
+    const task = await manager.create({
+      goal: 'codex entry',
+      provider: 'codex',
+      workspace: { cwd: codexRoot, mode: 'local' }
+    });
+    const result = await manager.start(task.id);
+    assert.equal(cursorCalled, false);
+    assert.equal(result.status, 'failed');
+    assert.match(result.error, /codex-runtime-not-implemented/);
+    await manager.close();
+  } finally {
+    await rm(codexRoot, { recursive: true, force: true });
+  }
+}
+
 console.log('task manager tests passed');
 
 function fakeCursorSdk(state) {

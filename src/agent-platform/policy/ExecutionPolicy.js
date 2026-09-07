@@ -89,7 +89,7 @@ export class ExecutionPolicy {
    * anything that can destroy the working tree is refused outright.
    */
   assertProviderAllowed(agent) {
-    if ((agent?.provider === 'http' || agent?.provider === 'cursor') && !this.allowNetwork) {
+    if ((agent?.provider === 'http' || agent?.provider === 'cursor' || agent?.provider === 'codex') && !this.allowNetwork) {
       return `network-disabled-for-${agent.provider}-agent:${agent.id}`;
     }
     return this.assertNotDestructive(agent);

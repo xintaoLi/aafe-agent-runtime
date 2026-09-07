@@ -18,32 +18,23 @@
  * IN THE SOFTWARE.
  */
 
-import { LocalAgentProvider } from './LocalAgentProvider.js';
-import { HttpAgentProvider } from './HttpAgentProvider.js';
-import { CliAgentProvider } from './CliAgentProvider.js';
-import { IdeAgentProvider } from './IdeAgentProvider.js';
-import { McpAgentProvider } from './McpAgentProvider.js';
-import { CursorSdkAgentProvider } from './CursorSdkAgentProvider.js';
-import { CodexAgentProvider } from './CodexAgentProvider.js';
+import { CodexTaskRuntime } from './CodexTaskRuntime.js';
+import { CursorTaskRuntime } from './CursorTaskRuntime.js';
 
-export { AgentProvider } from './AgentProvider.js';
-export { LocalAgentProvider, HttpAgentProvider, CliAgentProvider, IdeAgentProvider, McpAgentProvider, CursorSdkAgentProvider, CodexAgentProvider };
+export const TASK_RUNTIME_PROVIDERS = Object.freeze(['cursor', 'codex']);
+
+export function normalizeTaskRuntimeProvider(value, fallback = 'cursor') {
+  const raw = String(value ?? '').trim().toLowerCase();
+  return TASK_RUNTIME_PROVIDERS.includes(raw) ? raw : fallback;
+}
 
 /**
- * @param {object} options
- * @param {Record<string, { run: Function }>} options.implementations Builtin local agents.
- * @param {string} [options.cwd]
- * @param {object} [options.developer] `.aafe.agents.json` developer block.
- * @returns {Record<string, import('./AgentProvider.js').AgentProvider>}
+ * Durable task execution backend. Cursor is the shipped runtime; Codex is a
+ * reserved entry whose invoke path exists so WeCom / TaskManager can route to
+ * it without the SDK wiring.
  */
-export function createDefaultProviders({ implementations = {}, cwd = process.cwd(), developer = {} } = {}) {
-  return {
-    local: new LocalAgentProvider(implementations),
-    http: new HttpAgentProvider(),
-    cli: new CliAgentProvider({ cwd }),
-    mcp: new McpAgentProvider({ cwd }),
-    ide: new IdeAgentProvider({ mode: developer.mode ?? 'current' }),
-    cursor: new CursorSdkAgentProvider({ cwd }),
-    codex: new CodexAgentProvider()
-  };
+export function createTaskRuntime(provider, options = {}) {
+  const kind = normalizeTaskRuntimeProvider(provider);
+  if (kind === 'codex') return new CodexTaskRuntime(options);
+  return new CursorTaskRuntime(options);
 }

@@ -108,3 +108,4 @@
 - [x] Agent UI protocol: status labels, last-3 thinking preview, thinking/result split, canceling then canceled
 - [x] Local runs inject workspace `repo.githubAccessToken` into `GITHUB_TOKEN` and git extraheader
 - [x] GitHub token degrades WeCom overlay → current AAFE `.aafe.config.json` → workspace project config
+- [x] Codex runtime entry: `Codex：` / `provider: "codex"` routes to CodexTaskRuntime (execution TODO)

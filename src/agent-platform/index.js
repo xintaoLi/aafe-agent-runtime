@@ -48,6 +48,8 @@ export * from './protocol/response.js';
 export * from './tasks/index.js';
 export * from './sdd/index.js';
 export { CursorTaskRuntime } from './runtime/CursorTaskRuntime.js';
+export { CodexTaskRuntime, CODEX_RUNTIME_NOT_IMPLEMENTED } from './runtime/CodexTaskRuntime.js';
+export { createTaskRuntime, normalizeTaskRuntimeProvider, TASK_RUNTIME_PROVIDERS } from './runtime/createTaskRuntime.js';
 export {
   inspectCloudProjectReadiness,
   assertCloudProjectReadiness

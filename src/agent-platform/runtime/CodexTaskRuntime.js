@@ -18,32 +18,46 @@
  * IN THE SOFTWARE.
  */
 
-import { LocalAgentProvider } from './LocalAgentProvider.js';
-import { HttpAgentProvider } from './HttpAgentProvider.js';
-import { CliAgentProvider } from './CliAgentProvider.js';
-import { IdeAgentProvider } from './IdeAgentProvider.js';
-import { McpAgentProvider } from './McpAgentProvider.js';
-import { CursorSdkAgentProvider } from './CursorSdkAgentProvider.js';
-import { CodexAgentProvider } from './CodexAgentProvider.js';
-
-export { AgentProvider } from './AgentProvider.js';
-export { LocalAgentProvider, HttpAgentProvider, CliAgentProvider, IdeAgentProvider, McpAgentProvider, CursorSdkAgentProvider, CodexAgentProvider };
+export const CODEX_RUNTIME_NOT_IMPLEMENTED = 'codex-runtime-not-implemented';
 
 /**
- * @param {object} options
- * @param {Record<string, { run: Function }>} options.implementations Builtin local agents.
- * @param {string} [options.cwd]
- * @param {object} [options.developer] `.aafe.agents.json` developer block.
- * @returns {Record<string, import('./AgentProvider.js').AgentProvider>}
+ * Reserved Codex task runtime. The WeCom / TaskManager entry exists so a task
+ * can name `provider: "codex"`; the CLI / SDK wiring is intentionally absent.
+ *
+ * TODO: invoke Codex (CLI or SDK) with the same durable contract as
+ * CursorTaskRuntime — one Agent per task, many Runs, recover / cancel / close.
  */
-export function createDefaultProviders({ implementations = {}, cwd = process.cwd(), developer = {} } = {}) {
-  return {
-    local: new LocalAgentProvider(implementations),
-    http: new HttpAgentProvider(),
-    cli: new CliAgentProvider({ cwd }),
-    mcp: new McpAgentProvider({ cwd }),
-    ide: new IdeAgentProvider({ mode: developer.mode ?? 'current' }),
-    cursor: new CursorSdkAgentProvider({ cwd }),
-    codex: new CodexAgentProvider()
-  };
+export class CodexTaskRuntime {
+  static kind = 'codex';
+
+  constructor({ onEvent = () => {} } = {}) {
+    this.onEvent = onEvent;
+  }
+
+  get kind() {
+    return /** @type {typeof CodexTaskRuntime} */ (this.constructor).kind;
+  }
+
+  async run(task) {
+    // TODO: start a Codex run for `task` and stream progress events.
+    throw new Error(`${CODEX_RUNTIME_NOT_IMPLEMENTED}:${task?.id ?? 'unknown'}`);
+  }
+
+  async continue(task, prompt, options = {}) {
+    return this.run(task, prompt, options);
+  }
+
+  async recover(task) {
+    // TODO: reattach to an in-flight Codex run after process restart.
+    return { status: 'missing', agentId: task?.codex?.agentId ?? null, runId: task?.codex?.activeRunId ?? null };
+  }
+
+  async cancel() {
+    // TODO: cancel the active Codex run.
+    return { cancelled: false, reason: CODEX_RUNTIME_NOT_IMPLEMENTED };
+  }
+
+  async close() {}
+
+  async closeAll() {}
 }

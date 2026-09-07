@@ -18,32 +18,21 @@
  * IN THE SOFTWARE.
  */
 
-import { LocalAgentProvider } from './LocalAgentProvider.js';
-import { HttpAgentProvider } from './HttpAgentProvider.js';
-import { CliAgentProvider } from './CliAgentProvider.js';
-import { IdeAgentProvider } from './IdeAgentProvider.js';
-import { McpAgentProvider } from './McpAgentProvider.js';
-import { CursorSdkAgentProvider } from './CursorSdkAgentProvider.js';
-import { CodexAgentProvider } from './CodexAgentProvider.js';
-
-export { AgentProvider } from './AgentProvider.js';
-export { LocalAgentProvider, HttpAgentProvider, CliAgentProvider, IdeAgentProvider, McpAgentProvider, CursorSdkAgentProvider, CodexAgentProvider };
+import { AgentProvider } from './AgentProvider.js';
+import { agentFailed } from '../../protocol/response.js';
+import { CODEX_RUNTIME_NOT_IMPLEMENTED } from '../CodexTaskRuntime.js';
 
 /**
- * @param {object} options
- * @param {Record<string, { run: Function }>} options.implementations Builtin local agents.
- * @param {string} [options.cwd]
- * @param {object} [options.developer] `.aafe.agents.json` developer block.
- * @returns {Record<string, import('./AgentProvider.js').AgentProvider>}
+ * Orchestrator entry for Codex. Registered so `provider: "codex"` is a known
+ * transport; execution is reserved.
+ *
+ * TODO: spawn / call Codex and map its result onto AgentResponse.
  */
-export function createDefaultProviders({ implementations = {}, cwd = process.cwd(), developer = {} } = {}) {
-  return {
-    local: new LocalAgentProvider(implementations),
-    http: new HttpAgentProvider(),
-    cli: new CliAgentProvider({ cwd }),
-    mcp: new McpAgentProvider({ cwd }),
-    ide: new IdeAgentProvider({ mode: developer.mode ?? 'current' }),
-    cursor: new CursorSdkAgentProvider({ cwd }),
-    codex: new CodexAgentProvider()
-  };
+export class CodexAgentProvider extends AgentProvider {
+  static kind = 'codex';
+
+  async invoke(definition) {
+    // TODO: execute `definition` through Codex CLI or SDK.
+    return agentFailed(`${CODEX_RUNTIME_NOT_IMPLEMENTED}:${definition?.id ?? 'codex'}`);
+  }
 }

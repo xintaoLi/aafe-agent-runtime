@@ -2,6 +2,7 @@
   "botId": "your-wecom-bot-id",
   "secret": "your-wecom-bot-secret",
   "apiKey": "crsr_your-cursor-api-key",
+  "provider": "cursor",
   "model": "grok-4.6",
   "currentWorkspace": "local",
   "workspaces": [

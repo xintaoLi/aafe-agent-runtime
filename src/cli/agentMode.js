@@ -21,12 +21,15 @@
 import { defaultAgentMcpConfig, resolveAgentMcpConfig } from './agentMcp.js';
 
 export const AGENT_PROVIDER_CURSOR = 'cursor';
+export const AGENT_PROVIDER_CODEX = 'codex';
+export const AGENT_PROVIDERS = Object.freeze([AGENT_PROVIDER_CURSOR, AGENT_PROVIDER_CODEX]);
 export const AGENT_MODE_LOCAL = 'local';
 export const AGENT_MODE_CLOUD = 'cloud';
 export const DEFAULT_CURSOR_MODEL = 'composer-2.5';
 export const DEFAULT_CURSOR_API_KEY_ENV = 'CURSOR_API_KEY';
+export const DEFAULT_CODEX_API_KEY_ENV = 'OPENAI_API_KEY';
 
-const ENABLED_VALUES = new Set(['1', 'true', 'yes', 'y', 'on', 'enable', 'enabled', 'agent', 'cursor', '开启', '启用']);
+const ENABLED_VALUES = new Set(['1', 'true', 'yes', 'y', 'on', 'enable', 'enabled', 'agent', 'cursor', 'codex', '开启', '启用']);
 const DISABLED_VALUES = new Set(['0', 'false', 'no', 'n', 'off', 'disable', 'disabled', 'none', '关闭', '禁用']);
 
 export function defaultAgentModeConfig() {
@@ -82,15 +85,16 @@ export function resolveAgentModeConfig(projectConfig = {}, overrides = {}) {
       ?? projectConfig.agentMode,
     defaults.enabled
   );
+  const provider = normalizeAgentProvider(overrides.provider ?? fromConfig.provider ?? defaults.provider);
 
   return {
     ...defaults,
     ...fromConfig,
     enabled,
-    provider: String(overrides.provider ?? fromConfig.provider ?? defaults.provider).trim().toLowerCase() || defaults.provider,
+    provider,
     mode: normalizeCursorMode(overrides.mode ?? overrides.runtime ?? fromConfig.mode ?? fromConfig.runtime ?? defaults.mode),
     model: nonEmpty(overrides.model ?? fromConfig.model) ?? defaults.model,
-    apiKeyEnv: nonEmpty(overrides.apiKeyEnv ?? fromConfig.apiKeyEnv) ?? defaults.apiKeyEnv,
+    apiKeyEnv: nonEmpty(overrides.apiKeyEnv ?? fromConfig.apiKeyEnv) ?? defaultApiKeyEnvForProvider(provider),
     apiKey: overrides.apiKey ?? fromConfig.apiKey ?? defaults.apiKey,
     repository: overrides.repository ?? overrides.repo ?? fromConfig.repository ?? fromConfig.repositories ?? fromConfig.repo ?? defaults.repository,
     autoCreatePR: normalizeAgentEnabled(overrides.autoCreatePR ?? fromConfig.autoCreatePR, defaults.autoCreatePR),
@@ -136,6 +140,17 @@ export function resolveAgentManagerConfig(raw = {}, overrides = {}) {
 
 export function buildAgentModeConfigFromAnswers(answers = {}, existing = null) {
   return resolveAgentModeConfig({ agent: existing ?? {} }, answers);
+}
+
+export function normalizeAgentProvider(value, fallback = AGENT_PROVIDER_CURSOR) {
+  const raw = String(value ?? '').trim().toLowerCase();
+  return AGENT_PROVIDERS.includes(raw) ? raw : fallback;
+}
+
+export function defaultApiKeyEnvForProvider(provider) {
+  return normalizeAgentProvider(provider) === AGENT_PROVIDER_CODEX
+    ? DEFAULT_CODEX_API_KEY_ENV
+    : DEFAULT_CURSOR_API_KEY_ENV;
 }
 
 export function isAgentModeEnabled(configOrMode) {

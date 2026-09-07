@@ -39,13 +39,14 @@ export async function resolveWeComAction(command, context, manager) {
   if (command.type === 'error') return command;
 
   if (command.type === 'create') {
-    return createRequirementTask(command.requirement, context, manager, command.intent);
+    return createRequirementTask(command.requirement, context, manager, command.intent, command.provider);
   }
 
   if (command.type === 'need-workspace') {
     return {
       type: 'need-workspace',
       requirement: command.requirement,
+      provider: command.provider ?? null,
       message: formatWorkspacePrompt(context.botRoot ?? process.cwd(), context.workspaces ?? [])
     };
   }
@@ -139,17 +140,19 @@ export async function resolveWeComAction(command, context, manager) {
   return { type: 'help' };
 }
 
-async function createRequirementTask(requirement, context, manager, intent = null) {
+async function createRequirementTask(requirement, context, manager, intent = null, providerHint = null) {
   const workspace = resolveCreateWorkspace(context);
   // Only work that edits code is worth an interactive round trip. Analysis and
   // Q&A run in the bot's own directory, which is a checkout as well, so asking
   // would just add a turn before the answer.
   const needsWorkspace = intent ? intent.kind === 'code' && intent.needsCode !== false : true;
+  const provider = providerHint ?? context.provider ?? 'cursor';
   if (!workspace && context.requireWorkspace && needsWorkspace) {
     return {
       type: 'need-workspace',
       requirement,
       intent,
+      provider,
       message: formatWorkspacePrompt(context.botRoot ?? process.cwd(), context.workspaces ?? [])
     };
   }
@@ -165,6 +168,7 @@ async function createRequirementTask(requirement, context, manager, intent = nul
     kind: 'requirement',
     goal: requirement,
     requirement,
+    provider,
     repository: taskWorkspace?.repository ?? context.repository ?? null,
     baseBranch: taskWorkspace?.baseBranch ?? context.baseBranch ?? 'main',
     taskBranch: null,
@@ -176,11 +180,12 @@ async function createRequirementTask(requirement, context, manager, intent = nul
       workspace: taskWorkspace,
       attachments: context.attachments ?? [],
       tapd,
+      provider,
       ...(intent ? { intent } : {}),
       ...(routed ? { model: routed } : {})
     }
   });
-  return { type: 'created', task, start: true, workspace: taskWorkspace, intent, model: routed };
+  return { type: 'created', task, start: true, workspace: taskWorkspace, intent, model: routed, provider };
 }
 
 function buildTaskTapdContext(requirement, tapdConfig) {
@@ -204,7 +209,7 @@ async function chooseWorkspaceAndCreate(command, context, manager) {
     ...context,
     workspace: selected.workspace,
     requireWorkspace: false
-  }, manager, command.intent ?? null);
+  }, manager, command.intent ?? null, command.provider);
 }
 
 function resolveChoice(command, context) {

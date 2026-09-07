@@ -253,6 +253,7 @@ export async function startWeComBot(options = {}) {
  */
 async function acceptedModelRules(config, { logger, listModels }) {
   const rules = config.models?.rules ?? [];
+  if (config.agent?.provider === 'codex') return rules;
   let known;
   try {
     known = await listModels(config.apiKey);

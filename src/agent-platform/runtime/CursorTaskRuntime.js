@@ -29,6 +29,8 @@ const DEFAULT_MODEL = 'composer-2.5';
  * The SDK handle is process-local; the persisted agent id is enough to resume it.
  */
 export class CursorTaskRuntime {
+  static kind = 'cursor';
+
   constructor({
     env = process.env,
     shellEnv = null,
@@ -43,6 +45,10 @@ export class CursorTaskRuntime {
     this.onEvent = onEvent;
     this.sessions = new Map();
     this.activeRuns = new Map();
+  }
+
+  get kind() {
+    return /** @type {typeof CursorTaskRuntime} */ (this.constructor).kind;
   }
 
   async run(task, prompt, options = {}) {

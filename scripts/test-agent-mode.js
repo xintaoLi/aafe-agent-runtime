@@ -257,4 +257,12 @@ assert.ok(liveModels.models.some((item) => item.id === 'my-model'));
 assert.equal(resolveModelChoice('2', FALLBACK_AGENT_MODELS), FALLBACK_AGENT_MODELS[1].id);
 assert.equal(resolveModelChoice('auto', FALLBACK_AGENT_MODELS), 'auto');
 
+{
+  const resolved = resolveAgentModeConfig({ agent: { provider: 'codex' } });
+  assert.equal(resolved.provider, 'codex');
+  assert.equal(resolved.apiKeyEnv, 'OPENAI_API_KEY');
+  const unknown = resolveAgentModeConfig({ agent: { provider: 'unknown-engine' } });
+  assert.equal(unknown.provider, 'cursor');
+}
+
 console.log('agent mode tests passed');
