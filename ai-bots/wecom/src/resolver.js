@@ -21,7 +21,7 @@
 import { createTaskId } from '../../../src/agent-platform/tasks/TaskStore.js';
 import { parseTapdAssociation } from '../../../src/agent-platform/tasks/tapdPolicy.js';
 import { leadingCandidate } from './candidates.js';
-import { isExplicitAnchor, ownedBy, resolveTaskAnchor } from './context.js';
+import { isExplicitAnchor, isWarmCompleted, ownedBy, resolveTaskAnchor, WARM_COMPLETED_MS } from './context.js';
 import { isNewWork } from './intent.js';
 import { isTerminalStatus } from './session.js';
 import { pickSmalltalkReply } from './smalltalk.js';
@@ -284,7 +284,8 @@ async function bindImplicitCommand(command, context, manager) {
       quote: context.quote ?? null,
       lookup: (id) => requireTask(manager, id),
       now: context.now,
-      staleMs: staleWindow(command.intent, context)
+      staleMs: staleWindow(command.intent, context),
+      warmCompletedMs: context.warmCompletedMs
     });
     if (command.type === 'implicit-continue') {
       return followUp(anchor, all, command.message, source, command.intent);
@@ -323,6 +324,11 @@ function routeFreeform(command, anchor, tasks = [], source = {}) {
   // `做：<需求>` is for.
   if (isExplicitAnchor(anchor)) return continueAnchor(anchor, text);
   if (prefer === 'new' || (prefer !== 'follow' && isNewWork(text))) {
+    // A classifier that labels the decision as "code" would otherwise start a
+    // second investigation whose requirement is the decision itself.
+    if (anchor.kind === 'recent' && !isNewWork(text) && (intent?.action === 'apply' || intent?.kind === 'followup')) {
+      return continueAnchor(anchor, text);
+    }
     return { type: 'create', requirement: text, intent };
   }
   // Standalone work is already gone by here, so what is left would have landed
@@ -528,6 +534,24 @@ function ackReply(open, source = {}) {
 export async function listOpenTasks(manager, source = {}, { match = 'user' } = {}) {
   const { open } = await listConversationTasks(manager, source, { match });
   return open;
+}
+
+/**
+ * Classification needs to know whether a follow-up word can land somewhere:
+ * live work, or a just-completed owned task still inside the warm window.
+ */
+export async function listOwnerContinuable(manager, source = {}, {
+  now = Date.now,
+  warmMs = WARM_COMPLETED_MS
+} = {}) {
+  const { all, open } = await listConversationTasks(manager, source, { match: 'owner' });
+  const ts = typeof now === 'function' ? now() : Number(now);
+  const hasRecentCompleted = all.some((task) => isWarmCompleted(task, ts, warmMs));
+  return {
+    open,
+    hasActiveTask: open.length > 0,
+    hasRecentTask: open.length > 0 || hasRecentCompleted
+  };
 }
 
 async function listConversationTasks(manager, source = {}, { match = 'user' } = {}) {

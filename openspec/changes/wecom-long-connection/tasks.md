@@ -64,6 +64,9 @@
 - [x] 终止 button attached to the live message via `stream_with_template_card`, text fallback kept
 - [x] Agent startup collapsed to a single `准备任务` / `⌛ 思考中`; process list reserved for real steps
 - [x] A finished task is never continued implicitly; explicit `继续` names the last one for copying
+- [x] A just-completed owned task stays an implicit target for 30 minutes when nothing is live
+- [x] Decisions on existing work (`全部 squash 成1个` / 按方案 / squash) classify as follow-up without a model
+- [x] Continuing a finished task tells the agent to reuse the previous analysis instead of starting over
 - [x] An open task no longer turns unrecognised text into an addendum; weak input asks instead of guessing
 - [x] New-work verbs recognised after a pasted link, still not mid-message
 - [x] Killed local runs parked as interrupted at startup instead of hanging in `running` or re-running unasked

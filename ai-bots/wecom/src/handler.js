@@ -37,12 +37,13 @@ import {
 } from './media.js';
 import { formatListReply, formatStatusReply, formatTaskFooter } from './notify.js';
 import { parseWeComQuote } from './quote.js';
-import { canControlTask, listOpenTasks, resolveWeComAction } from './resolver.js';
+import { canControlTask, listOpenTasks, listOwnerContinuable, resolveWeComAction } from './resolver.js';
 import { sessionKeyFromSource, sourceFromFrame } from './session.js';
 import { pickSmalltalkReply } from './smalltalk.js';
 import { formatWorkspaceList } from './workspace.js';
 
 export const UNDERSTANDING_TEXT = '正在理解分析中…';
+export const REUSE_ANALYSIS_TEXT = '这是对上一轮结论的后续指令。请直接复用已有分析与上下文执行，不要重新从零分析，除非结论已过时或本次明确要求重做。';
 const INTENT_ACK_GRACE_MS = 150;
 const PENDING = Symbol('intent-pending');
 
@@ -241,7 +242,11 @@ export async function handleWeComMessage(frame, {
     });
   }
   if (action.type === 'continue') {
-    const followUp = [action.message, formatAttachmentNote(attachments)].filter(Boolean).join('\n\n');
+    const followUp = [
+      TERMINAL_TASK.has(action.task?.status) ? REUSE_ANALYSIS_TEXT : null,
+      action.message,
+      formatAttachmentNote(attachments)
+    ].filter(Boolean).join('\n\n');
     // Who said it travels with the text: the agent has to know whether this is
     // the task owner changing the requirement or a bystander adding detail.
     const author = { userId: source.userId ?? null, role: action.actorRole ?? 'owner' };
@@ -279,8 +284,11 @@ export async function handleWeComMessage(frame, {
 
 async function analyzeIntent(command, { understanding, manager, source, attachments, quote, logger }) {
   let hasActiveTask = false;
+  let hasRecentTask = false;
   try {
-    hasActiveTask = (await listOpenTasks(manager, source, { match: 'owner' })).length > 0;
+    const hints = await listOwnerContinuable(manager, source);
+    hasActiveTask = hints.hasActiveTask;
+    hasRecentTask = hints.hasRecentTask;
   } catch {
     // A listing failure must not block classification; assume a fresh request.
   }
@@ -290,6 +298,7 @@ async function analyzeIntent(command, { understanding, manager, source, attachme
       text: command.text,
       attachments,
       hasActiveTask,
+      hasRecentTask,
       quote
     });
   } catch (error) {
@@ -699,6 +708,8 @@ function continueNote(action) {
   const notes = [];
   if (action.anchor === 'active') {
     notes.push('已追加到你最近活跃的任务。要换目标请引用那条任务消息，或发送「继续 <TaskID>：<补充>」。');
+  } else if (action.anchor === 'recent') {
+    notes.push('已接着刚完成的任务继续，会复用上一轮分析结论。要换目标请引用那条任务消息，或发送「继续 <TaskID>：<补充>」。');
   } else if (action.via === 'requirement-match') {
     notes.push('按引用内容匹配到该任务。');
   } else if (action.via === 'tapd-story') {

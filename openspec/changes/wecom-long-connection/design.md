@@ -200,7 +200,8 @@ Before any of that routing runs, the message is anchored: `context.js` answers
 The order is by strength of evidence — a Task ID in the text, then a quoted
 message, then the speaker's last active task — because those are three
 different degrees of the user having said what they meant. The first two may
-reach a finished task; the implicit one sees live work only.
+reach a finished task; the implicit one sees live work, and a just-completed
+owned task while nothing is live and that completion is still warm.
 
 Following a quote has to be done by reading it. `body.quote` is a content
 snapshot — `msgtype` plus `text`/`mixed`/`voice`/`image` — and carries no msgid,
@@ -218,13 +219,28 @@ sounds like new work is not a contradiction to resolve — the quote is the more
 deliberate act, and `做：<需求>` is how you start something separate while
 pointing at an old task.
 
-Only unfinished work can be anchored implicitly. A finished task used to
-qualify while it was the most recently touched one, on the theory that "I just
-watched it finish, let me add one more thing" — but with no time bound, a story
-completed yesterday kept claiming today's messages, and each claim re-ran it
-and refreshed its timestamp, so it stayed the freshest candidate. A finished
-task is now out of the running unless referenced; when nothing is live, the bot
-volunteers the last one's ID so resuming costs one copied line.
+Only unfinished work, plus one just-completed owned task, can be anchored
+implicitly. A finished task used to qualify with no time bound, on the theory
+that "I just watched it finish, let me add one more thing" — and a story
+completed yesterday kept claiming today's messages, each claim refreshing its
+timestamp, so it stayed the freshest candidate. Cutting finished tasks out
+entirely overcorrected the other way: an analysis that had just reported
+options, followed by `全部 squash 成1个`, started a second task that
+re-investigated from scratch because there was no live work to append to.
+
+The bound is now a short warm window (30 minutes). While nothing is live and
+the speaker's latest completed task is still inside it, a follow-up, a ship
+instruction, or a decision on that analysis continues that task, and the
+follow-up prompt says to reuse the previous findings. Live work still wins
+over a more recently completed one. Failed, cancelled, and yesterday's
+completed tasks stay out unless referenced; when nothing is live and nothing
+is warm, the bot volunteers the last ID so resuming costs one copied line.
+
+The classifier matches those decisions without a model, the same way it
+already matches `提交 PR`. Squash / rebase / pick-a-plan / `全部…成1个` are
+instructions against work that exists. Left to the model they come back as
+`code` with high confidence, routing creates a new task, and the new agent
+has none of the analysis.
 
 Weak input goes to the last active task rather than triggering a question. The
 previous round asked instead, which was safe and tiring: in a running
@@ -233,8 +249,8 @@ spent a turn on it every time. What makes the guess acceptable is that the
 reply names the task it went to and how to retarget it, so a wrong guess costs
 one message instead of surfacing inside the agent's report. Two other things
 have to hold for that trade to work, and both do: zombie `running` tasks are
-collapsed at startup, so "active" means active, and finished tasks are no
-longer candidates.
+collapsed at startup, so "active" means active, and finished tasks outside
+the warm window are no longer candidates.
 
 In a group, only the speaker's own tasks are anchored implicitly, so two
 members' work cannot merge. A bystander can still contribute, but only through

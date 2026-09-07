@@ -80,14 +80,28 @@ follows a pasted link, because stating the request under the link is a common
 shape. It MUST NOT be recognised anywhere in the message, so that `再帮我看看`
 stays an addendum.
 
-Only unfinished work MAY absorb an implicit follow-up. A task that has
-completed, failed or been cancelled MUST NOT be continued unless it is
-referenced, however recently it was touched. When neither the wording nor the
-classifier commits to a side, the message MUST go to the speaker's last active
-task, and the reply MUST name that task together with the way to retarget it.
-With nothing unfinished, weak input MUST create its own task, and an explicit
-`继续` MUST name the last finished task so it can be resumed by copying one
-line.
+Live work still outranks a finished task. A stale running task MUST absorb an
+unspecified message rather than a more recently completed one, because the
+finished task is no longer the conversation's open work.
+
+A just-completed owned task is the exception, and only while it is still warm.
+When the speaker has nothing unfinished, and they own exactly one completed
+task touched within a short window (30 minutes by default), an implicit
+follow-up, a ship instruction, or a decision on that analysis — `全部 squash
+成1个`, `按方案 A`, `选第一个` — MUST continue that task instead of creating a
+new one. The continued run MUST be told to reuse the previous analysis rather
+than start another investigation. Yesterday's completed task MUST still stay
+out of the running unless referenced: without a time bound it kept claiming
+later messages, and each claim refreshed its timestamp. Failed and cancelled
+tasks MUST NOT be claimed this way. New work (a TAPD paste, a leading
+code/analysis verb) MUST still create its own task even while a completed one
+is warm.
+
+When neither the wording nor the classifier commits to a side, the message
+MUST go to the speaker's last active task, and the reply MUST name that task
+together with the way to retarget it. With nothing unfinished and nothing
+warm, weak input MUST create its own task, and an explicit `继续` MUST name
+the last finished task so it can be resumed by copying one line.
 
 #### Scenario: TAPD paste creates a task
 - GIVEN no unfinished task in the conversation
@@ -107,9 +121,16 @@ line.
 - AND `继续 T-new：<补充>` still resumes T-new
 
 #### Scenario: Explicit continue names the last finished task
-- GIVEN the speaker has no unfinished task and one completed task T-done
+- GIVEN the speaker has no unfinished task and one completed task T-done that is outside the warm window
 - WHEN the user sends `继续：加上单测`
 - THEN the bot answers with `继续 T-done：<补充>` instead of a dead end
+
+#### Scenario: A decision after a just-completed analysis continues that task
+- GIVEN the speaker's only task T-analysis completed a few minutes ago
+- WHEN the user sends `全部 squash 成1个` with no Task ID and no quote
+- THEN the bot continues T-analysis and does not create a new task
+- AND the follow-up prompt tells the agent to reuse the previous analysis instead of starting over
+- AND a TAPD paste or `帮我修一下另一个 bug` in the same state still creates its own task
 
 #### Scenario: The request may follow a pasted link
 - WHEN the user sends a PR URL and `分析一下这个 PR是否会产生副作用` on the next line
@@ -130,7 +151,9 @@ Every free-form message MUST be resolved to a task, or to none, before the bot
 decides what to do with it, and the anchor MUST be chosen by strength of
 evidence: a Task ID in the text, then the tail of one, then a quoted message,
 then the speaker's last active task. A referenced task MAY be finished; the
-implicit anchor MUST see unfinished work only. The anchor MUST carry the
+implicit anchor MUST see unfinished work, and MAY see one just-completed owned
+task while nothing is live and that completion is still within the warm
+window. The anchor MUST carry the
 evidence that produced it — how it was found and how far it is worth trusting —
 into the turn's log, so a wrong target is explainable without replaying the
 conversation.
@@ -300,6 +323,13 @@ with nothing running, where the reply says there is nothing to submit. The same
 verb mid-sentence MUST require live work or a quote behind it, so
 `购物车合并逻辑有问题` is still routed as the defect report it is.
 
+A decision on work that already exists — squash / rebase / pick a proposed
+plan / `全部…成1个` / `按方案 A` — MUST classify as follow-up the same way,
+without a model, whether or not anything is still running. Read as new work
+these create a second investigation whose requirement is the decision itself,
+which is how `全部 squash 成1个` after an analysis restarts that analysis
+instead of applying it.
+
 Classification MUST NOT be able to break a turn: on failure, timeout, an
 unparsable answer, or a throwing classifier the bot MUST fall back to keyword
 routing and continue.
@@ -328,6 +358,12 @@ routing and continue.
 - GIVEN the conversation has no task at all
 - WHEN the user sends `提交 PR 回填`
 - THEN the bot says there is nothing to continue and creates no task
+
+#### Scenario: A decision on a just-finished analysis skips the model
+- GIVEN the speaker's analysis task completed a few minutes ago
+- WHEN they send `全部 squash 成1个`
+- THEN the bot classifies it as a follow-up without calling a model
+- AND continues that task instead of creating one whose requirement is the squash instruction
 
 #### Scenario: A ship verb mid-sentence is not an instruction
 - GIVEN the speaker has no unfinished task

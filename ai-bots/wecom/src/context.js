@@ -39,6 +39,14 @@ const MIN_TEXT_MATCH = 8;
 export const DEFAULT_STALE_MS = 12 * 60 * 60 * 1000;
 
 /**
+ * How long a completed task still counts as "the one I just watched finish".
+ * Past it, appending would be a guess about yesterday; inside it, a decision
+ * on that analysis (`全部 squash 成1个`) belongs to that task rather than to a
+ * brand-new investigation that has none of the findings.
+ */
+export const WARM_COMPLETED_MS = 30 * 60 * 1000;
+
+/**
  * How much the anchor is worth believing, by what found it. Nothing branches on
  * these yet; they travel with the anchor so a wrong binding can be explained
  * from the logs instead of reconstructed from the message.
@@ -50,7 +58,8 @@ const CONFIDENCE = Object.freeze({
   'quoted:task-suffix': 0.85,
   'quoted:requirement-match': 0.8,
   'quoted:tapd-story': 0.8,
-  'active:last-active': 0.6
+  'active:last-active': 0.6,
+  'recent:last-completed': 0.65
 });
 
 /**
@@ -58,9 +67,12 @@ const CONFIDENCE = Object.freeze({
  * every later decision (append, create, ask) depends on it.
  *
  * Precedence is by strength of evidence: a named id beats a partial one, both
- * beat a quote, and a quote beats "the task you happen to have running". Only
- * the referenced kinds may reach a finished task; the implicit one sees live
- * work only, so a story that ended yesterday cannot claim today's messages.
+ * beat a quote, and a quote beats "the task you happen to have running". A
+ * referenced task may be finished. The implicit one sees live work, and when
+ * nothing is live it may see one just-completed owned task inside a short
+ * warm window — that is the "I just watched it finish, here is the decision"
+ * turn. Yesterday's completed task stays out, which is how a story that ended
+ * hours ago used to claim every later message.
  *
  * The implicit anchor is also the only one that can be wrong without anybody
  * saying so, which is why it declines twice: with two live tasks and nothing
@@ -83,7 +95,8 @@ export async function resolveTaskAnchor({
   taskId = null,
   lookup = null,
   now = Date.now,
-  staleMs = DEFAULT_STALE_MS
+  staleMs = DEFAULT_STALE_MS,
+  warmCompletedMs = WARM_COMPLETED_MS
 } = {}) {
   const foreignActive = tasks.filter((task) => isActive(task) && !ownedBy(task, source));
 
@@ -124,6 +137,13 @@ export async function resolveTaskAnchor({
     return anchor('active', mine[0], source, 'last-active', foreignActive);
   }
 
+  // Nothing live: a just-completed owned task is still the conversation for a
+  // short window. Newest first, so recent[0] is the one they just watched.
+  const recent = tasks.filter((task) => ownedBy(task, source) && isWarmCompleted(task, now(), warmCompletedMs));
+  if (recent.length) {
+    return anchor('recent', recent[0], source, 'last-completed', foreignActive);
+  }
+
   return none(foreignActive);
 }
 
@@ -153,8 +173,9 @@ function push(list, task) {
 }
 
 /**
- * An explicit anchor is the only thing that lets a non-owner contribute, and
- * the only thing that may revive a finished task.
+ * An explicit anchor is the only thing that lets a non-owner contribute. A
+ * finished task is revived by a reference, or by the speaker's own
+ * just-completed task while it is still warm and nothing else is live.
  */
 export function isExplicitAnchor(anchor) {
   return anchor?.kind === 'explicit' || anchor?.kind === 'quoted';
@@ -162,6 +183,21 @@ export function isExplicitAnchor(anchor) {
 
 export function isActive(task) {
   return Boolean(task) && !isTerminalStatus(task.status);
+}
+
+/**
+ * A completed task is warm while its last touch is inside the window. Failed
+ * and cancelled stays out: those are not "I just watched the analysis finish".
+ * An undated completed task is treated as cold, unlike a live one, because
+ * reviving old records that never stored `updatedAt` is how yesterday leaked
+ * into today.
+ */
+export function isWarmCompleted(task, ts, warmMs = WARM_COMPLETED_MS) {
+  if (task?.status !== 'completed') return false;
+  if (!(warmMs > 0)) return false;
+  const touched = Date.parse(task?.updatedAt ?? task?.createdAt ?? '');
+  if (!Number.isFinite(touched)) return false;
+  return ts - touched <= warmMs;
 }
 
 export function ownedBy(task, source = {}) {

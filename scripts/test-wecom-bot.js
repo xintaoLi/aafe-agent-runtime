@@ -69,7 +69,7 @@ import { createWeComLogger, resolveWeComLogConfig, sanitizeLogValue } from '../a
 import { inferMediaType, mediaRequirement, parseWeComMedia } from '../ai-bots/wecom/src/media.js';
 import { createMessageDedup } from '../ai-bots/wecom/src/dedup.js';
 import { createWeComGateway } from '../ai-bots/wecom/src/gateway.js';
-import { handleWeComMessage } from '../ai-bots/wecom/src/handler.js';
+import { handleWeComMessage, REUSE_ANALYSIS_TEXT } from '../ai-bots/wecom/src/handler.js';
 import { HELP_TEXT, IDENTITY_TEXT, WELCOME_TEXT } from '../ai-bots/wecom/src/help.js';
 import {
   attachWeComNotifier,
@@ -592,6 +592,52 @@ const bareContinue = await handleWeComMessage({
 assert.equal(bareContinue.action.type, 'error');
 assert.equal(bareContinue.action.message.includes('继续 task-only-done：'), true);
 
+// A decision a few minutes after the analysis finished belongs to that task,
+// not to a second investigation whose requirement is the decision itself.
+const justAnalysed = createFakeManager();
+await justAnalysed.create({
+  id: 'task-20260907034405-f5b346de',
+  status: 'completed',
+  updatedAt: isoAgo(12 * MINUTE),
+  source: sourceFromFrame(textFrame),
+  requirement: '分析这些 commit 怎么 squash',
+  goal: '分析这些 commit 怎么 squash'
+});
+justAnalysed.tasks[0].status = 'completed';
+const squashDecision = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'squash-1', text: { content: '全部 squash 成1个' } }
+}, {
+  manager: justAnalysed,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup(),
+  understanding: { analyze: async (input) => fastIntent(input.text, input) }
+});
+assert.equal(squashDecision.action.type, 'continue');
+assert.equal(squashDecision.action.task.id, 'task-20260907034405-f5b346de');
+assert.equal(squashDecision.action.anchor, 'recent');
+assert.equal(squashDecision.intent.kind, 'followup');
+assert.equal(squashDecision.intent.action, 'apply');
+assert.equal(squashDecision.intent.source, 'rules-fast');
+assert.match(squashDecision.reply, /已接着刚完成的任务继续/);
+assert.equal(justAnalysed.continues.length, 1);
+assert.match(justAnalysed.continues[0].message, new RegExp(REUSE_ANALYSIS_TEXT));
+assert.match(justAnalysed.continues[0].message, /全部 squash 成1个/);
+// A real new request in the same state still starts its own task.
+const newWorkWhileWarm = await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'squash-2', text: { content: '帮我修一下另一个 bug' } }
+}, {
+  manager: justAnalysed,
+  replyAck: async () => {},
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup(),
+  understanding: { analyze: async (input) => fastIntent(input.text, input) }
+});
+assert.equal(newWorkWhileWarm.action.type, 'created');
+assert.notEqual(newWorkWhileWarm.action.task.id, 'task-20260907034405-f5b346de');
+
 const groupFrame = {
   headers: { req_id: 'req-g' },
   body: {
@@ -1005,6 +1051,22 @@ const doneAnchor = await resolveTaskAnchor({
 });
 assert.equal(doneAnchor.kind, 'quoted');
 assert.equal(doneAnchor.taskId, 'task-20260904100000-cccc3333');
+// Nothing live and the completed task is still warm: the decision belongs to it.
+const warmDone = await resolveTaskAnchor({
+  tasks: [{ ...anchorTasks[2], updatedAt: isoAgo(4 * MINUTE) }],
+  source: anchorSource,
+  text: '全部 squash 成1个'
+});
+assert.equal(warmDone.kind, 'recent');
+assert.equal(warmDone.taskId, 'task-20260904100000-cccc3333');
+assert.equal(warmDone.via, 'last-completed');
+// Yesterday's completed task still stays out, which is the original leak.
+const coldDone = await resolveTaskAnchor({
+  tasks: [{ ...anchorTasks[2], updatedAt: isoAgo(2 * HOUR) }],
+  source: anchorSource,
+  text: '全部 squash 成1个'
+});
+assert.equal(coldDone.kind, 'none');
 // A speaker with no task of their own sees the others' live work, not an
 // anchor into it.
 const foreign = await resolveTaskAnchor({
@@ -2409,6 +2471,15 @@ assert.equal(
 );
 // Starting something new is still new work, ship verb or not.
 assert.equal(fastIntent('帮我实现一键提交功能').kind, 'code');
+// A decision on work that already exists is an addendum, running or not:
+// otherwise 「全部 squash 成1个」 after an analysis becomes a new investigation.
+for (const line of ['全部 squash 成1个', '按方案 A', '选第一个', 'squash 成1个']) {
+  const apply = fastIntent(line);
+  assert.equal(apply.kind, 'followup', line);
+  assert.equal(apply.action, 'apply', line);
+  assert.equal(apply.source, 'rules-fast', line);
+}
+assert.equal(fastIntent('帮我实现 squash 功能').kind, 'code');
 // And mid-sentence the verb is just a word: with nothing live behind it this
 // is a defect report, so it goes to the model like any other.
 assert.equal(fastIntent('购物车合并逻辑有问题'), null);

@@ -51,9 +51,10 @@ const SYSTEM_PROMPT = [
   '- 改代码 / 修 bug / 实现功能 / 重构 / 提交 PR → kind=code，needs_code=true',
   '- 排查原因 / 分析影响面 / 评估方案 / 读代码回答问题 → kind=analysis，needs_code 取决于是否必须读某个仓库',
   '- 概念问答 / 与具体仓库无关的请求 → kind=question，needs_code=false',
-  '- 明显是在补充上一轮任务（has_active_task 为 true 且文本像追加说明）→ kind=followup',
+  '- 明显是在补充上一轮任务（has_active_task 或 has_recent_task 为 true 且文本像追加说明）→ kind=followup',
   '- 带 quoted 字段说明用户引用了历史消息，除非另起新需求，否则是对被引用任务的补充 → kind=followup',
   '- 提交 / 提 PR / 合并 / 推送 / 回填 TAPD / 重跑测试 这类流程动作是在推进已有任务 → kind=followup，不要当成新需求',
+  '- 对刚结束的分析拍板（全部 squash 成1个 / 按方案 A / 选第一个 / squash / rebase）→ kind=followup，不要当成新的分析或开发',
   'TAPD 链接、需求单标题、缺陷描述通常是 code。'
 ].join('\n');
 
@@ -90,6 +91,34 @@ function isShipInstruction(body, { anchored = false } = {}) {
   return SHIP_ONLY.test(body) || (anchored && SHIP_HINT.test(body));
 }
 
+// A decision on work that already exists: squash the commits just listed,
+// pick plan A, collapse everything into one. Read as new work these create a
+// second investigation whose requirement is the decision, which is how
+// 「全部 squash 成1个」 after an analysis restarted that analysis.
+const APPLY_VERB = [
+  'squash',
+  'rebase',
+  'cherry-?pick',
+  '压成',
+  '合成\\s*一?个',
+  '全部.{0,16}(?:成|为)\\s*[1一壹]个',
+  '按(?:你说的|这个|该)?方案',
+  '选(?:第)?[一二三四五12345]',
+  '就(?:用|选)?这个',
+  '按你说的(?:做|来)?',
+  '用这个方案',
+  '用第[一二三]'
+].join('|');
+const APPLY_ONLY = new RegExp(
+  `^(?:请?\\s*(?:帮我|帮忙|麻烦)?\\s*)?(?:继续|接着|就)?\\s*(?:${APPLY_VERB})[\\s\\S]{0,32}$`,
+  'i'
+);
+
+function isApplyInstruction(body) {
+  if (isNewWork(body)) return false;
+  return APPLY_ONLY.test(body);
+}
+
 // A pasted link ahead of the request is not a reason to fall back to the model,
 // so the verb may follow one. Anchored otherwise, so "再帮我看看" stays a
 // follow-up rather than becoming new work.
@@ -104,11 +133,17 @@ const ANALYSIS_LEAD = new RegExp(`${LEAD}(?:分析|排查|定位|评估|梳理|�
  * task. It answers only when the signal is unmistakable and returns null
  * otherwise, which is exactly where a model is worth waiting for.
  */
-export function fastIntent(text, { attachments = [], hasActiveTask = false, quote = null } = {}) {
+export function fastIntent(text, {
+  attachments = [],
+  hasActiveTask = false,
+  hasRecentTask = false,
+  quote = null
+} = {}) {
   const body = String(text ?? '').trim();
   if (!body) return null;
   const code = CODE_HINT.test(body);
   const analysis = ANALYSIS_HINT.test(body);
+  const continuable = hasActiveTask || hasRecentTask;
 
   // A Task ID, typed out or sitting in the footer of the quoted reply, is the
   // strongest reference there is; a model cannot improve on a target the user
@@ -117,20 +152,30 @@ export function fastIntent(text, { attachments = [], hasActiveTask = false, quot
   if (scanTaskId(body) || (quote?.present && scanTaskId(quote.text))) {
     return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.95, source: 'rules-fast' });
   }
-  // Quoting a message while work is live is a deliberate reference to it, so
-  // the addendum is settled without asking a model. Routing confirms which task
-  // the quote actually points at.
-  if (quote?.present && hasActiveTask && !isNewWork(body)) {
+  // Quoting a message while work is live (or just finished) is a deliberate
+  // reference to it, so the addendum is settled without asking a model.
+  // Routing confirms which task the quote actually points at.
+  if (quote?.present && continuable && !isNewWork(body)) {
     return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.85, source: 'rules-fast' });
   }
   // A TAPD story or a bracketed defect title is always code work.
   if (isNewWork(body) && !ANALYSIS_LEAD.test(body)) {
     return intent({ kind: 'code', needsCode: true, summary: clip(body), confidence: 0.9, source: 'rules-fast' });
   }
+  if (!ANALYSIS_LEAD.test(body) && isApplyInstruction(body)) {
+    return intent({
+      kind: 'followup',
+      needsCode: false,
+      summary: clip(body),
+      confidence: 0.85,
+      source: 'rules-fast',
+      action: 'apply'
+    });
+  }
   if (!ANALYSIS_LEAD.test(body) && isShipInstruction(body, { anchored: hasActiveTask || Boolean(quote?.present) })) {
     return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.85, source: 'rules-fast', action: 'ship' });
   }
-  if (hasActiveTask && FOLLOW_HINT.test(body) && !CODE_LEAD.test(body)) {
+  if (continuable && FOLLOW_HINT.test(body) && !CODE_LEAD.test(body)) {
     return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.8, source: 'rules-fast' });
   }
   if (ANALYSIS_LEAD.test(body) && !code) {
@@ -153,11 +198,25 @@ export function fastIntent(text, { attachments = [], hasActiveTask = false, quot
  * Rules are the floor, not the ceiling: the bot must keep routing when the
  * model is unreachable, slow, or answers with something unparsable.
  */
-export function classifyIntentByRules(text, { attachments = [], hasActiveTask = false } = {}) {
+export function classifyIntentByRules(text, {
+  attachments = [],
+  hasActiveTask = false,
+  hasRecentTask = false
+} = {}) {
   const body = String(text ?? '').trim();
   const withMedia = attachments.length ? `${body} ${attachments.map((item) => item.filename ?? '').join(' ')}` : body;
-  if (hasActiveTask && FOLLOW_HINT.test(body)) {
+  if ((hasActiveTask || hasRecentTask) && FOLLOW_HINT.test(body)) {
     return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.4, source: 'rules' });
+  }
+  if (isApplyInstruction(body)) {
+    return intent({
+      kind: 'followup',
+      needsCode: false,
+      summary: clip(body),
+      confidence: 0.5,
+      source: 'rules',
+      action: 'apply'
+    });
   }
   // Ahead of CODE_HINT, which reads 提交 as a reason to start something.
   if (isShipInstruction(body, { anchored: hasActiveTask })) {
@@ -246,15 +305,22 @@ export function createIntentAnalyzer({
 
   return {
     backend,
-    async analyze({ text, attachments = [], hasActiveTask = false, quote = null } = {}) {
-      const fast = fastIntent(text, { attachments, hasActiveTask, quote });
+    async analyze({
+      text,
+      attachments = [],
+      hasActiveTask = false,
+      hasRecentTask = false,
+      quote = null
+    } = {}) {
+      const fast = fastIntent(text, { attachments, hasActiveTask, hasRecentTask, quote });
       if (fast) return fast;
-      const fallback = classifyIntentByRules(text, { attachments, hasActiveTask });
+      const fallback = classifyIntentByRules(text, { attachments, hasActiveTask, hasRecentTask });
       if (backend === 'rules') return fallback;
       const payload = {
         text: String(text ?? ''),
         attachments: attachments.map((item) => ({ type: item.type ?? null, filename: item.filename ?? null })),
         has_active_task: Boolean(hasActiveTask),
+        has_recent_task: Boolean(hasRecentTask),
         // What was quoted decides whether this is an addendum, so the model has
         // to see it too; clipped because only the gist changes the answer.
         ...(quote?.present ? { quoted: clip(quote.text || quote.note || '', 200) } : {})
