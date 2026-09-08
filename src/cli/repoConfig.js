@@ -192,7 +192,8 @@ export function withRepoTokenEnv(projectConfig = {}, env = process.env) {
 export const GITHUB_HTTP_EXTRAHEADER_KEY = 'http.https://github.com/.extraheader';
 
 export function githubHttpExtraHeader(token) {
-  return `AUTHORIZATION: bearer ${token}`;
+  // Git smart HTTP uses Basic (PAT as password), unlike the REST API's Bearer.
+  return `AUTHORIZATION: basic ${Buffer.from(`x-access-token:${token}`, 'utf8').toString('base64')}`;
 }
 
 /**

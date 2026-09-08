@@ -122,7 +122,7 @@ export function buildRepoAuthPromptSection(envVars) {
     '',
     'GitHub auth is already in this process environment (GITHUB_TOKEN / GH_TOKEN).',
     'Do not print the token, put it in a remote URL, or ask the user for another one.',
-    'git fetch/pull/push to github.com already send http.extraheader from the environment.',
+    'git fetch/pull/push to github.com already send a scoped Basic http.extraheader via GIT_CONFIG_* environment. Run plain git; do not override it with a Bearer header from legacy skills. REST API calls still use Bearer. Base64 credentials are secrets too; never print them or put them in argv or Git config files.',
     'Create or update a GitHub PR with `aafe repo pr --title= --body= --base= --head=` (use node_modules/.bin/aafe if needed).'
   ];
 }

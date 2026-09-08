@@ -27,6 +27,7 @@ const execFileAsync = promisify(execFile);
 import {
   buildGithubPrCreateArgs,
   expandRepoSecretRef,
+  githubHttpExtraHeader,
   REPO_GITHUB_TOKEN_ENV,
   resolveRepoAccessToken,
   resolveRepoConfig,
@@ -38,9 +39,7 @@ export function githubApiBase(host = 'github.com') {
   return host === 'github.com' ? 'https://api.github.com' : `https://${host}/api/v3`;
 }
 
-export function githubGitExtraHeader(token) {
-  return `AUTHORIZATION: bearer ${token}`;
-}
+export const githubGitExtraHeader = githubHttpExtraHeader;
 
 export function parseGitRemote(raw) {
   const text = String(raw ?? '').trim();
@@ -86,6 +85,7 @@ export function parseRepoPrArgs(argv = []) {
     repo: '',
     host: 'github.com',
     remote: '',
+    configRoot: null,
     dryRun: false
   };
   for (const arg of argv) {
@@ -98,6 +98,7 @@ export function parseRepoPrArgs(argv = []) {
     else if (arg.startsWith('--repo=')) opts.repo = arg.slice('--repo='.length);
     else if (arg.startsWith('--host=')) opts.host = arg.slice('--host='.length);
     else if (arg.startsWith('--remote=')) opts.remote = arg.slice('--remote='.length);
+    else if (arg.startsWith('--config-root=')) opts.configRoot = arg.slice('--config-root='.length);
   }
   return opts;
 }
@@ -183,7 +184,7 @@ export async function runRepoPrCommand(root, argv = [], {
   resolveHead = defaultResolveHead
 } = {}) {
   const opts = parseRepoPrArgs(argv);
-  const projectConfig = await readConfig(root);
+  const projectConfig = await readConfig(opts.configRoot ? path.resolve(root, opts.configRoot) : root);
   const auth = resolveGithubSubmitToken(projectConfig, env);
   const remote = parseGitRemote(opts.remote) ?? await resolveRemote(root);
   const owner = opts.owner || remote?.owner;
@@ -228,7 +229,7 @@ export async function runRepoPrCommand(root, argv = [], {
     return {
       dryRun: true,
       source: auth.source,
-      extraHeader: 'AUTHORIZATION: bearer $GITHUB_TOKEN',
+      extraHeader: 'AUTHORIZATION: basic <base64(x-access-token:TOKEN)>',
       owner,
       repo,
       host,

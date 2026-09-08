@@ -47,7 +47,8 @@ export class CodexAgentProvider extends AgentProvider {
         tokenBudget: request.constraints?.tokenBudget ?? 12000,
         codex: { ...definition.codex, ...(request.constraints?.timeoutMs ? { timeoutMs: request.constraints.timeoutMs } : {}) }
       });
-      return agentSuccess(result, { metrics: { tokens: result.usage.totalTokens, cost: result.usage.cost } });
+      if (result.status !== 'completed') return agentFailed(result.text ?? `codex-${result.status}`);
+      return agentSuccess(result, { metrics: { tokens: result.usage?.totalTokens ?? 0, cost: result.usage?.cost ?? null } });
     } catch (error) { return agentFailed(error.message); }
     finally { await runtime.closeAll(); }
   }

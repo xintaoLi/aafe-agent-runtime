@@ -1,0 +1,28 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "summary", "evidence", "remainingSteps", "delivery"],
+  "properties": {
+    "status": { "type": "string", "enum": ["completed", "blocked", "failed"] },
+    "summary": { "type": "string" },
+    "evidence": { "type": "array", "items": { "type": "string" } },
+    "remainingSteps": { "type": "array", "items": { "type": "string" } },
+    "delivery": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["gate", "decision", "status", "reason", "authorization", "receipt", "evidence"],
+        "properties": {
+          "gate": { "type": "string", "enum": ["commit", "pr", "tapd_backfill"] },
+          "decision": { "type": "string", "enum": ["proceed", "skip", "ask"] },
+          "status": { "type": "string", "enum": ["done", "skipped", "failed", "blocked"] },
+          "reason": { "type": "string" },
+          "authorization": { "type": "string" },
+          "receipt": { "type": "string" },
+          "evidence": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

@@ -14,6 +14,7 @@ import {
   buildGithubPrCreateArgs,
   buildGithubPrEditArgs,
   buildGongfengMrMeta,
+  githubHttpExtraHeader,
   normalizeRepoStringList,
   resolveRepoConfig,
   resolveRepoPrMeta,
@@ -144,7 +145,9 @@ const gitAuth = withGithubGitAuthEnv({
 assert.equal(gitAuth.GITHUB_TOKEN, 'ghp_repo');
 assert.equal(gitAuth.GIT_CONFIG_COUNT, '1');
 assert.equal(gitAuth.GIT_CONFIG_KEY_0, 'http.https://github.com/.extraheader');
-assert.equal(gitAuth.GIT_CONFIG_VALUE_0, 'AUTHORIZATION: bearer ghp_repo');
+assert.equal(gitAuth.GIT_CONFIG_VALUE_0, 'AUTHORIZATION: basic ' + Buffer.from('x-access-token:ghp_repo').toString('base64'));
+assert.equal(githubGitExtraHeader, githubHttpExtraHeader, 'Git auth has one implementation');
+assert.equal(Buffer.from(gitAuth.GIT_CONFIG_VALUE_0.split(' ').at(-1), 'base64').toString(), 'x-access-token:ghp_repo');
 assert.equal(withGithubGitAuthEnv({
   repo: { githubAccessToken: 'ghp_repo' }
 }, { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'user.name', GIT_CONFIG_VALUE_0: 'bot' }).GIT_CONFIG_COUNT, '2');
@@ -157,7 +160,7 @@ assert.deepEqual(parseGitRemote('git@github.com:acme/app.git'), {
   provider: 'github'
 });
 assert.equal(githubApiBase('github.com'), 'https://api.github.com');
-assert.equal(githubGitExtraHeader('tok'), 'AUTHORIZATION: bearer tok');
+assert.equal(githubGitExtraHeader('tok'), 'AUTHORIZATION: basic eC1hY2Nlc3MtdG9rZW46dG9r');
 assert.equal(resolveGithubSubmitToken({
   repo: { githubAccessToken: 'ghp_cfg' }
 }, {}).source, 'repo.githubAccessToken');
@@ -177,6 +180,7 @@ const created = await ensureGithubPullRequest({
   reviewers: ['alice'],
   labels: ['frontend'],
   fetchImpl: async (url, init = {}) => {
+    assert.equal(init.headers.Authorization, 'Bearer ghp_test', 'REST still uses Bearer');
     const method = init.method ?? 'GET';
     if (method === 'GET' && String(url).includes('/pulls?')) {
       return { ok: true, status: 200, json: async () => [] };
@@ -206,6 +210,8 @@ assert.equal(planned.dryRun, true);
 assert.equal(planned.source, 'repo.githubAccessToken');
 assert.deepEqual(planned.reviewers, ['bob']);
 assert.doesNotMatch(JSON.stringify(planned), /ghp_cfg/);
+assert.doesNotMatch(JSON.stringify(planned), new RegExp(Buffer.from('x-access-token:ghp_cfg').toString('base64')));
+assert.match(planned.extraHeader, /AUTHORIZATION: basic/);
 
 const fallbackPlan = await runRepoPrCommand('/tmp', [
   '--title=Fix', '--head=feat/x', '--owner=acme', '--repo=app', '--dry-run'
@@ -223,7 +229,9 @@ const repoSkill = repoSubmitSkillContent('.ai-agent');
 assert.match(repoSkill, /不依赖/);
 assert.match(repoSkill, /aafe repo pr/);
 assert.match(repoSkill, /githubAccessToken/);
-assert.match(repoSkill, /AUTHORIZATION: bearer/);
+assert.match(repoSkill, /AUTHORIZATION: basic/);
+assert.match(repoSkill, /GIT_CONFIG_COUNT/);
+assert.doesNotMatch(repoSkill, /git -c http\.extraheader/);
 assert.match(repoSkill, /降级/);
 assert.match(repoSkill, /临时注入/);
 assert.match(repoSkill, /GITHUB_TOKEN.*GH_TOKEN/);

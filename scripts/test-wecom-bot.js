@@ -335,6 +335,13 @@ const fromCodex = await loadWeComBotConfig({
 });
 assert.equal(fromCodex.agent.provider, 'codex');
 assert.equal(createTaskManagerOptions(fromCodex).runtimeOptions.provider, 'codex');
+let codexModelListCalls = 0;
+assert.equal(await checkWeComModels(tmp, {
+  loadConfig: async () => fromCodex,
+  listModels: async () => { codexModelListCalls++; throw new Error('must-not-call-cursor'); },
+  out: { log() {} }
+}), 0);
+assert.equal(codexModelListCalls, 0);
 
 // Exercise real JSON parsing/normalization, not just injected config objects.
 const groupedRoot = await mkdtemp(path.join(os.tmpdir(), 'aafe-wecom-grouped-'));
@@ -355,14 +362,16 @@ try {
   assert.equal(c.intent.cursorApiKey, null);
   assert.equal(createTaskManagerOptions(c).runtimeOptions.codex.timeoutMs, 12345);
   assert.equal(createTaskManagerOptions(c).runtimeOptions.codex.apiKey, 'group-codex');
-  assert.equal(createTaskManagerOptions(c).runtimeOptions.apiKey, 'group-cursor');
-  assert.equal(createTaskManagerOptions(c).runtimeOptions.model, 'cursor-model');
+  assert.equal(createTaskManagerOptions(c).enabledProvider, 'codex');
+  assert.equal(createTaskManagerOptions(c).runtimeOptions.apiKey, null);
+  assert.equal(createTaskManagerOptions(c).runtimeOptions.model, 'codex-model');
   const switched = await loadWeComBotConfig({ root: groupedRoot, env: { AAFE_WECOM_PROVIDER: 'cursor' } });
   assert.equal(switched.apiKey, 'group-cursor');
   assert.equal(switched.agent.model, 'cursor-model');
   assert.equal(switched.models.default, 'cursor-default');
   assert.equal(switched.agent.autoCreatePR, false);
   assert.equal(switched.codex.apiKey, 'group-codex');
+  assert.equal(createTaskManagerOptions(switched).runtimeOptions.codex, undefined);
   const overrides = await loadWeComBotConfig({ root: groupedRoot, env: {
     AAFE_WECOM_PROVIDER: 'cursor', CURSOR_API_KEY: 'env-cursor',
     AAFE_WECOM_CURSOR_MODEL: 'env-model', CODEX_API_KEY: 'env-codex'
@@ -392,6 +401,8 @@ const fromDotEnv = await loadWeComBotConfig({ root: envRoot, env: {}, readConfig
 assert.equal(fromDotEnv.botId, 'dotenv-bot');
 assert.equal(fromDotEnv.secret, 'dotenv-secret');
 assert.equal(fromDotEnv.apiKey, 'crsr_dotenv');
+assert.deepEqual(fromDotEnv.workflow, { mode: 'auto', intentConfidence: 0.7 });
+assert.equal(createTaskManagerOptions(fromDotEnv).runtimeOptions.workflowOverride, 'auto');
 
 const manager = createFakeManager();
 const created = await resolveWeComAction(
@@ -1675,7 +1686,7 @@ assert.match(formatTaskNotify(notifyTask), /task-done/);
 assert.match(formatTaskNotify(notifyTask), /src\/a\.js/);
 assert.match(formatTaskNotify(notifyTask), /https:\/\/example.com\/pr\/1/);
 assert.match(formatTaskNotify(notifyTask), /对话 ID：`task-done`$/);
-assert.match(formatTaskNotify(notifyTask), /\*\*✅ 最终结论\*\*/);
+assert.match(formatTaskNotify(notifyTask), /\*\*✅ 已完成\*\*/);
 assert.match(formatTaskNotify(notifyTask), /任务已完成，但 Agent 未给出文字说明/);
 // A retry that succeeded must not report the previous attempt's error.
 assert.equal(
@@ -1762,7 +1773,8 @@ const finishedView = renderProgressView({
 });
 assert.match(finishedView, /\*\*✅ 最终结论\*\*/);
 assert.match(finishedView, /复制按钮已修好/);
-assert.match(finishedView, /已完成 1 个分析步骤/);
+assert.match(finishedView, /最近进展/);
+assert.match(finishedView, /src\/a\.js/);
 assert.equal(finishedView.includes('**正在**'), false);
 // The title dances while the task runs and stops once the stream is finished.
 assert.equal(finishedView.includes('🐧'), false);
@@ -1834,7 +1846,8 @@ const failedView = renderProgressView({
   }, {}, { includeConclusion: false }),
   taskId: 't-fail'
 });
-assert.match(failedView, /\*\*✅ 最终结论\*\*/);
+assert.equal(failedView.includes('✅'), false);
+assert.match(failedView, /执行失败/);
 assert.match(failedView, /already has active run/);
 assert.equal(failedView.includes('未返回详细原因'), false);
 
@@ -1867,7 +1880,7 @@ const canceledView = renderProgressView({
 });
 assert.match(canceledView, /⛔ 已终止/);
 assert.match(canceledView, /任务已被用户终止/);
-assert.match(canceledView, /已完成：/);
+assert.match(canceledView, /已记录活动（不代表完成）/);
 assert.match(canceledView, /正在读取文件/);
 assert.equal(canceledView.includes('**✅ 最终结论**'), false);
 const cotCollapsed = renderProgressView({
@@ -1890,6 +1903,7 @@ assert.match(uiState.result.content, /问题在复制按钮/);
 
 const streamUpdates = [];
 const hub = createWeComProgressHub({
+  danceMs: 2500,
   replyProgress: async (_frame, streamId, content, finish) => {
     streamUpdates.push({ streamId, content, finish });
   },
@@ -2045,7 +2059,8 @@ await listeners.at(-1)({
   task: { ...notifyTask, id: 'task-long' }
 });
 assert.equal(ttlPushed.length, 1, '终态归 notifier 发，进度通道不重复推一条');
-assert.equal(longFinish.length, 1);
+assert.equal(longFinish.length, 2);
+assert.equal(longFinish[1].body.msgtype, 'template_card');
 assert.match(longFinish[0].body.markdown.content, /已完成/);
 assert.equal(ttlHub.has('task-long'), false);
 await ttlHub.close();
@@ -2251,6 +2266,13 @@ assert.equal(resolveWeComLogConfig({ env: { WECOM_LOG: '0' }, local: { log: { en
 assert.equal(sanitizeLogValue({ secret: 'x', apiKey: 'y', text: 'ok' }).secret, '[redacted]');
 assert.equal(sanitizeLogValue({ secret: 'x', apiKey: 'y', text: 'ok' }).apiKey, '[redacted]');
 assert.equal(sanitizeLogValue({ secret: 'x', apiKey: 'y', text: 'ok' }).text, 'ok');
+assert.equal(sanitizeLogValue('AUTHORIZATION: basic eC1hY2Nlc3MtdG9rZW46dG9r'), 'AUTHORIZATION: basic [redacted]');
+assert.equal(sanitizeLogValue({ GIT_CONFIG_VALUE_0: 'AUTHORIZATION: basic encoded' }).GIT_CONFIG_VALUE_0, '[redacted]');
+const authConsole = [];
+createWeComLogger({ sink: { error: (...args) => authConsole.push(...args) } })
+  .error('AUTHORIZATION: basic eC1hY2Nlc3MtdG9rZW46dG9r');
+assert.deepEqual(authConsole, ['AUTHORIZATION: basic [redacted]']);
+assert.equal(sanitizeLogValue(new Error('AUTHORIZATION: basic encoded')).message, 'AUTHORIZATION: basic [redacted]');
 
 const logRoot = await mkdtemp(path.join(os.tmpdir(), 'aafe-wecom-log-'));
 const enabledDir = path.join(logRoot, 'on');
@@ -2658,11 +2680,83 @@ const crashHandled = await handleWeComMessage({
   logger: { error() {}, event() {} },
   understanding: { async analyze() { throw new Error('classifier down'); } }
 });
-assert.equal(crashHandled.action.type, 'created');
+assert.equal(crashHandled.action.type, 'clarify');
 assert.equal(crashHandled.intent, null);
 assert.equal(crashStageReplies.length, 1);
 
+// Auto fails closed for every uncertain kind, not only low-confidence code.
+for (const classified of [null, { kind: 'question', needsCode: false, confidence: 0.4 },
+  { kind: 'analysis', needsCode: true, confidence: 0.6 },
+  { kind: 'code', needsCode: false, confidence: 0.95 },
+  { kind: 'unknown', confidence: 1 }]) {
+  const waiting = createPendingStore();
+  const isolated = createFakeManager();
+  const result = await handleWeComMessage({ ...textFrame,
+    body: { ...textFrame.body, text: { content: '这个事情怎么处理比较合适' } }
+  }, { manager: isolated, pending: waiting, replyAck: async () => {},
+    config: { repository: 'owner/repo', workflow: { mode: 'auto', intentConfidence: 0.7 } },
+    understanding: { analyze: async () => classified } });
+  assert.equal(result.action.type, 'clarify');
+  assert.equal(isolated.tasks.length, 0);
+}
+
 const codeStageReplies = [];
+// Clarification keeps the original request once, preserves media, and honors
+// the latest explicit read-only choice without another model call.
+{
+  const waiting = createPendingStore();
+  const isolated = createFakeManager();
+  const config = { repository: 'owner/repo', workflow: { mode: 'auto', intentConfidence: 0.7 } };
+  const send = (content, extra = {}) => handleWeComMessage({ ...textFrame,
+    body: { ...textFrame.body, msgid: 'clarify-' + isolated.tasks.length + '-' + content,
+      text: { content } } }, { manager: isolated, pending: waiting, config,
+    replyAck: async () => {}, ...extra });
+  const media = { filename: 'screen.png', path: '/tmp/fixture-screen.png', type: 'image' };
+  assert.equal((await send('这个事情怎么处理比较合适', { attachments: [media] })).action.type, 'clarify');
+  for (let i = 0; i < 6; i++) assert.equal((await send('还没确定')).action.type, 'clarify');
+  const key = sessionKeyFromSource(sourceFromFrame(textFrame));
+  assert.equal(waiting.get(key).text, '这个事情怎么处理比较合适');
+  assert.equal(waiting.get(key).feedback.length, 4);
+  const accepted = await send('仅分析，不修改');
+  assert.equal(accepted.action.type, 'created');
+  assert.equal(accepted.action.task.kind, 'analysis');
+  assert.deepEqual(accepted.action.task.context.attachments, [media]);
+  assert.equal(accepted.action.task.requirement.split('这个事情怎么处理比较合适').length, 2);
+  assert.ok(accepted.action.task.requirement.endsWith('仅分析，不修改'));
+  assert.equal(waiting.get(key), null);
+  await send('这个事情怎么处理比较合适');
+  assert.equal((await send('取消')).action.type, 'clarification-cancelled');
+  assert.equal(waiting.get(key), null);
+}
+
+// Pending gate confirmation bypasses classification only for a unique owner
+// target. A participant, multiple waiting tasks, or unrelated live work cannot
+// make a generic yes authorize delivery.
+for (const reply of ['好的', '是', '同意', '跳过', '不需要']) {
+  const isolated = createFakeManager();
+  const task = await isolated.create({ id: 'task-waiting-gate', source: sourceFromFrame(textFrame),
+    provider: 'codex', delivery: { pendingGate: 'commit' } });
+  task.status = 'blocked';
+  const send = (from = textFrame.body.from) => handleWeComMessage({ ...textFrame,
+    body: { ...textFrame.body, from, text: { content: reply } } }, {
+    manager: isolated, config: { workflow: { mode: 'auto' } }, replyAck: async () => {},
+    understanding: { analyze: async () => { throw new Error('must not classify a gate answer'); } },
+    logger: { error() {}, event() {} }
+  });
+  assert.equal((await send()).action.type, 'continue');
+  assert.equal(isolated.continues[0].id, task.id);
+  assert.equal(isolated.continues[0].options.author.role, 'owner');
+  assert.equal(isolated.continues[0].options.intent, null, 'yes must not upgrade an analysis task');
+  assert.notEqual((await send({ userid: 'someone-else' })).action.type, 'continue');
+  const other = await isolated.create({ id: 'task-other-waiting', source: task.source,
+    delivery: { pendingGate: 'tapd_backfill' } });
+  other.status = 'blocked';
+  assert.equal((await send()).action.type, 'error');
+  other.status = 'running';
+  assert.equal((await send()).action.type, 'error');
+  assert.equal(isolated.continues.length, 1);
+}
+
 const codeStageUpdates = [];
 const intentPending = createPendingStore();
 const codeHandled = await handleWeComMessage({
@@ -3431,7 +3525,7 @@ const processTap = await handleWeComCard({
   sendText: async (content) => { processTexts.push(content); }
 });
 assert.equal(processTap.action.type, 'process');
-assert.match(processTexts.join('\n'), /思考过程/);
+assert.match(processTexts.join('\n'), /工作记录/);
 assert.match(processTexts.join('\n'), /\*\*Shell\*\* · 2 次/);
 await processHub.close();
 

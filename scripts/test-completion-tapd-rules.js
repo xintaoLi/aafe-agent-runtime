@@ -106,6 +106,8 @@ assert.match(tapdSection, /Commit 成功后必须继续尝试 PR/);
 assert.match(tapdSection, /未关联或 ID 不匹配/);
 
 const tapdSkill = tapdSubmitBackfillSkillContent('.ai-agent');
+assert.match(tapdSkill, /Basic 认证/);
+assert.doesNotMatch(tapdSkill, /git -c http\.extraheader="AUTHORIZATION: bearer/);
 assert.match(tapdSkill, /Commit\/PR Gate/);
 assert.match(tapdSkill, /Phase B — Commit gate/);
 assert.match(tapdSkill, /autonomous mode/);

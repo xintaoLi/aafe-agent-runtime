@@ -23,8 +23,9 @@ import { TaskScheduler } from './TaskScheduler.js';
 import { createTaskRuntime, normalizeTaskRuntimeProvider } from '../runtime/createTaskRuntime.js';
 import { assertCloudProjectReadiness } from '../runtime/CloudProjectReadiness.js';
 import { isTerminalTaskStatus } from './TaskState.js';
-import { buildTapdPromptSection, isPlatformTaskIdBranch, isTapdAssociatedBranch } from './tapdPolicy.js';
+import { buildTapdPromptSection, isPlatformTaskIdBranch, isTapdAssociatedBranch, parseTapdAssociation } from './tapdPolicy.js';
 import { WorkspaceManager } from '../workspace/WorkspaceManager.js';
+import { resolveCodexWorkflow, verifyCodexWorkflow } from '../runtime/CodexWorkflow.js';
 import { estimateTokens } from '../../ide-bridge/context/tokens.js';
 import {
   buildRepoAuthPromptSection,
@@ -45,6 +46,7 @@ export class TaskManager {
     scheduler = null,
     maxConcurrentTasks = 4,
     runtimeOptions = {},
+    enabledProvider = null,
     validateProjectRuntime = true,
     recoverOnStart = true,
     workspaces = null,
@@ -64,6 +66,7 @@ export class TaskManager {
     this.recoverOnStart = recoverOnStart;
     this.repoAuth = repoAuth ?? {};
     this.runtimeOptions = { ...runtimeOptions };
+    this.enabledProvider = enabledProvider;
     this.runtime = runtime ?? createTaskRuntime(runtimeOptions.provider, {
       onEvent: (event) => {
         void this.#recordRuntimeEvent(event);
@@ -80,6 +83,8 @@ export class TaskManager {
   }
 
   async create(input = {}) {
+    const provider = input.provider ?? this.enabledProvider ?? 'cursor';
+    this.#assertProvider(provider);
     const context = isolatedContext(input.context, input);
     const task = await this.store.create({
       id: input.id,
@@ -87,7 +92,7 @@ export class TaskManager {
       goal: input.goal ?? input.requirement,
       requirement: input.requirement,
       source: input.source,
-      provider: input.provider,
+      provider,
       model: input.model,
       repository: normalizeRepository(input.repository ?? input.workspace?.repository, input.baseBranch ?? input.workspace?.baseBranch),
       workspace: input.workspace ?? null,
@@ -119,6 +124,7 @@ export class TaskManager {
         limit
       });
       for (const task of done) {
+        if (this.enabledProvider && task.provider !== this.enabledProvider) continue;
         if (task.execution?.mode !== 'worktree' || !task.execution.repoRoot) continue;
         const result = await this.workspaces.remove(task.id, { repoRoot: task.execution.repoRoot });
         if (!result?.removed) continue;
@@ -135,6 +141,7 @@ export class TaskManager {
 
   async start(taskId, options = {}) {
     const task = await this.#require(taskId);
+    this.#assertProvider(task.provider);
     if (task.status === 'running' || this.scheduler.has(taskId)) {
       throw new Error(`task-already-active:${taskId}`);
     }
@@ -197,6 +204,7 @@ export class TaskManager {
     });
     const recovered = [];
     for (const task of candidates) {
+      if (this.enabledProvider && task.provider !== this.enabledProvider) continue;
       if (task.status === 'created' && task.source?.type !== 'wecom') continue;
       if (this.scheduler.has(task.id)) continue;
       if (task.status === 'waiting') {
@@ -268,10 +276,17 @@ export class TaskManager {
     }
   }
 
+  #assertProvider(provider) {
+    if (this.enabledProvider && provider !== this.enabledProvider) {
+      throw new Error(`task-provider-disabled:${provider};active=${this.enabledProvider}`);
+    }
+  }
+
   #runtimeFor(task = null) {
     const requested = normalizeTaskRuntimeProvider(
       task?.provider ?? this.runtimeOptions.provider ?? this.runtime?.kind
     );
+    this.#assertProvider(requested);
     if (!this.runtimeByProvider.has(requested)) {
       this.runtimeByProvider.set(requested, createTaskRuntime(requested, {
         onEvent: (event) => {
@@ -288,6 +303,7 @@ export class TaskManager {
 
   async #continue(taskId, message, options = {}) {
     const task = await this.#require(taskId);
+    this.#assertProvider(task.provider);
     const context = await this.store.getContext(taskId);
     context.conversation ??= { messages: [] };
     context.conversation.messages ??= [];
@@ -370,18 +386,36 @@ export class TaskManager {
     // Claimed before `running`: a task waiting for another task's checkout is
     // still queued, and calling that running makes the wait look like a hung
     // agent.
-    const lease = await this.workspaces.acquire(task);
+    let lease;
     try {
+      lease = await this.workspaces.acquire(task);
+      const context = await this.store.getContext(taskId);
+      if (task.provider === 'codex' && this.runtimeOptions.codex?.delivery?.enabled === false
+        && !['analysis', 'question'].includes(context.intent?.kind ?? task.kind)) {
+        lease = await this.workspaces.prepareCodexBranch(task, lease,
+          context.tapd?.association ?? parseTapdAssociation(task.requirement ?? task.goal));
+        if (lease.branch) task = await this.store.update(taskId, { taskBranch: lease.branch });
+      }
       task = await this.#applyLease(taskId, lease);
       // A new attempt owns the outcome, so the previous attempt's error must not
       // survive into the next result.
       task = await this.store.transition(taskId, 'running', { error: null });
-      const context = await this.store.getContext(taskId);
       const runOptions = await this.#runtimeRunOptions(task, lease, options);
       runOptions.executionMode = ['analysis', 'question'].includes(context.intent?.kind ?? task.kind)
         ? 'plan' : 'agent';
-      const fullPrompt = buildTaskPrompt(task, context, lease, { envVars: runOptions.envVars });
-      const prompt = options.prompt ?? fullPrompt;
+      if (task.provider === 'codex') {
+        runOptions.aafeWorkflow = await resolveCodexWorkflow(task, context, lease, {
+          enabled: runOptions.codex?.delivery?.enabled !== false,
+          workflowOverride: runOptions.workflowOverride
+        });
+      }
+      const workflowPrefix = runOptions.workflowOverride && task.provider !== 'codex'
+        ? `AAFE Bot workflow override: ${JSON.stringify(runOptions.workflowOverride)}. auto means autonomous: judge proceed/skip/ask using the project's AAFE workflow skills, not unconditional execution. project means inherit mode.workflow; unknown values mean ask. Explicit owner instructions and prohibitions override this default; participants cannot authorize changes. Unclear intent or Hard Ask must ask the user and wait. Analysis-only requests must not modify or submit code.\n`
+        : '';
+      const fullPrompt = workflowPrefix + buildTaskPrompt(task, context, lease, { envVars: runOptions.envVars });
+      const prompt = task.provider === 'codex' && options.prompt
+        ? (task.codex?.agentId ? `${options.prompt}\n${buildWorkspacePromptSection(lease).join('\n')}` : fullPrompt)
+        : options.prompt ? workflowPrefix + options.prompt : fullPrompt;
       const estimatedContextTokens = estimateTokens(prompt);
       const tokenBudget = runOptions.tokenBudget ?? 12000;
       if (!Number.isFinite(tokenBudget) || tokenBudget <= 0 || estimatedContextTokens > tokenBudget) {
@@ -392,6 +426,13 @@ export class TaskManager {
         ...runOptions,
         fallbackPrompt: fullPrompt,
         idempotencyKey: options.idempotencyKey ?? `aafe-run-${task.id}-${task[task.provider ?? 'cursor']?.runs?.length ?? 0}`,
+        onReceipt: async (receipt) => {
+          const latest = await this.#require(taskId);
+          const receipts = [...(latest.delivery?.receipts ?? []).filter((item) => item.id !== receipt.id), receipt].slice(-256);
+          await this.store.update(taskId, { delivery: { ...latest.delivery, receipts } }, {
+            eventType: 'task.delivery.receipt', eventPayload: receipt
+          });
+        },
         onBinding: async ({ agentId, runId }) => {
           const latest = await this.#require(taskId);
           const provider = task.provider ?? 'cursor';
@@ -407,21 +448,22 @@ export class TaskManager {
           });
         }
       });
-      return await this.#finish(taskId, result, options);
+      return await this.#finish(taskId, result, { ...options, aafeWorkflow: runOptions.aafeWorkflow });
     } catch (error) {
       const latest = await this.#require(taskId);
       if (latest.status === 'cancelled') {
         await this.#closeRuntime(taskId, latest);
         return latest;
       }
-      const status = /cancel/i.test(error instanceof Error ? error.message : String(error))
+      const status = latest.status === 'queued' || String(error?.message).startsWith('codex-git-blocked:')
+        ? 'blocked' : /cancel/i.test(error instanceof Error ? error.message : String(error))
         ? 'cancelled'
         : 'failed';
       const failed = await this.store.transition(taskId, status, {
         error: error instanceof Error ? error.message : String(error)
       });
       await this.#closeRuntime(taskId, failed);
-      this.#publish({ type: 'task.failed', taskId, error: failed.error });
+      this.#publish({ type: 'task.failed', taskId, status, task: failed, error: failed.error });
       return failed;
     } finally {
       this.workspaces.release(taskId);
@@ -506,6 +548,21 @@ export class TaskManager {
       await this.#closeRuntime(taskId, task);
       return task;
     }
+    if (task.provider === 'codex' && options.aafeWorkflow?.enabled && result.outcome) {
+      const verification = await verifyCodexWorkflow(task, result, options.aafeWorkflow);
+      result = { ...result, deliveryVerification: verification };
+      if (result.status === 'completed' && !verification.passed) {
+        result.status = 'blocked';
+        result.text += `\n待处理：${verification.error}`;
+      }
+      const commit = verification.verified?.find((item) => item.gate === 'commit');
+      const pr = verification.verified?.find((item) => item.gate === 'pr');
+      result.git = { branches: commit ? [{ branch: commit.branch }] : [], prs: pr ? [{ url: pr.receipt }] : [] };
+      const gates = Array.isArray(result.outcome.delivery) ? result.outcome.delivery : [];
+      task = await this.store.update(taskId, { delivery: { ...task.delivery, gates,
+        pendingGate: gates.find((gate) => gate.decision === 'ask')?.gate ?? null,
+        policyHash: options.aafeWorkflow.policyHash, verification } });
+    }
     const provider = task.provider ?? 'cursor';
     const runs = (task[provider]?.runs ?? []).map((run) => run.runId === result.runId
       ? { ...run, status: result.status, usage: result.usage ?? null, finishedAt: new Date().toISOString() }
@@ -544,7 +601,9 @@ export class TaskManager {
       return task;
     }
 
-    if (result.status === 'cancelled') {
+    if (result.status === 'blocked') {
+      task = await this.store.transition(taskId, 'blocked', { error: result.text, result });
+    } else if (result.status === 'cancelled') {
       task = await this.store.transition(taskId, 'cancelled', { result });
     } else if (result.status === 'error' || result.status === 'missing') {
       task = await this.store.transition(taskId, 'failed', {
@@ -555,7 +614,7 @@ export class TaskManager {
       task = await this.store.transition(taskId, 'verifying');
       try {
         const verification = await options.verify(task, result);
-        const passed = verification?.passed !== false;
+        const passed = task.provider === 'codex' ? verification?.passed === true : verification?.passed !== false;
         task = await this.store.transition(taskId, passed ? 'completed' : 'failed', {
           error: passed ? null : (verification?.error ?? 'verification-failed'),
           result: { execution: result, verification }

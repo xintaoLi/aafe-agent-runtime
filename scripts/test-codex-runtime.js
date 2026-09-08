@@ -21,7 +21,9 @@
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import os from 'node:os';
 import path from 'node:path';
 import { CodexTaskRuntime } from '../src/agent-platform/runtime/CodexTaskRuntime.js';
@@ -32,6 +34,9 @@ import { resolveWeComAction } from '../ai-bots/wecom/src/resolver.js';
 import { formatProgressEvent } from '../ai-bots/wecom/src/progress.js';
 import { CodexAgentProvider } from '../src/agent-platform/runtime/providers/CodexAgentProvider.js';
 import { createChatResponder } from '../ai-bots/wecom/src/chat.js';
+import { resolveCodexMcpForRun, toCodexMcpOverrides } from '../src/cli/agentMcp.js';
+import { formatTaskNotify } from '../ai-bots/wecom/src/notify.js';
+import { WorkspaceManager } from '../src/agent-platform/workspace/WorkspaceManager.js';
 
 function fixture(mode = 'success') {
   const calls = [];
@@ -50,14 +55,28 @@ function fixture(mode = 'success') {
     };
     child.stdin.on('finish', () => {
       if (['wait', 'kill'].includes(mode)) return;
+      if (mode === 'mcp-startup') {
+        child.stderr.write('required MCP servers failed to initialize: sensitive detail not persisted');
+        queueMicrotask(() => child.emit('close', 1));
+        return;
+      }
       if (mode === 'bad') { child.stdout.write('not-json\n'); return; }
       const thread = args.includes('resume') ? args[args.indexOf('resume') + 1] : 'native-thread-' + calls.length;
       const lines = [
         { type: 'thread.started', thread_id: thread },
         { type: 'turn.started' },
-        { type: 'item.completed', item: { type: 'agent_message', text: '最终结论：已完成' } },
+        { type: 'item.completed', item: { type: 'agent_message', text: mode === 'invalid-outcome' ? 'blocked but exited zero' : JSON.stringify({
+          status: mode === 'blocked' ? 'blocked' : 'completed', summary: mode === 'auth-leak'
+            ? options.env.GIT_CONFIG_VALUE_0.split(' ').at(-1) + ' ' + options.env.GITHUB_TOKEN : '最终结论：已完成',
+          evidence: ['fixture verification'], remainingSteps: mode === 'pending-delivery' ? ['Commit → PR → TAPD'] : [], delivery: []
+        }) } },
         { type: 'turn.completed', usage: { input_tokens: 100, cached_input_tokens: 80, output_tokens: 10 } }
       ];
+      if (mode === 'auth-leak') lines.splice(2, 0, { type: 'item.started', item: { type: 'command_execution',
+        command: 'echo ' + options.env.GIT_CONFIG_VALUE_0.split(' ').at(-1) } });
+      if (mode === 'public-progress') lines.splice(2, 0,
+        { type: 'item.completed', item: { type: 'agent_message', id: 'public-1', text: '正在检查入口。' } },
+        { type: 'item.completed', item: { type: 'agent_message', id: 'public-2', text: '已定位，接下来验证。' } });
       if (mode === 'failed') lines[3] = { type: 'turn.failed', error: { message: 'secret-provider-detail' } };
       if (mode === 'incomplete') lines.pop();
       const bytes = Buffer.from(lines.map((line) => JSON.stringify(line)).join('\n'));
@@ -73,7 +92,28 @@ function fixture(mode = 'success') {
 }
 
 const state = fixture();
+{
+  const leaking = fixture('auth-leak');
+  const progress = [];
+  const result = await new CodexTaskRuntime({ spawnProcess: leaking.spawnProcess, onEvent: (e) => progress.push(e) })
+    .run({ id: 'redact-basic' }, 'fixture', { cwd: '/tmp', envVars: { GITHUB_TOKEN: 'fixture-github-token' },
+      aafeWorkflow: { enabled: true, ready: true, tapd: {} } });
+  const encoded = Buffer.from('x-access-token:fixture-github-token').toString('base64');
+  assert.ok(!JSON.stringify({ result, progress }).includes(encoded));
+  assert.ok(!JSON.stringify({ result, progress }).includes('fixture-github-token'));
+  assert.ok(JSON.stringify(progress).includes('[REDACTED]'));
+  assert.equal(leaking.calls[0].options.env.GIT_CONFIG_VALUE_0, 'AUTHORIZATION: basic ' + encoded);
+  assert.ok(!leaking.calls[0].args.join(' ').includes(encoded));
+}
 const events = [];
+{
+  const output = [];
+  await new CodexTaskRuntime({ spawnProcess: fixture('public-progress').spawnProcess, onEvent: (event) => output.push(event) })
+    .run({ id: 'public-progress' }, 'fixture');
+  const messages = output.filter((event) => event.type === 'codex.message');
+  assert.deepEqual(messages.map((event) => event.payload.messageId), ['public-1', 'public-2']);
+  assert.equal(messages[1].payload.text, '已定位，接下来验证。');
+}
 const bindings = [];
 const runtime = new CodexTaskRuntime({ spawnProcess: state.spawnProcess, onEvent: (e) => events.push(e) });
 const first = await runtime.run({ id: 'task-one' }, '分析项目', {
@@ -89,9 +129,14 @@ assert.equal(state.calls[0].options.env.CODEX_API_KEY, 'test-openai-key');
 assert.equal(state.calls[0].options.env.CURSOR_API_KEY, undefined);
 assert.ok(!state.calls[0].args.includes('test-openai-key'));
 assert.ok(!state.calls[0].args.includes('分析项目'));
-assert.equal(state.calls[0].prompt, '分析项目');
+assert.ok(state.calls[0].prompt.startsWith('分析项目'));
+assert.ok(state.calls[0].args.includes('--ignore-user-config'));
+for (const feature of ['plugins', 'apps', 'computer_use', 'browser_use', 'hooks']) {
+  const i = state.calls[0].args.indexOf(feature);
+  assert.equal(state.calls[0].args[i - 1], '--disable');
+}
 assert.equal(bindings[0].agentId, first.agentId);
-assert.equal(formatProgressEvent(events.find((e) => e.type === 'codex.message')).kind, 'assistant');
+assert.equal(events.some((e) => e.type === 'codex.message' && e.payload.text?.startsWith('{')), false);
 
 const second = await runtime.continue({ id: 'task-one', codex: { agentId: first.agentId } }, '按方案实现', { cwd: '/tmp' });
 assert.equal(second.agentId, first.agentId);
@@ -100,6 +145,35 @@ assert.ok(state.calls[1].args.includes('resume'));
 assert.ok(!state.calls[1].args.includes('--last'));
 assert.match(state.calls[1].args.join(' '), /sandbox_mode="workspace-write"/);
 assert.equal(state.calls[1].options.env.CODEX_API_KEY, undefined);
+assert.ok(state.calls[1].args.includes('--output-schema'));
+for (const mode of ['blocked', 'pending-delivery', 'invalid-outcome']) {
+  const result = await new CodexTaskRuntime({ spawnProcess: fixture(mode).spawnProcess }).run({ id: mode }, 'work');
+  assert.equal(result.status, mode === 'invalid-outcome' ? 'error' : 'blocked');
+}
+const mcpConfig = await resolveCodexMcpForRun({ settingSources: ['user', 'project'], allowedServers: ['tapd'], servers: {
+  tapd: { url: 'https://example.invalid/mcp', headers: { Authorization: '${TAPD_TOKEN}' } },
+  desktop: { command: 'not-started' }
+} }, { env: { TAPD_TOKEN: 'private-header' } });
+assert.deepEqual(Object.keys(mcpConfig.servers), ['tapd']);
+const mcpOverrides = toCodexMcpOverrides(mcpConfig.servers);
+assert.equal(mcpOverrides.env.AAFE_CODEX_MCP_0, 'private-header');
+assert.ok(!mcpOverrides.args.join(' ').includes('private-header'));
+assert.match(mcpOverrides.args.join(' '), /required.*true/);
+assert.deepEqual((await resolveCodexMcpForRun({ enabled: false, servers: mcpConfig.servers })).servers, {});
+assert.throws(() => toCodexMcpOverrides({ tapd: { url: 'https://example.invalid', headers: { Authorization: '${MISSING}' } } }), /env-unresolved/);
+assert.throws(() => toCodexMcpOverrides({ local: { command: 'node', env: { PATH: 'bad' } } }), /env-key-invalid/);
+assert.match(toCodexMcpOverrides({ '企业微信消息': { url: 'https://example.invalid' } }).args.join(' '), /aafe_/);
+const mcpState = fixture();
+await new CodexTaskRuntime({ spawnProcess: mcpState.spawnProcess }).run({ id: 'with-mcp' }, 'read', { codex: { mcpServers: mcpConfig.servers } });
+assert.equal(mcpState.calls[0].options.env.AAFE_CODEX_MCP_0, 'private-header');
+assert.match(mcpState.calls[0].args.join(' '), /shell_environment_policy.exclude/);
+const absent = await runtime.run({ id: 'missing-tapd', requirement: 'https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081137994989' }, 'read');
+assert.equal(absent.status, 'blocked');
+const startup = await new CodexTaskRuntime({ spawnProcess: fixture('mcp-startup').spawnProcess }).run({ id: 'mcp-init' }, 'work');
+assert.equal(startup.status, 'blocked');
+assert.ok(!startup.text.includes('sensitive'));
+assert.match(formatTaskNotify({ id: 'blocked', status: 'blocked', result: { text: '需要授权' } }), /等待补充 \/ 确认/);
+assert.ok(!formatTaskNotify({ id: 'blocked', status: 'blocked', result: { text: '需要授权' } }).includes('✅'));
 await assert.rejects(runtime.run({ id: 'task-budget' }, 'long prompt', { tokenBudget: 1 }), /budget/);
 await assert.rejects(runtime.run({ id: 'task-cloud' }, 'work', { mode: 'cloud' }), /local-workspace/);
 await assert.rejects(runtime.recover({ id: 'task-one' }), /stale/);
@@ -169,6 +243,25 @@ try {
   assert.equal(done.codex.agentId, 'native-thread-1');
   assert.equal(done.cursor.agentId, null);
   assert.equal(done.codex.runs[0].usage.totalTokens, 110);
+  const blockedRuntime = new CodexTaskRuntime({ spawnProcess: fixture('blocked').spawnProcess });
+  const blockedManager = new TaskManager({ root, output: '.blocked-test', runtime: blockedRuntime,
+    validateProjectRuntime: false, recoverOnStart: false, workspaceOptions: { worktrees: false } });
+  try {
+    const blockedTask = await blockedManager.create({ provider: 'codex', goal: 'analysis', kind: 'analysis', workspace: { cwd: root } });
+    assert.equal((await blockedManager.start(blockedTask.id)).status, 'blocked');
+  } finally { await blockedManager.close(); }
+  const deliveryManager = new TaskManager({ root, output: '.delivery-test',
+    runtime: new CodexTaskRuntime({ spawnProcess: fixture().spawnProcess }),
+    runtimeOptions: { codex: { mcpServers: mcpConfig.servers } },
+    validateProjectRuntime: false, recoverOnStart: false, workspaceOptions: { worktrees: false } });
+  try {
+    const delivery = await deliveryManager.create({ provider: 'codex', kind: 'requirement',
+      requirement: 'https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081137994989',
+      source: { type: 'wecom' }, workspace: { cwd: root } });
+    assert.equal((await deliveryManager.start(delivery.id)).status, 'blocked');
+    assert.equal((await deliveryManager.start(delivery.id, { verify: async () => ({}) })).status, 'blocked');
+    assert.equal((await deliveryManager.start(delivery.id, { verify: async () => ({ passed: true }) })).status, 'blocked');
+  } finally { await deliveryManager.close(); }
   await manager.continue(done.id, '按方案实现', { intent: { kind: 'code', needsCode: true } });
   const continued = await manager.get(done.id);
   assert.equal(continued.codex.runs.length, 2);
@@ -181,6 +274,13 @@ try {
   await Promise.all(recovered.map((entry) => entry.promise));
   assert.equal((await manager.get(done.id)).error, 'task-interrupted:process-restart');
   assert.equal(managerState.calls.length, 2);
+  const disabled = await manager.store.create({ id: 'task-other-provider', provider: 'cursor', status: 'created', source: { type: 'wecom' } });
+  manager.enabledProvider = 'codex';
+  await assert.rejects(manager.create({ provider: 'cursor', goal: 'wrong engine' }), /task-provider-disabled/);
+  await assert.rejects(manager.start(disabled.id), /task-provider-disabled/);
+  await assert.rejects(manager.continue(disabled.id, 'resume'), /task-provider-disabled/);
+  assert.equal((await manager.recover()).some((item) => item.taskId === disabled.id), false);
+  assert.equal((await manager.get(disabled.id)).status, 'created');
 } finally {
   await manager.close();
   await rm(root, { recursive: true, force: true });
@@ -204,4 +304,34 @@ const provider = new CodexAgentProvider({ spawnProcess: providerState.spawnProce
 const response = await provider.invoke({ model: 'codex-test' }, { goal: 'analyze', constraints: {}, context: {} });
 assert.equal(response.status, 'success');
 assert.equal(response.metrics.tokens, 110);
+assert.notEqual((await new CodexAgentProvider({ spawnProcess: fixture('blocked').spawnProcess })
+  .invoke({ model: 'test' }, { goal: 'work', constraints: {}, context: {} })).status, 'success');
+
+// Real Git operations, exclusively inside an isolated temporary fixture.
+const gitRoot = await mkdtemp(path.join(os.tmpdir(), 'aafe-codex-git-'));
+const exec = promisify(execFile);
+const git = (args, cwd = gitRoot) => exec('git', args, { cwd }).then((result) => result.stdout);
+const workspaces = new WorkspaceManager({ share: [] });
+try {
+  await git(['init', '-b', 'master']);
+  await git(['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '--allow-empty', '-m', 'fixture']);
+  await git(['update-ref', 'refs/remotes/origin/master', 'HEAD']);
+  const task = { id: 'codex-git-test', provider: 'codex', workspace: { cwd: gitRoot } };
+  const association = { branchType: 'feat', shortId: '137994989' };
+  const acquired = await workspaces.acquire(task);
+  const prepared = await workspaces.prepareCodexBranch(task, acquired, association);
+  assert.equal(prepared.branch, 'feat/ticket/#137994989');
+  assert.equal((await git(['branch', '--show-current'], prepared.cwd)).trim(), prepared.branch);
+  assert.equal((await git(['branch', '--show-current'])).trim(), 'master');
+  assert.equal((await workspaces.prepareCodexBranch({ ...task, taskBranch: prepared.branch }, prepared, association)).branch, prepared.branch);
+  const conflict = { ...task, id: 'codex-git-conflict' };
+  const other = await workspaces.acquire(conflict);
+  await assert.rejects(workspaces.prepareCodexBranch(conflict, other, association), /branch-already-exists/);
+  await writeFile(path.join(other.cwd, 'preserved.txt'), 'user changes');
+  await assert.rejects(workspaces.prepareCodexBranch(conflict, other, { ...association, shortId: '137994990' }), /not-clean-detached/);
+  await assert.rejects(workspaces.prepareCodexBranch(task, { ...prepared, mode: 'shared' }, association), /isolated-worktree-required/);
+  await assert.rejects(workspaces.prepareCodexBranch({ ...task, taskBranch: '--bad' }, acquired), /invalid-branch/);
+  workspaces.release(task.id);
+  workspaces.release(conflict.id);
+} finally { await rm(gitRoot, { recursive: true, force: true }); }
 console.log('codex runtime tests passed (mocked CLI, no model calls)');

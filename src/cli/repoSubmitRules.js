@@ -60,12 +60,16 @@ Hard:
 
 ## Phase R2 — fetch / pull / push（GitHub + Token）
 
-把 Token 临时注入环境变量（已有 shell 值不覆盖，配置值不写入命令行和 remote），再：
+Git HTTPS 使用 \`AUTHORIZATION: basic <base64(x-access-token:TOKEN)>\`，不是 REST API 的 Bearer。Base64 不是加密，同样禁止打印或放入命令行参数。
+
+调用进程使用 \`withGithubGitAuthEnv\` 构造本次 Git 子进程环境：保留已有配置项，通过 \`GIT_CONFIG_COUNT\` / \`GIT_CONFIG_KEY_n\` / \`GIT_CONFIG_VALUE_n\` 注入 \`http.https://github.com/.extraheader\`。Token 从上述配置/环境解析，不写入参数、全局配置或 remote。
+
+AAFE Bot 已注入时直接执行以下命令，不再叠加认证头；未注入时先按上述方式构造子进程环境。认证失败应核对来源、格式及权限，禁止盲重试或切换为匿名推送。
 
 \`\`\`bash
-git -c http.extraheader="AUTHORIZATION: bearer $GITHUB_TOKEN" fetch <remote>
-git -c http.extraheader="AUTHORIZATION: bearer $GITHUB_TOKEN" pull --ff-only
-git -c http.extraheader="AUTHORIZATION: bearer $GITHUB_TOKEN" push -u origin HEAD
+git fetch <remote>
+git pull --ff-only
+git push -u origin HEAD
 \`\`\`
 
 不要把 Token 写进 remote URL 并 \`git remote set-url\`（会落盘）。

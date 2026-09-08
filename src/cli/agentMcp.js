@@ -21,6 +21,7 @@
 import { readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 
 const SETTING_SOURCE_ALIASES = Object.freeze({
   project: 'project',
@@ -132,6 +133,81 @@ export function normalizeMcpServers(value) {
 
 export function toCursorMcpServers(servers = {}) {
   return Object.keys(servers).length > 0 ? servers : null;
+}
+
+/** Explicit business configuration only: never import Cursor/user plugin files. */
+export async function resolveCodexMcpForRun(raw = {}, { root = process.cwd(), env = process.env } = {}) {
+  if (raw.enabled === false) return { servers: {} };
+  let servers = {};
+  if (raw.config) {
+    let parsed;
+    try { parsed = JSON.parse(await readFile(resolveMcpPath(raw.config, root), 'utf8')); }
+    catch { throw new Error('codex-mcp-config-unreadable'); }
+    servers = parsed.mcpServers ?? parsed.servers ?? parsed;
+  }
+  servers = { ...servers, ...(raw.servers ?? {}) };
+  const selected = raw.allowedServers;
+  if (selected !== undefined && (!Array.isArray(selected) || selected.some((name) => !Object.hasOwn(servers, name)))) {
+    throw new Error('codex-mcp-allowlist-invalid');
+  }
+  return { servers: Object.fromEntries(Object.entries(servers)
+    .filter(([name, server]) => server.enabled !== false && (!selected || selected.includes(name)))
+    .map(([name, server]) => [name, expandDeep(server, env)])) };
+}
+
+/** Convert to native CLI overrides; credentials travel in env, not argv or prompts. */
+export function toCodexMcpOverrides(servers = {}, root = process.cwd(), { approvalMode } = {}) {
+  const env = {}, native = {};
+  let secretId = 0;
+  for (const [name, server] of Object.entries(servers)) {
+    if (server.enabled === false) continue;
+    const nativeName = /^[a-zA-Z0-9_-]+$/.test(name) ? name
+      : `aafe_${createHash('sha256').update(name).digest('hex').slice(0, 16)}`;
+    if (/\$\{[^}]+\}/.test(JSON.stringify(server))) throw new Error(`codex-mcp-env-unresolved:${name}`);
+    const entry = { required: server.required !== false, startup_timeout_sec: 15, tool_timeout_sec: 60 };
+    if (approvalMode) entry.default_tools_approval_mode = approvalMode;
+    if (server.url) {
+      const url = new URL(server.url);
+      if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) throw new Error(`codex-mcp-url-invalid:${name}`);
+      entry.url = server.url;
+      entry.env_http_headers = {};
+      for (const [header, value] of Object.entries(server.headers ?? server.http_headers ?? {})) {
+        const key = `AAFE_CODEX_MCP_${secretId++}`;
+        env[key] = String(value);
+        entry.env_http_headers[header] = key;
+      }
+      if (server.auth) throw new Error(`codex-mcp-auth-unsupported:${name};use-headers`);
+    } else if (typeof server.command === 'string' && server.command.trim()) {
+      entry.command = server.command;
+      entry.args = server.args ?? [];
+      entry.cwd = path.resolve(root, server.cwd ?? '.');
+      entry.env_vars = [];
+      for (const [key, value] of Object.entries(server.env ?? {})) {
+        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key) || /^(CODEX|OPENAI|CURSOR|AAFE_CODEX_MCP)/.test(key)
+          || /^(PATH|HOME|USER|SHELL|TMPDIR|NODE_OPTIONS|LD_.*|DYLD_.*)$/i.test(key)) {
+          throw new Error(`codex-mcp-env-key-invalid:${name}`);
+        }
+        if (Object.hasOwn(env, key) && env[key] !== String(value)) throw new Error('codex-mcp-env-conflict');
+        env[key] = String(value);
+        entry.env_vars.push(key);
+      }
+    } else throw new Error(`codex-mcp-transport-invalid:${name}`);
+    for (const field of ['enabled_tools', 'disabled_tools']) {
+      if (server[field] !== undefined) {
+        if (!Array.isArray(server[field]) || server[field].some((item) => typeof item !== 'string')) throw new Error('codex-mcp-tools-invalid');
+        entry[field] = server[field];
+      }
+    }
+    if (Object.hasOwn(native, nativeName)) throw new Error('codex-mcp-name-conflict');
+    native[nativeName] = entry;
+  }
+  return { args: ['-c', `mcp_servers=${codexToml(native)}`], env };
+}
+
+function codexToml(value) {
+  if (Array.isArray(value)) return `[${value.map(codexToml).join(',')}]`;
+  if (value && typeof value === 'object') return `{${Object.entries(value).map(([key, item]) => `${JSON.stringify(key)}=${codexToml(item)}`).join(',')}}`;
+  return JSON.stringify(value);
 }
 
 function normalizeNamedServer(entry) {

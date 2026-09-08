@@ -168,11 +168,11 @@ try {
       GH_TOKEN: 'ghp_injected',
       GIT_CONFIG_COUNT: '1',
       GIT_CONFIG_KEY_0: 'http.https://github.com/.extraheader',
-      GIT_CONFIG_VALUE_0: 'AUTHORIZATION: bearer ghp_injected'
+      GIT_CONFIG_VALUE_0: 'AUTHORIZATION: basic ' + Buffer.from('x-access-token:ghp_injected').toString('base64')
     }
   });
   assert.equal(injectedShell.GITHUB_TOKEN, 'ghp_injected');
-  assert.equal(injectedShell.GIT_CONFIG_VALUE_0.includes('ghp_injected'), true);
+  assert.equal(Buffer.from(injectedShell.GIT_CONFIG_VALUE_0.split(' ').at(-1), 'base64').toString(), 'x-access-token:ghp_injected');
   await injectRuntime.closeAll();
 
   const resumedRuntime = new CursorTaskRuntime({
@@ -717,6 +717,9 @@ try {
     '-c', 'user.email=t@example.com', '-c', 'user.name=t', 'commit', '-qam', 'work'
   ], { cwd: leaseB.cwd });
   workspaces.release('task-wt-b');
+  const actualBranch = await workspaces.acquire({ ...inRepo('task-wt-b'), provider: 'codex' });
+  assert.equal(actualBranch.branch, 'feat/ai/#4242', 'resume reads native-created branch before a commit receipt exists');
+  workspaces.release('task-wt-b');
   assert.equal((await workspaces.remove('task-wt-b', { repoRoot: repo })).removed, true);
   const resumed = await workspaces.acquire({
     ...inRepo('task-wt-b'),
@@ -846,7 +849,7 @@ try {
     /GitHub auth is already in this process environment/
   );
   assert.equal(
-    buildTaskPrompt({ id: 'x', goal: 'y' }, {}, null, { envVars: { GITHUB_TOKEN: 'secret' } }).includes('secret'),
+    buildTaskPrompt({ id: 'x', goal: 'y' }, {}, null, { envVars: { GITHUB_TOKEN: 'fixture-repo-secret-value' } }).includes('fixture-repo-secret-value'),
     false
   );
 
@@ -882,7 +885,8 @@ try {
     }
   );
   assert.equal(fromInstall.GITHUB_TOKEN, 'ghp_nested');
-  assert.equal(fromInstall.GIT_CONFIG_VALUE_0.includes('ghp_nested'), true);
+  assert.equal(Buffer.from(fromInstall.GIT_CONFIG_VALUE_0.split(' ').at(-1), 'base64').toString(), 'x-access-token:ghp_nested');
+  assert.equal(buildRepoAuthPromptSection(fromInstall).join('\n').includes(fromInstall.GIT_CONFIG_VALUE_0.split(' ').at(-1)), false);
   assert.equal(buildRepoAuthPromptSection(fromInstall).join('\n').includes('ghp_nested'), false);
 
   const wecomWins = await resolveWorkspaceRepoAuth(
@@ -992,6 +996,7 @@ try {
     const task = await manager.create({
       goal: 'codex entry',
       provider: 'codex',
+      kind: 'analysis', // Test missing CLI independently of coding workflow readiness.
       workspace: { cwd: codexRoot, mode: 'local' }
     });
     const result = await manager.start(task.id);

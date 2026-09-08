@@ -308,7 +308,7 @@ Commit 成功后必须尝试 PR；该步骤是 Phase C 的连续动作，不因 
 
 1. Read `.ai-agent/skills/repo-submit.md`
 2. 确认分支相对 base 的提交与远程同步；先判定 `.aafe.config.json` → `repo.githubAccessToken` 以及 `GITHUB_TOKEN` / `GH_TOKEN`
-3. 已配置 `repo.githubAccessToken` / `GITHUB_TOKEN` / `GH_TOKEN`：临时注入 `GITHUB_TOKEN` 环境变量，用 Token `git -c http.extraheader="AUTHORIZATION: bearer $GITHUB_TOKEN" push -u origin HEAD`（不要把 Token 写进 remote）
+3. 已配置 `repo.githubAccessToken` / `GITHUB_TOKEN` / `GH_TOKEN`：按 Repo Submit Phase R2，通过本次子进程 `GIT_CONFIG_*` 注入 GitHub 专用 Basic 认证，再执行 `git push -u origin HEAD`；AAFE Bot 已注入则直接使用，禁止叠加 Bearer 认证头、把原始或 Base64 凭据写入参数 / remote / Git 配置文件
 4. 创建 PR：优先 `aafe repo pr --title= --body= --base= --head=`（Token API，附带 `repo.reviewers` / `repo.labels`）。无 Token 或 Token API 失败时，先提示降级原因，再允许 `gh pr create`
 5. 记录 `pr_url`；失败则报告原因，**不阻断** Phase E
 

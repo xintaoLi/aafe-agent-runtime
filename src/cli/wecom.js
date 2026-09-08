@@ -69,6 +69,10 @@ export async function checkWeComModels(root, {
   out = console
 } = {}) {
   const config = await loadConfig({ root, localConfigPath });
+  if (config.agent?.provider === 'codex') {
+    out.log(`当前引擎：Codex；模型：${config.codex?.model ?? 'CLI 默认'}。跳过 Cursor 模型接口与路由规则校验。`);
+    return 0;
+  }
   const rules = config.models?.rules ?? [];
   let known = null;
   if (!offline) {

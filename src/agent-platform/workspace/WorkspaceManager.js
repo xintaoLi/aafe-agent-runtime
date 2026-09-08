@@ -126,6 +126,42 @@ export class WorkspaceManager {
     return lease(held);
   }
 
+  /** Host-owned, non-destructive branch provisioning; never widen the model sandbox. */
+  async prepareCodexBranch(task, execution, association = null) {
+    if (!execution.repoRoot) return execution; // Non-Git scratch work is supported.
+    if (execution.mode !== 'worktree') throw new Error('codex-git-blocked:isolated-worktree-required');
+    const expected = path.resolve(execution.repoRoot, this.worktreeDir, task.id);
+    if (path.resolve(execution.cwd) !== expected || !(await this.#worktreePaths(execution.repoRoot)).has(expected)) {
+      throw new Error('codex-git-blocked:worktree-ownership-mismatch');
+    }
+    const branch = task.taskBranch ?? (association
+      ? `${association.branchType}/ticket/#${association.shortId}` : `codex/${task.id}`);
+    if (association && !branch.endsWith(`/#${association.shortId}`)) throw new Error('codex-git-blocked:ticket-mismatch');
+    try { await this.#git(['check-ref-format', '--branch', branch], execution.cwd); }
+    catch { throw new Error('codex-git-blocked:invalid-branch'); }
+    const current = (await this.#git(['branch', '--show-current'], execution.cwd)).trim();
+    if (current === branch && task.taskBranch === branch) return { ...execution, branch };
+    if (current || (await this.#git(['status', '--porcelain'], execution.cwd)).trim()) {
+      throw new Error('codex-git-blocked:checkout-not-clean-detached;manual-branch-confirmation-required');
+    }
+    // Do not adopt a branch from another task or reset anything to make it fit.
+    if (await this.#localBranch(execution.repoRoot, branch)) throw new Error('codex-git-blocked:branch-already-exists');
+    let baseRef = execution.baseRef;
+    if (association) {
+      baseRef = null;
+      for (const candidate of ['upstream/master', 'origin/master']) {
+        const found = await this.#git(['rev-parse', '--verify', '--quiet', `${candidate}^{commit}`], execution.cwd).catch(() => '');
+        if (found.trim()) { baseRef = candidate; break; }
+      }
+      if (!baseRef) throw new Error('codex-git-blocked:remote-master-missing;fetch-or-confirm-base');
+    }
+    try { await this.#git(['switch', '-c', branch, baseRef ?? 'HEAD'], execution.cwd); }
+    catch { throw new Error('codex-git-blocked:branch-create-denied-or-conflict'); }
+    const held = this.leases.get(task.id);
+    if (held) Object.assign(held, { branch, baseRef });
+    return { ...execution, branch, baseRef };
+  }
+
   get(taskId) {
     const held = this.leases.get(String(taskId ?? ''));
     return held ? lease(held) : null;
@@ -198,6 +234,7 @@ export class WorkspaceManager {
       };
     } catch (error) {
       // A repository that cannot host a worktree — a shallow clone, a busy
+      if (task.provider === 'codex') throw new Error('codex-git-blocked:worktree-provisioning-failed');
       // index, no disk — must not stop the task. It runs shared and locked,
       // which is what it did before worktrees existed.
       this.logger?.warn?.(`workspace-worktree-failed:${task.id}:${describe(error)}`);
@@ -216,7 +253,9 @@ export class WorkspaceManager {
       return {
         cwd: dir,
         baseRef: task?.execution?.baseRef ?? null,
-        branch: task?.taskBranch ?? null
+        branch: task.provider === 'codex'
+          ? (await this.#git(['branch', '--show-current'], dir)).trim() || null
+          : task?.taskBranch ?? null
       };
     }
     await mkdir(path.dirname(dir), { recursive: true });
