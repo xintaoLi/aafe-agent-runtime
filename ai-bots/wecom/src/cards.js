@@ -24,7 +24,10 @@ const STATUS_TITLE = Object.freeze({
   running: '⚙️ 执行中',
   waiting: '任务等待补充',
   verifying: '任务验证中',
-  blocked: '任务被阻塞'
+  blocked: '⏸ 等待补充 / 确认',
+  completed: '✅ 已完成',
+  failed: '❌ 执行失败',
+  cancelled: '⛔ 已终止'
 });
 
 /**
@@ -46,7 +49,10 @@ export function buildTaskCard(task) {
     button_list: [
       { text: '查看状态', style: 1, key: `status:${id}` },
       { text: '查看完整过程', style: 1, key: `process:${id}` },
-      { text: '终止', style: 3, key: `cancel:${id}` }
+      ...(detail?.status === 'blocked'
+        ? [{ text: '补充信息', style: 1, key: `feedback:${id}` }]
+        : ['completed', 'failed', 'cancelled'].includes(detail?.status) ? []
+          : [{ text: '终止', style: 3, key: `cancel:${id}` }])
     ],
     task_id: freshCardTaskId('run', id)
   };

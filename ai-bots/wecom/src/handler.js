@@ -37,7 +37,10 @@ import {
 } from './media.js';
 import { formatListReply, formatStatusReply, formatTaskFooter } from './notify.js';
 import { parseWeComQuote } from './quote.js';
-import { canAccessTask, canControlTask, listOpenTasks, listOwnerContinuable, resolveWeComAction } from './resolver.js';
+import { buildTaskPresentation, taskFeedbackRevision } from './presentation.js';
+import { renderStoredProcess } from './progress.js';
+import { splitWeComMarkdown } from './markdown.js';
+import { canAccessTask, canControlTask, listOpenTasks, listOwnerContinuable, resolvePendingGateReply, resolveWeComAction } from './resolver.js';
 import { sessionKeyFromSource, sourceFromFrame } from './session.js';
 import { pickSmalltalkReply } from './smalltalk.js';
 import { fastIntent } from './understand.js';
@@ -61,7 +64,7 @@ const CONTROL_TYPES = new Set([
   'workspace-list',
   'workspace-pick'
 ]);
-const TERMINAL_TASK = new Set(['completed', 'failed', 'cancelled']);
+const TERMINAL_TASK = new Set(['completed', 'failed', 'cancelled', 'blocked']);
 
 export async function handleWeComMessage(frame, {
   manager,
@@ -89,7 +92,7 @@ export async function handleWeComMessage(frame, {
 
   const source = sourceFromFrame(frame);
   const sessionKey = sessionKeyFromSource(source);
-  const quote = parseWeComQuote(frame);
+  let quote = parseWeComQuote(frame);
   logger.event?.('message.in', {
     ...summarizeWeComFrame(frame),
     conversationId: source.conversationId,
@@ -111,13 +114,42 @@ export async function handleWeComMessage(frame, {
     if (config?.requireGroupMention) return { skipped: true, reason: 'group-no-mention' };
   }
 
-  const command = bindPendingCommand(
-    analyzeWeComIntent(frame?.body?.text?.content),
-    pending?.get(sessionKey)
-  );
+  const waiting = pending?.get(sessionKey);
+  const parsed = analyzeWeComIntent(frame?.body?.text?.content);
+  const gateReply = !waiting && !quote.present && ['ack', 'implicit-route'].includes(parsed.type)
+    ? await resolvePendingGateReply(parsed.text, source, manager) : null;
+  const command = gateReply ?? bindPendingCommand(parsed.type === 'ack' && quote.present
+    ? { ...parsed, type: 'implicit-route', prefer: 'follow' } : parsed, waiting);
+  if (command.clarification) {
+    if (!quote.present && waiting?.quote?.present) quote = waiting.quote;
+    attachments = [...(waiting?.attachments ?? []), ...attachments]
+      .filter((item, index, all) => all.findIndex((other) => JSON.stringify(other) === JSON.stringify(item)) === index);
+  }
   // Control words ("状态"/"终止"/"列表") stay on the regex fast path: a model
   // round trip would cost seconds before a stop can even be attempted.
   const stream = createReplyStream({ frame, replyAck, replyProgress, logger });
+  if (command.feedbackTask) {
+    const target = await manager.get(command.taskId).catch(() => null);
+    if (!target || !canControlTask(target, source) || target.status !== 'blocked'
+      || command.feedbackRevision !== taskFeedbackRevision(target)) {
+      pending?.clear(sessionKey);
+      const reply = '原任务状态或操作权限已变化。请先查询状态，再明确要继续的任务。';
+      await stream.push(reply, { finish: true });
+      return { skipped: true, reason: 'feedback-task-changed', reply };
+    }
+  }
+  if (waiting?.type === 'task-feedback' && command.type === 'implicit-cancel') {
+    pending?.clear(sessionKey);
+    const reply = '已退出补充信息，原任务仍保留。';
+    await stream.push(reply, { finish: true });
+    return { skipped: false, action: { type: 'feedback-cancelled' }, reply };
+  }
+  if (waiting?.type === 'need-intent' && command.type === 'implicit-cancel') {
+    pending?.clear(sessionKey);
+    const reply = '已取消待澄清请求，未执行任务。';
+    await stream.push(reply, { finish: true });
+    return { skipped: false, command, action: { type: 'clarification-cancelled' }, reply };
+  }
 
   // Saying hello is a conversation, not a command. Dumping the manual here is
   // what made the bot feel mechanical, so these get a real answer instead.
@@ -137,9 +169,9 @@ export async function handleWeComMessage(frame, {
     return { skipped: false, command, action, intent: null, reply: answer };
   }
 
-  if (understanding && command.type === 'implicit-route') {
-    const pending = analyzeIntent(command, {
-      understanding,
+  if ((understanding || config?.workflow) && command.type === 'implicit-route') {
+    const analysis = analyzeIntent(command, {
+      understanding: understanding ?? { analyze: (input) => fastIntent(input.text, input) },
       manager,
       source,
       attachments,
@@ -149,22 +181,30 @@ export async function handleWeComMessage(frame, {
     // Most messages are classified without a model, so announcing the analysis
     // would only flash a frame the user cannot read. Announce it once it is
     // clear the answer needs waiting for.
-    const settled = await Promise.race([pending, waitFor(intentAckGraceMs, PENDING)]);
+    const settled = await Promise.race([analysis, waitFor(intentAckGraceMs, PENDING)]);
     if (settled === PENDING) await stream.push(UNDERSTANDING_TEXT);
-    command.intent = settled === PENDING ? await pending : settled;
-    if (command.intent) await stream.push(formatIntentStage(command.intent));
-    if (command.intent?.kind === 'code' && command.intent.confidence < 0.5) {
-      const reply = '还不能确定要执行什么，请补充具体问题、目标仓库或需要修改的内容。';
+    command.intent = settled === PENDING ? await analysis : settled;
+    if (understanding && command.intent) await stream.push(formatIntentStage(command.intent));
+    if (!['code', 'analysis', 'question', 'followup'].includes(command.intent?.kind)
+      || !Number.isFinite(command.intent?.confidence)
+      || command.intent.confidence > 1
+      || command.intent.confidence < (config?.workflow?.intentConfidence ?? 0.7)
+      || (command.intent.kind === 'code' && command.intent.needsCode === false)) {
+      const reply = '需要确认执行意图（ask）：你希望仅问答/分析，还是修改实现？请补充目标仓库、任务或预期结果；确认前不会执行。';
+      pending?.set(sessionKey, { type: 'need-intent',
+        text: command.clarification?.request ?? command.text,
+        feedback: command.clarification?.feedback ?? [], attachments, quote });
       await stream.push(reply, { finish: true });
       return { skipped: false, command, action: { type: 'clarify' }, intent: command.intent, reply };
     }
 
     // A question that needs no repository is answered here and now. Spinning up
     // an agent, a branch and a task record to say one paragraph is theatre.
-    if (['question', 'analysis'].includes(command.intent?.kind) && command.intent.needsCode === false) {
+    if (chat && ['question', 'analysis'].includes(command.intent?.kind) && command.intent.needsCode === false) {
       const answer = await Promise.resolve().then(() => chat?.reply(command.text)).catch(() => null)
         || '暂时无法回答这个问题，请稍后重试。';
       if (answer) {
+        pending?.clear(sessionKey);
         const streamId = await stream.push(answer, { finish: true });
         const action = { type: 'answer' };
         logger.event?.('message.out', {
@@ -181,6 +221,8 @@ export async function handleWeComMessage(frame, {
     }
   }
 
+  // Without the analyzer, preserve the explicit command router's task anchors.
+  if (!understanding && !config?.workflow && command.type === 'implicit-route') delete command.intent;
   const action = await resolveWeComAction(command, buildActionContext({
     source,
     config,
@@ -199,14 +241,17 @@ export async function handleWeComMessage(frame, {
       source,
       attachments
     });
-  } else if (action.type === 'created' || action.type === 'workspace-switched') {
+  } else if (['created', 'continue', 'cancelled'].includes(action.type)
+    || (action.type === 'workspace-switched' && waiting?.type !== 'need-intent')) {
     pending?.clear(sessionKey);
   }
 
   const reply = replyForAction(action, command, { workspaces, config, attachments });
   const keepOpen = action.type === 'created' || action.type === 'continue';
   const pickerCard = cardForAction(action, { workspaces: workspaces?.list?.() ?? config?.workspaces ?? [] });
-  const taskCard = keepOpen && action.task?.id ? buildTaskCard(action.task) : null;
+  const taskCard = keepOpen && action.task?.id ? buildTaskCard(
+    action.type === 'continue' ? { ...action.task, status: 'queued' } : action.task
+  ) : null;
   // The live view appends the footer itself, so the header it reuses stays clean.
   const ack = withTaskFooter(reply, action.task);
   // WeCom accepts a card only on the frame that opens the stream. Classification
@@ -308,24 +353,25 @@ async function analyzeIntent(command, { understanding, manager, source, attachme
   let intent;
   try {
     intent = await understanding.analyze({
-      text: command.text,
+      text: command.intentText ?? command.text,
+      clarification: command.clarification ?? null,
       attachments,
       hasActiveTask,
       hasRecentTask,
       quote
     });
   } catch (error) {
-    // Routing by keyword is still better than dropping the turn.
+    // Classification failure must ask instead of dispatching unknown work.
     logger.error?.(`wecom-intent-failed:${error instanceof Error ? error.message : error}`);
     return null;
   }
   logger.event?.('intent.resolved', {
     conversationId: source.conversationId,
-    kind: intent.kind,
-    needsCode: intent.needsCode,
-    confidence: intent.confidence,
-    intentSource: intent.source,
-    reason: intent.reason ?? null
+    kind: intent?.kind,
+    needsCode: intent?.needsCode,
+    confidence: intent?.confidence,
+    intentSource: intent?.source,
+    reason: intent?.reason ?? null
   });
   return intent;
 }
@@ -423,7 +469,7 @@ export async function handleWeComCard(frame, {
   const sessionKey = sessionKeyFromSource(source);
   const waiting = pending?.get(sessionKey);
   const attachments = waiting?.attachments ?? [];
-  if (['status', 'process', 'cancel'].includes(parsed.action) && parsed.value) {
+  if (['status', 'process', 'cancel', 'feedback'].includes(parsed.action) && parsed.value) {
     const task = await manager.get(parsed.value).catch(() => null);
     if (!task || !canAccessTask(task, source)) {
       await pushText(sendText, source, `找不到任务 ${parsed.value}`, logger);
@@ -455,7 +501,10 @@ export async function handleWeComCard(frame, {
   }
 
   if (parsed.action === 'process' && parsed.value) {
-    const text = progress?.renderProcess?.(parsed.value)
+    const task = await manager.get(parsed.value).catch(() => null);
+    const cached = progress?.renderProcess?.(parsed.value);
+    const events = cached ? [] : await manager.events?.(parsed.value).catch(() => []);
+    const text = cached || (task && renderStoredProcess(task, events))
       || `找不到任务 ${parsed.value} 的过程记录。任务结束后过程会保留一段时间，也可发送 \`状态 ${parsed.value}\`。`;
     await pushText(sendText, source, text, logger);
     logger.event?.('card.out', {
@@ -465,6 +514,25 @@ export async function handleWeComCard(frame, {
       taskId: parsed.value
     });
     return { skipped: false, command: { type: 'process', taskId: parsed.value }, action: { type: 'process' }, reply: text };
+  }
+
+  if (parsed.action === 'feedback' && parsed.value) {
+    const task = await manager.get(parsed.value).catch(() => null);
+    if (!task || !canControlTask(task, source)) {
+      await pushText(sendText, source, '只有任务发起人可以通过此入口补充执行指令。', logger);
+      return { skipped: true, reason: 'not-task-owner' };
+    }
+    if (task.status !== 'blocked') {
+      await pushText(sendText, source, '任务状态已变化，请点击「查看状态」。', logger);
+      return { skipped: true, reason: 'task-not-blocked' };
+    }
+    const view = buildTaskPresentation(task);
+    if (pending) pending.set(sessionKey, { type: 'task-feedback', taskId: task.id, revision: taskFeedbackRevision(task) });
+    const text = [view.question, pending
+      ? '请直接回复补充内容，将续接下方任务；发送「取消」退出补充。点击本按钮不会执行或批准提交。'
+      : '请发送 `继续 <对话ID>：<反馈>` 续接任务。', formatTaskFooter(task.id)].join('\n\n');
+    await pushText(sendText, source, text, logger);
+    return { skipped: false, action: { type: 'need-feedback', task }, reply: text };
   }
 
   if (parsed.action === 'cancel' && parsed.value) {
@@ -555,7 +623,7 @@ export async function handleWeComCard(frame, {
 async function pushText(sendText, source, content, logger) {
   if (!sendText) return false;
   try {
-    await sendText(content, source);
+    for (const page of splitWeComMarkdown(content)) await sendText(page, source);
     return true;
   } catch (error) {
     logger.error?.(`wecom-card-reply-failed:${describeWeComError(error)}`);
@@ -617,6 +685,17 @@ export async function handleWeComMedia(frame, deps = {}) {
 }
 
 function bindPendingCommand(command, waiting) {
+  if (waiting?.type === 'task-feedback' && ['implicit-route', 'ack'].includes(command.type)
+    && command.prefer !== 'new') {
+    return { type: 'continue', taskId: waiting.taskId, message: command.text,
+      feedbackTask: true, feedbackRevision: waiting.revision };
+  }
+  if (waiting?.type === 'need-intent' && ['implicit-route', 'ack'].includes(command.type)) {
+    const feedback = [...(waiting.feedback ?? []), command.text].slice(-4);
+    return { ...command, type: 'implicit-route', intentText: command.text,
+      text: `此前待澄清的请求：${waiting.text}\n用户补充（以后面的明确限制为准）：\n${feedback.join('\n')}`,
+      clarification: { request: waiting.text, feedback } };
+  }
   if (waiting?.type !== 'need-workspace') return command;
   if (CONTROL_TYPES.has(command.type)) return command;
   const text = command.target

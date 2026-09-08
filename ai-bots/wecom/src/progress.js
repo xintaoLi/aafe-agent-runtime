@@ -19,7 +19,8 @@
  */
 
 import { describeWeComError } from './logger.js';
-import { formatTaskNotify } from './notify.js';
+import { buildTaskPresentation } from './presentation.js';
+import { buildTaskCard } from './cards.js';
 import { notifyTargetFromSource, sourceFromFrame } from './session.js';
 import {
   buildAgentUIState,
@@ -28,7 +29,7 @@ import {
   renderAgentUI
 } from './ui.js';
 
-const TERMINAL = new Set(['task.finished', 'task.failed', 'task.cancelled']);
+const TERMINAL = new Set(['task.finished', 'task.failed', 'task.cancelled', 'task.blocked']);
 /**
  * Bringing an agent up is five events the user cannot act on, and listing them
  * as "过程" made the boot sequence look like the work. They now only move the
@@ -46,7 +47,7 @@ const STATUS = {
   'cursor.run.completed': { status: 'thinking' },
   'task.followup.queued': { status: 'thinking', log: '已收到补充' },
   'task.followup.pending': { status: 'thinking', log: '即将开始下一轮' },
-  'task.blocked': { status: 'failed', log: '被阻塞' },
+  'task.blocked': { status: 'blocked', log: '被阻塞' },
   'task.failed': { status: 'failed', log: '失败' },
   'task.cancelled': { status: 'canceled', log: '已取消' }
 };
@@ -55,7 +56,7 @@ const MAX_BYTES = 18_000;
 const ARCHIVE_LIMIT = 80;
 const TEXT_FLUSH_MS = 800;
 const HEARTBEAT_MS = 45_000;
-const DANCE_MS = 2_500;
+const DANCE_MS = 0;
 const STALL_MS = 15 * 60_000;
 
 /**
@@ -88,7 +89,7 @@ export function danceFrame(tick = 0) {
 export function formatProgressEvent(event = {}) {
   const type = event.type?.replace(/^codex\./, 'cursor.').replace(/^task\.codex\./, 'task.cursor.');
   if (!type) return null;
-  if (TERMINAL.has(type)) return { kind: 'terminal', type };
+  if (TERMINAL.has(type)) return { kind: 'terminal', type, ...(type === 'task.blocked' ? { log: '被阻塞' } : {}) };
   const status = STATUS[type];
   if (status) {
     return {
@@ -110,6 +111,7 @@ export function renderProgressView({
   finished = false,
   tick = 0,
   taskId = '',
+  presentation = null,
   // A pushed message never refreshes, so an animation frame would freeze there
   // as a stray character instead of reading as motion.
   animate = true,
@@ -117,7 +119,7 @@ export function renderProgressView({
   maxBytes = MAX_BYTES
 } = {}) {
   const dancing = animate && !finished && status !== 'canceling' && status !== 'canceled'
-    && status !== 'completed' && status !== 'failed';
+    && status !== 'completed' && status !== 'failed' && status !== 'blocked';
   return clipUtf8KeepEnds(renderAgentUI(buildAgentUIState({
     header: header && dancing ? danceOnTitle(header, tick) : header,
     transcript,
@@ -125,12 +127,14 @@ export function renderProgressView({
     status,
     finished,
     expanded,
-    taskId
+    taskId,
+    presentation
   })), maxBytes);
 }
 
 export function createWeComProgressHub({
   replyProgress,
+  replyCard,
   pushMessage,
   logger = console,
   now = () => Date.now(),
@@ -188,12 +192,16 @@ export function createWeComProgressHub({
       footer,
       finished: finish,
       tick: session.tick,
-      taskId: session.taskId
+      taskId: session.taskId,
+      presentation: session.presentation,
+      animate: danceMs > 0
     });
     capture(session, { finished: finish });
     if (!finish) session.tick += 1;
+    if (!finish && session.lastContent === content) return true;
     try {
       await replyProgress?.(session.frame, session.streamId, content, finish);
+      session.lastContent = content;
       if (finish) {
         session.finished = true;
         sessions.delete(session.taskId);
@@ -237,6 +245,7 @@ export function createWeComProgressHub({
       finished: finish,
       animate: false,
       taskId: session.taskId,
+      presentation: session.presentation,
       maxBytes: PUSH_MAX_BYTES
     });
     capture(session, { finished: finish });
@@ -244,8 +253,10 @@ export function createWeComProgressHub({
     session.lastFlushAt = ts;
     session.pushedAt = ts;
     session.dirty = false;
+    if (!finish && session.lastPushContent === content) return true;
     try {
       await pushMessage?.(session.target, content);
+      session.lastPushContent = content;
       logger.event?.('progress.push', { taskId: session.taskId, finish });
       return true;
     } catch (error) {
@@ -273,7 +284,8 @@ export function createWeComProgressHub({
       // The task is still running, so this is a closed stream, not a result.
       finished: false,
       animate: false,
-      taskId: session.taskId
+      taskId: session.taskId,
+      presentation: session.presentation
     });
     capture(session, { finished: false });
     try {
@@ -340,7 +352,8 @@ export function createWeComProgressHub({
       transcript: session.transcript.slice(),
       status: extra.status ?? session.status,
       finished: extra.finished ?? session.finished,
-      taskId: session.taskId
+      taskId: session.taskId,
+      presentation: session.presentation
     });
     if (archives.size <= ARCHIVE_LIMIT) return;
     const oldest = archives.keys().next().value;
@@ -385,6 +398,7 @@ export function createWeComProgressHub({
         expanded: true,
         animate: false,
         taskId: snap.taskId,
+        presentation: snap.presentation,
         maxBytes: MAX_BYTES
       });
     },
@@ -398,16 +412,20 @@ export function createWeComProgressHub({
       if (!item) return false;
       session.lastEventAt = now();
       if (item.kind === 'terminal') {
-        session.status = item.type === 'task.failed' ? 'failed' : item.type === 'task.cancelled' ? 'canceled' : 'completed';
-        return flushSession(session, {
+        const finalTask = task ?? event.task ?? { id: event.taskId, status: event.status };
+        session.presentation = buildTaskPresentation(finalTask, event);
+        session.status = session.presentation.status;
+        const delivered = await flushSession(session, {
           finish: true,
           // On the pushed channel the notifier already owns the terminal
           // message, and it carries the files, PR and media this view does not.
-          handoff: true,
-          footer: formatTaskNotify(task ?? event.task ?? { id: event.taskId, status: event.status }, event, {
-            includeConclusion: false
-          })
+          handoff: true
         });
+        if (delivered && replyCard) {
+          try { await replyCard(session.frame, buildTaskCard({ ...finalTask, status: session.status })); }
+          catch (error) { logger.warn?.(`wecom-final-card-failed:${event.taskId}:${describeWeComError(error)}`); }
+        }
+        return delivered;
       }
       if (item.kind === 'status') {
         session.status = item.text;
@@ -420,6 +438,7 @@ export function createWeComProgressHub({
       if (item.kind === 'tool') {
         if (session.status === 'created' || session.status === 'thinking') session.status = 'executing';
         appendBlock(session, item);
+        if (item.text) mergeTextBlock(session, { kind: 'assistant', text: item.text, messageId: item.messageId });
         return flushSession(session);
       }
       if (item.kind === 'thinking' || item.kind === 'assistant') {
@@ -461,6 +480,9 @@ export function createWeComProgressHub({
     async close() {
       clearInterval(timer);
       for (const session of [...sessions.values()]) {
+        session.status = 'blocked';
+        session.presentation = buildTaskPresentation({ id: session.taskId, status: 'blocked',
+          result: { text: '机器人进程退出，本轮未完成。重启后请查询状态，再决定是否继续。' } });
         await flushSession(session, {
           finish: true,
           footer: `机器人进程退出，本轮未完成。重启后会标记为中断，发送 \`继续 ${session.taskId}\` 可恢复。`
@@ -474,12 +496,38 @@ export function formatCursorMessage(payload = {}) {
   const tools = Array.isArray(payload.tools) && payload.tools.length
     ? payload.tools
     : extractToolsFromPayload(payload);
-  if (tools.length) return { kind: 'tool', tools };
+  if (tools.length) return { kind: 'tool', tools,
+    ...(payload.text ? { text: payload.text, messageId: payload.messageId } : {}) };
   const thinking = payload.thinking || extractThinkingFromPayload(payload);
   if (thinking && !payload.text) return { kind: 'thinking', text: thinking };
   const text = payload.text || extractTextFromPayload(payload);
-  if (text) return { kind: 'assistant', text };
+  if (text) return { kind: 'assistant', text, ...(payload.messageId ? { messageId: payload.messageId } : {}) };
   return null;
+}
+
+/** Recover the latest run from persisted public events after a Bot restart. */
+export function renderStoredProcess(task, events = []) {
+  if (!task) return '';
+  let start = 0;
+  for (let index = 0; index < events.length; index += 1) {
+    if (['task.workspace.leased', 'task.prompt.budget'].includes(events[index].type)) start = index;
+  }
+  const snapshot = { transcript: [] };
+  for (const event of events.slice(start)) {
+    const item = formatProgressEvent(event);
+    if (!item || item.kind === 'terminal') continue;
+    if (item.kind === 'assistant' || item.kind === 'thinking') mergeTextBlock(snapshot, item);
+    else if (item.kind === 'tool') {
+      appendBlock(snapshot, item);
+      if (item.text) mergeTextBlock(snapshot, { kind: 'assistant', text: item.text, messageId: item.messageId });
+    } else if (item.kind === 'status' && (item.log || item.extra)) {
+      appendBlock(snapshot, { kind: 'status', text: [item.log, item.extra].filter(Boolean).join('：') });
+    }
+  }
+  const finished = ['completed', 'failed', 'blocked', 'cancelled'].includes(task.status);
+  return renderProgressView({ transcript: snapshot.transcript, status: task.status,
+    presentation: finished ? buildTaskPresentation(task) : null,
+    taskId: task.id, finished, expanded: true, animate: false });
 }
 
 const STREAM_STOP_NOTICE = '实时进度已到企微 10 分钟上限，且无法继续推送。请发送 `状态` 查询；完成后如可推送会再通知。';
@@ -518,11 +566,11 @@ function appendBlock(session, block) {
 
 function mergeTextBlock(session, block) {
   const last = session.transcript[session.transcript.length - 1];
-  if (last && last.kind === block.kind) {
+  if (last && last.kind === block.kind && (!block.messageId || last.messageId === block.messageId)) {
     last.text = mergeText(last.text, block.text);
     return;
   }
-  session.transcript.push({ kind: block.kind, text: block.text });
+  appendBlock(session, { kind: block.kind, text: block.text, ...(block.messageId ? { messageId: block.messageId } : {}) });
 }
 
 function extractToolsFromPayload(payload) {

@@ -25,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 const WECOM_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const DEFAULT_LOG_DIR = path.join(WECOM_DIR, 'logs');
 const LEVELS = Object.freeze({ error: 0, warn: 1, info: 2, debug: 3 });
-const SECRET_KEY = /^(secret|apiKey|api_key|token|authorization|password|passwd|cookie)$/i;
+const SECRET_KEY = /^(secret|apiKey|api_key|token|authorization|password|passwd|cookie|githubAccessToken|gongfengAccessToken|GITHUB_TOKEN|GH_TOKEN|GIT_CONFIG_VALUE_\d+)$/i;
 const MAX_STRING = 2000;
 const MAX_DEPTH = 6;
 
@@ -56,7 +56,7 @@ export function createWeComLogger({
 
   function emit(lvl, event, data, { toConsole = true, consoleArgs } = {}) {
     if (toConsole) {
-      if (consoleArgs) sink[lvl]?.(...consoleArgs);
+      if (consoleArgs) sink[lvl]?.(...consoleArgs.map((item) => sanitizeLogValue(item)));
       else sink[lvl]?.(`[wecom] ${event}`);
     }
     if (!enabled) return;
@@ -96,9 +96,10 @@ export function createWeComLogger({
 
 export function sanitizeLogValue(value, depth = 0) {
   if (value == null || typeof value === 'number' || typeof value === 'boolean') return value;
-  if (typeof value === 'string') return clip(value, MAX_STRING);
+  if (typeof value === 'string') return clip(redactDisplayText(value), MAX_STRING);
   if (typeof value !== 'object') return String(value);
   if (depth > MAX_DEPTH) return '[truncated]';
+  if (value instanceof Error) return sanitizeLogValue({ name: value.name, message: value.message, stack: value.stack }, depth + 1);
   if (Array.isArray(value)) {
     return value.slice(0, 50).map((item) => sanitizeLogValue(item, depth + 1));
   }
@@ -107,6 +108,13 @@ export function sanitizeLogValue(value, depth = 0) {
     out[key] = SECRET_KEY.test(key) ? '[redacted]' : sanitizeLogValue(item, depth + 1);
   }
   return out;
+}
+
+/** Redaction without the log sink's 2k truncation, shared by user-facing UI. */
+export function redactDisplayText(value) {
+  return String(value ?? '')
+    .replace(/\b(authorization\s*:\s*(?:basic|bearer)\s+)[a-z0-9+/_=.-]+/ig, '$1[redacted]')
+    .replace(/((?:CODEX_API_KEY|OPENAI_API_KEY|GITHUB_TOKEN|GH_TOKEN|githubAccessToken|apiKey|api_key|secret|password)["']?\s*[:=]\s*["']?)[^\s"',;]+/ig, '$1[redacted]');
 }
 
 export function summarizeWeComFrame(frame = {}) {

@@ -2,6 +2,39 @@
 
 企微是 AAFE 的会话入口。长连接接收文本、引用和媒体消息，经规则与意图分类后直接回答，或交给 TaskManager 异步执行。一个 Bot 应只运行一个常驻进程。
 
+## 消息展示与反馈交互
+
+企微使用流式 Markdown 展示内容、模板卡片提供操作，不能原样嵌入 Agent 客户端的工具面板或文件 Diff。两种引擎共用展示协议，不交叉调用执行后端。
+
+此前差距主要来自适配层：把 `blocked` 映射为失败；终态统一加绿色“最终结论”；公开进展被忽略、结束后只剩“分析步数”；流式结论与任务通知再次拼接，重复输出错误、需求及 ID。现在按持久化任务状态和结构化结果统一渲染：
+
+| 场景 | 内容 | 卡片操作 |
+| --- | --- | --- |
+| 执行中 | 当前状态、公开进展、最近工作记录 | 查看状态 / 查看完整过程 / 终止 |
+| 等待反馈 | ⏸ 等待补充 / 确认、需要用户回答的问题、已完成部分、后续步骤 | 查看状态 / 查看完整过程 / 补充信息 |
+| 成功 / 失败 / 终止 | 对应状态、一次结果说明、可用文件/PR 信息 | 查看状态 / 查看完整过程 |
+
+例如，代码和单测通过、但缺少浏览器测试 URL 时，展示为：
+
+> ⏸ 等待补充 / 确认
+>
+> **需要你反馈**
+>
+> 请提供已部署本次改动的完整目标测试页面 URL。
+>
+> 代码修改、5 项测试、ESLint 和格式检查均已通过；Commit、PR、TAPD 回填等待浏览器验证。
+
+这仍然是阻塞任务，不会展示“执行失败”或宣称已交付。Bot 不根据工具调用次数宣称测试通过；验证依据在展开视图中标注为“Agent 报告的验证记录”，业务核验与交付门禁保持不变。
+
+- 发起人点击「补充信息」后直接回复 URL 或其他反馈，即续接指定任务，不调用意图分类模型。点击按钮本身不执行、不批准 Commit/PR/回填。补充前再次校验任务状态和操作权限，其他群成员不能借此授权执行。
+- 发送「取消」只退出待补充输入，不取消原任务；「做：新需求」仍是新请求。输入绑定按用户/会话隔离，30 分钟有效，重启后可重新点击按钮；没有可用卡片时发送 `继续 <TaskID>：<反馈>`。
+- 流式消息结束后发送与最终状态对应的新卡片，已完成任务不再提供终止按钮。卡片发送失败不会把任务结果改成失败，仍可用文本命令查询/续接。
+- 「查看完整过程」展示最近一轮保留的公开工作记录（最多 80 个事件块，不是全部历史或完整原始日志）；内存快照缺失时从任务持久化事件恢复。公开进展与内部 reasoning 分离，不展示原始推理或工具完整响应；常见凭证字段与认证头在展示前脱敏。
+- 普通 Markdown 按不超过 3000 UTF-8 字节分段，避免中文长消息超限；实时视图有 18000 字节上限，超过后保留首尾并标记省略。代码块/链接恰好跨分段时不能保证跨消息排版连续。
+- 默认关闭企鹅动画，内容无变化不重复发心跳帧；保留长任务的流式到期转推送与无输出提示。展示、去重、分段、卡片和记录恢复均为本地处理，不新增模型调用。减少的是消息噪声和重复分类调用，不能据此声称模型总 Tokens 按固定比例下降。
+
+回归：项目根运行 `npm run test:wecom-bot`，覆盖流式/推送、阻塞结果、权限、反馈续接、记录恢复和中文分段。重启现有 Bot 后生效，不会自动重跑历史任务；真实企微客户端的排版和卡片送达仍需上线验收。
+
 ## 公共接入与启动
 
 在 `ai-bots/wecom` 下安装依赖，复制 `wecom.local.json.example` 为 `wecom.local.json`，然后运行 `npm start`。
@@ -174,7 +207,68 @@ JSON 的 `codex` 分组现已完整保留并生效，修复了早期版本丢弃
 
 仅面向可信成员、可信仓库部署，建议独立服务账号及隔离环境。模型工具能读取沙箱允许访问的文件，沙箱不是凭证保险箱。
 
-当前仅支持已克隆的本地 Git 工作区；远程 repository 配置明确报 `codex-local-workspace-required`。不支持 Codex Cloud 调度、自动 PR 元数据提取或 Cursor MCP 配置转换。Codex 使用自身本机配置的 MCP；外部 MCP 写操作不受文件只读沙箱约束，必须另外限制。Bot 不自动登录、不自动重试付费失败、不绕过沙箱。
+当前仅支持已克隆的本地 Git 工作区；远程 repository 配置明确报 `codex-local-workspace-required`。不支持 Codex Cloud 调度；PR 信息来自下文交付记录及执行凭证核对。Codex worker 使用 `--ignore-user-config`，不继承个人 config.toml；同时关闭 plugins、apps、computer_use、browser_use、hooks。保留 CLI 认证和执行安全规则，只显式接入下面配置的业务 MCP，不读取 `.cursor/mcp.json`。项目级 MCP/规则仍需单独审核，不能把这些开关当作全局禁止任意 shell 操作的防火墙。Bot 不自动登录、不自动重试付费失败、不绕过沙箱。
+
+### Codex 业务 MCP（与 Cursor 分开适配）
+
+项目 `.aafe.config.json` 的 `agent.mcp.servers` 是共享的业务服务定义；Cursor 由 SDK 加载，Codex 转换为 CLI 原生 `mcp_servers`。`cursor.mcp` 只影响 Cursor；`codex.mcp` 覆盖共享设置，同名服务整体覆盖。Codex 不使用 Cursor 的 `settingSources`，也不继承个人 Codex MCP。
+
+例如保留项目中现有的 `tapd_mcp_http`，只向 Codex 开放这一服务（在 `wecom.local.json` 的现有 `codex` 分组中合并，不删除 Key/executable）：
+
+```json
+{
+  "codex": {
+    "mcp": {
+      "enabled": true,
+      "allowedServers": ["tapd_mcp_http"]
+    }
+  }
+}
+```
+
+未设置 `allowedServers` 时加载显式配置的全部启用服务；空数组不加载任何服务。支持 `config` 指定的 JSON 文件（`mcpServers`/`servers`）及内联 `servers`；不静默加载 Cursor 用户目录。HTTP 支持 `url` 和 `headers`，STDIO 支持 `command/args/env/cwd`。`${ENV_NAME}` 未展开会阻塞任务；HTTP 认证头通过临时子进程环境映射，不进入命令行或提示词。不要在 URL、command、args 中放凭证。中文服务 ID 自动映射为稳定 ASCII ID。
+
+默认每个服务 `required=true`：由 Codex CLI 在模型执行前完成 MCP 初始化和工具发现，失败不应继续盲写；非必要服务可显式设置 `required:false`。可用 `enabled_tools/disabled_tools` 缩小工具范围。含 TAPD 链接的任务要求配置启用的 TAPD 服务（ID 含 `tapd`）；缺少服务时直接阻塞，不消耗模型调用。连接成功不等于已获得需求正文；正文读取失败仍必须阻塞。交付模式下显式配置的 MCP 工具调用走原生审批审查，业务确认仍遵守 AAFE workflow-mode。
+
+### Codex Git 权限与阻塞结果
+
+默认启用 Codex 原生交付通道：`workspace-write + on-request + auto_review`（CLI 必须支持 `codex exec --approve-for-me`，包括 resume）。仍保留沙箱和执行规则，不 chmod `.git`、不设置 full-access。Git 元数据写入和网络操作按需经过原生安全审查；审查拒绝、CLI 不支持或组织策略不允许时阻塞，不更换为绕过模式。[OpenAI Docs：自动审查](https://learn.chatgpt.com/zh-Hans/docs/sandboxing/auto-review)。自动审查可能增加模型用量，Bot 的主轮 usage 不保证包含全部审查开销。
+
+每轮（包括续跑）读取目标项目原始安装目录的 `.aafe.config.json` 和 `.ai-agent` 流程技能/规则，不能通过修改任务 worktree 配置自行扩大权限。忽略配置文件也能从原始安装目录读取；绝不切换到主工作目录执行 Git。规则路径和内容指纹进入上下文，不重复塞入全部技能正文，指纹变化或上下文丢失时重新读取。缺少必要流程技能则明确阻塞。
+
+交付不再由 Bot 硬编码 `feat/ticket` 分支或“一律禁止提交”。Codex 按实际 AAFE 技能处理分支命名/关联与主干、`submit.cli=git|gtm`、影响分析/自测、Commit、PR/MR 和回填。GitHub 优先 Token API（无需 gh），工蜂按 gtm/项目规则执行；reviewers/labels 必须随 PR/MR 应用。`aafe repo pr --config-root=<原始安装目录>` 只改变配置读取位置，Git/PR 执行目录仍是任务 worktree。仓库 Token 仅通过此编码子进程环境传递，不复用 Cursor Key、不写入参数或 remote URL；分析和普通问答不注入仓库 Token。
+
+GitHub 凭据读取顺序：Bot `repo` 覆盖 → AAFE 运行目录 `.aafe.config.json` → 目标项目配置；进程已有 `GITHUB_TOKEN` / `GH_TOKEN` 保持优先。配置有 Token 不等于认证成功，也不代表有 Push/PR 权限。
+
+- Git HTTPS（fetch/pull/push）使用 `Basic base64(x-access-token:TOKEN)`，由调用进程通过 `GIT_CONFIG_*` 注入仅作用于 `https://github.com/` 的认证头；直接运行普通 Git 命令，不叠加 `git -c http.extraheader=...`。
+- GitHub REST API（PR/评论等）继续使用 Bearer；两种通道不可混用。Token 和 Base64 凭据均不得进入命令参数、remote URL、Git 配置文件或日志。
+- 修复后重启 Bot 即可让新任务/续跑使用新认证逻辑，Token 无须重新配置。Codex 续跑提示显式纠正旧技能中的 Git Bearer 示例；已安装项目的技能文件仍建议通过新版 `aafe update` 同步。历史阻塞任务不会自动重跑。
+- 回归命令：`npm run test:git-https-auth`，使用真实 Git 与本地 HTTP 服务、虚构 Token，验证 Basic 成功、Bearer 失败及跨主机不传认证头，不访问 GitHub。
+
+Bot 默认覆盖目标项目的工作流模式（不修改项目 `.aafe.config.json`）。在 `wecom.local.json` 中配置独立分组，Cursor / Codex 共用交互策略，各自执行通道仍隔离：
+
+```json
+"workflow": { "mode": "auto", "intentConfidence": 0.7 }
+```
+
+`auto`（默认）使用 AAFE autonomous 自主判断；`ask` 强制询问；`project` 恢复继承目标项目 `mode.workflow`。非法模式按 ask。优先级为：任务发起人的明确会话限制 > Bot 覆盖 > 项目配置。覆盖在新任务和续跑时应用，重启 Bot 生效。Auto 不代表无条件 Commit/PR/回填，也不放宽沙箱权限。
+
+ask 反馈续接：
+
+- 意图澄清后可回复「仅分析，不修改」或「修改实现」；原需求只保留一份，保留最近 4 条反馈与附件，不层层拼接。回复「取消」放弃待澄清请求；明确的「做：新需求」按新请求处理。待澄清记录按用户/会话隔离，默认 30 分钟有效，保存在内存，Bot 重启后需重新提供请求。
+- Commit / PR / 回填处于 blocked 且记录了待确认门禁时，发起人回复「好的 / 是 / 同意 / 跳过」可续跑唯一待确认任务，无须额外意图模型调用。多个候选或同时有其他进行中任务时，要求「继续 <TaskID>：同意/跳过」；引用消息沿用引用目标，不转到别的任务。
+- 简短同意只对应当前门禁，不能用旧轮次的“是”授权新的回填，也不会将只读任务升级为开发。参与者回复不作为发起人授权。
+
+自然语言请求先做意图分析，明确识别后路由到问答、只读分析、开发或续跑。置信度低于 `intentConfidence`（允许 0.5–1，缺省/非法为 0.7）、分类失败、未知类型或开发意图与只读标记冲突时，通过企微回复 ask 等待补充，不创建任务、不执行代码；同会话的补充消息带回待澄清文本。明确命令仍走命令路由，目标任务/仓库不唯一时继续询问。业务执行中的歧义按 AAFE Hard Ask 处理。
+
+- 有效模式为 `ask`：Commit 与 TAPD 回填分别确认；“是”只对应当前待确认门禁，不授权后续所有步骤。通过企微原任务续跑承接确认。
+- `mode.workflow=autonomous`：逐门禁输出 proceed/skip/ask 判定；仍遵守用户明确禁止、缺 URL/账号/需求歧义等 Hard Ask。
+- Commit 跳过或 PR 失败仍继续评估回填；无 TAPD 关联或禁用 TAPD 时跳过回填，不强行要求三步都执行。
+- TAPD 动态发现实际工具参数；处理结果只追加评论，PR 字段遵守配置/确认，状态按项目映射逐步到 doing，之后读取单据验证。禁止覆盖 description/test_focus、跳步或自动提测。
+
+Codex 使用 `--output-schema` 返回结果及 `delivery` 门禁记录（commit/pr/tapd_backfill 的判定、状态、授权依据和实际产物）。Bot 自动核对 Commit HEAD/分支、PR URL 与仓库和成功 CLI 输出、TAPD 评论 ID/目标单据/MCP 成功回执与状态链；缺证据不会标完成，无需再提供外部 `verify` 才能交付。可额外提供 `verify` 执行业务验收。原生工具回执及时持久化至 `task.delivery`，续跑先核对已有产物，避免重复创建；写入超时且结果不明时必须读回确认，不能盲重试。MCP 响应无可识别的结构化 ID/状态时会阻塞，不能凭文字成功提示放行。此核对不等同于独立测试证明所有业务正确。
+
+如需关闭自动交付，在 `wecom.local.json` 的 `codex` 分组中设置 `"delivery": { "enabled": false }`；此时保留 `never` 和旧的受控分支准备，不执行 Commit/Push/PR/回填。只读分析和普通问答始终不启用交付。修改后重启 Bot；历史误标任务不自动改写或重跑。
 
 默认 Codex 时，意图由规则处理，普通问答在临时目录以只读 ephemeral 模式执行。若配置 `intent.endpoint/model`，分类和问答仍优先使用 HTTP。任务分析使用 `read-only`，编码使用 `workspace-write`，权限不足时失败而非自动提权。
 
@@ -204,11 +298,17 @@ AAFE_WECOM_PROVIDER=codex npm start
 
 Cursor Cloud 切到 Codex 时，还需将 `currentWorkspace` 改成本地工作区；若同一会话已经用仓库卡片选择过远程仓库，应在企微重新选择本地仓库。引擎切换不会自动克隆仓库。
 
-### 单条消息选择引擎（不重启）
+### 严格单引擎执行
 
-默认 Cursor 时，准备好 Codex 登录态/Key 和本地工作区后，发送 `Codex：修复登录` 或 `ChatGPT：分析当前项目`，只为该新任务选择 Codex。普通 `做：需求` 仍使用默认引擎；普通问答和意图分类也不会因此切换后端。
+一个 Bot 实例只执行当前 provider 的任务：Codex 不调用 Cursor SDK/模型接口，也不恢复 Cursor 历史任务；Cursor 不启动 Codex。两套配置可以保存，但不会同时传入执行器。跨引擎创建、续跑会返回 `task-provider-disabled`，历史记录保留不迁移。
 
-当前没有对应的 `Cursor：需求` 强制选择命令，也没有 `/provider` 热切换命令。默认 Codex 时，要新建 Cursor 任务需修改默认配置并重启。已有任务保存自己的 provider，`继续 <TaskID>：补充` 保持原引擎，不会迁移会话；仍需保留该引擎所需的配置与认证。
+`Codex：` / `ChatGPT：` 前缀只在当前 provider 为 Codex 时执行。切换引擎需修改配置并重启，没有跨引擎回退或热切换。
+
+### 桌面授权弹窗与启动来源
+
+从 Cursor 内置终端启动 Bot 时，macOS 可能把后代进程发起的 AppleScript 自动化请求归到 Cursor。此类“Cursor 想控制 Codex Computer Use”弹窗不等同于 Cursor 模型调用。本实现已关闭 Codex worker 的个人桌面插件继承；不会改动你的个人 Codex 配置，也不自动允许系统授权。
+
+建议从独立 Terminal 或服务管理器启动 Bot，避免桌面应用作为父进程。仅设置 provider 不会改变已运行进程的父应用。修改隔离设置后要重启；旧 worker 不会被追溯修改。不需要桌面操作时拒绝自动化授权。
 
 ### 接入自检
 
@@ -222,7 +322,7 @@ Cursor Cloud 切到 Codex 时，还需将 `currentWorkspace` 改成本地工作�
 | 输入 | 行为 |
 | --- | --- |
 | `做：增加手机号搜索` 或明确自然语言需求 | 创建隔离任务，确认后后台执行 |
-| `Codex：修复登录` / `ChatGPT：分析当前项目` | 指定 Codex 本地引擎，不改变其他任务的引擎 |
+| `Codex：修复登录` / `ChatGPT：分析当前项目` | 当前 provider 为 Codex 时执行，否则拒绝跨引擎 |
 | `分析当前项目的鉴权` | 选定仓库后使用 Cursor SDK plan 或 Codex 只读沙箱分析 |
 | `分析 JavaScript 闭包`、普通概念问答 | 直接回答，不创建工作区；失败仍停留在问答路径 |
 | `继续 <TaskID>：补充`、引用任务回复 | 在已有任务中续跑 |

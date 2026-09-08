@@ -22,8 +22,11 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { inferMediaType } from './media.js';
 import { notifyTargetFromSource } from './session.js';
+import { buildTaskPresentation, renderTaskPresentation } from './presentation.js';
+import { buildTaskCard } from './cards.js';
+import { splitWeComMarkdown } from './markdown.js';
 
-const NOTIFY_EVENTS = new Set(['task.finished', 'task.failed', 'task.cancelled']);
+const NOTIFY_EVENTS = new Set(['task.finished', 'task.failed', 'task.cancelled', 'task.blocked']);
 
 export function createRateLimiter({ maxPerMinute = 30, now = () => Date.now() } = {}) {
   const buckets = new Map();
@@ -43,30 +46,9 @@ export function createRateLimiter({ maxPerMinute = 30, now = () => Date.now() } 
 }
 
 export function formatTaskNotify(task, event = {}, { includeConclusion = true } = {}) {
-  const status = event.status ?? task.status;
-  const lines = [
-    `任务 **${task.id}** ${statusLabel(status)}`,
-    '',
-    `需求：${task.requirement ?? task.goal ?? '-'}`
-  ];
-  if (includeConclusion) {
-    const conclusion = extractTaskConclusion(task, event);
-    if (conclusion) {
-      lines.push('', '**✅ 最终结论**', conclusion);
-    }
-  }
-  const files = extractChangedFiles(task);
-  if (files.length) {
-    lines.push('', '改动文件：', ...files.slice(0, 20).map((file) => `- ${file}`));
-  }
-  const pr = extractPr(task);
-  if (pr) lines.push('', `PR：${pr}`);
-  // A retry that succeeded must not carry the previous attempt's error.
-  const error = status === 'completed' ? null : (task.error ?? event.error ?? null);
-  if (error) lines.push('', `错误：${error}`);
-  const footer = formatTaskFooter(task.id);
-  if (footer) lines.push('', footer);
-  return lines.join('\n');
+  const view = buildTaskPresentation(task, event);
+  return [renderTaskPresentation(view, { includeSummary: includeConclusion }), formatTaskFooter(view.taskId)]
+    .filter(Boolean).join('\n\n');
 }
 
 /**
@@ -87,6 +69,7 @@ export function formatTaskFooter(taskId, { running = false } = {}) {
 }
 
 export function formatStatusReply(task, scheduler = null) {
+  if (['completed', 'failed', 'blocked', 'cancelled'].includes(task.status)) return formatTaskNotify(task);
   const lines = [
     `任务 **${task.id}**`,
     `状态：${task.status}`,
@@ -141,12 +124,27 @@ export function attachWeComNotifier({
     }
     const content = formatTaskNotify(task, event);
     try {
-      await sendMessage(target.chatid, {
-        msgtype: 'markdown',
-        markdown: { content },
-        chat_type: target.chatType
-      });
+      const pages = splitWeComMarkdown(content);
+      for (let index = 0; index < pages.length; index += 1) {
+        if (index > 0 && !limiter.allow(target.chatid)) {
+          logger.warn?.(`wecom-notify-rate-limited:${target.chatid}`);
+          break;
+        }
+        await sendMessage(target.chatid, {
+          msgtype: 'markdown',
+          markdown: { content: pages[index] },
+          chat_type: target.chatType
+        });
+      }
       logger.event?.('notify.out', { taskId: task.id, type: event.type, chatid: target.chatid });
+      if (limiter.allow(target.chatid)) {
+        try {
+          await sendMessage(target.chatid, { msgtype: 'template_card',
+            template_card: buildTaskCard({ ...task, status: buildTaskPresentation(task, event).status }), chat_type: target.chatType });
+        } catch (error) {
+          logger.warn?.(`wecom-final-card-failed:${task.id}:${error.message ?? error}`);
+        }
+      }
       await sendResultMedia(task, { sendMedia, uploadMedia, logger, chatid: target.chatid });
     } catch (error) {
       logger.error?.(`wecom-notify-failed:${task.id}:${error instanceof Error ? error.message : error}`);
@@ -157,54 +155,6 @@ export function attachWeComNotifier({
       });
     }
   });
-}
-
-function statusLabel(status) {
-  if (status === 'completed') return '已完成';
-  if (status === 'failed') return '失败';
-  if (status === 'cancelled') return '已取消';
-  return status ?? '已更新';
-}
-
-function extractTaskConclusion(task, event = {}) {
-  const status = event.status ?? task.status;
-  const text = String(
-    task?.result?.text
-    ?? task?.result?.execution?.text
-    ?? ''
-  ).trim();
-  if (status === 'failed' || event.type === 'task.failed') {
-    return text || task.error || event.error || '任务失败，未返回详细原因。';
-  }
-  if (status === 'cancelled' || event.type === 'task.cancelled') {
-    return text || '任务已终止。';
-  }
-  if (text) return text;
-  if (status === 'completed') return '任务已完成，但 Agent 未给出文字说明。';
-  return '任务已结束，未返回文字结论。';
-}
-
-function extractChangedFiles(task) {
-  const git = task.result?.execution?.git ?? task.result?.git ?? null;
-  const files = git?.files ?? git?.changedFiles ?? git?.diffs ?? [];
-  if (!Array.isArray(files)) return [];
-  return files
-    .map((file) => (typeof file === 'string' ? file : file?.path ?? file?.filename ?? null))
-    .filter(Boolean);
-}
-
-/**
- * The task carries its PR since the manager started lifting it out of the run
- * result; the dig through `result` stays for tasks written before that.
- */
-function extractPr(task) {
-  if (task.pullRequest?.url) return task.pullRequest.url;
-  const git = task.result?.execution?.git ?? task.result?.git ?? null;
-  return git?.prUrl
-    ?? git?.pullRequestUrl
-    ?? task.repository?.prUrl
-    ?? (Array.isArray(git?.prs) ? git.prs[0]?.url : null)
-    ?? null;
 }
 
 async function sendResultMedia(task, {

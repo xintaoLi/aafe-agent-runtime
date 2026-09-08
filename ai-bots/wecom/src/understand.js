@@ -57,7 +57,8 @@ const SYSTEM_PROMPT = [
   '- 带 quoted 字段说明用户引用了历史消息，除非另起新需求，否则是对被引用任务的补充 → kind=followup',
   '- 提交 / 提 PR / 合并 / 推送 / 回填 TAPD / 重跑测试 这类流程动作是在推进已有任务 → kind=followup，不要当成新需求',
   '- 对刚结束的分析拍板（全部 squash 成1个 / 按方案 A / 选第一个 / squash / rebase）→ kind=followup，不要当成新的分析或开发',
-  'TAPD 链接、需求单标题、缺陷描述通常是 code。'
+  'TAPD 链接、需求单标题、缺陷描述通常是 code。',
+  'clarification 是此前尚未执行的待澄清请求与补充；结合它理解当前 text，当前明确限制优先。无法闭合意图时降低 confidence，不要猜测执行。'
 ].join('\n');
 
 const CODE_HINT = /(?:修复|修一下|改一下|改下|实现|开发|重构|新增|加个|增加|接入|上线|提交|commit|pr\b|merge|bug|报错|异常|失效|不生效|崩溃|fix|implement|refactor)/i;
@@ -141,10 +142,17 @@ export function fastIntent(text, {
   attachments = [],
   hasActiveTask = false,
   hasRecentTask = false,
-  quote = null
+  quote = null,
+  clarification = null
 } = {}) {
   const body = String(text ?? '').trim();
   if (!body) return null;
+  if (clarification && /^(?:仅|只|先)(?:做)?(?:分析|排查|问答)(?:[，,\s]*(?:先)?(?:不|不要)(?:修改|改代码|实现|开发))?[。.!！]?$/.test(body)) {
+    return intent({ kind: 'analysis', needsCode: true, summary: clip(body), confidence: 0.95, source: 'rules-fast' });
+  }
+  if (clarification && /^(?:修改实现|修改代码|实现功能|开发功能)[。.!！]?$/.test(body)) {
+    return intent({ kind: 'code', needsCode: true, summary: clip(body), confidence: 0.95, source: 'rules-fast' });
+  }
   const code = CODE_HINT.test(body);
   const analysis = ANALYSIS_HINT.test(body);
   const continuable = hasActiveTask || hasRecentTask;
@@ -317,14 +325,17 @@ export function createIntentAnalyzer({
       attachments = [],
       hasActiveTask = false,
       hasRecentTask = false,
-      quote = null
+      quote = null,
+      clarification = null
     } = {}) {
-      const fast = fastIntent(text, { attachments, hasActiveTask, hasRecentTask, quote });
+      const fast = fastIntent(text, { attachments, hasActiveTask, hasRecentTask, quote, clarification });
       if (fast) return fast;
       const fallback = classifyIntentByRules(text, { attachments, hasActiveTask, hasRecentTask });
       if (backend === 'rules') return fallback;
       const payload = {
         text: String(text ?? ''),
+        ...(clarification ? { clarification: { request: clip(clarification.request, 2000),
+          feedback: (clarification.feedback ?? []).slice(-4).map((text) => clip(text, 500)) } } : {}),
         attachments: attachments.map((item) => ({ type: item.type ?? null, filename: item.filename ?? null })),
         has_active_task: Boolean(hasActiveTask),
         has_recent_task: Boolean(hasRecentTask),

@@ -22,7 +22,7 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { createMessageInbox } from './inbox.js';
 import { createTaskManager } from '../../../src/agent-platform/tasks/index.js';
-import { resolveCursorMcpForRun, toCursorMcpServers } from '../../../src/cli/agentMcp.js';
+import { resolveCursorMcpForRun, resolveCodexMcpForRun, toCursorMcpServers } from '../../../src/cli/agentMcp.js';
 import { createTaskManagerOptions, loadWeComBotConfig, persistCurrentWorkspace } from './config.js';
 import { createWeComLogger, describeWeComError, resolveWeComLogConfig } from './logger.js';
 import { createWeComGateway } from './gateway.js';
@@ -74,7 +74,7 @@ export async function startWeComBot(options = {}) {
   });
   const mcp = options.mcpServers
     ? { servers: options.mcpServers }
-    : config.agent?.provider === 'codex' ? { servers: [] } : await resolveCursorMcpForRun(config.agent?.mcp, {
+    : await (config.agent?.provider === 'codex' ? resolveCodexMcpForRun : resolveCursorMcpForRun)(config.agent?.mcp, {
       root: config.root,
       env: options.env ?? process.env
     });
@@ -134,7 +134,10 @@ export async function startWeComBot(options = {}) {
     logger
   });
   const progress = options.progress ?? createWeComProgressHub({
-    replyProgress: (frame, streamId, content, finish) => gateway.replyProgress(frame, streamId, content, finish),
+    replyCard,
+    // Deduplicated progress must await the ACK; a dropped non-blocking frame
+    // must not be remembered as delivered.
+    replyProgress: (frame, streamId, content, finish) => gateway.replyProgress(frame, streamId, content, finish, { blocking: true }),
     // Once the stream expires the bot can only write by sending a new message.
     pushMessage: (target, content) => gateway.sendMessage(target.chatid, {
       msgtype: 'markdown',

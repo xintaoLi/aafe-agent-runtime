@@ -2,7 +2,9 @@
   "botId": "your-wecom-bot-id",
   "secret": "your-wecom-bot-secret",
   "provider": "cursor",
+  "workflow": { "mode": "auto", "intentConfidence": 0.7 },
   "codex": {
+    "delivery": { "enabled": true },
     "CODEX_API_KEY": "",
     "executable": "codex",
     "model": null,

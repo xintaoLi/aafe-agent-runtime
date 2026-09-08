@@ -65,7 +65,7 @@ export function classifyFreeform(text) {
   if (PRAISE.test(body)) return { type: 'smalltalk', kind: 'praise', text: body };
   if (FAREWELL.test(body)) return { type: 'smalltalk', kind: 'farewell', text: body };
   if (CASUAL.test(body)) return { type: 'smalltalk', kind: 'casual', text: body };
-  if (ACK.test(body)) return { type: 'ack' };
+  if (ACK.test(body)) return { type: 'ack', text: body };
   if (LIST.test(body)) return { type: 'list' };
   if (WORKSPACE_LIST.test(body)) return { type: 'workspace-list' };
   if (STATUS.test(body)) return { type: 'implicit-status' };

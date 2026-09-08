@@ -66,6 +66,9 @@ export async function loadWeComBotConfig({
   };
   const apiKeyEnv = provider === 'cursor' ? cursorKeyEnv : defaultApiKeyEnvForProvider(provider);
   const codex = {
+    delivery: { enabled: local.codex?.delivery?.enabled !== false },
+    mcp: { ...projectConfig.agent?.mcp, ...local.codex?.mcp,
+      servers: { ...projectConfig.agent?.mcp?.servers, ...local.codex?.mcp?.servers } },
     apiKey: firstNonEmpty(env.CODEX_API_KEY, env.OPENAI_API_KEY,
       local.codex?.CODEX_API_KEY, local.codex?.apiKey, local.codexApiKey),
     executable: firstNonEmpty(env.AAFE_WECOM_CODEX_EXECUTABLE, local.codex?.executable) ?? 'codex',
@@ -99,6 +102,12 @@ export async function loadWeComBotConfig({
     apiKey,
     codex,
     cursor,
+    workflow: {
+      mode: firstNonEmpty(env.AAFE_WECOM_WORKFLOW_MODE, local.workflow?.mode) ?? 'auto',
+      intentConfidence: Number.isFinite(local.workflow?.intentConfidence)
+        && local.workflow.intentConfidence >= 0.5 && local.workflow.intentConfidence <= 1
+        ? local.workflow.intentConfidence : 0.7
+    },
     wsUrl: firstNonEmpty(env.WECOM_WS_URL, local.wsUrl) ?? DEFAULT_WS_URL,
     repository,
     baseBranch,
@@ -120,7 +129,7 @@ export async function loadWeComBotConfig({
     repo: resolveWeComRepoConfig({ env, local }),
     agent: {
       ...agent,
-      mcp: cursor.mcp,
+      mcp: provider === 'codex' ? codex.mcp : cursor.mcp,
       autoCreatePR: cursor.autoCreatePR,
       skipReviewerRequest: cursor.skipReviewerRequest,
       provider,
@@ -241,6 +250,7 @@ export function createTaskManagerOptions(config, extra = {}) {
   const useCloud = Boolean(repository);
   return {
     root: config.root,
+    enabledProvider: extra.provider ?? agent.provider ?? 'cursor',
     output: manager.output ?? '.aafe',
     maxConcurrentTasks: manager.maxConcurrentTasks ?? 4,
     validateProjectRuntime: extra.validateProjectRuntime
@@ -259,20 +269,22 @@ export function createTaskManagerOptions(config, extra = {}) {
       aafeRoot: extra.aafeRoot ?? config.root
     },
     runtimeOptions: {
-      codex: config.codex,
+      workflowOverride: config.workflow?.mode ?? 'auto',
+      codex: (extra.provider ?? agent.provider) === 'codex'
+        ? { ...config.codex, mcpServers: extra.mcpServers ?? {} } : undefined,
       tokenBudget: Number(manager.tokenBudget) > 0 ? Number(manager.tokenBudget) : 12000,
-      // Cursor transport reads these; Codex reads only its own `codex` block.
-      // Keep old Cursor tasks resumable even when Codex is the default provider.
-      apiKey: extra.apiKey ?? (config.cursor ? config.cursor.apiKey : config.apiKey ?? agent.apiKey),
-      apiKeyEnv: config.cursor?.apiKeyEnv ?? agent.apiKeyEnv,
+      apiKey: (extra.provider ?? agent.provider) === 'codex' ? null
+        : extra.apiKey ?? (config.cursor ? config.cursor.apiKey : config.apiKey ?? agent.apiKey),
+      apiKeyEnv: (extra.provider ?? agent.provider) === 'codex' ? null : config.cursor?.apiKeyEnv ?? agent.apiKeyEnv,
       provider: extra.provider ?? agent.provider ?? 'cursor',
-      model: extra.model ?? (config.cursor ? config.cursor.model : agent.model),
+      model: (extra.provider ?? agent.provider) === 'codex' ? config.codex?.model ?? null
+        : extra.model ?? (config.cursor ? config.cursor.model : agent.model),
       repository,
       cwd: extra.cwd ?? active?.cwd ?? config.root,
       mode: useCloud ? 'cloud' : 'local',
       autoCreatePR: agent.autoCreatePR,
       skipReviewerRequest: agent.skipReviewerRequest,
-      ...(extra.mcpServers ? { mcpServers: extra.mcpServers } : {})
+      ...((extra.provider ?? agent.provider) !== 'codex' && extra.mcpServers ? { mcpServers: extra.mcpServers } : {})
     }
   };
 }
@@ -292,6 +304,7 @@ export async function readLocalWeComConfig(root, { extraPath = null } = {}) {
       ...merged, ...omitEmpty(parsed),
       cursor: { ...merged.cursor, ...parsed.cursor },
       codex: { ...merged.codex, ...parsed.codex },
+      workflow: { ...merged.workflow, ...parsed.workflow },
       path: file
     };
   }
@@ -331,6 +344,8 @@ export function parseDotEnv(text) {
 
 export function normalizeLocalWeComValues(raw = {}) {
   return omitEmpty({
+    workflow: isPlainObject(raw.workflow) ? raw.workflow
+      : raw.AAFE_WECOM_WORKFLOW_MODE ? { mode: raw.AAFE_WECOM_WORKFLOW_MODE } : undefined,
     cursor: isPlainObject(raw.cursor) ? raw.cursor : undefined,
     codex: {
       ...(isPlainObject(raw.codex) ? raw.codex : {}),

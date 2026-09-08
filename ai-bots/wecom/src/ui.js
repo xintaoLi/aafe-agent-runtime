@@ -19,10 +19,13 @@
  */
 
 /**
- * WeCom Agent UI Protocol: Stream is the content layer (thinking / progress /
- * result), Template Card is the control layer. Thinking defaults to the last
- * three summaries; the final result is always a separate section.
+ * WeCom Agent UI Protocol: Stream presents public progress and task results;
+ * Template Card provides controls. Show three recent activities by default,
+ * not private reasoning or an inferred count of completed work.
  */
+
+import { renderTaskPresentation } from './presentation.js';
+import { redactDisplayText } from './logger.js';
 
 export const THINKING_PREVIEW_LIMIT = 3;
 export const RESULT_HEADING = '✅ 最终结论';
@@ -35,7 +38,8 @@ export const AGENT_UI_STATUS = Object.freeze({
   completed: { id: 'completed', label: '✅ 已完成' },
   canceling: { id: 'canceling', label: '⏹ 正在终止' },
   canceled: { id: 'canceled', label: '⛔ 已终止' },
-  failed: { id: 'failed', label: '❌ 执行失败' }
+  failed: { id: 'failed', label: '❌ 执行失败' },
+  blocked: { id: 'blocked', label: '⏸ 等待补充 / 确认' }
 });
 
 const TOOL_SUMMARY = Object.freeze({
@@ -46,6 +50,7 @@ const TOOL_SUMMARY = Object.freeze({
   grep: '正在搜索代码',
   glob: '正在搜索代码',
   shell: '正在执行命令',
+  command: '正在执行命令',
   task: '正在启动子任务',
   websearch: '正在检索资料',
   webfetch: '正在读取网页',
@@ -70,7 +75,8 @@ const ALIAS = Object.freeze({
   failed: 'failed',
   失败: 'failed',
   已超时: 'failed',
-  被阻塞: 'failed'
+  blocked: 'blocked',
+  被阻塞: 'blocked'
 });
 
 export function getThinkingPreview(steps = [], limit = THINKING_PREVIEW_LIMIT) {
@@ -84,6 +90,7 @@ export function resolveAgentUiStatus({ status, transcript = [], finished = false
   if (finished || isTerminalUiStatus(aliased)) {
     if (aliased === 'canceled') return 'canceled';
     if (aliased === 'failed') return 'failed';
+    if (aliased === 'blocked') return 'blocked';
     if (aliased === 'completed') return 'completed';
     if (aliased === 'canceling') return 'canceling';
     return aliased && isTerminalUiStatus(aliased) ? aliased : 'completed';
@@ -103,13 +110,21 @@ export function buildAgentUIState({
   status = 'thinking',
   finished = false,
   expanded = false,
-  taskId = ''
+  taskId = '',
+  presentation = null
 } = {}) {
   const uiStatus = resolveAgentUiStatus({ status, transcript, finished });
-  const steps = collectThinkingSteps(transcript, { expanded });
+  // The last assistant text appears as the live update or final result, not
+  // twice in the work log. Earlier public commentary remains readable.
+  const lastAssistant = transcript.findLastIndex((item) => item.kind === 'assistant');
+  const lastText = String(transcript[lastAssistant]?.text ?? '').trim();
+  const omitLast = finished ? !presentation || presentation.summary.includes(lastText) : !expanded;
+  const activity = transcript.filter((block, index) => !omitLast || index !== lastAssistant);
+  const steps = collectThinkingSteps(activity, { expanded });
   const preview = getThinkingPreview(steps.map((step) => step.summary));
   return {
     taskId: String(taskId ?? ''),
+    presentation,
     status: uiStatus,
     label: AGENT_UI_STATUS[uiStatus].label,
     thinking: {
@@ -118,7 +133,7 @@ export function buildAgentUIState({
       expanded: Boolean(expanded),
       total: steps.length
     },
-    current: finished || uiStatus === 'canceling' ? '' : lastAssistantClip(transcript),
+    current: finished || expanded || uiStatus === 'canceling' ? '' : lastAssistantClip(transcript),
     result: finished && uiStatus !== 'canceled'
       ? buildResult({ uiStatus, transcript, footer, taskId })
       : null,
@@ -129,6 +144,13 @@ export function buildAgentUIState({
 }
 
 export function renderAgentUI(state) {
+  if (state.finished && state.presentation) {
+    return [
+      renderTaskPresentation(state.presentation, { expanded: state.thinking.expanded }),
+      renderThinkingSection(state),
+      state.taskId ? '对话 ID：`' + state.taskId + '`' : ''
+    ].filter(Boolean).join('\n\n');
+  }
   const parts = [];
   if (state.header) parts.push(state.header);
   if (shouldShowStatusLine(state)) parts.push(`**${state.label}**`);
@@ -142,7 +164,7 @@ export function renderAgentUI(state) {
   if (state.current) parts.push(state.current);
   if (state.finished && state.result) {
     const body = [state.result.content, state.footer].filter(Boolean).join('\n\n');
-    parts.push(`---\n**${RESULT_HEADING}**\n${body}`);
+    parts.push(`---\n**${state.status === 'completed' ? RESULT_HEADING : '本轮结果'}**\n${body}`);
     if (!state.footer) appendTaskMeta(parts, state, { running: false });
   } else {
     if (state.finished && state.footer) parts.push(`---\n${state.footer}`);
@@ -185,12 +207,12 @@ export function collectThinkingSteps(transcript = [], { expanded = false } = {})
       }
       continue;
     }
-    if (group.type === 'status' && group.text) {
-      lines.push({ summary: String(group.text), kind: 'status' });
+    if (['status', 'assistant'].includes(group.type) && group.text) {
+      lines.push({ summary: expanded ? group.text : clipHead(group.text, 240), kind: group.type });
       continue;
     }
     if (group.type === 'thinking') {
-      lines.push({ summary: summarizeThinking(group.text), kind: 'thinking' });
+      lines.push({ summary: '正在分析…', kind: 'thinking' });
     }
   }
   return lines;
@@ -205,15 +227,15 @@ export function buildProcessTree(transcript = []) {
         const name = String(tool?.name ?? '').trim() || 'tool';
         const last = groups[groups.length - 1];
         if (last?.type === 'tool' && last.name === name) {
-          last.items.push(tool.detail ?? '');
+          last.items.push(redactDisplayText(tool.detail ?? ''));
         } else {
-          groups.push({ type: 'tool', name, items: [tool.detail ?? ''] });
+          groups.push({ type: 'tool', name, items: [redactDisplayText(tool.detail ?? '')] });
         }
       }
       continue;
     }
-    if (block?.kind === 'status' && block.text) {
-      groups.push({ type: 'status', text: String(block.text) });
+    if (['status', 'assistant'].includes(block?.kind) && block.text) {
+      groups.push({ type: block.kind, text: redactDisplayText(block.text) });
       continue;
     }
     if (block?.kind === 'thinking') {
@@ -243,22 +265,13 @@ export function mergeText(previous, next) {
 }
 
 function renderThinkingSection(state) {
-  const { thinking, finished, status } = state;
+  const { thinking, status } = state;
   if (status === 'canceled') return renderCanceledSteps(thinking);
   if (!thinking.total) return '';
-  if (finished && !thinking.expanded) {
-    return [
-      '**⌛ 思考过程**',
-      `已完成 ${thinking.total} 个分析步骤`,
-      thinking.total > THINKING_PREVIEW_LIMIT ? `另有 ${thinking.total - THINKING_PREVIEW_LIMIT} 步，点下方「查看完整过程」` : ''
-    ].filter(Boolean).join('\n\n');
-  }
   const lines = thinking.expanded ? thinking.full.map((step) => step.summary) : thinking.preview;
   const hidden = thinking.expanded ? 0 : Math.max(0, thinking.total - THINKING_PREVIEW_LIMIT);
-  const title = finished || thinking.expanded
-    ? (thinking.total > THINKING_PREVIEW_LIMIT ? `**⌛ 思考过程** · ${thinking.total} 步` : '**⌛ 思考过程**')
-    : '';
-  const quoted = lines.map((line) => `> ${line}`);
+  const title = thinking.expanded ? '**工作记录**（最近一轮，最多 80 条；工具调用不代表验证通过）' : '**最近进展**';
+  const quoted = lines.map((line) => line.split('\n').map((part) => `> ${part}`).join('\n'));
   if (hidden > 0) quoted.push(`> 另有 ${hidden} 步，点下方「查看完整过程」`);
   return [title, ...quoted].filter(Boolean).join('\n');
 }
@@ -266,8 +279,8 @@ function renderThinkingSection(state) {
 function renderCanceledSteps(thinking) {
   if (!thinking.total) return '任务已被用户终止。';
   const done = getThinkingPreview(thinking.full.map((step) => step.summary), thinking.expanded ? thinking.total : 8)
-    .map((line) => `✓ ${line}`);
-  return ['任务已被用户终止。', '已完成：', ...done].join('\n');
+    .map((line) => `- ${line}`);
+  return ['任务已被用户终止。', '已记录活动（不代表完成）：', ...done].join('\n');
 }
 
 function buildResult({ uiStatus, transcript, footer, taskId }) {
@@ -322,27 +335,15 @@ function summarizeTool(name) {
   return TOOL_SUMMARY[key] || (name ? `正在使用 ${name}` : '正在执行工具');
 }
 
-function summarizeThinking(text) {
-  const value = String(text ?? '').replace(/\s+/g, ' ').trim();
-  if (isProgressSummary(value)) return clipHead(value, 48);
-  return '正在分析…';
-}
-
-function isProgressSummary(text) {
-  if (!text || text.length > 40) return false;
-  if (/我现在|考虑是不是|但是又/.test(text)) return false;
-  return /^(正在|已|分析|定位|读取|检查|生成|判断)/.test(text);
-}
-
 function lastAssistantClip(transcript) {
   const text = lastAssistantText(transcript);
-  return text ? clipHead(text, 80) : '';
+  return text ? clipSummary(text, 1000) : '';
 }
 
 function lastAssistantText(transcript = []) {
   for (let index = transcript.length - 1; index >= 0; index -= 1) {
     if (transcript[index]?.kind === 'assistant' && transcript[index].text) {
-      return String(transcript[index].text).trim();
+      return redactDisplayText(transcript[index].text).trim();
     }
   }
   return '';
@@ -366,7 +367,7 @@ function isStall(detail, footer) {
 }
 
 function isTerminalUiStatus(status) {
-  return status === 'completed' || status === 'canceled' || status === 'failed';
+  return status === 'completed' || status === 'canceled' || status === 'failed' || status === 'blocked';
 }
 
 function hasToolStep(transcript = []) {
@@ -383,5 +384,5 @@ function clipSummary(text, max) {
   const value = String(text ?? '').trim();
   if (!value) return '';
   if (value.length <= max) return value;
-  return `…${value.slice(-max)}`;
+  return `${value.slice(0, max)}…`;
 }

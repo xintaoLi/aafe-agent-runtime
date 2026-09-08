@@ -142,8 +142,25 @@ export async function resolveWeComAction(command, context, manager) {
   return { type: 'help' };
 }
 
+/** Short yes/no answers authorize only a unique, owned, waiting gate. */
+export async function resolvePendingGateReply(text, source, manager) {
+  if (!source.userId || !source.conversationId) return null;
+  if (!/^(?:是|同意|好的|好|可以|需要|yes|y|ok|okay|否|不同意|不用|不需要|先不要|跳过|no|n)[。.!！]?$/i.test(String(text ?? '').trim())) return null;
+  const { all, open } = await listConversationTasks(manager, source, { match: 'owner' });
+  const waiting = all.filter((task) => task.status === 'blocked'
+    && ['commit', 'pr', 'tapd_backfill'].includes(task.delivery?.pendingGate));
+  if (!waiting.length) return null;
+  const otherOpen = open.filter((task) => !waiting.includes(task));
+  if (waiting.length !== 1 || otherOpen.length) {
+    return { type: 'error', message: '有多个可能关联的任务，请明确回复「继续 <TaskID>：同意/跳过」，不会自动选择确认目标。\n'
+      + [...waiting, ...otherOpen].map((task) => formatTaskChoice(task, source)).join('\n') };
+  }
+  return { type: 'continue', taskId: waiting[0].id, message: String(text).trim(),
+    actorRole: 'owner', anchor: 'pending-gate', via: 'owner-pending-gate' };
+}
+
 async function createRequirementTask(requirement, context, manager, intent = null, providerHint = null) {
-  if (!intent && (providerHint ?? context.provider) === 'codex') intent = fastIntent(requirement);
+  if (!intent) intent = fastIntent(requirement);
   const workspace = resolveCreateWorkspace(context);
   const needsWorkspace = intent ? intent.needsCode !== false : true;
   const provider = providerHint ?? context.provider ?? 'cursor';
