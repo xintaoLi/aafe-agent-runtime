@@ -44,7 +44,7 @@ import { canAccessTask, canControlTask, listOpenTasks, listOwnerContinuable, res
 import { sessionKeyFromSource, sourceFromFrame } from './session.js';
 import { pickSmalltalkReply } from './smalltalk.js';
 import { fastIntent } from './understand.js';
-import { formatWorkspaceList } from './workspace.js';
+import { extractWorkspaceTargets, formatWorkspaceList } from './workspace.js';
 
 export const UNDERSTANDING_TEXT = '正在理解分析中…';
 export const REUSE_ANALYSIS_TEXT = '这是对上一轮结论的后续指令。请直接复用已有分析与上下文执行，不要重新从零分析，除非结论已过时或本次明确要求重做。';
@@ -184,19 +184,21 @@ export async function handleWeComMessage(frame, {
     const settled = await Promise.race([analysis, waitFor(intentAckGraceMs, PENDING)]);
     if (settled === PENDING) await stream.push(UNDERSTANDING_TEXT);
     command.intent = settled === PENDING ? await analysis : settled;
-    if (understanding && command.intent) await stream.push(formatIntentStage(command.intent));
     if (!['code', 'analysis', 'question', 'followup'].includes(command.intent?.kind)
       || !Number.isFinite(command.intent?.confidence)
       || command.intent.confidence > 1
       || command.intent.confidence < (config?.workflow?.intentConfidence ?? 0.7)
       || (command.intent.kind === 'code' && command.intent.needsCode === false)) {
-      const reply = '需要确认执行意图（ask）：你希望仅问答/分析，还是修改实现？请补充目标仓库、任务或预期结果；确认前不会执行。';
+      const reply = command.clarification
+        ? '已保留原请求和补充，但还缺一个明确的预期结果（ask）。请说明“要解决什么问题、做到什么程度”；已提供的 PR、仓库和附件无需重复发送。也可回复“仅分析，不修改”或“修改实现”。'
+        : '还需要确认这次要完成的具体结果（ask）：是仅分析原因，还是修改实现并验证？已提供的 PR、仓库和附件会保留，确认前不执行。';
       pending?.set(sessionKey, { type: 'need-intent',
         text: command.clarification?.request ?? command.text,
         feedback: command.clarification?.feedback ?? [], attachments, quote });
       await stream.push(reply, { finish: true });
       return { skipped: false, command, action: { type: 'clarify' }, intent: command.intent, reply };
     }
+    if (understanding && command.intent) await stream.push(formatIntentStage(command.intent));
 
     // A question that needs no repository is answered here and now. Spinning up
     // an agent, a branch and a task record to say one paragraph is theatre.
@@ -229,7 +231,10 @@ export async function handleWeComMessage(frame, {
     workspaces,
     attachments,
     models,
-    quote
+    quote,
+    requestTexts: command.clarification
+      ? [command.clarification.request, ...command.clarification.feedback]
+      : [command.text ?? command.requirement ?? '']
   }), manager);
 
   if (action.type === 'need-workspace') {
@@ -371,6 +376,7 @@ async function analyzeIntent(command, { understanding, manager, source, attachme
     needsCode: intent?.needsCode,
     confidence: intent?.confidence,
     intentSource: intent?.source,
+    intentBackend: understanding.backend ?? 'custom',
     reason: intent?.reason ?? null
   });
   return intent;
@@ -698,24 +704,30 @@ function bindPendingCommand(command, waiting) {
   }
   if (waiting?.type !== 'need-workspace') return command;
   if (CONTROL_TYPES.has(command.type)) return command;
+  if (command.type === 'create' || command.type === 'continue') return command;
   const text = command.target
     ?? command.text
     ?? command.requirement
     ?? '';
+  const targets = extractWorkspaceTargets(text);
+  if (targets.length > 1) return { type: 'error', message: '本条消息指定了多个目标仓库，请明确本次使用哪个仓库。' };
+  const target = targets[0] ?? text;
+  const clarification = { request: waiting.requirement, feedback: [text] };
   return {
     type: 'workspace-choice',
     text,
-    target: text,
-    requirement: waiting.requirement,
-    intent: waiting.intent ?? null,
+    target,
+    requirement: targets.length ? waiting.requirement + '\n用户补充：\n' + text : waiting.requirement,
+    intent: fastIntent(text, { clarification }) ?? waiting.intent ?? null,
     provider: waiting.provider ?? command.provider ?? null
   };
 }
 
-function buildActionContext({ source, config, workspaces, attachments = [], models = null, quote = null }) {
+function buildActionContext({ source, config, workspaces, attachments = [], models = null, quote = null, requestTexts = null }) {
   const sessionKey = sessionKeyFromSource(source);
   return {
     source,
+    requestTexts,
     repository: config?.repository ?? null,
     baseBranch: config?.baseBranch ?? 'main',
     botRoot: config?.root ?? process.cwd(),

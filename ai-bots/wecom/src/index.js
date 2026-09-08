@@ -240,6 +240,8 @@ export async function startWeComBot(options = {}) {
     logger.info?.(`wecom-log enabled dir=${logger.dir}`);
   }
   logger.event?.('bot.start', {
+    provider: config.agent?.provider ?? 'cursor',
+    intentBackend: understanding.backend ?? 'custom',
     wsUrl: config.wsUrl,
     workspace: config.currentWorkspace ?? null,
     logEnabled: Boolean(logger.enabled),

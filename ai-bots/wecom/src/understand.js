@@ -131,6 +131,36 @@ const LEAD = '(?:^|\\n)\\s*(?:https?:\\/\\/\\S+\\s+)?(?:请)?(?:帮我|帮忙|�
 const CODE_LEAD = new RegExp(`${LEAD}(?:修复|修一下|修好|修|改一下|改下|改成|改|实现|开发|重构|新增|加个|接入|上线|优化|支持|fix|implement|refactor)`, 'i');
 const ANALYSIS_LEAD = new RegExp(`${LEAD}(?:分析|排查|定位|评估|梳理|调研|总结|对比|看一下|看看|查一下|为什么|为何)`, 'i');
 
+/** Detect requested actions, not nouns such as "PR", "bug" or quoted code.
+ * An imperative later in a sentence can make "analyze, then fix" a code task;
+ * "analyze how to fix" is still analysis. Explicit read-only limits win.
+ */
+function requestedExecution(text) {
+  const prose = String(text ?? '')
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/"[^"]*"|'[^']*'/g, ' ')
+    .replace(/https?:\/\/\S+/g, ' ').trim();
+  if (/(?:仅|只)(?:做|进行)?(?:分析|排查|评估|审查|问答|读代码)/.test(prose)
+    || /(?:^|[，,；;。\n])\s*(?:暂时|目前)?(?:不要|不|禁止|先别|暂不)(?:直接)?(?:执行|修改(?:代码|文件)?|改动(?:代码)?|改代码|实现|开发)(?=$|[，,；;。/\s])/.test(prose)) {
+    return 'analysis';
+  }
+  const clauses = prose.split(/[，,；;。\n]+|(?:然后|并且|同时)|并(?=修复|修改|移除|删除|补充|更新)/);
+  const imperative = clauses.some((clause) => {
+    const body = clause.trim().replace(/^(?:\d+[、.)]\s*)?(?:(?:请|帮我|帮忙|麻烦|我希望|我需要|你来|直接|现在|立即|接着|再|随后|之后|先)\s*)*(?:根据\s*(?:这个|该)?\s*(?:PR|MR)\s*)?/i, '');
+    if (/[?？]|(?:吗|会怎样|有何影响|有什么影响|是否|是什么|如何|为什么|为何)/.test(body)
+      || /^(?:修复|修改|实现|重构|删除|移除)(?:方案|建议|思路|步骤|方法|计划)/.test(body)) return false;
+    return /^(?:修复|修好|修改|改成|改下|改一下|实现|开发|重构|新增|增加|添加|接入|移除|删除|去掉|补充(?:测试|单测))/.test(body)
+      || /^(?:处理|解决)\s*(?:(?:这个|该)?\s*(?:PR|MR)\s*(?:的)?)?冲突/i.test(body)
+      || /^更新\s*(?:这个|该|现有|已有)?\s*(?:PR|MR)\b/i.test(body)
+      || /^(?:把|将).+(?:移除|删除|去掉|删掉|改为|修改为|升级到|降级到)/.test(body)
+      || /^(?:fix|implement|refactor|remove|delete|resolve conflicts)\b/i.test(body);
+  });
+  if (imperative) return 'code';
+  if (CODE_HINT.test(prose) && /[?？]|(?:吗|如何|怎么|是什么|为什么|为何|是否)/.test(prose)) return 'analysis';
+  if (/^(?:请|帮我|麻烦|先)?\s*(?:分析|排查|定位|评估|梳理|审查|调研|总结|对比|看一下|看看|为什么|为何|analy[sz]e\b|review\b)/i.test(prose)) return 'analysis';
+  return null;
+}
+
 /**
  * The fast path exists because the model earns nothing on the traffic this bot
  * actually gets: TAPD pastes, explicit verbs, and additions to the one open
@@ -169,6 +199,19 @@ export function fastIntent(text, {
   // Routing confirms which task the quote actually points at.
   if (quote?.present && continuable && !isNewWork(body)) {
     return intent({ kind: 'followup', needsCode: false, summary: clip(body), confidence: 0.85, source: 'rules-fast' });
+  }
+  // Resolve the structured conversation in order, not the "previous request"
+  // wrapper or only a fixed literal such as "修改实现". Path-only feedback
+  // carries forward the last actual execution choice.
+  const turns = clarification
+    ? [clarification.request, ...(clarification.feedback ?? []), body] : [body];
+  for (const turn of turns.slice().reverse()) {
+    const choice = requestedExecution(turn);
+    if (!choice) continue;
+    return intent({ kind: choice,
+      needsCode: choice === 'code' || attachments.length > 0
+        || REPOSITORY_HINT.test(turn) || !GENERAL_ANALYSIS.test(turn),
+      summary: clip(turn), confidence: 0.95, source: 'rules-fast' });
   }
   // A TAPD story or a bracketed defect title is always code work.
   if (isNewWork(body) && !ANALYSIS_LEAD.test(body)) {

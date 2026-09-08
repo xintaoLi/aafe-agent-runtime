@@ -37,6 +37,17 @@
 
 ## 公共接入与启动
 
+### 自然语言请求与澄清
+
+- “分析 PR，处理冲突，移除依赖”包含明确修改动作，按开发任务执行；“分析如何处理冲突”“仅分析，不修改”仍是只读分析。PR、bug 等名词本身不是修改授权。
+- 澄清按原请求与最近反馈共同解析，最新明确的执行限制优先。补充仓库路径不会丢失原 PR、依赖清单或此前“仅分析”的限制，不要求重复套用固定句式。
+- 支持在正文或补充中使用 `目标仓库：/path/to/repo，后续要求`；明确目标优先于默认仓库。多个明确目标会要求选择。未指定且没有当前仓库时，只询问仓库，不重新询问已经明确的执行意图。
+- 只清理开头独立的 @提及，保留 `@scope/package`、邮箱与 Git SSH 地址。PR 冲突处理请求中的依赖名称会原样交给 Agent。
+- Codex 执行后端与意图分类后端是两回事：未配置独立 `intent.endpoint/model` 时，Codex 模式的分类后端是本地规则，不会偷偷调用 Cursor。明确动作走确定性规则；真正无法识别的请求仍 ask，不通过降低阈值让不明确任务自动执行。
+- 启动日志 `bot.start.intentBackend` 和分类日志 `intent.resolved.intentBackend` 标明实际分类后端，便于区分规则未命中与模型调用失败。澄清记录目前保存在内存，服务重启后需重发原请求。
+
+自然语言链路回归：`node scripts/test-wecom-intent-regression.js`（项目根执行）。包含原始 PR 多意图请求、旧版待澄清会话、自然语言仓库补充、只读限制和 @依赖保真；不会操作测试中引用的真实 PR。
+
 在 `ai-bots/wecom` 下安装依赖，复制 `wecom.local.json.example` 为 `wecom.local.json`，然后运行 `npm start`。
 
 首次使用还需在项目根安装依赖（包含 Cursor SDK），再在本目录安装企微 SDK。准备好企微智能机器人的长连接 Bot ID 和 Secret，由服务环境注入 `WECOM_BOT_ID`、`WECOM_BOT_SECRET`，或填写本地 JSON 的 `botId`、`secret`。下面的 JSON 示例均假设这两个凭证已从服务环境注入。

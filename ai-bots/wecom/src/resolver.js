@@ -29,6 +29,7 @@ import { pickSmalltalkReply } from './smalltalk.js';
 import { fastIntent } from './understand.js';
 import {
   classifyWorkspaceTarget,
+  extractWorkspaceTargets,
   formatWorkspaceList,
   formatWorkspacePrompt,
   toTaskWorkspace
@@ -161,7 +162,18 @@ export async function resolvePendingGateReply(text, source, manager) {
 
 async function createRequirementTask(requirement, context, manager, intent = null, providerHint = null) {
   if (!intent) intent = fastIntent(requirement);
-  const workspace = resolveCreateWorkspace(context);
+  let workspace = resolveCreateWorkspace(context);
+  if (!context.workspaceSelected) {
+    for (const text of (context.requestTexts ?? [requirement]).slice().reverse()) {
+      const targets = extractWorkspaceTargets(text);
+      if (!targets.length) continue;
+      if (targets.length > 1) return { type: 'error', message: '本条消息指定了多个目标仓库，请明确本次使用哪个仓库。' };
+      const selected = resolveChoice({ target: targets[0] }, context);
+      if (selected.type === 'error') return selected;
+      workspace = selected.workspace;
+      break;
+    }
+  }
   const needsWorkspace = intent ? intent.needsCode !== false : true;
   const provider = providerHint ?? context.provider ?? 'cursor';
   if (!workspace && context.requireWorkspace && needsWorkspace) {
@@ -170,7 +182,8 @@ async function createRequirementTask(requirement, context, manager, intent = nul
       requirement,
       intent,
       provider,
-      message: formatWorkspacePrompt(context.botRoot ?? process.cwd(), context.workspaces ?? [])
+      message: (intent?.kind === 'analysis' ? '已明确仅分析，只需补充执行仓库。\n' : '已明确需要修改实现，只需补充执行仓库。\n')
+        + formatWorkspacePrompt(context.botRoot ?? process.cwd(), context.workspaces ?? [])
     };
   }
   const botRoot = context.botRoot ?? process.cwd();
@@ -235,6 +248,7 @@ async function chooseWorkspaceAndCreate(command, context, manager) {
   return createRequirementTask(command.requirement, {
     ...context,
     workspace: selected.workspace,
+    workspaceSelected: true,
     requireWorkspace: false
   }, manager, command.intent ?? null, command.provider);
 }

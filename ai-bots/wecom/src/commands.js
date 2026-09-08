@@ -23,7 +23,9 @@ const PREFIX = /^(?:@?AAFE[:：]?\s+)/i;
 
 export function stripMentions(text) {
   return String(text ?? '')
-    .replace(/@[^\s@]+/g, ' ')
+    // Only leading, standalone mentions are addressing the bot. Scoped npm
+    // names, email addresses and git@ remotes are part of the requirement.
+    .replace(/^\s*(?:@[\p{L}\p{N}_.-]+\s+)+/u, '')
     .replace(/\s+/g, ' ')
     .trim();
 }

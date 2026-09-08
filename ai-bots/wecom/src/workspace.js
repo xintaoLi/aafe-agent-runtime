@@ -126,6 +126,17 @@ export function classifyWorkspaceTarget(raw, root) {
   return { kind: 'unknown' };
 }
 
+/** Explicit labels only: file paths and PR URLs elsewhere are not a checkout. */
+export function extractWorkspaceTargets(text) {
+  const targets = [];
+  const pattern = /(?:目标仓库|仓库路径|仓库目录|目标工作区|工作区|仓库)\s*[:：]\s*(?:"([^"]+)"|'([^']+)'|`([^`]+)`|([^\s，,；;。]+))/g;
+  for (const match of String(text ?? '').matchAll(pattern)) {
+    const target = (match[1] ?? match[2] ?? match[3] ?? match[4]).trim();
+    if (target && !targets.includes(target)) targets.push(target);
+  }
+  return targets;
+}
+
 export async function assertLocalWorkspace(cwd) {
   const resolved = path.resolve(cwd);
   await access(resolved);
