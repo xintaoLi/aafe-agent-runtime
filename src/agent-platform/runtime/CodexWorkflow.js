@@ -96,7 +96,8 @@ export async function resolveCodexWorkflow(task, context, lease, { enabled = tru
     enabled: enabled !== false && !readOnly, readOnly, mode, submitCli: resolveSubmitConfig(config).cli,
     configRoot, skillRoot, documents, ownerMessages, tapd,
     taskId: task.id, repoPrCommand: [process.execPath, fileURLToPath(new URL('../../../bin/aafe.js', import.meta.url)), 'repo', 'pr'],
-    ready: required.every((name) => documents.some((doc) => doc.file.endsWith('/skills/' + name))),
+    ready: required.every((name) => documents.some((doc) =>
+      doc.file.replaceAll('\\', '/').endsWith('/skills/' + name))),
     repoMeta: { reviewers: config.repo?.reviewers ?? [], labels: config.repo?.labels ?? [] },
     pendingGate: task.delivery?.pendingGate ?? null, initialHead, policyHash,
     policyUnchanged: task.delivery?.policyHash === policyHash,
