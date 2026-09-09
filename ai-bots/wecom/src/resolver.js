@@ -87,6 +87,16 @@ export async function resolveWeComAction(command, context, manager) {
     if (!task || !canAccessTask(task, source)) {
       return { type: 'error', message: `找不到任务 ${command.taskId}` };
     }
+    const targets = extractWorkspaceTargets(command.message);
+    if (targets.length > 1) return { type: 'error', message: '本条补充指定了多个目标仓库，请明确本次使用哪个仓库。' };
+    if (targets.length) {
+      const selected = resolveChoice({ target: targets[0] }, context);
+      if (selected.type === 'error') return selected;
+      const requested = toTaskWorkspace(selected.workspace, context.botRoot ?? process.cwd());
+      if (!task.workspace || requested.cwd !== task.workspace.cwd || requested.repository !== (task.workspace.repository ?? null)) {
+        return { type: 'error', message: '补充中的仓库与原任务不一致，不会切换原任务的工作区。请明确原任务，或发送“做：新需求”另建任务。' };
+      }
+    }
     // An explicit `继续 <TaskID>` arrives without anchor metadata, so ownership
     // is settled here: in a group that is how a third party joins as a
     // participant rather than silently becoming the task's author.

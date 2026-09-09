@@ -208,6 +208,12 @@ export function fastIntent(text, {
   for (const turn of turns.slice().reverse()) {
     const choice = requestedExecution(turn);
     if (!choice) continue;
+    if (!clarification && choice === 'code' && continuable
+      && /^(?:目标仓库|仓库路径|仓库目录|根据\s*(?:这个|该)?\s*(?:PR|MR)|直接修改[：:])/i.test(body)
+      && !/新需求|另一个/.test(body)) {
+      return intent({ kind: 'followup', needsCode: false, summary: clip(body),
+        confidence: 0.95, source: 'rules-fast', action: 'apply' });
+    }
     return intent({ kind: choice,
       needsCode: choice === 'code' || attachments.length > 0
         || REPOSITORY_HINT.test(turn) || !GENERAL_ANALYSIS.test(turn),

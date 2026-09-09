@@ -33,14 +33,15 @@ const feedback = '目标仓库：' + repo + '，\n根据PR 处理冲突，更新
 const direct = '直接修改：\n' + feedback;
 const frame = { body: { chattype: 'single', from: { userid: 'intent-test' } } };
 function fixture({ configured = true, analyzer } = {}) {
-  const tasks = [], started = [], pending = createPendingStore(), replies = [];
+  const tasks = [], started = [], continued = [], pending = createPendingStore(), replies = [];
   const config = { root: '/tmp/aafe-bot', agent: { provider: 'codex' },
     workflow: { mode: 'auto', intentConfidence: 0.7 },
     workspaces: configured ? [{ id: 'log-web', cwd: repo }] : [] };
   const manager = {
     async list() { return tasks; }, async get(id) { return tasks.find((task) => task.id === id) ?? null; },
-    async create(input) { const task = { ...input, status: 'created' }; tasks.push(task); return task; },
-    async start(id) { started.push(id); }, async continue() { throw new Error('unrelated task must not be resumed'); }
+    async create(input) { const task = { ...input, status: 'created', updatedAt: new Date().toISOString() }; tasks.push(task); return task; },
+    async start(id) { started.push(id); },
+    async continue(id, message) { continued.push({ id, message }); }
   };
   let sequence = 0;
   const understanding = analyzer ?? createIntentAnalyzer({ settings: {}, env: {},
@@ -51,7 +52,7 @@ function fixture({ configured = true, analyzer } = {}) {
     { manager, pending, config, workspaces: createWorkspaceStore(config), understanding,
       replyAck: async (_frame, text) => { replies.push(text); return 'stream-fixture'; },
       replyProgress: async () => {}, logger: { event() {}, error() {} } });
-  return { tasks, started, pending, replies, send };
+  return { tasks, started, continued, pending, replies, send };
 }
 const parsed = parseWeComCommand(request);
 assert.match(parsed.text, /@biomejs\/biome/);
@@ -82,6 +83,13 @@ assert.equal(ready.tasks[0].provider, 'codex');
 assert.equal(ready.tasks[0].workspace.cwd, repo);
 assert.match(ready.tasks[0].requirement, /@biomejs\/biome/);
 assert.equal(ready.started.length, 1);
+assert.equal((await ready.send(feedback)).action.type, 'continue');
+assert.equal((await ready.send(direct)).action.type, 'continue');
+assert.equal(ready.tasks.length, 1, 'the three-turn conversation must not create duplicate PR tasks');
+assert.equal(ready.continued.length, 2);
+assert.ok(ready.continued.every((item) => item.id === ready.tasks[0].id));
+assert.equal((await ready.send('直接修改：目标仓库：/tmp/different-project')).action.type, 'error');
+assert.equal(ready.continued.length, 2, 'a follow-up must not silently switch the task checkout');
 
 // Replay an already pending conversation from the older broken router.
 for (const answer of [feedback, direct]) {
