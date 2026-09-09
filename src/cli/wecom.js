@@ -18,9 +18,26 @@
  * IN THE SOFTWARE.
  */
 
-import { loadWeComBotConfig, startWeComBot } from '../../ai-bots/wecom/src/index.js';
-import { createModelRouter, validateModelRules } from '../../ai-bots/wecom/src/models.js';
-import { INTENT_KINDS } from '../../ai-bots/wecom/src/understand.js';
+import { access } from 'node:fs/promises';
+
+// The default npm package intentionally excludes the separately installed Bot.
+// Keep even importing this CLI adapter safe without any ai-bots files.
+async function loadWeComModules() {
+  const entry = new URL('../../ai-bots/wecom/src/index.js', import.meta.url);
+  try {
+    await access(entry);
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+    throw new Error('wecom-not-installed: 默认 AAFE CLI 不包含企微 Bot。请在 AAFE 源码的 ai-bots/wecom 目录独立安装依赖，再通过源码 CLI 执行 bot start --wecom（或在该目录 npm start）；普通 CLI 命令无需安装 Bot。');
+  }
+  // Do not hide missing dependencies *inside* an installed Bot as not installed.
+  const [bot, models, understanding] = await Promise.all([
+    import(entry.href),
+    import('../../ai-bots/wecom/src/models.js'),
+    import('../../ai-bots/wecom/src/understand.js')
+  ]);
+  return { ...bot, ...models, INTENT_KINDS: understanding.INTENT_KINDS };
+}
 
 /**
  * Thin resident entry. Unlike `aafe task`, this process keeps TaskManager open
@@ -33,6 +50,7 @@ export async function runWeComCommand(root, args = []) {
     process.exitCode = code;
     return;
   }
+  const { startWeComBot } = await loadWeComModules();
   await startWeComBot({
     root: options.root ?? root,
     recoverOnStart: options.recoverOnStart,
@@ -64,11 +82,12 @@ export async function checkWeComModels(root, {
   config: localConfigPath = null,
   offline = false,
   probes = [],
-  loadConfig = loadWeComBotConfig,
+  loadConfig = null,
   listModels = loadCursorModelIds,
   out = console
 } = {}) {
-  const config = await loadConfig({ root, localConfigPath });
+  const { loadWeComBotConfig, createModelRouter, validateModelRules, INTENT_KINDS } = await loadWeComModules();
+  const config = await (loadConfig ?? loadWeComBotConfig)({ root, localConfigPath });
   if (config.agent?.provider === 'codex') {
     out.log(`当前引擎：Codex；模型：${config.codex?.model ?? 'CLI 默认'}。跳过 Cursor 模型接口与路由规则校验。`);
     return 0;

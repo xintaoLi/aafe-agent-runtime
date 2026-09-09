@@ -2,6 +2,8 @@
 
 企微是 AAFE 的会话入口。长连接接收文本、引用和媒体消息，经规则与意图分类后直接回答，或交给 TaskManager 异步执行。一个 Bot 应只运行一个常驻进程。
 
+本目录是独立可选服务，不随 `@aafe/agent-runtime` 默认 npm 包发布。普通 CLI 安装及 `aafe update` 不需要加载或安装 WeCom。以下 Bot 启动命令需在包含本目录的 AAFE 源码中使用，默认 npm 安装包不会自动下载 Bot。
+
 ## 消息展示与反馈交互
 
 企微使用流式 Markdown 展示内容、模板卡片提供操作，不能原样嵌入 Agent 客户端的工具面板或文件 Diff。两种引擎共用展示协议，不交叉调用执行后端。
@@ -57,7 +59,21 @@
 
 本地配置至少需要 `botId`、`secret`。默认 Cursor 后端还需要 `apiKey`；环境变量 `WECOM_BOT_ID`、`WECOM_BOT_SECRET`、`CURSOR_API_KEY` 优先。不要提交凭证文件。
 
-也可运行 `aafe wecom --root=/path/to/project --config=/path/to/wecom.local.json`。选定本地目录使用 local runtime，远程 repository 使用 Cursor Cloud。无选定仓库时，仓库分析和代码修改都会询问目标，不默认分析 Bot 自己的代码。
+统一显式启动入口为：
+
+```bash
+aafe bot start --wecom --root=/path/to/project --config=/path/to/wecom.local.json
+```
+
+若 `aafe` 指向默认 npm 安装包，请改用源码入口（并先安装本目录依赖）：
+
+```bash
+node /path/to/aafe-agent-runtime/bin/aafe.js bot start --wecom --root=/path/to/project --config=/path/to/wecom.local.json
+```
+
+`npm start` 和 `npm run dev` 已使用这个统一入口。命令在前台常驻，Ctrl+C 停止；`--no-recover` 禁止启动时恢复任务。`aafe bot --help` 查看用法；必须明确选择 Bot，不默认启动任何 Bot。旧 `aafe wecom` 命令保留兼容。默认 `aafe update` 仅更新 CLI / Runtime，不安装、更新或启动 Bot；Bot 源码及依赖独立维护。后续新增 Bot 在 CLI 的适配器注册表中接入，不增加普通 CLI 的启动依赖。
+
+选定本地目录使用 local runtime，远程 repository 使用 Cursor Cloud。无选定仓库时，仓库分析和代码修改都会询问目标，不默认分析 Bot 自己的代码。
 
 ## 配置分组与兼容性
 

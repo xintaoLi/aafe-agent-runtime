@@ -57,6 +57,8 @@ AAFE 默认只做编排、分析和上下文交付；启用 Cursor developer exe
 
 在目标前端项目根目录执行：
 
+默认 npm 安装仅提供 AAFE CLI / Runtime，发布包不包含 `ai-bots/wecom`，也不安装企微 Bot SDK。`init`、`update`、`doctor` 等普通命令不加载 WeCom；默认 `update` 不安装、启动或更新 Bot。Bot 统一使用 `aafe bot start --wecom` 显式启动，后续其他 Bot 通过独立适配器扩展。企微 Bot 需在 AAFE 源码的 `ai-bots/wecom` 目录另行安装依赖；默认 npm 安装包执行启动命令会提示未安装，不自动下载 Bot。旧命令 `aafe wecom` 保留兼容。
+
 ```bash
 npm install --save-dev @aafe/agent-runtime
 npx aafe init --yes \

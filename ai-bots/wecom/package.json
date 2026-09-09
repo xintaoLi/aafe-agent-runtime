@@ -14,8 +14,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "start": "node ../../bin/aafe.js wecom --root=../..",
-    "dev": "WECOM_LOG=1 WECOM_LOG_LEVEL=debug node --watch ../../bin/aafe.js wecom --root=../..",
+    "start": "node ../../bin/aafe.js bot start --wecom --root=../..",
+    "dev": "WECOM_LOG=1 WECOM_LOG_LEVEL=debug node --watch ../../bin/aafe.js bot start --wecom --root=../..",
     "check:models": "node ../../bin/aafe.js wecom --check-models --root=../.."
   },
   "dependencies": {

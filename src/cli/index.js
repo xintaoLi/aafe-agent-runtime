@@ -30,7 +30,6 @@ import {
 import { runRepoPrCommand } from './repoSubmit.js';
 import { runTaskCommand } from './tasks.js';
 import { runSDDCommand } from './sdd.js';
-import { runWeComCommand } from './wecom.js';
 
 export async function runCli(argv) {
   const command = argv[2] ?? 'help';
@@ -188,7 +187,14 @@ export async function runCli(argv) {
     return;
   }
 
+  if (command === 'bot') {
+    const { runBotCommand } = await import('./bot.js');
+    await runBotCommand(process.cwd(), argv.slice(3));
+    return;
+  }
+
   if (command === 'wecom') {
+    const { runWeComCommand } = await import('./wecom.js');
     await runWeComCommand(process.cwd(), argv.slice(3));
     return;
   }
@@ -412,7 +418,8 @@ Agent platform (context / impact / plan / run):
   aafe diagnose --failure=<report.json|log.txt> [--diff[=<ref>]]
   aafe task create --requirement="..." --repository=<url> [--base-branch=main] [--no-run]
   aafe task list | status <taskId> | continue <taskId> "<message>" | cancel <taskId> | recover
-  aafe wecom [--root=<path>] [--config=<file>] [--no-recover]  Resident WeCom long-connection bot (does not close TaskManager)
+  aafe bot start --wecom [--root=<path>] [--config=<file>] [--no-recover]  Start an optional Bot (source checkout only)
+  aafe wecom [...]             Compatibility alias for bot start --wecom
   aafe sdd create [--task-id=<id>|--requirement="..."] [--change=<id>] [--slug=<slug>]
   aafe sdd status|propose|spec|design|tasks|validate|approve|apply-context|trace|revisions|verify|sync|archive <taskId>
   aafe pipeline "<task>"           Legacy skill pipeline (alias: aafe run --legacy)
