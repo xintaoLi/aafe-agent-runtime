@@ -80,6 +80,7 @@ export class TaskManager {
       onEvent: (event) => this.#publish(event)
     });
     this.followUpChain = new Map();
+    this.cancellations = new Map();
   }
 
   async create(input = {}) {
@@ -162,6 +163,13 @@ export class TaskManager {
       }
     }
 
+    // A cancellation belongs to the previous attempt. Let its cleanup finish
+    // before starting another run, then discard the retained terminal marker.
+    const cancellation = this.cancellations.get(taskId);
+    if (cancellation) {
+      await cancellation.promise;
+      if (this.cancellations.get(taskId) === cancellation) this.cancellations.delete(taskId);
+    }
     await this.store.transition(taskId, 'queued');
     const execution = this.scheduler.schedule(taskId, () => this.#execute(taskId, options));
     options.onScheduled?.();
@@ -173,25 +181,65 @@ export class TaskManager {
   }
 
   async cancel(taskId) {
-    let task = await this.#require(taskId);
-    const queued = this.scheduler.cancelQueued(taskId);
-    let runtime = { cancelled: false, reason: 'not-running' };
-    if (!queued && task.status === 'running') {
-      runtime = await this.#runtimeFor(task).cancel(task, {
-        ...this.runtimeOptions,
-        ...runtimeOptionsFromWorkspace(task)
-      });
-      if (runtime?.cancelled === false) throw new Error(`task-cancel-not-confirmed:${runtime.reason ?? taskId}`);
+    const existing = this.cancellations.get(taskId);
+    if (existing) return existing.result;
+
+    let settleCancellation;
+    const cancellation = {
+      promise: new Promise((resolve) => { settleCancellation = resolve; }),
+      resolve: settleCancellation,
+      pending: true
+    };
+    this.cancellations.set(taskId, cancellation);
+    // Callers share the task/error result; start and finish use the boolean
+    // barrier to coordinate cleanup without turning cancellation errors into
+    // unhandled rejections in those observers.
+    cancellation.result = this.#cancel(taskId, cancellation);
+    return cancellation.result;
+  }
+
+  async #cancel(taskId, cancellation) {
+    let confirmed = false;
+    try {
+      let task = await this.#require(taskId);
+      if (isTerminalTaskStatus(task.status)) {
+        cancellation.resolve(false);
+        return task;
+      }
+      const queued = this.scheduler.cancelQueued(taskId);
+      let runtime = { cancelled: false, reason: 'not-running' };
+      if (!queued && task.status === 'running') {
+        runtime = await this.#runtimeFor(task).cancel(task, {
+          ...this.runtimeOptions,
+          ...runtimeOptionsFromWorkspace(task)
+        });
+        if (runtime?.cancelled === false) throw new Error(`task-cancel-not-confirmed:${runtime.reason ?? taskId}`);
+      }
+      task = await this.#require(taskId);
+      if (!isTerminalTaskStatus(task.status)) {
+        task = await this.store.transition(taskId, 'cancelled', {
+          event: { queued, runtime }
+        });
+      }
+      await this.#closeRuntime(taskId, task);
+      this.#publish({ type: 'task.cancelled', taskId, queued, runtime });
+      confirmed = true;
+      cancellation.resolve(true);
+      return task;
+    } catch (error) {
+      cancellation.resolve(false);
+      throw error;
+    } finally {
+      cancellation.pending = false;
+      if (!confirmed) {
+        if (this.cancellations.get(taskId) === cancellation) this.cancellations.delete(taskId);
+      } else {
+        const timer = setTimeout(() => {
+          if (this.cancellations.get(taskId) === cancellation) this.cancellations.delete(taskId);
+        }, 60_000);
+        timer.unref?.();
+      }
     }
-    task = await this.#require(taskId);
-    if (!isTerminalTaskStatus(task.status)) {
-      task = await this.store.transition(taskId, 'cancelled', {
-        event: { queued, runtime }
-      });
-    }
-    await this.#closeRuntime(taskId, task);
-    this.#publish({ type: 'task.cancelled', taskId, queued, runtime });
-    return task;
   }
 
   /**
@@ -585,6 +633,18 @@ export class TaskManager {
       eventType: `task.${provider}.result`,
       eventPayload: result
     });
+
+    const cancellation = this.cancellations.get(taskId);
+    if (cancellation && await cancellation.promise) {
+      if (this.cancellations.get(taskId) === cancellation) this.cancellations.delete(taskId);
+      const cancelled = await this.#require(taskId);
+      await this.#closeRuntime(taskId, cancelled);
+      return cancelled;
+    }
+    if (task.status === 'cancelled') {
+      await this.#closeRuntime(taskId, task);
+      return task;
+    }
 
     const context = await this.store.getContext(taskId);
     const pending = context.pendingFollowUps ?? [];

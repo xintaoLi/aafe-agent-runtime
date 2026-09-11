@@ -27,6 +27,7 @@ import { buildTaskCard } from './cards.js';
 import { splitWeComMarkdown } from './markdown.js';
 
 const NOTIFY_EVENTS = new Set(['task.finished', 'task.failed', 'task.cancelled', 'task.blocked']);
+const TERMINAL_DEDUP_MS = 10_000;
 
 export function createRateLimiter({ maxPerMinute = 30, now = () => Date.now() } = {}) {
   const buckets = new Map();
@@ -59,9 +60,9 @@ export function formatTaskFooter(taskId, { running = false } = {}) {
   const id = String(taskId ?? '').trim();
   if (!id) return '';
   const lines = [`对话 ID：\`${id}\``];
-  // Stream markdown cannot host a callback. The clickable controls are the
-  // template-card buttons under the message; the typed command is the fallback
-  // when the combined stream+card frame was rejected.
+  // Stream markdown cannot host a callback. The clickable controls are sent in
+  // a standalone template card below it; the typed command remains available
+  // if that card cannot be delivered.
   if (running) {
     lines.push(`展开或停止请点消息下方按钮；也可发送 \`终止 ${id}\``);
   }
@@ -100,10 +101,44 @@ export function attachWeComNotifier({
   logger = console
 } = {}) {
   if (!manager?.subscribe) return () => {};
+  const terminalDeliveries = new Map();
   return manager.subscribe(async (event) => {
+    // Reset synchronously, before task lookup can yield to another event. A
+    // queued attempt may not have a provider run id yet (or ever, if it fails).
+    if (event?.type === 'scheduler.queued') terminalDeliveries.delete(event.taskId);
+    let deliveries;
+    if (NOTIFY_EVENTS.has(event?.type) && event?.taskId) {
+      deliveries = terminalDeliveries.get(event.taskId);
+      if (!deliveries) {
+        deliveries = new Map();
+        terminalDeliveries.set(event.taskId, deliveries);
+      }
+    }
     let task = event?.task ?? null;
     if (!task && event?.taskId && manager.get) {
       try { task = await manager.get(event.taskId); } catch { /* notify must not throw */ }
+    }
+    if (deliveries) {
+      const status = task?.status ?? event.status ?? event.type;
+      const provider = task?.[task.provider ?? 'cursor'];
+      const runId = event.result?.runId ?? event.result?.execution?.runId
+        ?? provider?.activeRunId ?? provider?.runs?.at(-1)?.runId
+        ?? task?.checkpoint?.runId ?? task?.result?.runId ?? task?.result?.execution?.runId ?? '';
+      const key = JSON.stringify([runId, status]);
+      const ts = Date.now();
+      const previous = deliveries.get(key);
+      if (previous !== undefined && ts - previous < TERMINAL_DEDUP_MS) {
+        logger.event?.('notify.skip', { taskId: event.taskId, type: event.type, reason: 'duplicate-terminal' });
+        return;
+      }
+      deliveries.set(key, ts);
+      const timer = setTimeout(() => {
+        if (deliveries.get(key) === ts) deliveries.delete(key);
+        if (!deliveries.size && terminalDeliveries.get(event.taskId) === deliveries) {
+          terminalDeliveries.delete(event.taskId);
+        }
+      }, TERMINAL_DEDUP_MS);
+      timer.unref?.();
     }
     if (progress && event?.taskId && (task?.source?.type === 'wecom' || progress.has?.(event.taskId))) {
       try {

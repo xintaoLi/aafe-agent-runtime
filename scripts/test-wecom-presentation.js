@@ -106,11 +106,17 @@ assert.match(hub.renderProcess(task.id), /5 passed/);
 assert.match(hub.renderProcess(task.id), /需要你反馈/);
 assert.equal(cards.length, 1);
 assert.deepEqual(cards[0].button_list.map((button) => button.key), [
-  'status:' + task.id, 'process:' + task.id, 'feedback:' + task.id
+  'process:' + task.id, 'feedback:' + task.id
 ]);
+assert.deepEqual(cards[0].source, { desc: '任务', desc_color: 0 });
+assert.deepEqual(cards[0].action_menu, {
+  desc: '更多操作',
+  action_list: [{ text: '查看状态', key: 'status:' + task.id }]
+});
 for (const status of ['completed', 'failed', 'cancelled']) {
   const card = buildTaskCard({ ...task, status });
-  assert.equal(card.button_list.length, 2);
+  assert.equal(card.button_list.length, 1);
+  assert.equal(card.action_menu.action_list[0].key, 'status:' + task.id);
   assert.doesNotMatch(card.main_title.title, /执行中/);
 }
 await hub.close();

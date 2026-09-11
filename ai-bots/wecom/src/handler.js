@@ -259,12 +259,8 @@ export async function handleWeComMessage(frame, {
   ) : null;
   // The live view appends the footer itself, so the header it reuses stays clean.
   const ack = withTaskFooter(reply, action.task);
-  // WeCom accepts a card only on the frame that opens the stream. Classification
-  // may have already opened it, so a later combo attach can miss; then the
-  // buttons go out as a standalone card instead of fake markdown.
   const streamId = await stream.push(ack, {
-    finish: !keepOpen,
-    card: taskCard
+    finish: !keepOpen
   });
   if (pickerCard) {
     try {
@@ -273,7 +269,7 @@ export async function handleWeComMessage(frame, {
       logger.error?.(`wecom-reply-card-failed:${describeWeComError(error)}`);
     }
   }
-  if (taskCard && !stream.cardAttached) {
+  if (taskCard) {
     try {
       await replyCard?.(frame, taskCard);
     } catch (error) {
@@ -423,25 +419,19 @@ async function smalltalkReply(command, { manager, source, random, logger }) {
  */
 function createReplyStream({ frame, replyAck, replyProgress, logger = console }) {
   let streamId = null;
-  let cardAttached = false;
   return {
     get id() {
       return streamId;
     },
-    get cardAttached() {
-      return cardAttached;
-    },
-    async push(content, { finish = false, card = null } = {}) {
+    async push(content, { finish = false } = {}) {
       if (!streamId) {
-        const ack = unwrapStreamAck(await replyAck?.(frame, content, { finish, card }));
+        const ack = unwrapStreamAck(await replyAck?.(frame, content, { finish }));
         streamId = ack.streamId;
-        if (ack.cardAttached) cardAttached = true;
         return streamId;
       }
       if (!replyProgress) return streamId;
       try {
-        const result = await replyProgress(frame, streamId, content, finish, { blocking: true, card });
-        if (result?.cardAttached) cardAttached = true;
+        await replyProgress(frame, streamId, content, finish, { blocking: true });
       } catch (error) {
         logger.error?.(`wecom-stream-update-failed:${describeWeComError(error)}`);
       }
@@ -451,11 +441,10 @@ function createReplyStream({ frame, replyAck, replyProgress, logger = console })
 }
 
 function unwrapStreamAck(result) {
-  if (!result) return { streamId: null, cardAttached: false };
-  if (typeof result === 'string') return { streamId: result, cardAttached: false };
+  if (!result) return { streamId: null };
+  if (typeof result === 'string') return { streamId: result };
   return {
-    streamId: result.streamId ?? result.id ?? null,
-    cardAttached: Boolean(result.cardAttached)
+    streamId: result.streamId ?? result.id ?? null
   };
 }
 

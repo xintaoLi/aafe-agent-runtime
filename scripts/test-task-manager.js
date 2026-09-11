@@ -384,6 +384,308 @@ try {
   assert.ok((await manager.events('managed-a')).some((event) => event.type === 'task.cursor.bound'));
   await manager.close();
 
+  // Cancelling a live run and receiving its cancelled runtime result happen
+  // concurrently. Cancellation owns that terminal transition and notification;
+  // the run finisher must not publish a second task.finished event.
+  const cancelRaceRoot = path.join(fixture, 'cancel-race');
+  let releaseCancelledRun;
+  let announceCancelledRun;
+  const cancelledRunStarted = new Promise((resolve) => { announceCancelledRun = resolve; });
+  const cancelRaceEvents = [];
+  let cancelRaceRuns = 0;
+  let cancelRaceCalls = 0;
+  const cancelRaceManager = new TaskManager({
+    root: cancelRaceRoot,
+    runtime: {
+      async run(task) {
+        if (++cancelRaceRuns > 1) {
+          return { status: 'finished', text: 'resumed', runId: `run-${cancelRaceRuns}`, git: {} };
+        }
+        announceCancelledRun();
+        await new Promise((resolve) => { releaseCancelledRun = resolve; });
+        return {
+          agentId: `agent-${task.id}`,
+          runId: `run-${task.id}`,
+          status: 'cancelled',
+          text: 'cancelled',
+          git: {}
+        };
+      },
+      async recover() { return { status: 'finished', text: 'x' }; },
+      async cancel() {
+        cancelRaceCalls += 1;
+        releaseCancelledRun();
+        return { cancelled: true };
+      },
+      async close() {},
+      async closeAll() {}
+    },
+    validateProjectRuntime: false
+  });
+  cancelRaceManager.subscribe((event) => cancelRaceEvents.push(event));
+  await cancelRaceManager.create({ id: 'cancel-race-task', requirement: 'cancel me' });
+  const cancelledRun = cancelRaceManager.start('cancel-race-task');
+  await cancelledRunStarted;
+  const [cancelledTask, duplicateCancellation] = await Promise.all([
+    cancelRaceManager.cancel('cancel-race-task'),
+    cancelRaceManager.cancel('cancel-race-task')
+  ]);
+  await cancelledRun;
+  assert.equal(cancelRaceCalls, 1);
+  assert.deepEqual(duplicateCancellation, cancelledTask);
+  assert.equal(cancelledTask.status, 'cancelled');
+  assert.equal(cancelRaceEvents.filter((event) => event.type === 'task.cancelled').length, 1);
+  assert.equal(cancelRaceEvents.filter((event) => event.type === 'task.finished').length, 0);
+  assert.equal((await cancelRaceManager.events('cancel-race-task')).some((event) =>
+    event.type === 'task.status.changed'
+      && event.payload.from === 'cancelled'
+      && event.payload.to === 'cancelled'), false);
+  assert.equal((await cancelRaceManager.continue('cancel-race-task', 'resume')).status, 'completed');
+  assert.equal(cancelRaceEvents.filter((event) => event.type === 'task.finished').length, 1);
+  await cancelRaceManager.close();
+
+  // A confirmed cancellation remains the owner of the run while its finisher
+  // is still returning. A later click must reuse it instead of replacing the
+  // marker and allowing the finisher to publish task.finished as well.
+  const retainedResultWritten = deferred();
+  const retainedResultReleased = deferred();
+  class RetainedCancellationStore extends TaskStore {
+    async update(id, patch, options = {}) {
+      const result = await super.update(id, patch, options);
+      if (options.eventType === 'task.cursor.result') {
+        retainedResultWritten.resolve();
+        await retainedResultReleased.promise;
+      }
+      return result;
+    }
+  }
+  const retainedRoot = path.join(fixture, 'cancel-retained');
+  const retainedRunStarted = deferred();
+  const retainedRunReleased = deferred();
+  const retainedEvents = [];
+  const retainedManager = new TaskManager({
+    root: retainedRoot,
+    store: new RetainedCancellationStore({ root: retainedRoot }),
+    validateProjectRuntime: false,
+    runtime: {
+      async run() {
+        retainedRunStarted.resolve();
+        await retainedRunReleased.promise;
+        return { status: 'cancelled', text: 'cancelled', runId: 'retained-run', git: {} };
+      },
+      async cancel() {
+        retainedRunReleased.resolve();
+        await retainedResultWritten.promise;
+        return { cancelled: true };
+      },
+      async close() {},
+      async closeAll() {}
+    }
+  });
+  retainedManager.subscribe((event) => retainedEvents.push(event));
+  await retainedManager.create({ id: 'cancel-retained-task', requirement: 'cancel me twice' });
+  const retainedRun = retainedManager.start('cancel-retained-task');
+  await retainedRunStarted.promise;
+  const retainedCancellation = await retainedManager.cancel('cancel-retained-task');
+  const repeatedRetainedCancellation = await retainedManager.cancel('cancel-retained-task');
+  assert.deepEqual(repeatedRetainedCancellation, retainedCancellation);
+  retainedResultReleased.resolve();
+  assert.equal((await retainedRun).status, 'cancelled');
+  assert.equal(retainedEvents.filter((event) => event.type === 'task.cancelled').length, 1);
+  assert.equal(retainedEvents.filter((event) => event.type === 'task.finished').length, 0);
+  assert.equal((await retainedManager.events('cancel-retained-task')).some((event) =>
+    event.type === 'task.status.changed'
+      && event.payload.from === 'cancelled'
+      && event.payload.to === 'cancelled'), false);
+  await retainedManager.close();
+
+  // A cancellation without a live finisher must not own the next run.
+  const restartEvents = [];
+  let releaseRestartBlocker;
+  let announceRestartBlocker;
+  const restartBlockerStarted = new Promise((resolve) => { announceRestartBlocker = resolve; });
+  const restartManager = new TaskManager({
+    root: path.join(fixture, 'cancel-restart'),
+    validateProjectRuntime: false,
+    maxConcurrentTasks: 1,
+    runtime: {
+      async run(task) {
+        if (task.id === 'restart-blocker') {
+          announceRestartBlocker();
+          await new Promise((resolve) => { releaseRestartBlocker = resolve; });
+        }
+        return { status: 'finished', text: 'new result', runId: 'new-run', git: {} };
+      },
+      async close() {},
+      async closeAll() {}
+    }
+  });
+  restartManager.subscribe((event) => restartEvents.push(event));
+  await restartManager.create({ id: 'cancel-restart', requirement: 'restart me' });
+  await restartManager.cancel('cancel-restart');
+  assert.equal((await restartManager.start('cancel-restart')).status, 'completed');
+  assert.equal((await restartManager.get('cancel-restart')).status, 'completed');
+  await restartManager.cancel('cancel-restart');
+  assert.equal((await restartManager.continue('cancel-restart', 'another question')).status, 'completed');
+  assert.equal((await restartManager.get('cancel-restart')).result.text, 'new result');
+  assert.equal(restartEvents.filter((event) => event.type === 'task.finished').length, 2);
+  assert.equal(restartManager.stats().running, 0);
+  await restartManager.create({ id: 'restart-blocker', requirement: 'hold the scheduler slot' });
+  const restartBlocker = restartManager.start('restart-blocker');
+  await restartBlockerStarted;
+  await restartManager.create({ id: 'cancel-queued', requirement: 'cancel while queued' });
+  let announceQueued;
+  const queuedReady = new Promise((resolve) => { announceQueued = resolve; });
+  const queuedRun = restartManager.start('cancel-queued', { onScheduled: announceQueued });
+  await queuedReady;
+  assert.equal((await restartManager.cancel('cancel-queued')).status, 'cancelled');
+  assert.equal((await queuedRun).cancelled, true);
+  releaseRestartBlocker();
+  await restartBlocker;
+  assert.equal((await restartManager.start('cancel-queued')).status, 'completed');
+  assert.equal((await restartManager.get('cancel-queued')).status, 'completed');
+  assert.equal(restartEvents.filter((event) => event.type === 'task.finished' && event.taskId === 'cancel-queued').length, 1);
+  await restartManager.close();
+
+  // A no-op cancellation can arrive after start cleared the old marker but
+  // before the new queued state reaches disk.
+  const queueWriteEntered = deferred();
+  const queueWriteReleased = deferred();
+  let pauseQueueWrite = false;
+  class DelayedQueueStore extends TaskStore {
+    async transition(id, status, payload) {
+      if (pauseQueueWrite && status === 'queued') {
+        queueWriteEntered.resolve();
+        await queueWriteReleased.promise;
+      }
+      return super.transition(id, status, payload);
+    }
+  }
+  const terminalRaceRoot = path.join(fixture, 'terminal-cancel-race');
+  const terminalRaceEvents = [];
+  const terminalRaceManager = new TaskManager({
+    root: terminalRaceRoot,
+    store: new DelayedQueueStore({ root: terminalRaceRoot }),
+    validateProjectRuntime: false,
+    runtime: {
+      async run() { return { status: 'finished', text: 'done', runId: 'next-run' }; },
+      async close() {}, async closeAll() {}
+    }
+  });
+  terminalRaceManager.subscribe((event) => terminalRaceEvents.push(event));
+  await terminalRaceManager.create({ id: 'terminal-race', requirement: 'test' });
+  await terminalRaceManager.start('terminal-race');
+  terminalRaceEvents.length = 0;
+  pauseQueueWrite = true;
+  const terminalRaceRestart = terminalRaceManager.start('terminal-race');
+  await queueWriteEntered.promise;
+  assert.equal((await terminalRaceManager.cancel('terminal-race')).status, 'completed');
+  queueWriteReleased.resolve();
+  assert.equal((await terminalRaceRestart).status, 'completed');
+  assert.equal((await terminalRaceManager.get('terminal-race')).status, 'completed');
+  assert.equal(terminalRaceManager.stats().running, 0);
+  assert.equal(terminalRaceEvents.filter((event) => event.type === 'task.finished').length, 1);
+  await terminalRaceManager.close();
+
+  // The persisted status becomes cancelled before runtime cleanup finishes.
+  // Repeated cancel and start must both wait for that same cleanup operation.
+  const cleanupEntered = deferred();
+  const cleanupReleased = deferred();
+  const restartRead = deferred();
+  let watchRestart = false;
+  let cleanupQueueWrites = 0;
+  let cleanupCalls = 0;
+  let cleanupFinished = false;
+  class CleanupStore extends TaskStore {
+    async get(id) {
+      const task = await super.get(id);
+      if (watchRestart) restartRead.resolve();
+      return task;
+    }
+    async transition(id, status, payload) {
+      if (status === 'queued') cleanupQueueWrites += 1;
+      return super.transition(id, status, payload);
+    }
+  }
+  const cleanupRoot = path.join(fixture, 'cancel-cleanup');
+  const cleanupManager = new TaskManager({
+    root: cleanupRoot, store: new CleanupStore({ root: cleanupRoot }), validateProjectRuntime: false,
+    runtime: {
+      async run() {
+        assert.equal(cleanupFinished, true);
+        return { status: 'finished', text: 'after cleanup' };
+      },
+      async close() {
+        if (++cleanupCalls === 1) {
+          cleanupEntered.resolve();
+          await cleanupReleased.promise;
+          cleanupFinished = true;
+        }
+      },
+      async closeAll() {}
+    }
+  });
+  await cleanupManager.create({ id: 'cleanup-task', requirement: 'test' });
+  const firstCleanup = cleanupManager.cancel('cleanup-task');
+  await cleanupEntered.promise;
+  let duplicateCleanupFinished = false;
+  const duplicateCleanup = cleanupManager.cancel('cleanup-task').then((task) => {
+    duplicateCleanupFinished = true;
+    return task;
+  });
+  watchRestart = true;
+  const cleanupRestart = cleanupManager.start('cleanup-task');
+  await restartRead.promise;
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(duplicateCleanupFinished, false);
+  assert.equal(cleanupQueueWrites, 0);
+  assert.equal(cleanupCalls, 1);
+  cleanupReleased.resolve();
+  const [firstCleanupResult, duplicateCleanupResult, cleanupRestartResult] = await Promise.all([
+    firstCleanup, duplicateCleanup, cleanupRestart
+  ]);
+  assert.equal(firstCleanupResult.status, 'cancelled');
+  assert.deepEqual(duplicateCleanupResult, firstCleanupResult);
+  assert.equal(cleanupRestartResult.status, 'completed');
+  await cleanupManager.close();
+
+  // Concurrent callers receive the same failure, and a failed cancellation
+  // must not prevent a later retry from reaching the runtime.
+  const cancelFailureEntered = deferred();
+  const cancelFailureReleased = deferred();
+  let cancelFailureCalls = 0;
+  const cancelFailureManager = new TaskManager({
+    root: path.join(fixture, 'cancel-failure'), validateProjectRuntime: false,
+    runtime: {
+      async cancel() {
+        if (++cancelFailureCalls === 1) {
+          cancelFailureEntered.resolve();
+          await cancelFailureReleased.promise;
+          return { cancelled: false, reason: 'not-confirmed' };
+        }
+        return { cancelled: true };
+      },
+      async close() {}, async closeAll() {}
+    }
+  });
+  await cancelFailureManager.create({ id: 'cancel-failure', requirement: 'test' });
+  await cancelFailureManager.store.transition('cancel-failure', 'queued');
+  await cancelFailureManager.store.transition('cancel-failure', 'running');
+  const cancellationFailures = Promise.allSettled([
+    cancelFailureManager.cancel('cancel-failure'), cancelFailureManager.cancel('cancel-failure')
+  ]);
+  await cancelFailureEntered.promise;
+  cancelFailureReleased.resolve();
+  const [firstFailure, duplicateFailure] = await cancellationFailures;
+  assert.equal(firstFailure.status, 'rejected');
+  assert.equal(duplicateFailure.status, 'rejected');
+  assert.equal(duplicateFailure.reason, firstFailure.reason);
+  assert.match(firstFailure.reason.message, /task-cancel-not-confirmed:not-confirmed/);
+  assert.equal(cancelFailureCalls, 1);
+  assert.equal((await cancelFailureManager.cancel('cancel-failure')).status, 'cancelled');
+  assert.equal(cancelFailureCalls, 2);
+  await cancelFailureManager.close();
+
   // --- continue while running queues the next Run instead of throwing ------
   const continueRoot = path.join(fixture, 'continue-active');
   let continueRuns = 0;
@@ -1064,4 +1366,10 @@ function fakeRun(id) {
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function deferred() {
+  let resolve;
+  const promise = new Promise((done) => { resolve = done; });
+  return { promise, resolve };
 }

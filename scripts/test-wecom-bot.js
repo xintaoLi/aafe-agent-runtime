@@ -1996,6 +1996,61 @@ assert.match(streamUpdates.at(-1).content, /已完成/);
 assert.equal(streamedFinish.length, 0);
 await hub.close();
 
+// Runtime cancellation can race TaskManager.cancel and report the same
+// terminal status through both task.cancelled and task.finished. The notifier
+// delivers that terminal state only once.
+const duplicateTerminalListeners = [];
+const duplicateTerminalMessages = [];
+const duplicateTerminalTask = { ...notifyTask, id: 'task-terminal-dedup', status: 'cancelled' };
+attachWeComNotifier({
+  manager: {
+    subscribe(listener) {
+      duplicateTerminalListeners.push(listener);
+      return () => {};
+    },
+    async get() { return duplicateTerminalTask; }
+  },
+  sendMessage: async (_chatid, body) => { duplicateTerminalMessages.push(body); },
+  logger: { warn() {}, error() {}, event() {} }
+});
+await Promise.all([
+  duplicateTerminalListeners[0]({ type: 'task.cancelled', taskId: duplicateTerminalTask.id }),
+  duplicateTerminalListeners[0]({
+    type: 'task.finished',
+    taskId: duplicateTerminalTask.id,
+    status: 'cancelled'
+  })
+]);
+assert.equal(duplicateTerminalMessages.filter((body) => body.msgtype === 'markdown').length, 1);
+assert.equal(duplicateTerminalMessages.filter((body) => body.msgtype === 'template_card').length, 1);
+
+// Distinct runs in the same conversation can finish inside the dedup window.
+// Both final answers and live-stream completion must reach their consumers.
+for (const provider of ['cursor', 'codex', null]) {
+  let terminalListener;
+  const messages = [];
+  const handled = [];
+  attachWeComNotifier({
+    manager: { subscribe(listener) { terminalListener = listener; return () => {}; } },
+    sendMessage: async (_chatid, body) => { messages.push(body); },
+    progress: { async handle(event) { handled.push(event); return false; } },
+    logger: { warn() {}, error() {}, event() {} }
+  });
+  for (const runId of ['first-run', 'second-run']) {
+    const task = { ...notifyTask, id: `fast-${provider}`, status: 'completed',
+      result: { text: `answer-${runId}` },
+      ...(provider ? { provider, [provider]: { activeRunId: null, runs: [{ runId }] } } : {}) };
+    // Providers with a run id also work without observing the scheduling event.
+    if (!provider) await terminalListener({ type: 'scheduler.queued', taskId: task.id });
+    await terminalListener({ type: 'task.finished', taskId: task.id, task });
+    await terminalListener({ type: 'task.finished', taskId: task.id, task });
+  }
+  assert.equal(messages.filter((body) => body.msgtype === 'markdown').length, 2);
+  assert.ok(messages.some((body) => body.markdown?.content.includes('answer-second-run')));
+  assert.equal(messages.filter((body) => body.msgtype === 'template_card').length, 2);
+  assert.equal(handled.filter((event) => event.type === 'task.finished').length, 2);
+}
+
 // WeCom closes a stream 10 minutes after the message that opened it, and a code
 // task routinely runs longer. The live view is wrapped up with an explanation
 // and the progress continues as pushed messages.
@@ -3223,9 +3278,13 @@ await bootHub.close();
 // Terminating is a button on the live message, not a command to retype.
 const cancelCard = buildTaskCard('task-live');
 assert.equal(cancelCard.card_type, 'button_interaction');
-// Reading before stopping: the safer action, and the one anyone may take.
-assert.deepEqual(cancelCard.button_list.map((button) => button.key), ['status:task-live', 'process:task-live', 'cancel:task-live']);
-assert.deepEqual(cancelCard.button_list.map((button) => button.text), ['查看状态', '查看完整过程', '终止']);
+assert.deepEqual(cancelCard.source, { desc: '任务', desc_color: 0 });
+assert.deepEqual(cancelCard.button_list.map((button) => button.key), ['process:task-live', 'cancel:task-live']);
+assert.deepEqual(cancelCard.button_list.map((button) => button.text), ['查看完整过程', '终止']);
+assert.deepEqual(cancelCard.action_menu, {
+  desc: '更多操作',
+  action_list: [{ text: '查看状态', key: 'status:task-live' }]
+});
 assert.equal(cancelCard.main_title.desc, 'task-live');
 // Two cards for one task must not collide on task_id (WeCom errcode 42014).
 assert.notEqual(buildTaskCard('task-live').task_id, cancelCard.task_id);
@@ -3233,87 +3292,80 @@ assert.notEqual(buildTaskCard('task-live').task_id, cancelCard.task_id);
 assert.deepEqual(parseCardEvent({
   body: { event: { template_card_event: { event_key: 'cancel:task-live', task_id: cancelCard.task_id } } }
 }), { action: 'cancel', value: 'task-live', cardTaskId: cancelCard.task_id });
+// Top-right menu actions use the same event_key route as main buttons.
+assert.deepEqual(parseCardEvent({
+  body: { event: { template_card_event: { event_key: 'status:task-live', task_id: cancelCard.task_id } } }
+}), { action: 'status', value: 'task-live', cardTaskId: cancelCard.task_id });
 
-// The card rides on the same stream frame as the acknowledgement.
-const carded = [];
+// Running task controls are always delivered as one standalone card. The
+// stream acknowledgement carries progress text only, even if its transport
+// result claims a combined card was attached.
+const taskAckFrames = [];
+const standaloneTaskCards = [];
+const standaloneProgress = [];
 const cardedTask = await handleWeComMessage({
   ...textFrame,
   body: { ...textFrame.body, msgid: 'card-1', text: { content: '做：修一下复制按钮' } }
 }, {
   manager: createFakeManager(),
-  replyAck: async (_frame, content, options) => { carded.push({ content, ...options }); return 'stream-card'; },
-  replyProgress: async () => {},
-  progress: { open() {} },
-  config: { repository: 'owner/repo' },
-  dedup: createMessageDedup()
-});
-const ackFrame = carded.at(-1);
-assert.deepEqual(
-  ackFrame.card.button_list.map((button) => button.key),
-  [`status:${cardedTask.action.task.id}`, `process:${cardedTask.action.task.id}`, `cancel:${cardedTask.action.task.id}`]
-);
-assert.equal(ackFrame.finish, false);
-assert.equal(ackFrame.card.button_list.at(-1).text, '终止');
-
-const comboCards = [];
-await handleWeComMessage({
-  ...textFrame,
-  body: { ...textFrame.body, msgid: 'card-combo', text: { content: '做：修一下复制按钮' } }
-}, {
-  manager: createFakeManager(),
   replyAck: async (_frame, content, options) => {
-    carded.push({ content, ...options });
-    return { streamId: 'stream-combo', cardAttached: true };
+    taskAckFrames.push({ content, ...options });
+    return { streamId: 'stream-card', cardAttached: true };
   },
-  replyCard: async (_frame, card) => { comboCards.push(card); },
-  progress: { open() {} },
+  replyProgress: async () => {},
+  replyCard: async (_frame, card) => { standaloneTaskCards.push(card); },
+  progress: { open(options) { standaloneProgress.push(options); } },
   config: { repository: 'owner/repo' },
   dedup: createMessageDedup()
 });
-assert.equal(comboCards.length, 0, 'combo 已带上按钮时不要再发一张卡片');
+assert.equal(taskAckFrames.length, 1);
+assert.equal(taskAckFrames[0].card ?? null, null);
+assert.equal(taskAckFrames[0].finish, false);
+assert.equal(standaloneTaskCards.length, 1);
+assert.deepEqual(
+  standaloneTaskCards[0].button_list.map((button) => button.key),
+  [`process:${cardedTask.action.task.id}`, `cancel:${cardedTask.action.task.id}`]
+);
+assert.equal(standaloneTaskCards[0].action_menu.action_list[0].key, `status:${cardedTask.action.task.id}`);
+assert.equal(standaloneTaskCards[0].button_list.at(-1).text, '终止');
+assert.equal(standaloneProgress[0].combined, undefined);
 
-// A turn that ends immediately has nothing to terminate, so it carries no card.
+// A turn that ends immediately has nothing to terminate, so it sends no card.
 const plain = [];
+const plainCards = [];
 await handleWeComMessage({
   ...textFrame,
   body: { ...textFrame.body, msgid: 'card-2', text: { content: '帮助' } }
 }, {
   manager: createFakeManager(),
   replyAck: async (_frame, content, options) => { plain.push({ content, ...options }); },
+  replyCard: async (_frame, card) => { plainCards.push(card); },
   config: { repository: 'owner/repo' },
   dedup: createMessageDedup()
 });
 assert.equal(plain[0].card ?? null, null);
+assert.equal(plainCards.length, 0);
 
-// The gateway prefers stream_with_template_card and falls back to plain text.
-const cardCalls = [];
-const cardGateway = createWeComGateway({
+// The gateway keeps the progress stream plain even when obsolete callers pass
+// card options.
+const streamCalls = [];
+const plainStreamGateway = createWeComGateway({
   botId: 'b',
   secret: 's',
   WSClient: class {
     on() {}
     connect() {}
-    async replyStream(_frame, _id, content) { cardCalls.push({ kind: 'stream', content }); }
-    async replyStreamWithCard(_frame, _id, content, _finish, options) {
-      cardCalls.push({ kind: 'card', content, key: options.templateCard.button_list.at(-1).key });
-    }
+    async replyStream(_frame, _id, content) { streamCalls.push({ kind: 'stream', content }); }
+    async replyStreamWithCard() { streamCalls.push({ kind: 'combined' }); }
   },
   logger: { warn() {} }
 });
-await cardGateway.replyAck(textFrame, '跑起来了', { finish: false, card: buildTaskCard('task-x') });
-assert.deepEqual(cardCalls, [{ kind: 'card', content: '跑起来了', key: 'cancel:task-x' }]);
-const noCardGateway = createWeComGateway({
-  botId: 'b',
-  secret: 's',
-  WSClient: class {
-    on() {}
-    connect() {}
-    async replyStream(_frame, _id, content) { cardCalls.push({ kind: 'fallback', content }); }
-  },
-  logger: { warn() {} }
-});
-await noCardGateway.replyAck(textFrame, '跑起来了', { finish: false, card: buildTaskCard('task-x') });
-assert.equal(cardCalls.at(-1).kind, 'fallback');
+await plainStreamGateway.replyAck(textFrame, '跑起来了', { finish: false, card: buildTaskCard('task-x') });
+await plainStreamGateway.replyProgress(textFrame, 'stream-x', '继续执行', false);
+assert.deepEqual(streamCalls, [
+  { kind: 'stream', content: '跑起来了' },
+  { kind: 'stream', content: '继续执行' }
+]);
 
 const tapdUrl = 'https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081137887748';
 assert.deepEqual(parseTapdAssociation(`【容器 WebConsole】 ${tapdUrl}`), {
@@ -3601,7 +3653,9 @@ assert.match(richCard.sub_title_text, /增加手机号搜索/);
 assert.match(richCard.sub_title_text, /发起人 ann/);
 assert.match(richCard.sub_title_text, /独立工作区/);
 assert.match(richCard.sub_title_text, /端口 41003/);
-assert.deepEqual(richCard.button_list.map((b) => b.key), ['status:task-rich', 'process:task-rich', 'cancel:task-rich']);
+assert.deepEqual(richCard.button_list.map((b) => b.key), ['process:task-rich', 'cancel:task-rich']);
+assert.deepEqual(richCard.source, { desc: '任务', desc_color: 0 });
+assert.deepEqual(richCard.action_menu.action_list.map((action) => action.key), ['status:task-rich']);
 // A bare id is still enough to draw one.
 assert.equal(buildTaskCard('task-plain').main_title.desc, 'task-plain');
 assert.equal(buildTaskCard('task-plain').sub_title_text, undefined);
