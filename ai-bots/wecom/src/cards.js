@@ -30,9 +30,11 @@ const STATUS_TITLE = Object.freeze({
   cancelled: '⛔ 已终止'
 });
 
+const CARD_SOURCE = Object.freeze({ desc: '任务', desc_color: 0 });
+
 /**
- * Rides along with the live progress message via `stream_with_template_card`,
- * so stopping a run is one click instead of copying an id back into the chat.
+ * Sent as a standalone template card next to the live progress message, so
+ * stopping a run is one click instead of copying an id back into the chat.
  *
  * It carries what the group needs to tell one running task from another —
  * whose it is, what it is about, which checkout it holds — because in a room
@@ -43,11 +45,15 @@ export function buildTaskCard(task) {
   const detail = typeof task === 'string' ? null : task;
   const card = {
     card_type: 'button_interaction',
+    source: { ...CARD_SOURCE },
     main_title: { title: STATUS_TITLE[detail?.status] ?? '⚙️ 执行中', desc: id },
-    // Reading comes before stopping, in both senses: it is the safer action and
-    // the one anyone in the group is allowed to take.
+    // Keep the main row to at most two buttons so WeCom clients have enough
+    // width for the labels. Status remains available from the top-right menu.
+    action_menu: {
+      desc: '更多操作',
+      action_list: [{ text: '查看状态', key: `status:${id}` }]
+    },
     button_list: [
-      { text: '查看状态', style: 1, key: `status:${id}` },
       { text: '查看完整过程', style: 1, key: `process:${id}` },
       ...(detail?.status === 'blocked'
         ? [{ text: '补充信息', style: 1, key: `feedback:${id}` }]
