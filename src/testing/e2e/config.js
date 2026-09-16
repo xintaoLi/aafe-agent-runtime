@@ -20,6 +20,7 @@
 
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { e2eConfigRoots } from './configContext.js';
 import { DEFAULT_E2E_AUTH, normalizeAuthMode, resolveAuthStatePath } from './auth.js';
 import { resolveRepoConfig, repoTokenConfigured } from '../../cli/repoConfig.js';
 
@@ -31,7 +32,7 @@ export const PLACEHOLDER_BASE_URLS = new Set([
 ]);
 
 export const NEED_BASE_URL_CODE = 'need-base-url';
-export const NEED_BASE_URL_PROMPT = '请提供本次被测页面的完整 URL（含协议与环境）。测试地址每次可能不同，不要写入固定 e2e.baseUrl，不要猜，不要用 http://localhost:8080。含 # 的地址必须用引号包住，避免 shell 把 hash 当注释丢掉。提供后加上 --base-url=<url> 再 --run。';
+export const NEED_BASE_URL_PROMPT = '未找到本次被测页面的应用测试地址。请从需求描述或指定配置解析，或配置项目 e2e.baseUrl；本次地址可用 --base-url=<url> 覆盖。不要猜地址或使用 TAPD/PR 链接作为被测页面。含 # 的地址必须用引号包住。';
 
 export const NEED_URL_ROLE_CODE = 'need-url-role';
 export const NEED_URL_ROLE_PROMPT = [
@@ -60,15 +61,28 @@ export const DEFAULT_E2E_CONFIG = Object.freeze({
  * @param {{ baseUrl?: string|null, urlRole?: string|null, authMode?: string|null, authEnv?: string|null, storageState?: string|null }} [runtime] one-shot override; not persisted
  */
 export async function loadE2eConfig(root, projectConfig = null, runtime = {}) {
-  const config = projectConfig ?? (await readProjectConfig(root));
+  const sources = e2eConfigRoots(root);
+  const config = projectConfig ?? (await readProjectConfig(sources.configRoot, { strict: true }));
   const e2e = { ...DEFAULT_E2E_CONFIG, ...(config.e2e ?? {}) };
+  if (e2e.devServer?.enabled && sources.devPort != null) {
+    const port = Number(sources.devPort);
+    if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('e2e-dev-port-invalid');
+    const url = new URL(e2e.devServer.url);
+    url.port = String(port);
+    e2e.devServer = { ...e2e.devServer, url: url.href };
+  }
   const auth = { ...DEFAULT_E2E_AUTH, ...(e2e.auth ?? {}) };
   const envName = e2e.baseUrlEnv || DEFAULT_E2E_CONFIG.baseUrlEnv;
   const fromCli = sanitizeBaseUrl(runtime.baseUrl);
-  const fromEnv = String(process.env[envName] ?? '').trim();
+  // A multi-project Bot must not leak its service-wide URL into every project.
+  // Ordinary project-local CLI invocation retains environment overrides.
+  const fromEnv = sources.projectOnly ? '' : String(process.env[envName] ?? '').trim();
   const fromConfig = String(e2e.baseUrl ?? '').trim();
-  const baseUrl = fromCli || sanitizeBaseUrl(fromEnv || fromConfig);
-  const urlRole = normalizeUrlRole(runtime.urlRole);
+  const baseUrl = applyRouterMode(
+    fromCli || sanitizeBaseUrl(fromEnv || (e2e.devServer?.enabled ? e2e.devServer.url : fromConfig)),
+    e2e.routerMode
+  );
+  const urlRole = normalizeUrlRole(runtime.urlRole ?? (!fromCli && !fromEnv ? e2e.urlRole : null));
   const authMode = normalizeAuthMode(runtime.authMode ?? process.env.AAFE_E2E_AUTH_MODE ?? auth.mode) ?? 'reuse-or-headed';
   const { githubAccessToken: _github, gongfengAccessToken: _gongfeng, ...publicE2e } = e2e;
   const repo = resolveRepoConfig(config);
@@ -76,6 +90,8 @@ export async function loadE2eConfig(root, projectConfig = null, runtime = {}) {
     ...publicE2e,
     auth,
     root,
+    configRoot: sources.configRoot,
+    mcpConfigRoot: sources.mcpConfigRoot,
     casesDirAbs: path.join(root, e2e.casesDir),
     reportDirAbs: path.join(root, e2e.reportDir),
     specsDirAbs: path.join(root, e2e.specsDir),
@@ -86,11 +102,22 @@ export async function loadE2eConfig(root, projectConfig = null, runtime = {}) {
     parsedPageUrl: parseTestPageUrl(baseUrl),
     authMode,
     authEnv: runtime.authEnv ?? process.env.AAFE_E2E_ENV ?? auth.env,
-    authStatePath: resolveAuthStatePath(root, auth, runtime),
+    authStatePath: resolveAuthStatePath(sources.configRoot, auth, runtime),
     enabled: isE2eEnabled(e2e),
     githubAccessTokenConfigured: repoTokenConfigured({ repo, e2e }, 'githubAccessToken'),
     gongfengAccessTokenConfigured: repoTokenConfigured({ repo, e2e }, 'gongfengAccessToken')
   };
+}
+
+export function applyRouterMode(baseUrl, routerMode) {
+  if (!baseUrl || String(routerMode ?? '').toLowerCase() !== 'hash') return baseUrl;
+  try {
+    const url = new URL(baseUrl);
+    if (!url.hash) url.hash = '/';
+    return url.href;
+  } catch {
+    return baseUrl;
+  }
 }
 
 export function isE2eEnabled(e2e = {}) {
@@ -206,10 +233,11 @@ export async function readPrAccessTokenConfig(root) {
   return resolveRepoConfig(config);
 }
 
-export async function readProjectConfig(root) {
+export async function readProjectConfig(root, { strict = false } = {}) {
   try {
     return JSON.parse(await readFile(path.join(root, '.aafe.config.json'), 'utf8'));
-  } catch {
+  } catch (error) {
+    if (strict && error.code !== 'ENOENT') throw new Error('e2e-config-unreadable');
     return {};
   }
 }

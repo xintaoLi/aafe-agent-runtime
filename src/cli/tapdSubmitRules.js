@@ -23,7 +23,7 @@ Source of truth:
 1. Rule: \`${agentPrefix}/rules/tapd-submit-backfill.mdc\`
 2. Skill: \`${agentPrefix}/skills/tapd-submit-backfill.md\`
 
-Task Spine 是动态决策链：**[1]** 若有 TAPD → 拉单并判定是否新建/切换分支；TAPD ID 不匹配时，除非此前已明确确认当前分支可用，否则必须继续执行分支切换/创建逻辑；非 TAPD 新任务也要判定分支；**[4]** 根据提交意图决定 Commit/PR/MR（\`repo-submit\`），仅任务有关联 TAPD 单时进入回填门禁。\`ask\` 根据用户回复推进；\`autonomous\` 按 workflow-mode 自主判定。无 TAPD 关联则跳过 TAPD 回填。
+Task Spine 是动态决策链：**[1]** 若有 TAPD → 拉单并判定是否新建/切换分支；TAPD ID 不匹配时，除非此前已明确确认当前分支可用，否则必须继续执行分支切换/创建逻辑；非 TAPD 新任务也要判定分支；**[4]** 根据提交意图决定 Commit/PR/MR（\`repo-submit\`），仅任务有关联 TAPD 单时进入回填门禁。来自 TAPD 的代码交付优先尝试 Commit/PR/回填；单个步骤失败或需要补充确认时记录待处理并继续后续独立步骤，最终汇总。无 TAPD 关联则跳过 TAPD 回填。
 
 Do not duplicate project knowledge here.
 `;
@@ -32,7 +32,7 @@ Do not duplicate project knowledge here.
 export function tapdSubmitProjectRuleMdc(ctx = {}) {
   const agentPrefix = ctx.agentPrefix ?? '.ai-agent';
   return `---
-description: 有关联 TAPD 单时自测后询问 Commit → PR → 回填；内容仅追加评论；无 TAPD 关联则跳过回填分支。
+description: 有关联 TAPD 单时自测后尝试 Commit → PR → 回填；失败不截断后续独立步骤；内容仅追加评论；无 TAPD 关联则跳过回填分支。
 alwaysApply: true
 ---
 
@@ -75,10 +75,10 @@ ${workflowModeGatePreamble(agentPrefix)}
 
 \`\`\`text
 自测 / E2E 完成（或用户跳过）或用户触发提交意图
-  → 动态判定是否 Commit/PR/MR（ask 根据回复 / autonomous 根据上下文）
+  → 动态判定是否 Commit/PR/MR（TAPD 来源优先执行；ask 仅用于安全/明确禁止场景；autonomous 根据上下文）
       ├─ 是 / proceed → 按 \`.aafe.config.json\` → \`submit.cli\` 执行 Commit；Commit 成功后必须继续尝试 PR/MR → 回填门禁
       └─ 否 / skip → 仍进入回填门禁（仅有关联 TAPD 时）
-  → 动态判定是否回填（ask 根据回复 / autonomous 根据上下文）
+  → 动态判定是否回填（TAPD 来源优先尝试；ask 仅用于安全/明确禁止场景；autonomous 根据上下文）
       ├─ 同意 / proceed → comments_create（+ 可选 PR 字段 + 状态逐步流转）
       └─ 拒绝 / skip → 结束
 \`\`\`
@@ -115,7 +115,8 @@ ${repoPrApplySkillSection(agentPrefix)}
 
 有关联 TAPD 且自测/提交链到达时，无论是否 Commit / 是否产出 PR。若 Phase D 已产出 \`pr_url\`，必须把 \`pr_url\` 带入回填素材和 PR 字段处理：
 
-- **ask**：必须问「是否回填 TAPD 单子？将追加评论、写入 PR 字段（如配置）并按状态映射逐步流转到 doing」同意词：\`是\` / \`Yes\` / \`Y\` / \`需要\` / \`同意\` / \`回填\` / \`好的\` / \`可以\` / \`ok\`。否定则跳过。
+- **TAPD 来源任务**：默认尝试回填 TAPD 单子（追加评论、写入 PR 字段（如配置）并按状态映射逐步流转到 doing）。回填失败、MCP 不通、字段不可写或读回校验失败时，不阻塞后续独立步骤；记录真实原因到最终「待处理/待确认」列表。
+- **ask**：仅当用户明确禁止自动交付、存在破坏性/越权风险，或缺少执行所必需且无法从上下文推断的信息时才询问。否定则跳过并继续后续可执行步骤。
 - **autonomous**：按 \`workflow-mode.md\` 判定；\`proceed\` 则回填，\`skip\` 则说明原因。有关联但解析不到 entry_id → Hard Ask。
 
 ## 回填方式（强制）
@@ -157,11 +158,11 @@ export function tapdSubmitRuleSection(ctx = {}) {
     '',
     '有关联且 tapd.enabled 时，自测完成后或用户说 commit/push/submit/提测：',
     '1. 新任务时先检查当前分支 `feat|bug/<slug>/#<short_id>` 是否已关联且 ID 与本任务 TAPD 一致（git 和 gtm 均适用）；未关联或 ID 不匹配则从远程主干创建/切换开发分支（详见 Skill「TAPD Branch Association」）。除非用户此前已明确确认当前分支可用，否则不得因当前分支已有相关提交或未提交改动而放行继续需求分析、设计还原或实现。',
-    '2. Commit 门禁：`ask` 询问 / `autonomous` 判定 → 同意或 proceed 则按 \`submit.cli\`（\`git\` 默认 / \`gtm\`）执行 Commit/PR。',
+    '2. Commit 门禁：TAPD 来源交付优先执行；`ask` 仅在明确禁止、破坏性/越权风险或必要信息缺失时询问；`autonomous` 判定 → proceed 则按 \`submit.cli\`（\`git\` 默认 / \`gtm\`）执行 Commit/PR。',
     '3. **Commit 成功后必须继续尝试 PR/MR**；PR 成功则记录 `pr_url`，失败只报告原因，不阻断回填判断。',
-    '4. **Commit/PR 完成后进入回填门禁**（仅有关联 TAPD 时）：`ask` 必须问「是否回填 TAPD 单子？将追加评论、写入 PR 字段（如配置）并按状态映射逐步流转到 doing」；`autonomous` 按 workflow-mode 判定。',
+    '4. **Commit/PR 完成后进入回填门禁**（仅有关联 TAPD 时）：TAPD 来源任务优先尝试回填；`ask` 仅在明确禁止、破坏性/越权风险或必要信息缺失时询问；`autonomous` 按 workflow-mode 判定。',
     '5. 同意 / proceed → 加载 \`${agentPrefix}/skills/tapd-submit-backfill.md\` 执行 Phase F（comments_create + 可选 PR 字段 + 状态流转）。',
-    '6. 拒绝 / skip → 在回复中说明已跳过回填。',
+    '6. 拒绝 / skip / 回填失败 → 在最终回复中说明已跳过或失败原因，并继续执行后续独立步骤。',
     '7. 回填内容 **只通过 `comments_create` 追加**；禁止改写 description/test_focus。',
     '8. 评论回填后按当前状态流转：backlog→todo→doing；已是 todo 则直接 →doing；已是 doing 则跳过。',
     `9. 详细流程见 \`${agentPrefix}/skills/tapd-submit-backfill.md\`。`,
@@ -198,15 +199,15 @@ Companions:
 
 \`\`\`text
 [A] 动态确认自测产物是否需要补齐（代码变更任务才需；UI 影响含 E2E）
-[B] Commit 门禁（ask 根据用户回复；autonomous 根据上下文判定）
+[B] Commit 门禁（TAPD 来源优先执行；ask 仅用于明确禁止/安全风险/必要信息缺失；autonomous 根据上下文判定）
     ├─ 是 / proceed → [C] Commit → [D] Try PR/MR → [E] 回填门禁
     └─ 否 / skip → [E] 仍进入回填门禁
-[E] 回填门禁（ask 根据用户回复；autonomous 根据上下文判定）
+[E] 回填门禁（TAPD 来源优先尝试；ask 仅用于明确禁止/安全风险/必要信息缺失；autonomous 根据上下文判定）
     同意 / proceed → [F] 评论回填 + 可选 PR 字段 + 状态逐步流转
-    拒绝 → 结束
+    拒绝 / 失败 → 记录待处理，继续后续独立步骤，最终汇总
 \`\`\`
 
-**Hard：** 有关联 TAPD 时，即使不 Commit 也要动态进入 [E] 回填门禁；ask 模式尊重用户回复，autonomous 模式按判定表执行。**无关联**则整段 [E][F] 跳过。
+**Hard：** 有关联 TAPD 时，即使不 Commit 也要动态进入 [E] 回填门禁；TAPD 来源任务优先尝试回填，ask 仅用于明确禁止/安全风险/必要信息缺失，autonomous 模式按判定表执行。回填失败不阻断后续独立步骤，必须在最终结果汇总。**无关联**则整段 [E][F] 跳过。
 
 ### Submit CLI 选择（强制先读配置）
 
@@ -399,7 +400,9 @@ Ensure before Commit/回填询问：
 
 ## Phase B — Commit gate
 
-**ask mode** — 问：
+**TAPD-origin default** — 本任务来自/已关联 TAPD 且是代码交付时，优先尝试 Commit；除非用户明确说“不要提交/先别提交”、存在 secret/危险改动、分支关联未关闭，或缺少无法从上下文推断的必要信息。若不能 Commit，记录 \`delivery.status=failed|skipped|blocked\` 与真实原因，继续 Phase E（有关联 TAPD 时）。
+
+**ask mode** — 仅在上述必须确认的场景问：
 
 > 自测已完成。是否执行 Commit？
 
@@ -486,7 +489,9 @@ gtm pr
 
 有关联时，**无论** B 选否、C/D 成功或失败。若 D 成功，\`pr_url\` 是 Phase F 的输入：
 
-**ask mode** — 必须问：
+**TAPD-origin default** — 本任务来自/已关联 TAPD 且 \`tapd.enabled\` 时，优先尝试 Phase F。失败、MCP 不可用、字段不可写或读回校验失败时，记录 \`delivery.status=failed\` 与真实原因；不得因此阻止 Commit/PR 或其他后续独立步骤的完成。
+
+**ask mode** — 仅在用户明确禁止自动回填、存在越权/破坏性更新风险，或缺少无法从上下文推断的 entry/workspace 必要信息时问：
 
 > 是否回填 TAPD 单子？（将追加评论：处理结果 / 影响范围 / 自测结果；若有 PR 且存在 PR 字段则写入链接；并按配置状态映射逐步流转到 doing）
 
@@ -494,6 +499,8 @@ gtm pr
 否定：跳过并说明可稍后手动触发本 Skill。
 
 **autonomous mode** — 有关联 + \`tapd.enabled\` + 有产物（或 skipped 标注）→ \`proceed\` 进 Phase F；entry_id 无法解析 → Hard Ask。输出判定记录。
+
+**Final aggregation** — 任何 Commit/PR/TAPD 回填的失败、跳过、等待确认都进入最终「待处理 / 待确认」列表；除非所有剩余分支都因安全/权限/环境问题无法继续，否则不要把整条任务返回为 blocked。
 
 ---
 

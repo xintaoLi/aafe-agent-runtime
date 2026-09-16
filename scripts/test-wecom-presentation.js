@@ -43,7 +43,7 @@ const view = buildTaskPresentation(task);
 assert.equal(view.status, 'blocked');
 assert.equal(view.question, question);
 const text = formatTaskNotify(task);
-assert.match(text, /⏸ 等待补充 \/ 确认/);
+assert.match(text, /等待补充 \/ 确认/);
 assert.doesNotMatch(text, /执行失败|✅ 最终结论|错误：|个分析步骤/);
 assert.equal(text.split(summary).length - 1, 1);
 assert.equal(text.split(question).length - 1, 1);
@@ -64,6 +64,15 @@ assert.equal(verifiedBlock.status, 'blocked', 'persisted task status beats the A
 assert.match(renderTaskPresentation(verifiedBlock), /缺少 TAPD 回填核验记录/);
 assert.doesNotMatch(formatTaskNotify({ ...task, status: 'completed' }), /错误：/);
 assert.match(formatTaskNotify({ id: 'task-error', status: 'failed', error: 'boom' }), /错误：boom/);
+const mcpBlockText = formatTaskNotify({
+  id: 'task-mcp', status: 'blocked',
+  blocker: { type: 'environment' },
+  result: { text: 'codex-mcp-startup-failed:spawn chrome-devtools-mcp ENOENT' },
+  error: 'codex-mcp-startup-failed:spawn chrome-devtools-mcp ENOENT'
+});
+assert.match(mcpBlockText, /运行环境受阻/);
+assert.match(mcpBlockText, /chrome-devtools-mcp/);
+assert.doesNotMatch(mcpBlockText, /需要你反馈|请发送 `继续/);
 
 const frame = { headers: { req_id: 'ui-request' }, body: { chattype: 'group', chatid: 'room-ui', from: { userid: 'ann' } } };
 const eventFrame = (action, user = 'ann') => ({
@@ -82,7 +91,7 @@ await hub.handle({ taskId: task.id, type: 'codex.run.started' });
 clock += 1001;
 await hub.tick();
 assert.equal(frames.length, 1, 'default animation off: unchanged heartbeat sends no frame');
-assert.doesNotMatch(frames[0].content, /🐧/);
+assert.doesNotMatch(frames[0].content, /🐧|⚙️|⌛|🧠/);
 const messages = [
   { messageId: 'public-1', text: '正在定位 Space 初始化入口。' },
   { messageId: 'public-2', text: '已定位分支，下一步补充回归测试。' },
@@ -97,22 +106,16 @@ assert.doesNotMatch(hub.renderProcess(task.id), /内部原始推理/);
 await hub.handle({ type: 'task.finished', taskId: task.id, status: 'blocked' }, { task });
 const final = frames.at(-1).content;
 assert.equal(frames.at(-1).finish, true);
-assert.match(final, /⏸ 等待补充/);
+assert.match(final, /等待浏览器验证/);
 assert.doesNotMatch(final, /执行失败|最终结论|旧需求不应重复/);
 assert.equal(final.split(summary).length - 1, 1);
-assert.equal(final.split(task.id).length - 1, 1);
-assert.match(final, /npm test/);
-assert.match(hub.renderProcess(task.id), /5 passed/);
-assert.match(hub.renderProcess(task.id), /需要你反馈/);
-assert.equal(cards.length, 1);
-assert.deepEqual(cards[0].button_list.map((button) => button.key), [
-  'status:' + task.id, 'process:' + task.id, 'feedback:' + task.id
-]);
-for (const status of ['completed', 'failed', 'cancelled']) {
-  const card = buildTaskCard({ ...task, status });
-  assert.equal(card.button_list.length, 2);
-  assert.doesNotMatch(card.main_title.title, /执行中/);
-}
+// A blocked task is resumed with `继续 <对话ID>：<反馈>`, so the finished view
+// has to carry a copyable id rather than only the placeholder in the prompt.
+assert.equal(final.includes(`对话 ID：\`${task.id}\``), true);
+assert.doesNotMatch(final, /npm test|command \/bin\/zsh/);
+assert.match(hub.renderProcess(task.id), /5 项测试/);
+assert.match(hub.renderProcess(task.id), /等待浏览器验证/);
+assert.equal(cards.length, 0, '终态正文不创建新的不可引用卡片');
 await hub.close();
 
 const events = [
@@ -122,9 +125,10 @@ const events = [
   { type: 'codex.message', payload: { thinking: '另一段内部推理' } }
 ];
 const restored = renderStoredProcess(task, events);
-assert.match(restored, /工作记录/);
-assert.match(restored, /需要你反馈/);
+assert.match(restored, /测试命令已经启动/);
 assert.match(restored, /正在定位 Space/);
+assert.doesNotMatch(restored, /command \/bin\/zsh|Shell npm test/);
+assert.doesNotMatch(restored.split('**最终结果**')[0], /npm test/);
 assert.doesNotMatch(restored, /上一轮旧记录|另一段内部推理/);
 const pending = createPendingStore();
 const continued = [], replies = [];
@@ -170,7 +174,7 @@ const newRun = await handleWeComMessage({ ...frame, body: { ...frame.body, text:
 assert.equal(newRun.reason, 'feedback-task-changed');
 assert.equal(continued.length, 1, 'feedback for an older gate cannot authorize a new blocked run');
 await handleWeComCard(eventFrame('process'), deps);
-assert.match(replies.at(-1), /工作记录/);
+assert.match(replies.at(-1), /正在定位 Space/);
 await handleWeComCard(eventFrame('feedback'), deps);
 const cancelled = await handleWeComMessage({ ...frame, body: { ...frame.body, text: { content: '取消' } } },
   { ...deps, replyAck: async () => 'cancel-feedback' });
@@ -190,8 +194,7 @@ assert.equal(splitWeComMarkdown('🐧'.repeat(2000)).join(''), '🐧'.repeat(200
 
 const pushed = [], notifyErrors = [];
 let notify;
-const longTask = { ...task, result: { outcome: {
-  summary: '这是很长的公开结论。'.repeat(200), remainingSteps: [question] } } };
+const longTask = { ...task, result: { text: '这是很长的公开结论。'.repeat(200) } };
 attachWeComNotifier({ manager: { subscribe(callback) { notify = callback; return () => {}; } },
   sendMessage: async (_id, body) => {
     if (body.msgtype === 'template_card') throw new Error('card-unavailable');
@@ -202,15 +205,24 @@ attachWeComNotifier({ manager: { subscribe(callback) { notify = callback; return
 await notify({ type: 'task.blocked', taskId: task.id, task: longTask });
 assert.ok(pushed.length > 1);
 assert.ok(pushed.every((page) => Buffer.byteLength(page) <= 3000));
-assert.match(pushed.join(''), /等待补充 \/ 确认/);
-assert.match(pushed.at(-1), /对话 ID/);
-assert.ok(notifyErrors.some((error) => error.includes('card-unavailable')));
+assert.match(pushed.join(''), /最终结果/);
+assert.match(pushed.join(''), /这是很长的公开结论/);
+assert.doesNotMatch(pushed.join(''), /任务操作|command \/bin\/zsh/);
+assert.equal(notifyErrors.length, 0, '终态只推送原生正文，不再尝试模板卡片');
 assert.equal(task.status, 'blocked', 'card transport failure never changes task result');
+
+const rawToolTask = { ...task, result: { text: [
+  'command /bin/zsh -lc "python3 - <<\'PY\'\nprint(1)\nPY"',
+  "command /bin/zsh -lc 'git status --short'",
+  '11 项聚焦测试通过，结果已回填 TAPD。\n待处理：\n- 排查本地服务启动超时。'
+].join('\n\n') } };
+const rawToolResult = formatTaskNotify(rawToolTask);
+assert.doesNotMatch(rawToolResult, /command \/bin\/zsh|python3|git status/);
+assert.match(rawToolResult, /11 项聚焦测试通过/);
 
 const exiting = [];
 const exitHub = createWeComProgressHub({ replyProgress: async (_frame, _id, content) => { exiting.push(content); } });
 exitHub.open({ taskId: 'task-exiting', frame, streamId: 'exit' });
 await exitHub.close();
-assert.match(exiting.at(-1), /本轮未完成/);
-assert.doesNotMatch(exiting.at(-1), /✅/);
+assert.equal(exiting.length, 0);
 console.log('wecom presentation and feedback tests passed');

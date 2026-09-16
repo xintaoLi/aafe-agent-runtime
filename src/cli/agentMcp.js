@@ -225,7 +225,10 @@ function normalizeServerEntry(entry) {
 
   const type = String(entry.type ?? (url ? 'http' : 'stdio')).trim().toLowerCase();
   if (url || type === 'http' || type === 'sse') {
-    const server = { type: 'http', url };
+    const server = { type: type === 'sse' || entry.transportType === 'sse' ? 'sse' : 'http', url };
+    for (const key of ['enabled', 'disabled', 'enabled_tools', 'disabled_tools']) {
+      if (entry[key] !== undefined) server[key] = entry[key];
+    }
     if (entry.headers && typeof entry.headers === 'object') server.headers = { ...entry.headers };
     if (entry.auth && typeof entry.auth === 'object') server.auth = { ...entry.auth };
     return server;
@@ -236,6 +239,9 @@ function normalizeServerEntry(entry) {
     command,
     args: Array.isArray(entry.args) ? entry.args.map((item) => String(item)) : []
   };
+  for (const key of ['enabled', 'disabled', 'enabled_tools', 'disabled_tools']) {
+    if (entry[key] !== undefined) server[key] = entry[key];
+  }
   if (entry.env && typeof entry.env === 'object') server.env = { ...entry.env };
   if (nonEmpty(entry.cwd)) server.cwd = entry.cwd;
   return server;

@@ -21,6 +21,25 @@
 export const WORKFLOW_MODE_ASK = 'ask';
 export const WORKFLOW_MODE_AUTONOMOUS = 'autonomous';
 
+export const BOT_INTERACTION_POLICY_VERSION = 'blocking-only-v1';
+
+/** A Bot policy overlay, not a bypass of execution permissions or test results. */
+export function botInteractionPolicy(mode) {
+  if (!isAutonomousWorkflowMode(mode)) return '';
+  return [
+    'AAFE Bot autonomous interaction policy: blocking-only-v1. Decide routine proceed/skip choices yourself; do not ask for repeated confirmations.',
+    'This overlay replaces legacy skill instructions that always Hard Ask for a missing UI URL or URL role. Owner prohibitions, explicit mandatory acceptance requirements and native security permissions still take precedence.',
+    'First inspect user-designated settings files and existing task context for the application test URL, proxy and launch settings; a supplied config file is a valid source, not a reason to ask the user to retype a URL. Do not execute arbitrary config code just to inspect it. TAPD/PR links are not application URLs. Never guess an environment or claim that an unverified deployment contains this change.',
+    'For local UI verification, reading source project configuration does not forbid task-worktree-only E2E adapters. You may generate or patch AAFE wrapper/proxy/port files inside the isolated task worktree to consume AAFE_E2E_PORT and AAFE_E2E_DEV_URL, while preserving the source project local.settings files and project defaults.',
+    'If URL purpose is clear from the task/config, select target/origin/template and explain briefly without an A/B/C approval round. If unclear, do not navigate to a guessed target.',
+    'If optional UI validation lacks an application URL after inspection, record UI as not-run/skipped, explain the evidence gap and residual risk, and continue independent checks and otherwise authorized Commit/PR/TAPD delivery. Do not require the phrase "skip UI verification, continue delivery". Do not mark E2E passed. State the missing UI verification in delivery/backfill results.',
+    'A missing optional UI URL blocks that test, not every downstream gate. A CLI need-base-url/need-url-role result is still truthful; decide workflow applicability rather than rewriting that result. Re-evaluate old waiting-user records under this policy; old missing-URL asks are not new user restrictions.',
+    'Put optional skipped checks and residual risks in summary/evidence, not remainingSteps. Reserve remainingSteps and ask/blocked delivery records for genuinely required unfinished work; do not cascade an optional UI omission into waiting-user:commit/pr/tapd_backfill.',
+    'Stop and ask concisely only when a required outcome cannot proceed safely: an explicit owner-required UI-pass prerequisite, actual test failure, missing required authentication, denied permission, unclear target with material consequences, destructive/irreversible action lacking authorization, or a genuine product/security decision. Never turn failed tests or auth/permission errors into successful skips.',
+    'Keep valid pending confirmations; combine genuinely missing information into one specific question. This policy neither authorizes unrelated modifications nor disables native approval, branch rules, credential protection or delivery evidence verification.'
+  ].join('\n');
+}
+
 const ASK_ALIASES = new Set([
   'ask',
   'inquire',

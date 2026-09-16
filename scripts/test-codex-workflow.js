@@ -77,9 +77,28 @@ try {
   assert.equal(workflow.initialHead, initialHead);
   assert.ok(!codexWorkflowPrompt(workflow).includes('must-not-appear'));
   assert.ok(codexWorkflowPrompt(workflow).includes('--config-root'));
+  assert.match(codexWorkflowPrompt(workflow), /continue every later independent gate/);
+  assert.match(codexWorkflowPrompt(workflow), /pending-confirmation list/);
+  assert.match(workflow.interactionPolicy, /blocking-only-v1/);
+  assert.match(workflow.interactionPolicy, /user-designated settings files/);
+  assert.match(workflow.interactionPolicy, /not-run\/skipped/);
+  assert.match(workflow.interactionPolicy, /actual test failure/);
+  assert.match(workflow.interactionPolicy, /Do not mark E2E passed/);
+  const withoutOverlay = await resolveCodexWorkflow({ ...task, source: { type: 'cli' } }, {}, task.execution);
+  assert.equal(withoutOverlay.interactionPolicy, '');
+  assert.notEqual(withoutOverlay.policyHash, workflow.policyHash, 'changed Bot policy invalidates cached workflow decisions');
+  const agentLed = await resolveCodexWorkflow(task, { intent: { kind: 'agent', source: 'agent-direct' } }, task.execution);
+  assert.equal(agentLed.agentLed, true);
+  assert.match(codexWorkflowPrompt(agentLed), /has NOT classified/);
+  assert.match(codexWorkflowPrompt(agentLed), /read-only requests without modifying code/);
+  const skipped = ['commit', 'pr', 'tapd_backfill'].map((gate) => ({ gate, decision: 'skip', status: 'skipped', reason: 'Read-only question; no delivery requested' }));
+  assert.equal((await verifyCodexWorkflow(task, { outcome: { delivery: skipped } }, { ...agentLed, ready: false })).passed, true);
+  const attempted = skipped.map((gate) => gate.gate === 'commit' ? { ...gate, decision: 'proceed', status: 'done', receipt: initialHead } : gate);
+  assert.equal((await verifyCodexWorkflow(task, { outcome: { delivery: attempted } }, { ...agentLed, ready: false })).passed, false);
   await writeFile(configFile, JSON.stringify({ mode: { workflow: 'ask' }, submit: { cli: 'git' } }));
   const refreshed = await resolveCodexWorkflow(task, {}, task.execution);
   assert.equal(refreshed.mode, 'ask');
+  assert.equal(refreshed.interactionPolicy, '', 'explicit ask mode retains confirmations');
   assert.equal((await resolveCodexWorkflow(task, {}, task.execution, { workflowOverride: 'auto' })).mode, 'autonomous');
   assert.equal((await resolveCodexWorkflow(task, {}, task.execution, { workflowOverride: 'project' })).mode, 'ask');
   assert.equal((await resolveCodexWorkflow(task, {}, task.execution, { workflowOverride: 'invalid' })).mode, 'ask');
@@ -107,15 +126,18 @@ try {
   const prFailed = structuredClone(result);
   prFailed.outcome.delivery[1] = { ...gate('pr', 'proceed'), status: 'failed', reason: 'fixture remote failure' };
   const partial = await verifyCodexWorkflow(task, prFailed, workflow);
-  assert.equal(partial.passed, false);
+  assert.equal(partial.passed, true);
+  assert.match(partial.warning, /delivery-failed:pr/);
   assert.ok(partial.verified.some((record) => record.gate === 'tapd_backfill'));
-  assert.equal((await verifyCodexWorkflow(task, { ...result, receipts: [] }, workflow)).passed, false);
-  assert.equal((await verifyCodexWorkflow(task, { ...result, receipts: [state('backlog', 'before'), update('implementing', 'jump'), comment, state('implementing', 'after')] }, workflow)).passed, false);
-  assert.equal((await verifyCodexWorkflow(task, { ...result, receipts: receipts.slice(0, -1) }, workflow)).passed, false);
-  assert.equal((await verifyCodexWorkflow(task, result, { ...workflow, tapd: { enabled: false } })).passed, false);
+  const missingTapdProof = await verifyCodexWorkflow(task, { ...result, receipts: [] }, workflow);
+  assert.equal(missingTapdProof.passed, true);
+  assert.match(missingTapdProof.warning, /tapd-comment-unverified/);
+  assert.equal((await verifyCodexWorkflow(task, { ...result, receipts: [state('backlog', 'before'), update('implementing', 'jump'), comment, state('implementing', 'after')] }, workflow)).passed, true);
+  assert.equal((await verifyCodexWorkflow(task, { ...result, receipts: receipts.slice(0, -1) }, workflow)).passed, true);
+  assert.equal((await verifyCodexWorkflow(task, result, { ...workflow, tapd: { enabled: false } })).passed, true);
   assert.equal((await verifyCodexWorkflow(task, { outcome: { delivery: allSkipped }, receipts: [] }, refreshed)).passed, true);
   const unrelated = codexToolReceipt(item('comments_create', { workspace_id: workspaceId, entry_id: '999' }, { id: '777' }));
-  assert.equal((await verifyCodexWorkflow(task, { ...result, receipts: [unrelated, state('implementing', 'after')] }, workflow)).passed, false);
+  assert.equal((await verifyCodexWorkflow(task, { ...result, receipts: [unrelated, state('implementing', 'after')] }, workflow)).passed, true);
   const badUpdate = codexToolReceipt(item('stories_update', { workspace_id: workspaceId, id: entryId, description: 'never-persist-this-body' }, { id: entryId }));
   assert.ok(!JSON.stringify(badUpdate).includes('never-persist'));
   assert.equal((await verifyCodexWorkflow(task, { ...result, receipts: [...receipts, badUpdate] }, workflow)).passed, false);
@@ -126,10 +148,12 @@ try {
   const pending = { ...refreshed, pendingGate: 'tapd_backfill', ownerMessages: ['是'],
     tapd: workflow.tapd };
   assert.equal((await verifyCodexWorkflow(task, consentResult, pending)).passed, true);
-  assert.equal((await verifyCodexWorkflow(task, consentResult, { ...pending, pendingGate: 'commit' })).passed, false);
+  const wrongConsentGate = await verifyCodexWorkflow(task, consentResult, { ...pending, pendingGate: 'commit' });
+  assert.equal(wrongConsentGate.passed, true);
+  assert.match(wrongConsentGate.warning, /consent-unverified:tapd_backfill/);
   for (const latest of ['不要回填', '不是', '稍后再说']) {
     assert.equal((await verifyCodexWorkflow(task, consentResult,
-      { ...pending, ownerMessages: ['是', latest] })).passed, false, 'old yes is not fresh consent');
+      { ...pending, ownerMessages: ['是', latest] })).passed, true, 'old yes is now pending, not a hard block');
   }
   const failedMcp = item('comments_create', { workspace_id: workspaceId, entry_id: entryId }, { id: '777' });
   failedMcp.result.isError = true;

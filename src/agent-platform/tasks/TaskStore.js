@@ -22,10 +22,12 @@ import { appendFile, mkdir, readFile, readdir, rename, writeFile } from 'node:fs
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { assertTaskTransition, isTaskStatus } from './TaskState.js';
+import { applyTaskSnapshotPatch, createTaskSnapshot } from './TaskSnapshot.js';
 
 const TASK_FILE = 'task.json';
 const CONTEXT_FILE = 'context.json';
 const EVENTS_FILE = 'events.jsonl';
+const SNAPSHOT_FILE = 'snapshot.json';
 const INDEX_FILE = 'index.json';
 const TASK_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 const TAPD_ID = /\/(?:story|bug|task)\/detail\/(\d+)/i;
@@ -90,6 +92,7 @@ export class TaskStore {
       await mkdir(this.#taskDir(id), { recursive: true });
       await atomicJsonWrite(this.#file(id, TASK_FILE), task);
       await atomicJsonWrite(this.#file(id, CONTEXT_FILE), clone(context));
+      await atomicJsonWrite(this.#file(id, SNAPSHOT_FILE), createTaskSnapshot(task, context));
       await appendJsonLine(this.#file(id, EVENTS_FILE), createEvent(id, 'task.created', {
         status: task.status
       }));
@@ -106,6 +109,33 @@ export class TaskStore {
   async getContext(taskId) {
     const id = validateTaskId(taskId);
     return clone((await readJson(this.#file(id, CONTEXT_FILE))) ?? {});
+  }
+
+  async getSnapshot(taskId) {
+    const id = validateTaskId(taskId);
+    const existing = await readJson(this.#file(id, SNAPSHOT_FILE));
+    if (existing) return clone(existing);
+    const task = await this.#require(id);
+    const context = (await readJson(this.#file(id, CONTEXT_FILE))) ?? {};
+    const snapshot = createTaskSnapshot(task, context);
+    await atomicJsonWrite(this.#file(id, SNAPSHOT_FILE), snapshot);
+    return clone(snapshot);
+  }
+
+  async patchSnapshot(taskId, patch = {}) {
+    const id = validateTaskId(taskId);
+    return this.#withTaskLock(id, async () => {
+      const task = await this.#require(id);
+      const current = (await readJson(this.#file(id, SNAPSHOT_FILE)))
+        ?? createTaskSnapshot(task, (await readJson(this.#file(id, CONTEXT_FILE))) ?? {});
+      const next = applyTaskSnapshotPatch(current, patch);
+      if (next.version === current.version) return clone(current);
+      await atomicJsonWrite(this.#file(id, SNAPSHOT_FILE), next);
+      await appendJsonLine(this.#file(id, EVENTS_FILE), createEvent(id, 'task.snapshot.updated', {
+        fromVersion: current.version, toVersion: next.version
+      }));
+      return clone(next);
+    });
   }
 
   async replaceContext(taskId, context) {
@@ -157,6 +187,16 @@ export class TaskStore {
         updatedAt: new Date().toISOString()
       };
       await atomicJsonWrite(this.#file(id, TASK_FILE), next);
+      const snapshot = (await readJson(this.#file(id, SNAPSHOT_FILE)))
+        ?? createTaskSnapshot(current, (await readJson(this.#file(id, CONTEXT_FILE))) ?? {});
+      const snapshotPatch = {
+        status,
+        ...(payload.error ? { appendBlockers: [payload.error] } : {}),
+        ...(['completed', 'cancelled'].includes(status) ? { removeBlockers: snapshot.blockers } : {}),
+        ...(payload.result?.text ? { lastResult: String(payload.result.text).slice(0, 6000) } : {})
+      };
+      const nextSnapshot = applyTaskSnapshotPatch(snapshot, snapshotPatch);
+      if (nextSnapshot.version !== snapshot.version) await atomicJsonWrite(this.#file(id, SNAPSHOT_FILE), nextSnapshot);
       await appendJsonLine(this.#file(id, EVENTS_FILE), createEvent(id, 'task.status.changed', {
         from: current.status,
         to: status,

@@ -33,11 +33,22 @@ import { writeCompiledSpecs } from './compile.js';
 import { buildReport, createRunId, writeUnifiedReport, EXIT_CODE } from './report.js';
 import { listCases, parseCaseYaml } from './yaml.js';
 import { readFile } from 'node:fs/promises';
-import { NEED_AUTH_CODE, NEED_AUTH_PROMPT, prepareE2eAuth } from './auth.js';
+import { NEED_AUTH_CODE, NEED_AUTH_PROMPT, prepareE2eAuth, sessionLooksLoggedOut } from './auth.js';
+import { startE2eDevServer } from './devServer.js';
 
 const require = createRequire(import.meta.url);
 
 export function detectPlaywright(root) {
+  // The runtime declares Playwright as an optional dependency so project-level
+  // AAFE installations can execute E2E without forcing every target project to
+  // install it separately.
+  for (const name of ['playwright', '@playwright/test']) {
+    try {
+      return { id: name, path: require.resolve(name) };
+    } catch {
+      // continue with project-local resolution
+    }
+  }
   const roots = [root, process.cwd()];
   for (const base of roots) {
     for (const name of ['playwright', '@playwright/test']) {
@@ -160,72 +171,87 @@ export async function executeE2eCases({
     return { ...paths, report: { ...report, reportDir }, exitCode: EXIT_CODE.uncertain, config };
   }
 
-  const authEarly = await prepareE2eAuth({ config, interactive: false, probeOnly: true });
-  if (authEarly.needInput && (config.authMode === 'reuse' || !interactive)) {
-    return writeAuthBlocked(reportDir, {
-      runId,
-      startedAt,
-      cases: loaded,
-      config,
-      prompt: authEarly.prompt
-    });
-  }
-
-  if (dryRun) {
-    const report = buildReport({
-      runId,
-      status: 'uncertain',
-      cases: loaded.map((item) => ({ id: item.id, title: item.title, status: 'uncertain', message: 'dry-run' })),
-      startedAt,
-      e2eExecuted: false,
-      reason: 'dry-run'
-    });
-    const paths = await writeUnifiedReport(reportDir, { ...report, reportDir });
-    return { ...paths, report: { ...report, reportDir }, exitCode: EXIT_CODE.uncertain, config };
-  }
-
-  const detected = detectPlaywright(root);
-  if (!detected) {
-    const report = buildReport({
-      runId,
-      status: 'blocked',
-      cases: loaded.map((item) => ({ id: item.id, title: item.title, status: 'blocked', message: 'playwright-not-installed' })),
-      startedAt,
-      e2eExecuted: false,
-      reason: '未检测到 playwright。请在项目中安装 playwright 或 @playwright/test 后再 --run。'
-    });
+  let devServer;
+  try {
+    if (!dryRun) devServer = await startE2eDevServer(config);
+  } catch (error) {
+    const reason = /^e2e-dev-[a-z-]+$/.test(error.message) ? error.message : 'e2e-dev-start-failed';
+    const report = buildReport({ runId, status: 'blocked', cases: [], startedAt, e2eExecuted: false, reason });
     const paths = await writeUnifiedReport(reportDir, { ...report, reportDir });
     return { ...paths, report: { ...report, reportDir }, exitCode: EXIT_CODE.blocked, config };
   }
-
-  if (config.authMode !== 'none') {
-    const authPrep = await prepareE2eAuth({ config, interactive });
-    if (authPrep.needInput) {
+  try {
+    const authEarly = await prepareE2eAuth({ config, interactive: false, probeOnly: true });
+    if (authEarly.needInput && (config.authMode === 'reuse' || !interactive)) {
       return writeAuthBlocked(reportDir, {
         runId,
         startedAt,
         cases: loaded,
         config,
-        prompt: authPrep.prompt
+        prompt: authEarly.prompt
       });
     }
-    config.storageState = authPrep.storageState ?? null;
-  }
 
-  const results = [];
-  for (const testCase of loaded) {
-    results.push(await runOneCase(testCase, { root, config, reportDir, timeoutMs }));
-  }
+    if (dryRun) {
+      const report = buildReport({
+        runId,
+        status: 'uncertain',
+        cases: loaded.map((item) => ({ id: item.id, title: item.title, status: 'uncertain', message: 'dry-run' })),
+        startedAt,
+        e2eExecuted: false,
+        reason: 'dry-run'
+      });
+      const paths = await writeUnifiedReport(reportDir, { ...report, reportDir });
+      return { ...paths, report: { ...report, reportDir }, exitCode: EXIT_CODE.uncertain, config };
+    }
 
-  const report = buildReport({
-    runId,
-    cases: results,
-    startedAt,
-    e2eExecuted: true,
-    artifacts: results.flatMap((item) => item.artifacts ?? [])
-  });
-  const paths = await writeUnifiedReport(reportDir, { ...report, reportDir });
-  return { ...paths, report: { ...report, reportDir }, exitCode: EXIT_CODE[report.verdict] ?? 0, config };
+    const detected = detectPlaywright(root);
+    if (!detected) {
+      const report = buildReport({
+        runId,
+        status: 'blocked',
+        cases: loaded.map((item) => ({ id: item.id, title: item.title, status: 'blocked', message: 'playwright-not-installed' })),
+        startedAt,
+        e2eExecuted: false,
+        reason: '未检测到 playwright。请在项目中安装 playwright 或 @playwright/test 后再 --run。'
+      });
+      const paths = await writeUnifiedReport(reportDir, { ...report, reportDir });
+      return { ...paths, report: { ...report, reportDir }, exitCode: EXIT_CODE.blocked, config };
+    }
+
+    let authCookies = null;
+    if (config.authMode !== 'none') {
+      const authPrep = await prepareE2eAuth({ config, interactive });
+      if (authPrep.needInput) {
+        return writeAuthBlocked(reportDir, {
+          runId,
+          startedAt,
+          cases: loaded,
+          config,
+          prompt: authPrep.prompt
+        });
+      }
+      config.storageState = authPrep.storageState ?? null;
+      authCookies = authPrep.cookies ?? null;
+    }
+
+    const results = [];
+    for (const testCase of loaded) {
+      results.push(await runOneCase(testCase, { root, config, reportDir, timeoutMs, authCookies }));
+    }
+
+    const report = buildReport({
+      runId,
+      cases: results,
+      startedAt,
+      e2eExecuted: true,
+      artifacts: results.flatMap((item) => item.artifacts ?? [])
+    });
+    const paths = await writeUnifiedReport(reportDir, { ...report, reportDir });
+    return { ...paths, report: { ...report, reportDir }, exitCode: EXIT_CODE[report.verdict] ?? 0, config };
+  } finally {
+    await devServer?.stop();
+  }
 }
 
 async function loadSelectedCases(casesDir, caseIds) {
@@ -276,7 +302,7 @@ async function writeAuthBlocked(reportDir, { runId, startedAt, cases, config, pr
   };
 }
 
-async function runOneCase(testCase, { config, reportDir, timeoutMs }) {
+async function runOneCase(testCase, { config, reportDir, timeoutMs, authCookies }) {
   let playwright;
   try {
     playwright = await import('playwright');
@@ -284,24 +310,29 @@ async function runOneCase(testCase, { config, reportDir, timeoutMs }) {
     return { id: testCase.id, title: testCase.title, status: 'blocked', message: 'playwright-import-failed' };
   }
 
-  const browser = await playwright.chromium.launch({ headless: true });
-  const context = await browser.newContext(
-    config.storageState ? { storageState: config.storageState } : {}
-  );
-  const page = await context.newPage();
+  let browser, context, page;
   const consoleErrors = [];
   const httpErrors = [];
-  page.on('console', (msg) => {
-    if (msg.type() === 'error') consoleErrors.push(msg.text());
-  });
-  page.on('response', (response) => {
-    if (response.status() >= 400) httpErrors.push(`${response.status()} ${response.url()}`);
-  });
-
+  let authRejected = false;
   try {
+    browser = await playwright.chromium.launch({ headless: true });
+    context = await browser.newContext(config.storageState ? { storageState: config.storageState } : {});
+    if (authCookies) await context.addCookies(authCookies);
+    page = await context.newPage();
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') consoleErrors.push(msg.text());
+    });
+    page.on('response', (response) => {
+      if (response.status() >= 400) httpErrors.push(`${response.status()} ${response.url()}`);
+      if ([401, 403].includes(response.status())) authRejected = true;
+    });
+
     page.setDefaultTimeout(timeoutMs);
     for (const step of testCase.steps ?? []) {
       await runStep(page, step, testCase, config.baseUrl, config.urlRole);
+      if (authCookies && (authRejected || sessionLooksLoggedOut(page.url(), new URL(config.baseUrl).origin))) {
+        return { id: testCase.id, title: testCase.title, status: 'blocked', message: 'authenticated-session-rejected' };
+      }
     }
     const assertionResults = [];
     for (const assertion of testCase.assertions ?? []) {
@@ -310,14 +341,14 @@ async function runOneCase(testCase, { config, reportDir, timeoutMs }) {
     const failed = assertionResults.filter((item) => item.status !== 'passed');
     if (failed.some((item) => item.status === 'failed')) {
       const shot = path.join(reportDir, 'artifacts', `${testCase.id}.png`);
-      await page.screenshot({ path: shot, fullPage: true }).catch(() => {});
+      if (!authCookies) await page.screenshot({ path: shot, fullPage: true }).catch(() => {});
       return {
         id: testCase.id,
         title: testCase.title,
         status: 'failed',
-        message: failed.map((item) => item.message).join('; '),
-        assertionResults,
-        artifacts: [{ kind: 'screenshot', path: shot }]
+        message: authCookies ? 'authenticated-case-assertion-failed' : failed.map((item) => item.message).join('; '),
+        assertionResults: authCookies ? assertionResults.map(redactAssertionResult) : assertionResults,
+        artifacts: authCookies ? [] : [{ kind: 'screenshot', path: shot }]
       };
     }
     return {
@@ -329,18 +360,29 @@ async function runOneCase(testCase, { config, reportDir, timeoutMs }) {
     };
   } catch (error) {
     const shot = path.join(reportDir, 'artifacts', `${testCase.id}.png`);
-    await page.screenshot({ path: shot, fullPage: true }).catch(() => {});
+    if (!authCookies && page) await page.screenshot({ path: shot, fullPage: true }).catch(() => {});
     return {
       id: testCase.id,
       title: testCase.title,
       status: 'failed',
-      message: error instanceof Error ? error.message : String(error),
-      artifacts: [{ kind: 'screenshot', path: shot }]
+      message: authCookies ? 'authenticated-case-execution-failed' : error instanceof Error ? error.message : String(error),
+      artifacts: authCookies || !page ? [] : [{ kind: 'screenshot', path: shot }]
     };
   } finally {
-    await context.close().catch(() => {});
-    await browser.close().catch(() => {});
+    await context?.close().catch(() => {});
+    await browser?.close().catch(() => {});
   }
+}
+
+function redactAssertionResult(result) {
+  return { ...result, message: redactBrowserDiagnostic(result.message) };
+}
+
+function redactBrowserDiagnostic(value) {
+  return String(value ?? '')
+    .replace(/(https?:\/\/[^\s?#;]+)[^\s;]*/g, '$1')
+    .replace(/\b(bk_token|token|authorization|cookie)=?[^\s;]*/gi, '$1=[redacted]')
+    .slice(0, 2000);
 }
 
 async function runStep(page, step, testCase, baseUrl, urlRole = null) {

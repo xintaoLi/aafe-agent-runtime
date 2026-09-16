@@ -187,6 +187,12 @@ export async function runCli(argv) {
     return;
   }
 
+  if (command === 'telemetry' || command === 'metrics') {
+    const { runTelemetryCommand } = await import('./telemetry.js');
+    await runTelemetryCommand(process.cwd(), argv.slice(3));
+    return;
+  }
+
   if (command === 'bot') {
     const { runBotCommand } = await import('./bot.js');
     await runBotCommand(process.cwd(), argv.slice(3));
@@ -324,6 +330,7 @@ Commands:
   repo      GitHub PR via repo.githubAccessToken (aafe repo pr). Does not require gh
   diagnose  Turn a failing test report into a located root cause
   task      Manage isolated durable Cursor Cloud tasks (create|list|status|continue|cancel|recover)
+  telemetry  Read invocation baseline (.aafe/telemetry/invocations.jsonl); report [--json]
   update    Refresh installed project .ai-agent capabilities from the current aafe package
   migrate   Move files and config left by older versions to their current locations (--dry-run)
 

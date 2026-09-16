@@ -138,6 +138,16 @@ try {
   const resolvedList = graph.routes.find((route) => route.path === '/manage/clean-templates/list');
   assert.equal(resolvedList.component, 'src/views/clean-templates/list.vue');
   assert.ok(isRealRoute(resolvedList.path));
+  assert.ok(!graph.routes.some((route) => route.path.includes('/views/')),
+    'Vue component files must never be inferred as browser routes');
+
+  // Router files remain authoritative even when the ordinary entry graph
+  // consumes a deliberately tiny traversal budget first.
+  const constrained = await resolveRoutesFromEntries(tmp, {
+    frameworkHint: 'vue3',
+    entries: [{ file: 'src/main.js', exists: true, kind: 'entry' }]
+  }, { maxAstFiles: 2 });
+  assert.ok(constrained.routes.some((route) => route.path === '/manage/clean-templates/list'));
 } finally {
   await rm(tmp, { recursive: true, force: true });
 }
@@ -171,5 +181,22 @@ const plan = await buildTestPlan({
 });
 const planPaths = plan.scenarios.map((item) => item.source?.path);
 assert.ok(planPaths.includes('/manage/clean-templates/list'), `plan should use joined routes, got ${planPaths.join(',')}`);
+
+const splitKnowledge = {
+  async findModuleByFile() { return 'feature-retrieve-v2'; },
+  async getModule(id) {
+    if (String(id).includes('router')) return {
+      id: 'router', files: ['src/router/retrieve.js'],
+      routes: [{ path: '/retrieve/:indexId?', file: 'src/router/retrieve.js' }]
+    };
+    return { id: 'feature-retrieve-v2', files: ['src/views/retrieve-v2/search/input.vue'], routes: [] };
+  },
+  async modulesIndex() { return [{ id: 'router' }, { id: 'feature-retrieve-v2' }]; }
+};
+const splitPlan = await buildTestPlan({
+  impact: null, knowledge: splitKnowledge, runners: { e2e: { id: 'playwright' } },
+  changedFiles: ['bklog/web/src/views/retrieve-v2/search/input.vue']
+});
+assert.deepEqual(splitPlan.scenarios.map((item) => item.source.path), ['/retrieve']);
 
 console.log('test-route-analyze: ok');

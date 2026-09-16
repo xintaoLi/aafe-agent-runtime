@@ -75,7 +75,7 @@ assert.equal((await manager.get('cancelled')).status, 'completed');
 let finishRun;
 const runNormally = runtime.run;
 runtime.run = async function(task, prompt, options) {
-  if (prompt === 'first follow-up') await new Promise(resolve => { finishRun = resolve; });
+  if (prompt.startsWith('first follow-up')) await new Promise(resolve => { finishRun = resolve; });
   return runNormally.call(this, task, prompt, options);
 };
 const firstFollowUp = manager.continue('cancelled', 'first follow-up');

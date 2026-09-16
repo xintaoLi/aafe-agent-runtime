@@ -371,6 +371,8 @@ try {
     maxConcurrentTasks: 1,
     validateProjectRuntime: false
   });
+  const unifiedEvents = [];
+  manager.subscribeExecution((event) => unifiedEvents.push(event));
   await manager.create({ id: 'managed-a', requirement: 'A', repository: 'repo-a', context: { metadata: { own: 'a' } } });
   await manager.create({ id: 'managed-b', requirement: 'B', repository: 'repo-b', context: { metadata: { own: 'b' } } });
   const [managedA, managedB] = await Promise.all([manager.start('managed-a'), manager.start('managed-b')]);
@@ -382,6 +384,8 @@ try {
   assert.equal((await manager.getContext('managed-a')).metadata.own, 'a');
   assert.equal((await manager.getContext('managed-b')).metadata.own, 'b');
   assert.ok((await manager.events('managed-a')).some((event) => event.type === 'task.cursor.bound'));
+  assert.ok((await manager.events('managed-a')).some((event) => event.type === 'execution.event'));
+  assert.ok(unifiedEvents.some((event) => event.taskId === 'managed-a' && event.type === 'execution.completed'));
   await manager.close();
 
   // --- continue while running queues the next Run instead of throwing ------

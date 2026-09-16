@@ -45,6 +45,17 @@ export { validateSchema, formatSchemaErrors } from './schema/validate.js';
 export { coerceToSchema, coerceAndValidate, buildRepairPrompt } from './schema/repair.js';
 export * from './protocol/request.js';
 export * from './protocol/response.js';
+export * from './protocol/execution.js';
+export { ExecutorAdapter, asExecutorAdapter } from './runtime/ExecutorAdapter.js';
+export {
+  EXECUTION_PROTOCOL_VERSION,
+  EXECUTOR_TYPES,
+  EXECUTION_EVENT_TYPES,
+  createExecutionInput,
+  createExecutionEvent,
+  normalizeExecutorCapabilities,
+  normalizeRuntimeExecutionEvent
+} from './protocol/execution.js';
 export * from './tasks/index.js';
 export * from './sdd/index.js';
 export { CursorTaskRuntime } from './runtime/CursorTaskRuntime.js';

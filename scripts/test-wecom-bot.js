@@ -19,6 +19,8 @@
  */
 
 import assert from 'node:assert/strict';
+import './test-wecom-project.js';
+import './test-wecom-project-onboarding.js';
 import { access, mkdir, mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -36,7 +38,7 @@ import {
   mergeModelRules,
   validateModelRules
 } from '../ai-bots/wecom/src/models.js';
-import { startWeComBot } from '../ai-bots/wecom/src/index.js';
+import { ensureWeComServiceEnv, startWeComBot } from '../ai-bots/wecom/src/index.js';
 import { parseWeComCommand, stripMentions } from '../ai-bots/wecom/src/commands.js';
 import { analyzeWeComIntent } from '../ai-bots/wecom/src/intent.js';
 import { parseCardEvent, buildTaskCard, buildCancelledCard, freshCardTaskId } from '../ai-bots/wecom/src/cards.js';
@@ -45,8 +47,12 @@ import { createPendingStore } from '../ai-bots/wecom/src/pending.js';
 import {
   classifyWorkspaceTarget,
   createWorkspaceStore,
-  parseWorkspaces
+  parseWorkspaces,
+  toTaskWorkspace
 } from '../ai-bots/wecom/src/workspace.js';
+import { buildE2ePromptSection } from '../src/agent-platform/tasks/TaskManager.js';
+import { loadE2eConfig } from '../src/testing/e2e/config.js';
+import { withE2eConfigRoots } from '../src/testing/e2e/configContext.js';
 import {
   createTaskManagerOptions,
   loadWeComBotConfig,
@@ -401,7 +407,17 @@ const fromDotEnv = await loadWeComBotConfig({ root: envRoot, env: {}, readConfig
 assert.equal(fromDotEnv.botId, 'dotenv-bot');
 assert.equal(fromDotEnv.secret, 'dotenv-secret');
 assert.equal(fromDotEnv.apiKey, 'crsr_dotenv');
-assert.deepEqual(fromDotEnv.workflow, { mode: 'auto', intentConfidence: 0.7 });
+
+const launchdEnv = ensureWeComServiceEnv({ PATH: '/usr/bin:/bin' }, {
+  home: '/Users/example',
+  execPath: '/Users/example/.nvm/versions/node/v24.21.0/bin/node'
+});
+assert.equal(launchdEnv.HOME, '/Users/example');
+assert.equal(launchdEnv.SHELL, '/bin/zsh');
+assert.equal(launchdEnv.PATH.split(path.delimiter).includes('/Users/example/.nvm/versions/node/v24.21.0/bin'), true);
+assert.equal(launchdEnv.PATH.split(path.delimiter).includes('/opt/homebrew/bin'), true);
+assert.equal(launchdEnv.PATH.split(path.delimiter).includes('/usr/bin'), true);
+assert.deepEqual(fromDotEnv.workflow, { mode: 'auto', routing: 'legacy', intentConfidence: 0.7 });
 assert.equal(createTaskManagerOptions(fromDotEnv).runtimeOptions.workflowOverride, 'auto');
 
 const manager = createFakeManager();
@@ -504,17 +520,16 @@ const handled = await handleWeComMessage({
   dedup: createMessageDedup()
 });
 assert.equal(handled.action.type, 'created');
-assert.equal(replies[0].includes(handled.action.task.id), true);
+assert.equal(replies[0], '处理中');
 assert.equal(ackFinishes[0], false);
-// Mock replyAck does not confirm the combo frame, so the buttons go out as a
-// standalone card instead of fake markdown.
-assert.equal(opened.some((item) => item.card?.button_list?.some((button) => button.key === `cancel:${handled.action.task.id}`)), true);
-assert.match(replies[0], new RegExp(`终止 ${handled.action.task.id}`));
-assert.equal(replies[0].includes('**点击终止**'), false);
-assert.match(replies[0], new RegExp(`对话 ID：\`${handled.action.task.id}\``));
+// WeCom renders a template card as its own separate message, so a task panel
+// can never sit at the bottom of the running one. No card is sent at all; the
+// controls travel in the body text, which is why nothing here has a card.
+assert.equal(opened.some((item) => item.card), false);
+assert.equal(replies[0].includes(handled.action.task.id), false);
 const openedSession = opened.find((item) => item.taskId);
 // The header the live view reuses stays free of the footer it appends itself.
-assert.equal(openedSession.header.includes('对话 ID'), false);
+assert.equal(openedSession.header, '');
 assert.equal(openedSession.taskId, handled.action.task.id);
 assert.equal(openedSession.streamId, 'stream-create');
 await delay(10);
@@ -579,7 +594,7 @@ assert.equal(tapdHandled.action.task.taskBranch, null);
 assert.equal(tapdHandled.action.task.context.tapd.enabled, true);
 assert.equal(tapdHandled.action.task.context.tapd.association.shortId, '137887277');
 assert.equal(tapdHandled.action.task.context.tapd.association.entryType, 'story');
-assert.equal(tapdReplies[0].includes(tapdHandled.action.task.id), true);
+assert.equal(tapdReplies[0], '处理中');
 await delay(10);
 assert.deepEqual(tapdStarted, [tapdHandled.action.task.id]);
 
@@ -642,7 +657,7 @@ assert.equal(latestFollow.action.task.id, 'task-stale-running');
 assert.equal(latestFollow.action.anchor, 'active');
 // An implicit target is stated with the way to change it, so a wrong guess
 // surfaces on the next message instead of inside the agent's report.
-assert.match(latestFollow.reply, /已追加到你最近活跃的任务/);
+assert.equal(latestFollow.reply, '处理中');
 
 // Naming it explicitly still resumes it.
 const explicitFollow = await handleWeComMessage({
@@ -712,7 +727,7 @@ assert.equal(squashDecision.action.anchor, 'recent');
 assert.equal(squashDecision.intent.kind, 'followup');
 assert.equal(squashDecision.intent.action, 'apply');
 assert.equal(squashDecision.intent.source, 'rules-fast');
-assert.match(squashDecision.reply, /已接着刚完成的任务继续/);
+assert.equal(squashDecision.reply, '处理中');
 assert.equal(justAnalysed.continues.length, 1);
 assert.match(justAnalysed.continues[0].message, new RegExp(REUSE_ANALYSIS_TEXT));
 assert.match(justAnalysed.continues[0].message, /全部 squash 成1个/);
@@ -915,7 +930,7 @@ const byText = await handleWeComMessage({
 });
 assert.equal(byText.action.task.id, 'task-20260903124651-e441a17b');
 assert.equal(byText.action.via, 'requirement-match');
-assert.match(byText.reply, /按引用内容匹配到该任务/);
+assert.equal(byText.reply, '处理中');
 
 // A quote that matches nothing degrades to normal routing rather than binding
 // to a task by accident.
@@ -1000,7 +1015,7 @@ assert.equal(bystanderQuote.action.type, 'continue');
 assert.equal(bystanderQuote.action.task.id, 'task-20260904100000-aaaabbbb');
 assert.equal(bystanderQuote.action.actorRole, 'participant');
 assert.equal(bystanderQuote.action.ownerId, 'user-a');
-assert.match(bystanderQuote.reply, /已作为 user-a 任务的补充记录/);
+assert.equal(bystanderQuote.reply, '处理中');
 assert.deepEqual(anchorGroup.continues.at(-1).options.author, { userId: 'user-b', role: 'participant' });
 
 // Without that reference the same words are refused: an implicit reply must
@@ -1483,7 +1498,7 @@ await handleWeComMessage({
 });
 await delay(10);
 assert.equal(alreadyActiveFailed.length, 0);
-assert.match(alreadyActiveReplies[0], /继续/);
+assert.equal(alreadyActiveReplies[0], '处理中');
 
 const newDuringOpen = await handleWeComMessage({
   ...textFrame,
@@ -1546,6 +1561,61 @@ const store = createWorkspaceStore({
 assert.equal(store.getActive().id, 'aafe');
 assert.equal(store.switchTo('demo').repository, 'owner/demo');
 assert.equal(parseWorkspaces([{ id: 'x', cwd: tmp }]).length, 1);
+const e2eStore = createWorkspaceStore({ root: tmp, workspaces: [
+  { id: 'test-app', cwd: tmp, e2e: { baseUrl: 'https://test.example.com/#/logs?bizId=2' } },
+  { id: 'other-app', cwd: tmp }
+] });
+const e2eWorkspace = toTaskWorkspace(e2eStore.getActive(), tmp);
+assert.deepEqual(e2eWorkspace.e2e, { baseUrl: 'https://test.example.com/#/logs?bizId=2', urlRole: 'template' });
+assert.equal(toTaskWorkspace(e2eStore.switchTo('other-app'), tmp).e2e, undefined);
+const e2ePrompt = buildE2ePromptSection({ workspace: e2eWorkspace }, { mode: 'local' }, tmp, { cwd: tmp });
+assert.equal(e2ePrompt.split('--base-url=https://test.example.com/#/logs?bizId=2').length, 3, 'test and auth receive the same URL');
+assert.ok(e2ePrompt.includes('Replace (do not duplicate)'));
+assert.ok(e2ePrompt.includes('TAPD requirement body/task description'));
+assert.ok(e2ePrompt.includes('not proof that this task code is deployed'));
+assert.ok(e2ePrompt.includes('Read source configuration without modifying source project defaults'));
+assert.ok(e2ePrompt.includes('task worktree still needs an AAFE wrapper'));
+assert.ok(e2ePrompt.includes('must not become a waiting-user approval'));
+assert.throws(() => parseWorkspaces([{ cwd: tmp, e2e: { baseUrl: 'file:///tmp/test' } }]), /HTTP\(S\)/);
+assert.throws(() => parseWorkspaces([{ cwd: tmp, e2e: { baseUrl: 'https://user:secret@example.com' } }]), /credentials/);
+assert.throws(() => parseWorkspaces([{ cwd: tmp, e2e: { baseUrl: 'https://example.com', urlRole: 'bad' } }]), /urlRole/);
+const projectE2e = { e2e: { baseUrlEnv: 'AAFE_TEST_UNUSED_BASE_URL', baseUrl: 'https://test.example.com', urlRole: 'origin' } };
+assert.equal((await loadE2eConfig(tmp, projectE2e)).urlRole, 'origin');
+const overrideE2e = await loadE2eConfig(tmp, projectE2e, { baseUrl: 'https://other.example.com/page', urlRole: 'target' });
+assert.equal(overrideE2e.baseUrl, 'https://other.example.com/page');
+assert.equal(overrideE2e.urlRole, 'target');
+assert.equal((await loadE2eConfig(tmp, projectE2e, { baseUrl: 'https://other.example.com/page' })).urlRole, null);
+const projectWorkspaces = [
+  { id: 'other-app', cwd: '/projects/other', e2e: { baseUrl: 'https://other.example.com' } },
+  { id: e2eWorkspace.id, cwd: tmp, e2e: { baseUrl: 'https://updated.example.com' } }
+];
+const oldTask = { source: { type: 'wecom' }, workspace: e2eWorkspace };
+const resumedPrompt = buildE2ePromptSection(oldTask, {}, '/bot', { cwd: '/worktree' }, projectWorkspaces);
+assert.ok(resumedPrompt.includes('--base-url=https://updated.example.com'));
+assert.ok(resumedPrompt.includes('--project-e2e'));
+assert.ok(resumedPrompt.includes('--config-root=' + tmp));
+assert.ok(!resumedPrompt.includes('--base-url=https://other.example.com'));
+assert.ok(!resumedPrompt.includes('--base-url=https://test.example.com'));
+const clearedPrompt = buildE2ePromptSection(oldTask, {}, '/bot', { cwd: '/worktree' }, [{ id: e2eWorkspace.id, cwd: tmp }]);
+assert.ok(!clearedPrompt.includes('--base-url=https://test.example.com'), 'removed project override does not use stale task value');
+assert.deepEqual(createTaskManagerOptions({ root: tmp, workspaces: projectWorkspaces }).projectWorkspaces, projectWorkspaces);
+const previousBase = process.env.AAFE_TEST_UNUSED_BASE_URL;
+try {
+  process.env.AAFE_TEST_UNUSED_BASE_URL = 'https://global.example.com';
+  assert.equal((await loadE2eConfig(tmp, projectE2e)).baseUrl, 'https://global.example.com', 'CLI keeps env override');
+  await Promise.all(['a', 'b'].map((id) => withE2eConfigRoots(tmp, ['--project-e2e', '--config-root=/projects/' + id], async () => {
+    const config = await loadE2eConfig(tmp, { e2e: { baseUrlEnv: 'AAFE_TEST_UNUSED_BASE_URL', baseUrl: 'https://' + id + '.example.com' } });
+    assert.equal(config.baseUrl, 'https://' + id + '.example.com');
+    assert.equal(config.configRoot, '/projects/' + id);
+  })));
+  await withE2eConfigRoots(tmp, ['--project-e2e'], async () => {
+    assert.equal((await loadE2eConfig(tmp, { e2e: { baseUrlEnv: 'AAFE_TEST_UNUSED_BASE_URL' } })).baseUrl, null);
+    assert.equal((await loadE2eConfig(tmp, projectE2e, { baseUrl: 'https://task.example.com' })).baseUrl, 'https://task.example.com');
+  });
+} finally {
+  if (previousBase === undefined) delete process.env.AAFE_TEST_UNUSED_BASE_URL;
+  else process.env.AAFE_TEST_UNUSED_BASE_URL = previousBase;
+}
 
 const cancelUpdates = [];
 const cancelManager = createFakeManager();
@@ -1572,7 +1642,7 @@ const cardHandled = await handleWeComCard({
 });
 assert.equal(cardHandled.action.type, 'cancelled');
 assert.equal(cancelManager.tasks[0].status, 'cancelled');
-assert.equal(cancelUpdates[0].main_title.title, '⛔ 已终止');
+assert.equal(cancelUpdates[0].main_title.title, '已终止');
 assert.equal(cancelUpdates[0].task_id, 'run_task-card-1');
 
 // WeCom nests the click payload under `template_card_event`.
@@ -1680,14 +1750,14 @@ const notifyTask = {
   status: 'completed',
   requirement: '增加搜索',
   source: { type: 'wecom', conversationId: 'user-a', chattype: 'single' },
-  result: { git: { files: ['src/a.js'], prUrl: 'https://example.com/pr/1' } }
+  result: { text: '修改已完成。', git: { files: ['src/a.js'], prUrl: 'https://example.com/pr/1' } }
 };
 assert.match(formatTaskNotify(notifyTask), /task-done/);
 assert.match(formatTaskNotify(notifyTask), /src\/a\.js/);
 assert.match(formatTaskNotify(notifyTask), /https:\/\/example.com\/pr\/1/);
 assert.match(formatTaskNotify(notifyTask), /对话 ID：`task-done`$/);
-assert.match(formatTaskNotify(notifyTask), /\*\*✅ 已完成\*\*/);
-assert.match(formatTaskNotify(notifyTask), /任务已完成，但 Agent 未给出文字说明/);
+assert.match(formatTaskNotify(notifyTask), /\*\*已完成\*\*/);
+assert.match(formatTaskNotify(notifyTask), /修改已完成/);
 // A retry that succeeded must not report the previous attempt's error.
 assert.equal(
   formatTaskNotify({ ...notifyTask, error: 'cursor-agent-open-failed:Agent x not found' })
@@ -1720,8 +1790,28 @@ assert.equal(sent[0].chatid, 'user-a');
 assert.equal(sent[0].body.msgtype, 'markdown');
 assert.match(sent[0].body.markdown.content, /已完成/);
 
+const legacyUnified = [];
+const executionUnified = [];
+const unifiedSent = [];
+attachWeComNotifier({
+  manager: {
+    subscribe(listener) { legacyUnified.push(listener); return () => {}; },
+    subscribeExecution(listener) { executionUnified.push(listener); return () => {}; },
+    async get() { return notifyTask; }
+  },
+  supportsTemplateCard: () => false,
+  sendMessage: async (_chatid, body) => { unifiedSent.push(body); }
+});
+await executionUnified[0]({ type: 'execution.completed', taskId: 'task-done', executionId: 'run-1', payload: {} });
+await legacyUnified[0]({ type: 'task.finished', taskId: 'task-done', task: notifyTask });
+assert.equal(unifiedSent.length, 1, '统一终态与兼容旧事件只能通知一次');
+
 assert.equal(formatProgressEvent({ type: 'cursor.run.started' }).kind, 'status');
 assert.equal(formatProgressEvent({ type: 'cursor.run.started' }).text, 'thinking');
+assert.equal(formatProgressEvent({ type: 'execution.started', payload: {} }).text, 'thinking');
+assert.deepEqual(formatProgressEvent({ type: 'message.delta', payload: { content: '统一消息' } }),
+  { kind: 'assistant', text: '统一消息', messageId: undefined });
+assert.equal(formatProgressEvent({ type: 'tool.started', payload: { tools: [{ name: 'Read', detail: 'src/a.js' }] } }).kind, 'tool');
 assert.equal(formatProgressEvent({
   type: 'cursor.message',
   payload: { type: 'tool_call', message: { toolCall: { name: 'Read', input: { path: 'src/a.js' } } } }
@@ -1734,19 +1824,17 @@ assert.equal(formatProgressEvent({
   type: 'cursor.message',
   payload: { type: 'assistant', text: '正在看复制按钮' }
 }).kind, 'assistant');
-assert.match(renderProgressView({
+assert.equal(renderProgressView({
   header: '**t1**',
   transcript: [
     { kind: 'tool', tools: [{ name: 'Read', detail: 'src/a.js' }] },
     { kind: 'assistant', text: '正在看复制按钮' }
   ]
-}), /正在看复制按钮/);
-assert.match(renderProgressView({
+}), '**执行中**\n\n**思考过程**\n> 正在读取文件\n\n正在看复制按钮');
+assert.equal(renderProgressView({
   header: '**t1**',
-  transcript: [
-    { kind: 'tool', tools: [{ name: 'Read', detail: 'src/a.js' }] }
-  ]
-}), /正在读取文件/);
+  transcript: [{ kind: 'tool', tools: [{ name: 'Read', detail: 'src/a.js' }] }]
+}), '**执行中**\n\n**思考过程**\n> 正在读取文件');
 const collapsed = renderProgressView({
   header: '**t1**',
   transcript: [
@@ -1757,11 +1845,10 @@ const collapsed = renderProgressView({
     { kind: 'assistant', text: '这一段过程草稿不应整段铺在过程里' }
   ]
 });
-assert.match(collapsed, /查看完整过程/);
-assert.match(collapsed, /src\/f7\.js/);
-assert.equal(collapsed.includes('src/f0.js'), false);
+assert.match(collapsed, /思考过程/);
+assert.doesNotMatch(collapsed, /src\/f[0-9]\.js|command \/bin\/zsh/);
 assert.match(collapsed, /正在读取文件/);
-assert.equal(collapsed.includes('**✅ 最终结论**'), false);
+assert.equal(collapsed.includes('**最终结果**'), false);
 const finishedView = renderProgressView({
   header: '**t1**',
   transcript: [
@@ -1771,36 +1858,31 @@ const finishedView = renderProgressView({
   footer: '任务 **t1** 已完成',
   finished: true
 });
-assert.match(finishedView, /\*\*✅ 最终结论\*\*/);
+assert.match(finishedView, /最终结果|思考过程/);
 assert.match(finishedView, /复制按钮已修好/);
-assert.match(finishedView, /最近进展/);
-assert.match(finishedView, /src\/a\.js/);
+assert.doesNotMatch(finishedView, /src\/a\.js/);
 assert.equal(finishedView.includes('**正在**'), false);
-// The title dances while the task runs and stops once the stream is finished.
 assert.equal(finishedView.includes('🐧'), false);
 const danceTitles = [0, 1, 2, 3, 4].map((tick) => renderProgressView({
   header: '**t1** 继续\n补充内容',
   transcript: [],
   tick
 }).split('\n')[0]);
-assert.equal(danceTitles[0], `**t1** 继续 ${danceFrame(0)}`);
-assert.equal(danceTitles[1], `**t1** 继续 ${danceFrame(1)}`);
-assert.equal(danceTitles[2], `**t1** 继续 ${danceFrame(2)}`);
-assert.equal(danceTitles[4], danceTitles[0]);
-assert.notEqual(danceTitles[0], danceTitles[1]);
-assert.notEqual(danceTitles[1], danceTitles[2]);
-assert.equal(new Set([0, 1, 2, 3].map((tick) => danceFrame(tick))).size, 3);
-assert.match(renderProgressView({ header: '**t1**', transcript: [], tick: 1 }), /🐧/);
-// Terminating and the copyable id sit at the bottom of the running box.
+assert.deepEqual(danceTitles, Array(5).fill('**思考中**'));
+assert.equal(new Set([0, 1, 2, 3].map((tick) => danceFrame(tick))).size, 1);
+assert.equal(renderProgressView({ header: '**t1**', transcript: [], tick: 1 }), '**思考中**');
 const runningBox = renderProgressView({
   header: '**task-live** 继续',
   transcript: [{ kind: 'tool', tools: [{ name: 'Read', detail: 'src/a.js' }] }],
   taskId: 'task-live'
 });
-assert.match(runningBox, /展开或停止请点消息下方按钮/);
-assert.match(runningBox, /终止 task-live/);
+assert.match(runningBox, /执行中[\s\S]*思考过程[\s\S]*正在读取文件/);
+assert.doesNotMatch(runningBox, /src\/a\.js/);
 assert.equal(runningBox.includes('**点击终止**'), false);
+// The id and the typed stop command are the fallback when no button rendered,
+// and there is no way to know that from here, so they are always present.
 assert.match(runningBox, /对话 ID：`task-live`/);
+assert.match(runningBox, /终止 task-live/);
 assert.equal(
   renderProgressView({
     header: '**task-live**',
@@ -1818,8 +1900,8 @@ const emptyFinish = renderProgressView({
   finished: true,
   taskId: 't-empty'
 });
-assert.match(emptyFinish, /\*\*✅ 最终结论\*\*/);
-assert.match(emptyFinish, /未给出文字说明/);
+assert.match(emptyFinish, /最终结果/);
+assert.doesNotMatch(emptyFinish, /src\/a\.js/);
 const expandedProcess = renderProgressView({
   header: '**t1**',
   transcript: [
@@ -1830,9 +1912,10 @@ const expandedProcess = renderProgressView({
   expanded: true,
   animate: false
 });
-assert.match(expandedProcess, /\*\*Shell\*\* · 2 次/);
-assert.match(expandedProcess, /git status/);
-assert.match(expandedProcess, /\*\*Read\*\*/);
+assert.match(expandedProcess, /思考过程（已展开）/);
+assert.match(expandedProcess, /正在执行命令（2 次）/);
+assert.match(expandedProcess, /正在读取文件/);
+assert.doesNotMatch(expandedProcess, /\bls\b|git status|src\/a\.js/);
 const failedView = renderProgressView({
   header: '**t-fail**',
   transcript: [],
@@ -1865,8 +1948,7 @@ const cancelingView = renderProgressView({
   transcript: [{ kind: 'tool', tools: [{ name: 'Read', detail: 'src/a.js' }] }],
   taskId: 't-stop'
 });
-assert.match(cancelingView, /⏹ 正在终止/);
-assert.match(cancelingView, /正在停止当前任务/);
+assert.match(cancelingView, /正在终止[\s\S]*正在读取文件/);
 assert.equal(cancelingView.includes('点击终止'), false);
 const canceledView = renderProgressView({
   header: '**t-stop**',
@@ -1878,17 +1960,30 @@ const canceledView = renderProgressView({
   ],
   taskId: 't-stop'
 });
-assert.match(canceledView, /⛔ 已终止/);
-assert.match(canceledView, /任务已被用户终止/);
-assert.match(canceledView, /已记录活动（不代表完成）/);
 assert.match(canceledView, /正在读取文件/);
+assert.match(canceledView, /正在搜索代码/);
+assert.doesNotMatch(canceledView, /src\/a\.js|Grep copy/);
 assert.equal(canceledView.includes('**✅ 最终结论**'), false);
 const cotCollapsed = renderProgressView({
   header: '**t-cot**',
   transcript: [{ kind: 'thinking', text: '我现在考虑是不是应该先调用 AST Agent，但是又需要判断当前文件是否存在' }]
 });
-assert.match(cotCollapsed, /正在分析…/);
-assert.equal(cotCollapsed.includes('AST Agent'), false);
+assert.equal(cotCollapsed, '**思考中**');
+assert.doesNotMatch(cotCollapsed, /AST Agent|当前文件/);
+// One document carries everything now: the tool step appears as its redacted
+// summary, the private reasoning and the raw command never leave the process.
+const unifiedCot = renderProgressView({
+  transcript: [
+    { kind: 'thinking', text: 'private chain of thought' },
+    { kind: 'assistant', text: '正在核对公开配置。' },
+    { kind: 'tool', tools: [{ name: 'shell', detail: 'secret command' }] }
+  ]
+});
+assert.match(unifiedCot, /正在核对公开配置/);
+assert.match(unifiedCot, /思考过程[\s\S]*正在执行命令/);
+assert.doesNotMatch(unifiedCot, /private chain of thought/);
+assert.doesNotMatch(unifiedCot, /secret command/);
+assert.equal(renderProgressView({ transcript: [], finished: false }), '**思考中**');
 const uiState = buildAgentUIState({
   transcript: [
     { kind: 'tool', tools: [{ name: 'Read', detail: 'a.js' }] },
@@ -1904,8 +1999,8 @@ assert.match(uiState.result.content, /问题在复制按钮/);
 const streamUpdates = [];
 const hub = createWeComProgressHub({
   danceMs: 2500,
-  replyProgress: async (_frame, streamId, content, finish) => {
-    streamUpdates.push({ streamId, content, finish });
+  replyProgress: async (_frame, streamId, content, finish, extra) => {
+    streamUpdates.push({ streamId, content, finish, ...extra });
   },
   now: () => 1_780_000_000_000,
   heartbeatMs: 60_000
@@ -1918,13 +2013,22 @@ hub.open({
 });
 await hub.handle({ type: 'cursor.run.started', taskId: 'task-live' });
 assert.equal(streamUpdates.at(-1).finish, false);
-assert.match(streamUpdates.at(-1).content, /思考中/);
+// Status line, thinking log and current output share one document, and the log
+// rides inside WeCom's `<think>` block so the client renders it collapsed.
+assert.match(streamUpdates.at(-1).content, /思考中[\s\S]*<think>[\s\S]*Agent 已开始执行[\s\S]*<\/think>/);
+assert.equal(streamUpdates.at(-1).content.includes('<thinking>'), false);
 await hub.handle({
   type: 'cursor.message',
   taskId: 'task-live',
   payload: { type: 'assistant', text: '先看复制按钮的点击处理。' }
 });
 assert.match(streamUpdates.at(-1).content, /先看复制按钮/);
+await hub.handle({
+  type: 'message.delta',
+  taskId: 'task-live',
+  payload: { text: '这是统一事件正文。', messageId: 'unified-1' }
+});
+assert.match(streamUpdates.at(-1).content, /这是统一事件正文/);
 await hub.handle({
   type: 'cursor.message',
   taskId: 'task-live',
@@ -1933,12 +2037,9 @@ await hub.handle({
     tools: [{ name: 'Read', detail: 'src/copy.js' }]
   }
 });
-assert.match(streamUpdates.at(-1).content, /src\/copy\.js/);
-assert.match(streamUpdates.at(-1).content, /🐧/);
-assert.notEqual(
-  streamUpdates.at(-1).content.split('\n')[0],
-  streamUpdates.at(-2).content.split('\n')[0]
-);
+assert.match(streamUpdates.at(-1).content, /正在读取文件/);
+assert.doesNotMatch(streamUpdates.at(-1).content, /src\/copy\.js/);
+assert.doesNotMatch(streamUpdates.at(-1).content, /🐧|最近进展|任务操作/);
 
 // A silent Agent still animates, driven by the hub's own cadence.
 let danceClock = 1_780_000_000_000;
@@ -1963,14 +2064,14 @@ await danceHub.tick();
 assert.equal(danceUpdates.length, 1, '心跳窗口内不重复刷新');
 danceClock += 2_000;
 await danceHub.tick();
-assert.equal(danceUpdates.length, 2);
-assert.notEqual(danceUpdates.at(-1).content.split('\n')[0], beforeDance);
+assert.equal(danceUpdates.length, 1);
+assert.equal(danceUpdates.at(-1).content.split('\n')[0], beforeDance);
 await danceHub.cancel('task-dance');
 assert.equal(danceUpdates.at(-1).finish, true);
 assert.equal(danceUpdates.at(-1).content.includes('🐧'), false);
 danceClock += 10_000;
 await danceHub.tick();
-assert.equal(danceUpdates.length, 3, '结束后不再动画');
+assert.equal(danceUpdates.length, 2, '结束后不再动画');
 await danceHub.close();
 
 const streamedFinish = [];
@@ -1992,7 +2093,10 @@ await listeners.at(-1)({
   task: { ...notifyTask, id: 'task-live' }
 });
 assert.equal(streamUpdates.at(-1).finish, true);
-assert.match(streamUpdates.at(-1).content, /已完成/);
+assert.match(streamUpdates.at(-1).content, /已完成[\s\S]*修改已完成/);
+// The thinking preview stays in the finished view so it remains readable
+// without a second round trip; raw tool arguments still do not leak.
+assert.doesNotMatch(streamUpdates.at(-1).content, /Read src\/copy\.js/);
 assert.equal(streamedFinish.length, 0);
 await hub.close();
 
@@ -2003,7 +2107,7 @@ let ttlClock = 1_780_000_000_000;
 const ttlStream = [];
 const ttlPushed = [];
 const ttlHub = createWeComProgressHub({
-  replyProgress: async (_frame, _streamId, content, finish) => { ttlStream.push({ content, finish }); },
+  replyProgress: async (_frame, _streamId, content, finish, extra) => { ttlStream.push({ content, finish, ...extra }); },
   pushMessage: async (target, content) => { ttlPushed.push({ target, content }); },
   now: () => ttlClock,
   heartbeatMs: 60_000,
@@ -2024,8 +2128,8 @@ await ttlHub.handle({
 });
 assert.equal(ttlStream.length, 2);
 assert.equal(ttlStream.at(-1).finish, true, '到期前自己收尾，不等企微拒绝');
-assert.match(ttlStream.at(-1).content, /10 分钟上限/);
-assert.match(ttlStream.at(-1).content, /每约 3 分钟/);
+assert.match(ttlStream.at(-1).content, /实时进度已到企微/);
+assert.match(ttlStream.at(-1).content, /还在改代码/);
 assert.equal(ttlStream.at(-1).content.includes('**✅ 最终结论**'), false, '任务还没结束，不能当结论收');
 assert.equal(ttlStream.at(-1).content.includes('🐧'), false);
 assert.equal(ttlPushed.length, 0, '收尾帧刚带过当前进展，不立刻重复推');
@@ -2059,9 +2163,8 @@ await listeners.at(-1)({
   task: { ...notifyTask, id: 'task-long' }
 });
 assert.equal(ttlPushed.length, 1, '终态归 notifier 发，进度通道不重复推一条');
-assert.equal(longFinish.length, 2);
-assert.equal(longFinish[1].body.msgtype, 'template_card');
-assert.match(longFinish[0].body.markdown.content, /已完成/);
+assert.equal(longFinish.length, 1, '终态直接发送 Agent 的最终文本');
+assert.match(longFinish[0].body.markdown.content, /最终结果[\s\S]*修改已完成/);
 assert.equal(ttlHub.has('task-long'), false);
 await ttlHub.close();
 
@@ -2116,7 +2219,7 @@ assert.equal(deadLogs[0].includes('[object Object]'), false);
 let soloClock = 1_780_000_000_000;
 const soloStream = [];
 const soloHub = createWeComProgressHub({
-  replyProgress: async (_frame, _streamId, content, finish) => { soloStream.push({ content, finish }); },
+  replyProgress: async (_frame, _streamId, content, finish, extra) => { soloStream.push({ content, finish, ...extra }); },
   now: () => soloClock,
   heartbeatMs: 60_000,
   danceMs: 0,
@@ -2126,7 +2229,8 @@ soloHub.open({ taskId: 'task-solo', frame: textFrame, streamId: 'stream-solo', h
 soloClock += 9 * MINUTE;
 await soloHub.handle({ taskId: 'task-solo', type: 'cursor.message', payload: { type: 'assistant', text: 'y' } });
 assert.equal(soloStream.at(-1).finish, true);
-assert.match(soloStream.at(-1).content, /完成后如可推送会再通知|完成后会单独发消息通知/);
+assert.match(soloStream.at(-1).content, /实时进度已到企微/);
+assert.match(soloStream.at(-1).content, /y/);
 assert.equal(soloHub.has('task-solo'), false);
 
 // A silent Agent on the push channel still gets keepalives, then a stall
@@ -2168,7 +2272,7 @@ await stallHub.tick();
 assert.equal(stalledIds[0], 'task-stall');
 assert.equal(stallHub.has('task-stall'), true);
 assert.equal(stallPushed.at(-1).includes('**✅ 最终结论**'), false);
-assert.match(stallPushed.at(-1), /停止等待|长时间无新输出/);
+assert.match(stallPushed.at(-1), /思考过程[\s\S]*长时间无新输出[\s\S]*正在创建 PR/);
 await stallHub.close();
 
 class FakeWSClient {
@@ -2182,6 +2286,7 @@ class FakeWSClient {
   async replyStream(frame, streamId, content, finish) {
     this.stream = { frame, streamId, content, finish };
   }
+  async reply(frame, body) { this.replyBody = { frame, body }; }
   async replyStreamWithCard() { this.combo = true; }
   async replyTemplateCard(frame, card) { this.card = { frame, card }; }
   async sendMessage(chatid, body) { this.sent = { chatid, body }; }
@@ -2208,13 +2313,30 @@ const gateway = createWeComGateway({
 gateway.connect();
 assert.equal(gateway.client.connected, true);
 await gateway.replyAck({ headers: { req_id: 'r1' } }, 'ack');
-assert.equal(gateway.client.stream.finish, true);
+assert.equal(gateway.client.replyBody.body.stream.finish, true);
+assert.equal(gateway.client.replyBody.body.stream.content, 'ack');
+// `thinking_content` is not part of the WeCom stream protocol; sending it
+// meant the reasoning was dropped and the tag leaked into the visible text.
+assert.equal(gateway.client.replyBody.body.stream.thinking_content, undefined);
+assert.equal(gateway.client.replyBody.body.stream.content.includes('<thinking>'), false);
 assert.equal(gateway.client.combo, undefined);
+await gateway.replyAck({ headers: { req_id: 'r2' } }, '执行中', { finish: false });
+assert.equal(gateway.client.replyBody.body.stream.content, '执行中');
+assert.equal(gateway.client.replyBody.body.stream.thinking_content, undefined);
+await gateway.replyProgress({ headers: { req_id: 'r1' } }, 'native-1', '可见正文', false);
+assert.deepEqual(gateway.client.stream, {
+  frame: { headers: { req_id: 'r1' } },
+  streamId: 'native-1',
+  content: '可见正文',
+  finish: false
+});
 await gateway.replyCard({
   headers: { req_id: 'r1' },
   body: { chattype: 'single', from: { userid: 'user-a' } }
 }, buildCancelledCard('t1'));
-assert.equal(gateway.client.card.card.main_title.desc, 't1');
+assert.equal(gateway.client.sent.chatid, 'user-a');
+assert.equal(gateway.client.sent.body.msgtype, 'template_card');
+assert.equal(gateway.client.sent.body.template_card.main_title.desc, 't1');
 gateway.client.handlers.get('event')({ body: { event: { eventtype: 'disconnected_event' } } });
 assert.equal(gateway.kicked, true);
 
@@ -2257,6 +2379,12 @@ assert.equal(startedBot.models.list().some((rule) => rule.id === 'ghost'), false
 assert.equal(startedBot.models.model({ stage: 'intent', text: 'x' }), 'gpt-5.4-mini');
 assert.deepEqual(recovered, ['ok']);
 assert.equal(startedBot.gateway.client.connected, true);
+// Every card button is dead if the bot never listens for the click. The SDK
+// emits it as `event.template_card_event`; this is the only regression guard
+// that would have caught the listener going missing.
+const botHandlers = startedBot.gateway.client.handlers;
+assert.ok(botHandlers.has('event.template_card_event'), '卡片点击事件必须注册');
+assert.ok(botHandlers.has('message.text'), '文本消息事件必须注册');
 await startedBot.shutdown('test');
 assert.deepEqual(recovered, ['ok', 'closed']);
 
@@ -2366,7 +2494,7 @@ const imageHandled = await handleWeComMedia({
 assert.equal(imageHandled.action.type, 'created');
 assert.match(imageHandled.action.task.requirement, /bug\.png/);
 assert.equal(imageHandled.action.task.context?.attachments?.[0]?.filename, 'bug.png');
-assert.match(imageReplies[0], /bug\.png/);
+assert.equal(imageReplies[0], '处理中');
 
 const voiceHandled = await handleWeComMedia({
   ...textFrame,
@@ -2594,6 +2722,26 @@ assert.equal(fastIntent(AMBIGUOUS), null);
 // A leading verb decides new work even while a task is open.
 assert.equal(fastIntent('帮我修一下另一个 bug', { hasActiveTask: true }).kind, 'code');
 
+// A slow workspace refresh must never delay the first visible response.
+const ackOrder = [];
+await handleWeComMessage({
+  ...textFrame,
+  body: { ...textFrame.body, msgid: 'ack-before-refresh', text: { content: '做：修复搜索按钮' } }
+}, {
+  manager: createFakeManager(),
+  replyAck: async (_frame, content) => { ackOrder.push(`ack:${content}`); return 'stream-ack-order'; },
+  replyProgress: async () => {},
+  progress: { open() {} },
+  config: { repository: 'owner/repo' },
+  dedup: createMessageDedup(),
+  workspaces: {
+    async refresh() { ackOrder.push('refresh:start'); await delay(15); ackOrder.push('refresh:end'); return false; },
+    list() { return []; },
+    hasConfigured() { return true; }
+  }
+});
+assert.deepEqual(ackOrder.slice(0, 2), ['ack:处理中', 'refresh:start']);
+
 const stageReplies = [];
 const stageUpdates = [];
 const analysisHandled = await handleWeComMessage({
@@ -2621,18 +2769,13 @@ const analysisHandled = await handleWeComMessage({
     }
   }
 });
-// An instant classification skips the announcement: two frames in the same
-// millisecond would only flash something unreadable.
+// The transport ACK is sent before classification or workspace discovery.
 assert.equal(stageReplies.length, 1);
-assert.match(stageReplies[0], /这是一个\*\*分析排查\*\*任务，正在进一步解析中…/);
-assert.match(stageReplies[0], /看重连逻辑/);
+assert.equal(stageReplies[0], '处理中');
 // Repository analysis must choose its target instead of guessing the bot root.
 assert.equal(analysisHandled.action.type, 'need-workspace');
 assert.equal(analysisHandled.intent.kind, 'analysis');
-assert.equal(stageUpdates[0].streamId, 'stream-intent');
-assert.match(stageUpdates[0].content, /仓库/);
-// The stage the user must see cannot be dropped by the non-blocking path.
-assert.equal(stageUpdates[0].blocking, true);
+assert.match(stageUpdates.at(-1).content, /需要先选定仓库/);
 
 // A classification that has to wait announces itself first.
 const slowStageReplies = [];
@@ -2662,8 +2805,8 @@ await handleWeComMessage({
     }
   }
 });
-assert.equal(slowStageReplies[0], '正在理解分析中…');
-assert.match(slowStageUpdates[0], /这是一个\*\*分析排查\*\*任务/);
+assert.equal(slowStageReplies[0], '处理中');
+assert.match(slowStageUpdates.at(-1), /需要先选定仓库/);
 
 // A classifier that throws must not cost the turn.
 const crashStageReplies = [];
@@ -2796,8 +2939,8 @@ const readingAnalysis = await resolveWeComAction({
 assert.equal(readingAnalysis.type, 'need-workspace');
 
 assert.equal(codeHandled.action.type, 'need-workspace');
-assert.match(codeStageReplies[0], /代码开发/);
-assert.match(codeStageUpdates[0], /需要先选定仓库/);
+assert.equal(codeStageReplies[0], '处理中');
+assert.match(codeStageUpdates.at(-1), /需要先选定仓库/);
 assert.equal(intentPending.get('user-a').intent.kind, 'code');
 
 // Answering the repository question must not spend another classification.
@@ -2817,7 +2960,7 @@ const chosenAfterIntent = await handleWeComMessage({
 });
 assert.equal(chosenAfterIntent.action.type, 'created');
 assert.equal(chosenAfterIntent.action.task.context.intent.kind, 'code');
-assert.match(chosenAfterIntent.reply, /代码开发/);
+assert.equal(chosenAfterIntent.reply, '处理中');
 
 // Control words keep the regex fast path so a stop stays instant.
 let classifications = 0;
@@ -2935,8 +3078,7 @@ const modelRouted = await handleWeComMessage({
 });
 assert.equal(modelRouted.action.task.model, 'gpt-5.4-mini');
 assert.equal(modelRouted.action.model.ruleId, 'simple-analysis');
-// The user can see which model the task got.
-assert.match(modelReplies.join('\n'), /gpt-5\.4-mini/);
+assert.equal(modelReplies.at(-1), '处理中');
 
 const codeRouted = await handleWeComMessage({
   ...textFrame,
@@ -3182,11 +3324,15 @@ assert.equal(idleThanks[0].includes('Task ID'), false);
 assert.equal(SMALLTALK_REPLIES.thanks.includes(idleThanks[0]), true);
 
 // Bringing the agent up is one line, not a five-step checklist.
-for (const type of ['scheduler.queued', 'scheduler.started', 'cursor.agent.created', 'cursor.agent.resumed', 'task.cursor.bound']) {
+for (const type of ['scheduler.queued', 'scheduler.started', 'cursor.agent.created', 'task.cursor.bound']) {
   const item = formatProgressEvent({ type });
   assert.equal(item.text, 'created');
   assert.equal(item.log, false);
 }
+// "已接入 Agent" and "Agent 已开始执行" meant the same thing to a reader, so
+// only the one that marks real progress is written into the process list.
+assert.equal(formatProgressEvent({ type: 'cursor.agent.resumed' }).log, false);
+assert.equal(formatProgressEvent({ type: 'cursor.run.started' }).log, 'Agent 已开始执行');
 // Things the user might act on are still written into the process list.
 assert.equal(formatProgressEvent({ type: 'task.followup.queued' }).log, '已收到补充');
 assert.equal(formatProgressEvent({ type: 'task.blocked' }).log, '被阻塞');
@@ -3195,7 +3341,7 @@ assert.equal(formatProgressEvent({ type: 'cursor.run.completed', error: 'boom' }
 
 const bootFrames = [];
 const bootHub = createWeComProgressHub({
-  replyProgress: async (_frame, _streamId, content) => { bootFrames.push(content); },
+  replyProgress: async (_frame, _streamId, content, _finish, extra) => { bootFrames.push({ content, ...extra }); },
   danceMs: 0,
   heartbeatMs: 60_000
 });
@@ -3203,38 +3349,26 @@ bootHub.open({ taskId: 'task-boot', frame: textFrame, streamId: 'stream-boot', h
 for (const type of ['scheduler.queued', 'scheduler.started', 'cursor.agent.resumed', 'cursor.run.started']) {
   await bootHub.handle({ taskId: 'task-boot', type });
 }
-const booting = bootFrames.at(-1);
-// No process list and no placeholder while starting: the status line says it.
-assert.equal(booting.includes('思考过程'), false);
+const booting = bootFrames.at(-1).content;
+// Boot events move the status line instead of padding the process list, so the
+// view never looks busier than the work actually is.
 assert.equal(booting.includes('等待 Agent 输出'), false);
 assert.equal(booting.includes('排队中'), false);
-assert.equal(booting.includes('已接上 Agent'), false);
-assert.match(booting, /\*\*⌛ 思考中\*\*/);
+assert.equal(booting.includes('已接入 Agent'), false);
+assert.match(booting, /思考中|准备任务/);
+assert.match(booting, /Agent 已开始执行/);
 // Real work does show up.
 await bootHub.handle({
   taskId: 'task-boot',
   type: 'cursor.message',
   payload: { tools: [{ name: 'shell', detail: 'npm test' }] }
 });
-assert.match(bootFrames.at(-1), /\*\*⚙️ 执行中\*\*/);
-assert.match(bootFrames.at(-1), /正在执行命令/);
+assert.match(bootFrames.at(-1).content, /执行中[\s\S]*正在执行命令/);
+assert.doesNotMatch(bootFrames.at(-1).content, /npm test/);
 await bootHub.close();
 
-// Terminating is a button on the live message, not a command to retype.
-const cancelCard = buildTaskCard('task-live');
-assert.equal(cancelCard.card_type, 'button_interaction');
-// Reading before stopping: the safer action, and the one anyone may take.
-assert.deepEqual(cancelCard.button_list.map((button) => button.key), ['status:task-live', 'process:task-live', 'cancel:task-live']);
-assert.deepEqual(cancelCard.button_list.map((button) => button.text), ['查看状态', '查看完整过程', '终止']);
-assert.equal(cancelCard.main_title.desc, 'task-live');
-// Two cards for one task must not collide on task_id (WeCom errcode 42014).
-assert.notEqual(buildTaskCard('task-live').task_id, cancelCard.task_id);
-// The click routes back to the cancel action already handled.
-assert.deepEqual(parseCardEvent({
-  body: { event: { template_card_event: { event_key: 'cancel:task-live', task_id: cancelCard.task_id } } }
-}), { action: 'cancel', value: 'task-live', cardTaskId: cancelCard.task_id });
-
-// The card rides on the same stream frame as the acknowledgement.
+// An agent task emits exactly one native stream and no card: WeCom renders a
+// card as its own message, so it could never sit at the bottom of this one.
 const carded = [];
 const cardedTask = await handleWeComMessage({
   ...textFrame,
@@ -3242,35 +3376,17 @@ const cardedTask = await handleWeComMessage({
 }, {
   manager: createFakeManager(),
   replyAck: async (_frame, content, options) => { carded.push({ content, ...options }); return 'stream-card'; },
+  replyCard: async (_frame, card) => { carded.push({ separateCard: card }); },
   replyProgress: async () => {},
   progress: { open() {} },
   config: { repository: 'owner/repo' },
   dedup: createMessageDedup()
 });
-const ackFrame = carded.at(-1);
-assert.deepEqual(
-  ackFrame.card.button_list.map((button) => button.key),
-  [`status:${cardedTask.action.task.id}`, `process:${cardedTask.action.task.id}`, `cancel:${cardedTask.action.task.id}`]
-);
-assert.equal(ackFrame.finish, false);
-assert.equal(ackFrame.card.button_list.at(-1).text, '终止');
-
-const comboCards = [];
-await handleWeComMessage({
-  ...textFrame,
-  body: { ...textFrame.body, msgid: 'card-combo', text: { content: '做：修一下复制按钮' } }
-}, {
-  manager: createFakeManager(),
-  replyAck: async (_frame, content, options) => {
-    carded.push({ content, ...options });
-    return { streamId: 'stream-combo', cardAttached: true };
-  },
-  replyCard: async (_frame, card) => { comboCards.push(card); },
-  progress: { open() {} },
-  config: { repository: 'owner/repo' },
-  dedup: createMessageDedup()
-});
-assert.equal(comboCards.length, 0, 'combo 已带上按钮时不要再发一张卡片');
+assert.equal(cardedTask.action.type, 'created');
+assert.equal(carded.length, 1);
+assert.equal(carded[0].content, '处理中');
+assert.equal(carded[0].card, null);
+assert.equal(carded[0].finish, false);
 
 // A turn that ends immediately has nothing to terminate, so it carries no card.
 const plain = [];
@@ -3285,7 +3401,7 @@ await handleWeComMessage({
 });
 assert.equal(plain[0].card ?? null, null);
 
-// The gateway prefers stream_with_template_card and falls back to plain text.
+// The gateway uses the official stream_with_template_card path when a card is supplied.
 const cardCalls = [];
 const cardGateway = createWeComGateway({
   botId: 'b',
@@ -3295,13 +3411,15 @@ const cardGateway = createWeComGateway({
     connect() {}
     async replyStream(_frame, _id, content) { cardCalls.push({ kind: 'stream', content }); }
     async replyStreamWithCard(_frame, _id, content, _finish, options) {
-      cardCalls.push({ kind: 'card', content, key: options.templateCard.button_list.at(-1).key });
+      cardCalls.push({ kind: 'card', content, key: options.templateCard.button_list?.at(-1)?.key });
     }
   },
   logger: { warn() {} }
 });
-await cardGateway.replyAck(textFrame, '跑起来了', { finish: false, card: buildTaskCard('task-x') });
-assert.deepEqual(cardCalls, [{ kind: 'card', content: '跑起来了', key: 'cancel:task-x' }]);
+await cardGateway.replyAck(textFrame, '跑起来了', { finish: false, card: {} });
+// The card path carries the plain view; a `<thinking>` wrapper here used to
+// leak straight into the message body as literal markdown.
+assert.deepEqual(cardCalls, [{ kind: 'card', content: '跑起来了', key: undefined }]);
 const noCardGateway = createWeComGateway({
   botId: 'b',
   secret: 's',
@@ -3312,7 +3430,7 @@ const noCardGateway = createWeComGateway({
   },
   logger: { warn() {} }
 });
-await noCardGateway.replyAck(textFrame, '跑起来了', { finish: false, card: buildTaskCard('task-x') });
+await noCardGateway.replyAck(textFrame, '跑起来了', { finish: false, card: {} });
 assert.equal(cardCalls.at(-1).kind, 'fallback');
 
 const tapdUrl = 'https://tapd.woa.com/tapd_fe/10158081/story/detail/1010158081137887748';
@@ -3495,6 +3613,7 @@ assert.equal(cardManager.tasks[0].status, 'running');
 assert.match(viewedTexts.join('\n'), /task-carded/);
 
 const processTexts = [];
+const processCardUpdates = [];
 const processHub = createWeComProgressHub({
   replyProgress: async () => {},
   danceMs: 0,
@@ -3517,16 +3636,20 @@ const processTap = await handleWeComCard({
     chattype: 'group',
     chatid: 'room-1',
     from: { userid: 'bob' },
-    event: { eventtype: 'template_card_event', template_card_event: { event_key: 'process:task-carded' } }
+    event: { eventtype: 'template_card_event', template_card_event: { event_key: 'process:task-carded', task_id: 'card-process-1' } }
   }
 }, {
   manager: cardManager,
   progress: processHub,
-  sendText: async (content) => { processTexts.push(content); }
+  sendText: async (content) => { processTexts.push(content); },
+  updateCard: async (_frame, card) => { processCardUpdates.push(card); }
 });
 assert.equal(processTap.action.type, 'process');
-assert.match(processTexts.join('\n'), /工作记录/);
-assert.match(processTexts.join('\n'), /\*\*Shell\*\* · 2 次/);
+assert.match(processTexts.join('\n'), /思考过程（已展开）[\s\S]*正在执行命令（2 次）/);
+assert.doesNotMatch(processTexts.join('\n'), /\bls\b|git status|\/bin\/zsh/);
+assert.equal(processCardUpdates.at(-1).task_id, 'card-process-1');
+assert.equal(processCardUpdates.at(-1).main_title.title, '思考 / 工具步骤');
+assert.match(processCardUpdates.at(-1).sub_title_text, /正在执行命令/);
 await processHub.close();
 
 const ownerTap = await handleWeComCard({
@@ -3595,15 +3718,16 @@ const richCard = buildTaskCard({
   source: { type: 'wecom', userId: 'ann' },
   execution: { mode: 'worktree', port: 41003 }
 });
-assert.equal(richCard.main_title.title, '⚙️ 执行中');
-assert.equal(richCard.main_title.desc, 'task-rich');
+assert.equal(richCard.main_title.title, '任务操作');
+assert.equal(richCard.main_title.desc, '执行中');
 assert.match(richCard.sub_title_text, /增加手机号搜索/);
 assert.match(richCard.sub_title_text, /发起人 ann/);
 assert.match(richCard.sub_title_text, /独立工作区/);
 assert.match(richCard.sub_title_text, /端口 41003/);
-assert.deepEqual(richCard.button_list.map((b) => b.key), ['status:task-rich', 'process:task-rich', 'cancel:task-rich']);
+assert.deepEqual(richCard.button_list.map((b) => b.key), ['status:task-rich', 'process:task-rich', 'copy:task-rich', 'cancel:task-rich']);
+assert.equal(richCard.button_list[1].text, '展开思考过程');
 // A bare id is still enough to draw one.
-assert.equal(buildTaskCard('task-plain').main_title.desc, 'task-plain');
+assert.equal(buildTaskCard('task-plain').main_title.desc, '执行中');
 assert.equal(buildTaskCard('task-plain').sub_title_text, undefined);
 
 console.log('wecom bot tests passed');

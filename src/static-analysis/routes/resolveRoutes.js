@@ -47,6 +47,12 @@ export async function resolveRoutesFromEntries(root, entryDiscovery, options = {
   };
 
   const queue = [];
+  // Route modules are authoritative and must not lose the traversal race to
+  // a large application's general import graph. In sizeable Vue apps the
+  // max-files budget can otherwise be exhausted before src/router/** is
+  // reached, leaving only incidental strings that look like routes.
+  const routeEntries = await collectRouteEntryFiles(root);
+  for (const file of routeEntries) queue.push({ file, depth: 0, from: null });
   for (const entry of entryDiscovery.entries ?? []) {
     if (!entry.exists && entry.kind === 'candidate') continue;
     const file = entry.file;
@@ -126,6 +132,19 @@ export async function resolveRoutesFromEntries(root, entryDiscovery, options = {
   return graph;
 }
 
+async function collectRouteEntryFiles(root) {
+  const files = [];
+  for (const base of ['src/router', 'src/routes', 'router', 'routes']) {
+    const absolute = path.join(root, base);
+    if (!(await isDirectory(absolute))) continue;
+    for (const file of await walkFiles(absolute, 200)) {
+      if (!/\.(?:[cm]?[jt]sx?|vue)$/.test(file)) continue;
+      files.push(normalize(path.relative(root, file)));
+    }
+  }
+  return unique(files);
+}
+
 function stitchImportedChildren(graph) {
   const treesOf = (file) => graph.nodes[file]?.routeTrees ?? [];
   for (const file of graph.visited ?? []) {
@@ -180,13 +199,30 @@ async function emitJoinedRoutes(graph, resolver) {
     const node = graph.nodes[file];
     if (node?.nestedRouteSource) continue;
     for (const tree of node?.routeTrees ?? []) await emit(tree, file);
+    // Some projects expose route arrays through factory functions. The AST
+    // extractor still finds their literal paths even when it cannot build a
+    // route tree. Only accept this fallback from explicit router directories.
+    if ((node?.routeTrees ?? []).length === 0 && /(^|\/)(?:router|routes)\//.test(file)) {
+      for (const routePath of node?.routePaths ?? []) {
+        if (!String(routePath).startsWith('/')) continue;
+        graph.routes.push({ path: routePath, file, component: '', name: '', source: 'ast-path' });
+      }
+    }
   }
 }
 
 async function collectFileBasedRoutes(root, framework) {
   const routes = [];
-  if (framework === 'next' || framework === 'nuxt' || framework === 'vue3' || framework === 'vue2' || framework === 'react') {
-    for (const base of ['app', 'pages', 'src/pages', 'src/views', 'views']) {
+  // Only frameworks with an actual file-system routing convention may infer
+  // URLs from files. Vue/React projects normally declare routes explicitly;
+  // treating src/views/** as pages turns component paths into bogus URLs.
+  const bases = framework === 'next'
+    ? ['app', 'pages', 'src/pages']
+    : framework === 'nuxt'
+      ? ['pages']
+      : [];
+  if (bases.length > 0) {
+    for (const base of bases) {
       const abs = path.join(root, base);
       if (!(await isDirectory(abs))) continue;
       const files = await walkFiles(abs, 800);

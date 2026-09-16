@@ -52,11 +52,15 @@ export {
   RunStore,
   createRunId,
   TaskManager,
+  buildTaskPrompt,
   TaskScheduler,
   TaskStore,
+  SqliteTaskStore,
+  migrateTaskStore,
   createTaskManager,
   initializeTaskManager,
   createTaskId,
+  compactTaskContext,
   TASK_STATUSES,
   SDDEngine,
   SDDStore,
@@ -83,7 +87,11 @@ export {
   createTask,
   createAgentRequest,
   createAgentResponse,
-  normalizeAgentResponse
+  normalizeAgentResponse,
+  createExecutionInput,
+  createExecutionEvent,
+  normalizeExecutorCapabilities,
+  normalizeRuntimeExecutionEvent
 } from './agent-platform/index.js';
 export {
   AgentProvider,
@@ -106,5 +114,21 @@ export {
 export { KnowledgeStore, createKnowledgeStore } from './knowledge/store/KnowledgeStore.js';
 export { buildModuleGraph, propagateImpact, flowsForModules } from './knowledge/graph/relations.js';
 export { LlmClient, createLlmClient } from './llm/LlmClient.js';
+export {
+  INVOCATION_METRIC_VERSION,
+  createInvocationMetric,
+  validateInvocationMetric,
+  InvocationMetricStore,
+  recordInvocationSafely,
+  summarizeInvocations
+} from './telemetry/index.js';
 export { renderContextPackage, CONTEXT_FORMATS } from './ide-bridge/context/render.js';
 export { estimateTokens } from './ide-bridge/context/tokens.js';
+export * from './routing/index.js';
+export * from './policy/index.js';
+export * from './model-gateway/index.js';
+export * from './context/index.js';
+export * from './security/index.js';
+export * from './workflow/index.js';
+export { ManagedProcessExecutor } from './agent-platform/runtime/ManagedProcessExecutor.js';
+export { CliCodingAgentAdapter, createClaudeCodeAdapter } from './agent-platform/runtime/CliCodingAgentAdapter.js';

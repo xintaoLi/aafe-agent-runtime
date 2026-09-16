@@ -1261,6 +1261,18 @@ stateDiagram-v2
 
 ## E2E
 
+### 本地 Vite / Webpack 开发测试初始化
+
+WeCom 的多项目初始化入口为 `aafe bot project init --wecom --workspace=<id> [--dry-run]`（需独立 Bot 源码）。读取该工作区 `e2eInit`，识别现有 Vite/Webpack 配置后生成对应适配层；普通 CLI 的 init/update 也识别 Vite。Vite 项目使用 `aafe.e2e.vite.mjs`，Webpack 项目使用 `aafe.e2e.webpack.cjs`。原有配置不覆盖，初始化不启动服务。
+
+`aafe init` / `aafe update` 会在当前安装项目补充 `e2e.devServer`、`local.settings.e2e.aafe.cjs` 和对应构建工具的包装入口，仅创建缺失配置/文件，保留项目已有设置。初始化不启动进程、不获取 Cookie、不安装构建依赖；`update --dry-run` 不落盘。
+
+在项目 `.aafe.config.json` 中启用 `e2e.devServer.enabled`，填写 `proxyTarget`、`proxyPaths` 和 `url`（默认本地 `http://127.0.0.1:8011`）。默认启动 argv 为 `npx --no-install webpack serve --config aafe.e2e.webpack.cjs`，要求项目已安装 Webpack CLI/Dev Server。自定义框架可改为 `["npm", "run", "dev:e2e"]`；该脚本需接入独立 E2E 设置并消费 `AAFE_E2E_DEV_URL` / `AAFE_E2E_PORT`，不能固定端口。`e2e.auth.readySelector` 或同源 `checkUrl` 可用于增强登录后的业务态校验，但不是 Get Token MCP 的启动前提。
+
+启用后 `aafe test --run` 在当前 checkout 启动本地服务、等待就绪、执行现有 MCP/缓存/授权登录及 Playwright，结束或收到 SIGINT/SIGTERM 后清理本次服务。仅支持 macOS/Linux 进程组；不复用被占用的端口。代理只转发浏览器本次请求 Cookie，不读取 `.cookie`，默认验证目标 TLS。显式远程 `--base-url` 不启动本地服务，dry-run 也不启动。
+
+WeCom 多项目仍按任务原项目读取配置，在 worktree 执行代码，并通过 `--dev-port` 使用任务独立端口。TAPD 的应用测试地址可覆盖本地默认值，需求链接本身不能作为应用地址。标准 Webpack 包装入口不适用于 bkmonitor-cli 的自定义配置工厂，需通过项目既有脚本接入；初始化不会擅自重写业务构建文件。
+
 Playwright E2E 与 Runtime 分开配置。`aafe init` / `aafe update` 之后，**必须先指定用例和产物目录**；执行、报告和登录态只认这些路径，不要散落到 `test/ui/`、`playwright-report/`、`test-results/`。
 
 目录写在 `.aafe.config.json` → `e2e`，相对**安装目录**：
@@ -1325,6 +1337,47 @@ aafe test --pr=https://github.com/acme/app/pull/12 --run --base-url='https://pre
 ```
 
 报告只读 `<e2e.reportDir>/<runId>/{report.json,index.html}`。PR 令牌写在配置里（可用 `${ENV}`），不要用 `--token <值>`。`aafe update` 强制 analyze 时会保留 `.aafe/e2e/`，不会清掉报告和登录态。
+
+### E2E 自动 Get Token MCP 认证
+
+`aafe test --run` 会读取当前项目 `.aafe.config.json` 的 `agent.mcp`，复用其 `config`、`settingSources` 与 `servers`（内联配置优先）。这只是共用配置解析，不调用 Cursor，也不依赖 Bot。
+
+当页面需要登录时，优先自动选择名称匹配 git-code/Token 或包含 `X-Cookie-Provider-Token` 请求头的 MCP，即使已有本地登录缓存也优先 MCP；多个候选必须通过 `e2e.auth.mcp.server` 指定。不扫描或调用无关 MCP。支持 Streamable HTTP、显式 `type: "sse"` 和 stdio，连接后先确认 `get_login_cookie` 工具可用，每轮仅调用一次，不传 RTX，不自动重试。
+
+```json
+{
+  "agent": {
+    "mcp": {
+      "enabled": true,
+      "servers": {
+        "git_code_get_token": {
+          "type": "http",
+          "url": "https://your-configured-mcp.example/mcp",
+          "headers": { "X-Cookie-Provider-Token": "${COOKIE_PROVIDER_TOKEN}" }
+        }
+      }
+    }
+  },
+  "e2e": {
+    "auth": {
+      "mcp": { "server": "git_code_get_token" },
+      "readySelector": "[data-testid='authenticated-user-menu']"
+    }
+  }
+}
+```
+
+已有连接配置无需重复添加。默认核验会在注入 Cookie 后访问 `baseUrl`，要求响应成功、最终地址仍与目标同源且没有进入常见登录路由。需要更强业务态判断时，可配置真实的登录后 `readySelector`，或仅在已登录时返回 200 的同域 `checkUrl`。仍需提供本次 `--base-url` 和适用的 `--url-role`。
+
+执行顺序：匿名访问并验证业务状态 → 需要登录时优先 Get Token MCP → 在新 BrowserContext 导航前注入目标主机的 `bk_token` → 验证业务登录状态 → 执行用例。没有对应 MCP 时才校验本地缓存；失效后按认证模式请求人工登录授权或使用已配置的自动登录。非交互 Bot 返回 `need-auth`，用户在本地运行 `aafe e2e auth --base-url='<本次地址>'` 完成授权后续跑。手工登录状态原子写入本地 `.aafe/e2e/auth/<env>.json`，文件权限为 0600；复用前校验，过期重新授权。不要提交缓存文件。
+
+只给本次测试 URL 的主机注入 Cookie，不根据重定向扩大范围；跨域页面需单独授权和配置。Cookie 编码保持原样，每个用例创建独立 context，整轮只获取一次。
+
+MCP Cookie 仅保存在内存，不写 storageState、日志或报告；此模式不保存失败截图或原始错误详情，避免页面/控制台泄露凭据。MCP 失败、超时或登录验证失败返回 `need-auth`，不自动重试、不改走人工 SSO。未配置相关 MCP 时保留原有登录方式；`e2e.auth.mcp: false` 禁用此接入，`--auth-mode=none` 显式跳过认证，dry-run 不调用 Get Token。`aafe e2e auth` 仍是独立的登录态采集命令。
+
+回归：`npm run test:e2e-mcp-auth`，使用本机模拟 MCP/业务页面与真实 Chromium，不调用已配置的真实服务；需先安装 Playwright Chromium。
+
+本地 Bot worktree 使用自带新版 CLI，通过 `--config-root=<原项目目录>` 读取 E2E 配置及登录缓存，通过 `--mcp-config-root=<Bot根目录>` 在原项目未配置相关 MCP 时读取 Bot MCP。配置文件相对路径按各自来源目录解析；用例、报告、spec 仍写入任务工作区。`aafe e2e auth` 支持相同参数，使本地授权缓存可供后续 worktree 任务复用。明确关闭 MCP 时不回退到其他来源；配置错误或 MCP 调用失败保持阻塞。并行任务使用独立配置上下文，不修改全局环境变量。Cursor Cloud 不自动传递本机路径，需远端配置。
 
 ## Knowledge Center
 

@@ -24,7 +24,11 @@ export const TASK_STATUSES = Object.freeze([
   'planning',
   'ready',
   'running',
+  'running_with_assumptions',
+  'partially_blocked',
   'waiting',
+  'waiting_user',
+  'waiting_approval',
   'verifying',
   'completed',
   'failed',
@@ -35,17 +39,21 @@ export const TASK_STATUSES = Object.freeze([
 export const TERMINAL_TASK_STATUSES = Object.freeze(['completed', 'failed', 'cancelled']);
 
 const TRANSITIONS = Object.freeze({
-  created: ['queued', 'cancelled', 'blocked'],
-  queued: ['planning', 'running', 'cancelled', 'blocked'],
-  planning: ['queued', 'ready', 'waiting', 'failed', 'cancelled', 'blocked'],
-  ready: ['queued', 'running', 'cancelled', 'blocked'],
-  running: ['waiting', 'verifying', 'completed', 'failed', 'cancelled', 'blocked'],
+  created: ['queued', 'cancelled', 'blocked', 'waiting_user', 'waiting_approval'],
+  queued: ['planning', 'running', 'cancelled', 'blocked', 'waiting_user', 'waiting_approval'],
+  planning: ['queued', 'ready', 'running_with_assumptions', 'partially_blocked', 'waiting', 'waiting_user', 'waiting_approval', 'failed', 'cancelled', 'blocked'],
+  ready: ['queued', 'running', 'running_with_assumptions', 'cancelled', 'blocked', 'waiting_user', 'waiting_approval'],
+  running: ['running_with_assumptions', 'partially_blocked', 'waiting', 'waiting_user', 'waiting_approval', 'verifying', 'completed', 'failed', 'cancelled', 'blocked'],
+  running_with_assumptions: ['running', 'partially_blocked', 'waiting_user', 'waiting_approval', 'verifying', 'completed', 'failed', 'cancelled', 'blocked'],
+  partially_blocked: ['queued', 'running', 'running_with_assumptions', 'waiting_user', 'waiting_approval', 'verifying', 'completed', 'failed', 'cancelled', 'blocked'],
   waiting: ['queued', 'running', 'cancelled', 'blocked'],
+  waiting_user: ['queued', 'running', 'cancelled', 'blocked'],
+  waiting_approval: ['queued', 'running', 'cancelled', 'blocked'],
   verifying: ['completed', 'failed', 'waiting', 'cancelled', 'blocked'],
   completed: ['queued', 'blocked'],
   failed: ['queued', 'blocked'],
   cancelled: ['queued', 'blocked'],
-  blocked: ['queued', 'cancelled']
+  blocked: ['queued', 'running', 'cancelled']
 });
 
 export function isTaskStatus(value) {

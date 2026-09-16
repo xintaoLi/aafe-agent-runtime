@@ -75,7 +75,8 @@ try {
     'const m = await import(' + JSON.stringify(adapter) + '); if (!m.parseWeComArgs(["--offline"]).offline) process.exit(1);'
   ], { cwd: project, timeout: 30000 });
   for (const args of [['wecom'], ['wecom', '--check-models', '--offline'],
-    ['bot', 'start', '--wecom'], ['bot', 'start', '--wecom', '--check-models', '--offline']]) {
+    ['bot', 'start', '--wecom'], ['bot', 'start', '--wecom', '--check-models', '--offline'],
+    ['bot', 'project', 'init', '--wecom', '--workspace=app']]) {
     await assert.rejects(run(args), (error) => {
       assert.equal(error.code, 1);
       assert.match(error.stderr, /wecom-not-installed/);

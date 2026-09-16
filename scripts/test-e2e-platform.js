@@ -19,6 +19,7 @@
  */
 
 import assert from 'node:assert/strict';
+import './test-e2e-dev.js';
 import { spawnSync } from 'node:child_process';
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import http from 'node:http';
@@ -36,7 +37,7 @@ import { collectUitestAdapterChanges, runMigrations } from '../src/cli/migrate.j
 import { buildPlaywrightInstallCommand, inspectPlaywrightSetup, parseE2eSetupArgs, patchE2eConfig } from '../src/cli/e2eSetup.js';
 import { parseTestReport } from '../src/testing/reportParser.js';
 import { compileCaseToSpec } from '../src/testing/e2e/compile.js';
-import { expandSecretRef, isE2eEnabled, loadE2eConfig, sanitizeBaseUrl, combineEntryUrl, parseTestPageUrl, normalizeUrlRole, NEED_BASE_URL_CODE, NEED_BASE_URL_PROMPT, NEED_URL_ROLE_CODE } from '../src/testing/e2e/config.js';
+import { applyRouterMode, expandSecretRef, isE2eEnabled, loadE2eConfig, sanitizeBaseUrl, combineEntryUrl, parseTestPageUrl, normalizeUrlRole, NEED_BASE_URL_CODE, NEED_BASE_URL_PROMPT, NEED_URL_ROLE_CODE } from '../src/testing/e2e/config.js';
 import { normalizeAuthMode, resolveAuthStatePath, storageStateLooksValid, sessionLooksLoggedOut, accessAllowsSkipAuth, probeAnonymousAccess, prepareE2eAuth, NEED_AUTH_CODE } from '../src/testing/e2e/auth.js';
 import { buildInventoryPack, writeInventoryCases } from '../src/testing/e2e/inventory.js';
 import { planTestLayers, shouldRouteToUnitChain } from '../src/testing/e2e/layers.js';
@@ -58,6 +59,8 @@ assert.equal(shouldRouteToUnitChain(e2eLayers), false);
 
 assert.equal(sanitizeBaseUrl('http://localhost:8080'), null);
 assert.equal(sanitizeBaseUrl('https://example.test'), 'https://example.test');
+assert.equal(applyRouterMode('http://127.0.0.1:41001', 'hash'), 'http://127.0.0.1:41001/#/');
+assert.equal(applyRouterMode('https://example.test/app/#/ready', 'hash'), 'https://example.test/app/#/ready');
 assert.equal(expandSecretRef('${MY_TOKEN}', { MY_TOKEN: 'abc' }), 'abc');
 assert.equal(expandSecretRef('${MISSING}', {}), null);
 

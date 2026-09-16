@@ -54,15 +54,15 @@ export class CodexTaskRuntime {
     const settings = options.codex ?? {};
     const workflow = options.aafeWorkflow;
     const delivery = workflow?.enabled === true && settings.delivery?.enabled !== false && options.executionMode !== 'plan';
-    if (delivery && !workflow.ready) return { status: 'blocked', text: 'codex-workflow-skills-missing:目标项目需提供 workflow-mode、repo-submit、tapd-submit-backfill 技能。' };
-    prompt += '\nReturn the final JSON outcome matching the supplied schema. completed means all applicable AAFE gates are closed by successful execution or an allowed skip, not merely that the model turn ended. Use blocked for pending user choices, permissions or missing requirements; failed for execution failure. List unfinished required steps in remainingSteps. Never implement a TAPD title without reading its content. Never bypass sandbox or permission denial.';
+    if (delivery && !workflow.ready && !workflow.agentLed) return { status: 'blocked', text: 'codex-workflow-skills-missing:目标项目需提供 workflow-mode、repo-submit、tapd-submit-backfill 技能。' };
+    prompt += '\nReturn the final JSON outcome matching the supplied schema. completed means all applicable AAFE gates were attempted to convergence: successful execution, allowed skip, or a clearly recorded failed/skipped/ask gate with all later independent gates still attempted. Use blocked only when a safety, permission, infrastructure, or missing-requirement issue prevents meaningful progress across all remaining independent branches. List unfinished confirmations and failed optional gates in remainingSteps instead of stopping early. Never implement a TAPD title without reading its content. Never bypass sandbox or permission denial.';
     prompt += '\n' + codexWorkflowPrompt(workflow);
     if (!delivery) prompt += '\nDelivery execution is disabled for this run. Do not commit, push, create PR/MR or write TAPD; delivery=[] unless reporting a blocked request for those operations.';
     const budget = options.tokenBudget ?? 12000;
     if (!Number.isFinite(budget) || budget <= 0 || estimateTokens(prompt) > budget) {
       throw new Error('codex-context-budget-exceeded');
     }
-    if (parseTapdAssociation(task.requirement ?? task.goal)
+    if (!workflow?.agentLed && parseTapdAssociation(task.requirement ?? task.goal)
       && !Object.entries(settings.mcpServers ?? {}).some(([name, server]) => /tapd/i.test(name) && server.enabled !== false)) {
       return { status: 'blocked', text: 'codex-tapd-mcp-missing:请配置并启用 TAPD MCP（服务 ID 需含 tapd），或提供无需外部读取的完整需求。' };
     }
@@ -81,6 +81,11 @@ export class CodexTaskRuntime {
       '--output-schema', fileURLToPath(new URL('./codex-outcome.schema.json', import.meta.url)),
       ...mcp.args,
       '-c', `shell_environment_policy.exclude=${JSON.stringify(['CODEX_API_KEY', 'OPENAI_API_KEY', ...Object.keys(mcp.env)])}`];
+    // Reasoning summaries are opt-in, and `--ignore-user-config` above means a
+    // `model_reasoning_summary` set in ~/.codex/config.toml would not apply
+    // either. Without this Codex emits no `reasoning` item at all, so the
+    // client's collapsible 思考过程 area can only ever list tool names.
+    args.push('-c', 'model_reasoning_summary="detailed"');
     if (delivery) args.push('--approve-for-me', '-c', 'approvals_reviewer="auto_review"');
     if (options.ephemeral) args.push('--ephemeral', '--skip-git-repo-check');
     const model = task.model ?? settings.model;
@@ -153,6 +158,14 @@ export class CodexTaskRuntime {
         if (event.type === 'item.started' && event.item?.type === 'command_execution') {
           await emit('message', { tools: [{ name: 'command', detail: redact(event.item.command ?? '').slice(0, 160) }] });
         }
+        // Codex reports its reasoning summary as its own item, emitted once at
+        // completion. It is the only window into what the model is thinking —
+        // without it the client's collapsible "思考过程" area has nothing to
+        // show but tool names.
+        if (event.type === 'item.completed' && event.item?.type === 'reasoning') {
+          const reasoning = redact(event.item.text ?? '').slice(-16_000);
+          if (reasoning.trim()) await emit('message', { thinking: reasoning });
+        }
         if (event.type === 'turn.completed') { complete = true; usage = normalizeUsage(event.usage); }
         if (event.type === 'turn.failed') failure = 'codex-turn-failed';
       }).catch((error) => stop(error.message));
@@ -182,7 +195,8 @@ export class CodexTaskRuntime {
       if (pending) consume(pending);
       await events;
       if (active.cancelled) return { status: 'cancelled', agentId, runId, text, usage };
-      if (mcpStartupFailed) return { status: 'blocked', agentId, runId, usage, text: 'codex-mcp-startup-failed:检查 MCP 连通性、认证和工具初始化。' };
+      if (mcpStartupFailed) return { status: 'blocked', agentId, runId, usage,
+        text: `codex-mcp-startup-failed:${summarizeMcpStartupFailure(redact(diagnosticTail))}` };
       if (failure || code !== 0 || !complete || !agentId) {
         throw new Error(failure ?? `codex-run-incomplete:exit-${code};check-cli-version-auth-and-approval-policy`);
       }
@@ -248,4 +262,14 @@ function signal(child, name) {
 
 function validThreadId(value) {
   return typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value);
+}
+
+function summarizeMcpStartupFailure(text) {
+  const lines = String(text ?? '').split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => !/^\[?\d{4}-\d{2}-\d{2}T/.test(line))
+    .slice(-8);
+  const summary = lines.join(' | ');
+  return summary || '检查 MCP 连通性、认证和工具初始化。';
 }

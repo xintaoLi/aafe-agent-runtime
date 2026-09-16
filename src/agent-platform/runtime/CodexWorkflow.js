@@ -27,7 +27,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { workspaceConfigDirs } from '../tasks/workspaceRepoEnv.js';
-import { resolveWorkflowModeConfig } from '../../cli/workflowMode.js';
+import { resolveWorkflowModeConfig, botInteractionPolicy, BOT_INTERACTION_POLICY_VERSION } from '../../cli/workflowMode.js';
 import { resolveSubmitConfig, parseTapdBranchName } from '../../cli/submitConfig.js';
 import { resolveEffectiveTapd } from '../tasks/tapdPolicy.js';
 import { parseGitRemote } from '../../cli/repoSubmit.js';
@@ -84,7 +84,8 @@ export async function resolveCodexWorkflow(task, context, lease, { enabled = tru
       enabled: context.tapd?.enabled ?? (task.source?.type === 'wecom' ? undefined : config.tapd?.enabled),
       config: { ...config.tapd, ...context.tapd?.config } } }, source: task.source });
   const required = ['workflow-mode.md', 'repo-submit.md', 'tapd-submit-backfill.md'];
-  const policyHash = createHash('sha256').update(JSON.stringify({ documents, mode, submit: config.submit, tapd: {
+  const interactionPolicy = task.source?.type === 'wecom' ? botInteractionPolicy(mode) : '';
+  const policyHash = createHash('sha256').update(JSON.stringify({ documents, mode, interactionPolicy, submit: config.submit, tapd: {
     enabled: tapd.enabled, story: tapd.config?.tapd_story, bug: tapd.config?.tapd_bug
   } })).digest('hex');
   let initialHead = null;
@@ -93,6 +94,8 @@ export async function resolveCodexWorkflow(task, context, lease, { enabled = tru
     catch { /* non-Git tasks retain the normal runtime failure path */ }
   }
   return {
+    interactionPolicy,
+    agentLed: context.intent?.source === 'agent-direct',
     enabled: enabled !== false && !readOnly, readOnly, mode, submitCli: resolveSubmitConfig(config).cli,
     configRoot, skillRoot, documents, ownerMessages, tapd,
     taskId: task.id, repoPrCommand: [process.execPath, fileURLToPath(new URL('../../../bin/aafe.js', import.meta.url)), 'repo', 'pr'],
@@ -108,6 +111,11 @@ export function codexWorkflowPrompt(workflow) {
   if (!workflow) return '';
   return [
     'AAFE workflow for this run (replaces obsolete Bot restrictions on Commit/PR/backfill):',
+    ...(workflow.agentLed ? [
+      'This is an agent-led conversation. The Bot has NOT classified the message or authorized code changes. Understand the original request and all owner follow-ups yourself; answer questions/read-only requests without modifying code. Ask only for genuinely missing information, not for a repeated choice of analysis versus implementation.',
+      'A message supplying a file path or test settings while a task is waiting is feedback for that task. Read the user-designated file before asking for the same information again. This does not authorize unrelated actions or waive delivery gates.',
+      'For read-only, conversational or clarification-only work, report every delivery gate as skip/skipped with a truthful non-applicable reason. For implementation, apply the existing workflow and permissions. If required project skills are missing, you may still answer or inspect read-only; block before any gated delivery action and ask for the missing policy, never invent it.'
+    ] : []),
     JSON.stringify({ enabled: workflow.enabled, mode: workflow.mode, submitCli: workflow.submitCli,
       configRoot: workflow.configRoot, documents: workflow.documents,
       tapd: { enabled: workflow.tapd.enabled, association: workflow.tapd.association,
@@ -116,12 +124,14 @@ export function codexWorkflowPrompt(workflow) {
         pr_field: workflow.tapd.config?.pr_field },
       repoMeta: workflow.repoMeta, pendingGate: workflow.pendingGate, previous: workflow.previous,
       taskId: workflow.taskId, repoPrCommand: workflow.repoPrCommand, existingReceipts: workflow.existingReceipts,
-      policyUnchanged: workflow.policyUnchanged }),
+      policyUnchanged: workflow.policyUnchanged,
+      interactionPolicyVersion: workflow.interactionPolicy ? BOT_INTERACTION_POLICY_VERSION : null }),
     'Read the listed workflow-mode, repo-submit and tapd-submit-backfill skills and their hard rules before applicable gates. Read impact/self-test skills only when applicable. Files outside the worktree are read-only policy sources, never execution directories.',
-    'The effective mode in this manifest includes the trusted Bot override and owner session overrides; use it instead of the project mode.workflow default. Never rewrite project configuration to apply this override. Owner prohibitions and all Hard Ask conditions still win.',
+    'The effective mode in this manifest includes the trusted Bot override and owner session overrides; use it instead of the project mode.workflow default. Never rewrite project configuration to apply this override. Apply the explicit Bot interaction overlay below to legacy missing-UI-URL asks; owner prohibitions, mandatory acceptance and security Hard Ask conditions still win.',
+    ...(workflow.interactionPolicy ? [workflow.interactionPolicy] : []),
     'If policyUnchanged and the same native thread still retains the already-read rules, reuse them; reload after policy change or lost context. Do not repeatedly load unrelated skills.',
-    'Execute in the TASK worktree. Choose git vs gtm, branch slug/base, Commit, PR/MR and TAPD gates from those skills; do not invent another submission protocol. Ask mode still requires owner confirmation; auto-review only reviews sandbox/MCP permissions and is NOT user consent.',
-    'For each applicable gate emit a concise decision, then proceed/skip/ask under the skill. PR failure or skipped Commit does not suppress the TAPD gate. No TAPD association or tapd disabled means skip backfill without asking. Do not blindly force all gates to proceed.',
+    'Execute in the TASK worktree. Choose git vs gtm, branch slug/base, Commit, PR/MR and TAPD gates from those skills; do not invent another submission protocol. Ask mode is a safety boundary for destructive/irreversible choices, not a reason to stop routine TAPD-sourced delivery that can be executed with configured credentials. Auto-review only reviews sandbox/MCP permissions and is NOT blanket owner consent.',
+    'For each applicable gate emit a concise decision, then proceed/skip/ask under the skill. If one gate cannot be executed, record failed/skipped/ask with evidence and continue every later independent gate. PR failure, TAPD backfill failure, missing optional UI verification, or skipped Commit must not suppress later independent delivery attempts. No TAPD association or tapd disabled means skip backfill without asking. Do not blindly force all gates to proceed.',
     'Use existing configured credentials only via environment. Token API before gh, preserve reviewers/labels. When running aafe repo pr from a worktree whose config is ignored, use --config-root with the exact configRoot above; do not cd to the original checkout.',
     'When a GitHub token is configured, Bot injects Git HTTPS authentication through host-scoped GIT_CONFIG_* using Basic base64(x-access-token:TOKEN). Run plain git fetch/pull/push, never add a Bearer extraheader even if an old project skill suggests it. Only REST API uses Bearer. Do not print raw or Base64 credentials, put them in argv/remote URLs, or persist them in Git config.',
     'Prefer the supplied repoPrCommand argv (the Bot bundled CLI supports --config-root), not a possibly older installed aafe. It still runs from the task checkout. For gtm follow the project skill and actual CLI help; missing noninteractive/auth support is blocked, never silently downgrade to git/gh.',
@@ -129,8 +139,8 @@ export function codexWorkflowPrompt(workflow) {
     'Before retrying after interruption read actual git/PR/TAPD state. Reuse existing PR/comments; an ambiguous write timeout is blocked until read-back resolves it, never blindly replay.',
     'Put an AAFE task ID + commit SHA (or content fingerprint when Commit is skipped) marker in backfill comments; query for that marker before creating a comment so resuming the same delivery does not duplicate it. A later changed delivery may append its own new fingerprint, never overwrite the original ticket body.',
     'If sandboxed Git or network work needs permission, request on-demand approval through native Codex auto-review. Never disable sandbox, ignore rules, force push, skip hooks or evade a denial. If unavailable/denied, return blocked with the actual reason.',
-    'Return delivery records for commit, pr and tapd_backfill (empty array for read-only work): gate, decision, status, reason, authorization (exact owner quote when needed), receipt (commit full SHA/PR URL/comment ID), evidence (actual commands/tools and read-back references; never invent event IDs). For TAPD keep the successful comments_create/comments_get tool receipt targeting the correct entry. For PR keep authenticated create/read output. Report skipped gates, partial failures and pending user choices honestly.',
-    'When asking, include the actual concise question in summary and remainingSteps; stop this turn with blocked. On follow-up consume only the pending gate consent, not blanket consent for all later gates.'
+    'Return delivery records for commit, pr and tapd_backfill (' + (workflow.agentLed ? 'explicit skip/skipped records for read-only work' : 'empty array for read-only work') + '): gate, decision, status, reason, authorization (exact owner quote when needed), receipt (commit full SHA/PR URL/comment ID), evidence (actual commands/tools and read-back references; never invent event IDs). For TAPD keep the successful comments_create/comments_get tool receipt targeting the correct entry when it succeeds; when it fails, keep the real failure reason and continue. For PR keep authenticated create/read output when it succeeds. Report skipped gates, partial failures and pending user choices honestly.',
+    'Only stop this turn with blocked when a safety/permission/environment issue prevents meaningful progress across all remaining branches. Otherwise return completed with summary plus remainingSteps as a pending-confirmation list; on follow-up consume only the pending gate consent, not blanket consent for all later gates.'
   ].join('\n');
 }
 
@@ -188,64 +198,80 @@ export async function verifyCodexWorkflow(task, result, workflow, {
   runGit = async (args) => (await exec('git', args, { cwd: task.execution?.cwd, timeout: 10000 })).stdout.trim()
 } = {}) {
   const gates = result.outcome?.delivery;
-  if (!Array.isArray(gates) || gates.some((gate) => !gate || typeof gate !== 'object')) return { passed: false, error: 'codex-delivery-records-missing' };
+  if (!Array.isArray(gates) || gates.some((gate) => !gate || typeof gate !== 'object')) return {
+    passed: false, blocking: true, error: 'codex-delivery-records-missing',
+    pending: [], warning: null, verified: []
+  };
   const receipts = [...new Map([...(task.delivery?.receipts ?? []), ...(result.receipts ?? [])].map((item) => [item.id, item])).values()];
-  const errors = [], verified = [];
-  if (new Set(gates.map((g) => g.gate)).size !== gates.length) errors.push('duplicate-gates');
+  const errors = [], pending = [], verified = [];
+  const soft = (code) => pending.push(code);
+  const hard = (code) => errors.push(code);
+  if (new Set(gates.map((g) => g.gate)).size !== gates.length) hard('duplicate-gates');
   for (const name of ['commit', 'pr', 'tapd_backfill']) {
     const gate = gates.find((g) => g.gate === name);
-    if (!gate) { errors.push('missing-gate:' + name); continue; }
-    if (!['proceed', 'skip', 'ask'].includes(gate.decision) || !String(gate.reason ?? '').trim()) { errors.push('invalid-gate:' + name); continue; }
-    if (gate.decision === 'ask' || gate.status === 'blocked') { errors.push('waiting-user:' + name); continue; }
+    if (!gate) { hard('missing-gate:' + name); continue; }
+    if (!['proceed', 'skip', 'ask'].includes(gate.decision) || !String(gate.reason ?? '').trim()) { hard('invalid-gate:' + name); continue; }
+    if (gate.decision === 'ask' || gate.status === 'blocked') { soft('waiting-user:' + name); continue; }
     if (gate.decision === 'skip') {
-      if (gate.status !== 'skipped') errors.push('invalid-skip:' + name);
+      if (gate.status !== 'skipped') hard('invalid-skip:' + name);
       continue;
     }
-    if (gate.status !== 'done') { errors.push('delivery-failed:' + name); continue; }
+    if (workflow.agentLed && workflow.ready === false) { hard('workflow-skills-missing:' + name); continue; }
+    if (gate.status !== 'done') { soft('delivery-failed:' + name); continue; }
     const previouslyVerified = task.delivery?.verification?.verified?.some((item) => item.gate === name && item.receipt === gate.receipt);
     if (workflow.mode === 'ask' && name !== 'pr' && !gateConsent(gate, workflow) && !previouslyVerified) {
-      errors.push('consent-unverified:' + name); continue;
+      soft('consent-unverified:' + name); continue;
     }
-    if (name === 'tapd_backfill' && (!workflow.tapd.enabled || !workflow.tapd.association)) { errors.push('tapd-not-applicable'); continue; }
+    if (name === 'tapd_backfill' && (!workflow.tapd.enabled || !workflow.tapd.association)) { soft('tapd-not-applicable'); continue; }
     const proof = receipts;
     if (name === 'commit') {
-      if (!/^[a-f0-9]{40,64}$/.test(gate.receipt ?? '')) { errors.push('invalid-commit'); continue; }
+      if (!/^[a-f0-9]{40,64}$/.test(gate.receipt ?? '')) { soft('invalid-commit'); continue; }
       try {
         const head = await runGit(['rev-parse', 'HEAD']);
         const branch = await runGit(['branch', '--show-current']);
         const prior = task.delivery?.verification?.verified?.some((item) => item.gate === 'commit' && item.receipt === head);
         const association = workflow.tapd.association;
         if (association && parseTapdBranchName(branch)?.shortId !== association.shortId
-          && !workflow.ownerMessages.some((text) => text.includes(branch) && /确认|可用|使用/.test(text))) errors.push('commit-tapd-branch-mismatch');
+          && !workflow.ownerMessages.some((text) => text.includes(branch) && /确认|可用|使用/.test(text))) soft('commit-tapd-branch-mismatch');
         if (head !== gate.receipt || !branch || /^(main|master)$/.test(branch)
-          || (workflow.initialHead === head && !prior)) errors.push('commit-head-mismatch');
+          || (workflow.initialHead === head && !prior)) soft('commit-head-mismatch');
         else verified.push({ gate: name, receipt: head, branch });
-      } catch { errors.push('git-readback-failed'); }
+      } catch { soft('git-readback-failed'); }
     } else if (name === 'pr') {
       if (!/^https:\/\/[^\s?#]+\/(?:pull|merge_requests)\/\d+$/.test(gate.receipt ?? '')
-        || !proof.some((r) => r.kind === 'command' && r.operation === 'pr' && r.identifiers.includes(gate.receipt))) errors.push('pr-receipt-unverified');
+        || !proof.some((r) => r.kind === 'command' && r.operation === 'pr' && r.identifiers.includes(gate.receipt))) soft('pr-receipt-unverified');
       else {
         try {
           const remotes = (await runGit(['remote'])).split(/\s+/).filter(Boolean);
           const targets = await Promise.all(remotes.map(async (remote) => parseGitRemote(await runGit(['remote', 'get-url', remote]))));
           const url = new URL(gate.receipt);
           if (!targets.some((target) => target && url.hostname === target.host
-            && [ `/${target.projectPath}/pull/`, `/${target.projectPath}/merge_requests/`, `/${target.projectPath}/-/merge_requests/` ].some((prefix) => url.pathname.startsWith(prefix)))) errors.push('pr-repository-mismatch');
+            && [ `/${target.projectPath}/pull/`, `/${target.projectPath}/merge_requests/`, `/${target.projectPath}/-/merge_requests/` ].some((prefix) => url.pathname.startsWith(prefix)))) soft('pr-repository-mismatch');
           else verified.push({ gate: name, receipt: gate.receipt });
-        } catch { errors.push('pr-repository-unverified'); }
+        } catch { soft('pr-repository-unverified'); }
       }
     } else {
       const association = workflow.tapd.association;
       if (!proof.some((r) => r.kind === 'mcp' && r.entryId === String(association.entryId)
-        && r.workspaceId === String(association.workspaceId) && r.identifiers.includes(gate.receipt))) errors.push('tapd-comment-unverified');
+        && r.workspaceId === String(association.workspaceId) && r.identifiers.includes(gate.receipt))) soft('tapd-comment-unverified');
       else {
         const stateError = verifyTapdState(receipts, workflow);
-        if (stateError) errors.push(stateError);
+        if (stateError) {
+          if (/^tapd-(protected-field-updated|field-not-authorized|field-not-pr-link)$/.test(stateError)) hard(stateError);
+          else soft(stateError);
+        }
         else verified.push({ gate: name, receipt: gate.receipt });
       }
     }
   }
-  return { passed: errors.length === 0, error: errors.length ? 'codex-delivery-unverified:' + errors.join(',') : null, verified };
+  return {
+    passed: errors.length === 0,
+    blocking: errors.length > 0,
+    error: errors.length ? 'codex-delivery-unverified:' + errors.join(',') : null,
+    pending,
+    warning: pending.length ? 'codex-delivery-pending:' + pending.join(',') : null,
+    verified
+  };
 }
 
 function verifyTapdState(receipts, workflow) {

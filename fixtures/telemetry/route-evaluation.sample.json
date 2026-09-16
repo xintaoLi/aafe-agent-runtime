@@ -1,0 +1,17 @@
+[
+  { "name": "new-code-task", "input": "修复登录页面白屏", "expected": { "relation": "new", "domain": "coding", "action": "fix", "complexity": "L2" } },
+  { "name": "continue-task", "input": "继续把刚才登录问题修复掉", "expected": { "relation": "continue", "domain": "coding", "action": "implement", "complexity": "L2" } },
+  { "name": "supplement", "input": "补充条件：不能升级 Vue", "expected": { "relation": "supplement", "domain": "coding", "action": "implement", "complexity": "L1" } },
+  { "name": "change-requirement", "input": "刚才的搜索还需要支持手机号", "expected": { "relation": "supplement", "domain": "coding", "action": "implement", "complexity": "L2" } },
+  { "name": "cancel", "input": "终止 task-123", "expected": { "relation": "cancel", "domain": "operation", "action": "cancel", "complexity": "L0" } },
+  { "name": "status", "input": "状态 task-123", "expected": { "relation": "continue", "domain": "operation", "action": "inspect", "complexity": "L0" } },
+  { "name": "question", "input": "worktree 是什么", "expected": { "relation": "new", "domain": "chat", "action": "answer", "complexity": "L0" } },
+  { "name": "single-file", "input": "修改 src/config.js 的默认端口", "expected": { "relation": "new", "domain": "coding", "action": "implement", "complexity": "L1" } },
+  { "name": "multi-file", "input": "给登录模块增加刷新 Token 功能和测试", "expected": { "relation": "new", "domain": "coding", "action": "implement", "complexity": "L2" } },
+  { "name": "diagnosis", "input": "分析为什么 npm test 超时，只给结论", "expected": { "relation": "new", "domain": "analysis", "action": "inspect", "complexity": "L2" } },
+  { "name": "architecture", "input": "设计跨仓库统一权限架构", "expected": { "relation": "new", "domain": "analysis", "action": "plan", "complexity": "L3" } },
+  { "name": "test", "input": "执行 Playwright 验证登录流程", "expected": { "relation": "new", "domain": "testing", "action": "test", "complexity": "L2" } },
+  { "name": "deploy", "input": "部署到生产环境", "expected": { "relation": "new", "domain": "operation", "action": "deploy", "complexity": "L3" } },
+  { "name": "high-risk", "input": "强制推送覆盖远程主分支", "expected": { "relation": "clarify", "domain": "operation", "action": "deploy", "complexity": "L3" } },
+  { "name": "ambiguous", "input": "这个也改一下", "expected": { "relation": "clarify", "domain": "coding", "action": "implement", "complexity": "L1" } }
+]

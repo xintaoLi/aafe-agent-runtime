@@ -30,7 +30,11 @@ export function normalizeEntry(entryPath) {
   const value = String(entryPath ?? '').trim();
   if (!value) return '';
   if (/^https?:\/\//i.test(value)) return value;
-  return value.startsWith('/') ? value : `/${value}`;
+  const rooted = value.startsWith('/') ? value : `/${value}`;
+  // Optional route parameters have a valid concrete form with that segment
+  // omitted. Never send Vue/React template syntax such as `:indexId?` to the
+  // browser.
+  return rooted.replace(/\/:([A-Za-z_$][\w$]*)\?(?=\/|$)/g, '').replace(/^$/, '/');
 }
 
 export function isRealRoute(entryPath) {

@@ -25,6 +25,7 @@ import { handleWeComMessage } from '../ai-bots/wecom/src/handler.js';
 import { createPendingStore } from '../ai-bots/wecom/src/pending.js';
 import { createWorkspaceStore } from '../ai-bots/wecom/src/workspace.js';
 import { sessionKeyFromSource, sourceFromFrame } from '../ai-bots/wecom/src/session.js';
+import { createCodexTaskRouter } from '../ai-bots/wecom/src/codexRouter.js';
 
 // The user's three messages, as seen in the incident (never execute this PR).
 const request = 'https://github.com/TencentBlueKing/bk-monitor/pull/12303\n\n分析这个PR，处理冲突，移除package.json 中\n"@biomejs/biome": "^2.1.4",\n"@blueking/bkui-lint": "0.0.3",\n其他冲突大部分是格式冲突';
@@ -32,16 +33,16 @@ const repo = '/Users/lixintao/github/bk-monitor/bklog/web';
 const feedback = '目标仓库：' + repo + '，\n根据PR 处理冲突，更新PR';
 const direct = '直接修改：\n' + feedback;
 const frame = { body: { chattype: 'single', from: { userid: 'intent-test' } } };
-function fixture({ configured = true, analyzer } = {}) {
+function fixture({ configured = true, analyzer, routing = 'legacy', agentRouter = async () => ({ action: 'ask', question: '你要继续测试还是另一个任务？' }) } = {}) {
   const tasks = [], started = [], continued = [], pending = createPendingStore(), replies = [];
   const config = { root: '/tmp/aafe-bot', agent: { provider: 'codex' },
-    workflow: { mode: 'auto', intentConfidence: 0.7 },
+    workflow: { mode: 'auto', routing, intentConfidence: 0.7 },
     workspaces: configured ? [{ id: 'log-web', cwd: repo }] : [] };
   const manager = {
     async list() { return tasks; }, async get(id) { return tasks.find((task) => task.id === id) ?? null; },
     async create(input) { const task = { ...input, status: 'created', updatedAt: new Date().toISOString() }; tasks.push(task); return task; },
     async start(id) { started.push(id); },
-    async continue(id, message) { continued.push({ id, message }); }
+    async continue(id, message, options) { continued.push({ id, message, options }); }
   };
   let sequence = 0;
   const understanding = analyzer ?? createIntentAnalyzer({ settings: {}, env: {},
@@ -49,7 +50,7 @@ function fixture({ configured = true, analyzer } = {}) {
     importSdk: () => { throw new Error('must not call Cursor under Codex'); } });
   const send = (text, user = 'intent-test') => handleWeComMessage({ body: { ...frame.body,
     from: { userid: user }, msgid: 'incident-' + ++sequence, text: { content: text } } },
-    { manager, pending, config, workspaces: createWorkspaceStore(config), understanding,
+    { manager, pending, config, workspaces: createWorkspaceStore(config), understanding, agentRouter,
       replyAck: async (_frame, text) => { replies.push(text); return 'stream-fixture'; },
       replyProgress: async () => {}, logger: { event() {}, error() {} } });
   return { tasks, started, continued, pending, replies, send };
@@ -150,4 +151,76 @@ const ambiguousRepo = fixture();
 assert.equal((await ambiguousRepo.send('直接修改：目标仓库：/tmp/one，目标仓库：/tmp/two')).action.type, 'error');
 assert.equal(ambiguousRepo.tasks.length, 0);
 
-console.log('wecom natural-language incident regression passed (no PR, model or repository writes)');
+// Agent-led routing must never invoke the local classifier, regardless of
+// confidence, keywords or whether the message supplies a URL vs a config file.
+const forbiddenAnalyzer = { analyze() { throw new Error('local classifier must not run'); } };
+const agent = fixture({ routing: 'agent', analyzer: forbiddenAnalyzer });
+assert.equal((await agent.send('这个事情怎么处理比较合适')).action.type, 'created');
+assert.equal(agent.tasks[0].context.intent.source, 'agent-direct');
+const agentId = agent.tasks[0].id;
+agent.tasks[0].status = 'blocked';
+agent.tasks[0].codex = { agentId: 'existing-native-thread' };
+const testFeedback = '使用 /Users/lixintao/github/bk-monitor/bklog/web/local.settings.e2e.js 这里配置，结合playwright执行测试';
+assert.equal((await agent.send(testFeedback)).action.type, 'continue');
+assert.equal(agent.continued[0].id, agentId);
+assert.ok(agent.continued[0].message.includes(testFeedback));
+assert.equal(agent.continued[0].options.intent.source, 'agent-direct');
+assert.equal(agent.tasks[0].codex.agentId, 'existing-native-thread');
+assert.equal((await agent.send('仅分析原因，不修改、不提交')).action.type, 'continue');
+assert.ok(agent.continued.at(-1).message.includes('仅分析原因，不修改、不提交'));
+assert.equal((await agent.send('好的')).action.type, 'continue');
+assert.equal(agent.tasks.length, 1);
+assert.equal((await agent.send('状态')).action.type, 'status');
+assert.equal((await agent.send('做：另一个独立任务')).action.type, 'created');
+const count = agent.continued.length;
+const ambiguous = await agent.send('使用这个配置继续测试');
+assert.notEqual(ambiguous.action.type, 'continue');
+assert.equal(agent.continued.length, count);
+assert.doesNotMatch(ambiguous.reply, /是仅分析原因|修改实现并验证/);
+await agent.send('这是我的独立问题', 'someone-else');
+assert.equal(agent.continued.length, count, 'another user cannot implicitly bind an owned task');
+const migrated = fixture({ routing: 'agent', analyzer: forbiddenAnalyzer });
+migrated.pending.set(sessionKeyFromSource(sourceFromFrame(frame)), { type: 'need-intent',
+  text: request, feedback: ['仅分析，不修改'] });
+assert.equal((await migrated.send(testFeedback)).action.type, 'created');
+assert.ok(migrated.tasks[0].requirement.includes('仅分析，不修改'));
+assert.ok(migrated.tasks[0].requirement.includes(testFeedback));
+assert.equal(migrated.pending.get(sessionKeyFromSource(sourceFromFrame(frame))), null);
+
+console.log('wecom natural-language and agent-led routing regression passed (no PR, model or repository writes)');
+
+// The reported duplicate-TAPD incident: multiple blocked tasks must reach
+// Codex, not be rejected locally with a mandatory Task ID template.
+const decisions = [];
+const multi = fixture({ routing: 'agent', analyzer: forbiddenAnalyzer,
+  agentRouter: async (input) => { decisions.push(input); return { action: 'continue', taskId: input.tasks[0].id }; } });
+await multi.send('做：https://tapd.woa.com/tapd_fe/10158081/story/detail/101015808137994989');
+await multi.send('做：另一个任务');
+for (const task of multi.tasks) task.status = 'blocked';
+const linked = await multi.send('https://tapd.woa.com/tapd_fe/10158081/story/detail/101015808137994989 实现这个任务');
+assert.equal(decisions.length, 1);
+assert.equal(decisions[0].tasks.length, 2);
+assert.equal(linked.action.type, 'continue');
+assert.equal(linked.action.via, 'codex-coordinator');
+assert.equal(multi.tasks.length, 2);
+assert.doesNotMatch(linked.reply, /请带上显式|有多个未结束任务/);
+const rejected = fixture({ routing: 'agent', agentRouter: async () => ({ action: 'continue', taskId: 'foreign-or-invented' }) });
+await rejected.send('做：任务一'); await rejected.send('做：任务二');
+assert.equal((await rejected.send('继续做吧')).action.type, 'error');
+assert.equal(rejected.continued.length, 0);
+let routingRuns = 0;
+const router = createCodexTaskRouter({ apiKey: 'fixture-secret', mcpServers: { ignored: {} } }, {
+  runtime: { async run(task, prompt, options) {
+    routingRuns++;
+    assert.equal(options.executionMode, 'plan');
+    assert.equal(options.ephemeral, true);
+    assert.deepEqual(options.codex.mcpServers, {});
+    assert.equal(options.codex.delivery.enabled, false);
+    assert.ok(!prompt.includes('fixture-secret'));
+    assert.match(prompt, /Multiple blocked tasks do NOT automatically/);
+    return { status: 'completed', outcome: { summary: JSON.stringify({ action: 'continue', taskId: 'candidate-1' }) } };
+  } }
+});
+assert.equal((await router({ text: '实现这个需求', tasks: [{ id: 'candidate-1', status: 'blocked' }] })).taskId, 'candidate-1');
+assert.equal(routingRuns, 1);
+console.log('Codex multi-task coordination passed (mocked Codex, no model calls)');

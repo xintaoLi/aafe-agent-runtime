@@ -35,6 +35,7 @@
 
 import { estimateTokens } from '../ide-bridge/context/tokens.js';
 import { normalizeUsage } from './usage.js';
+import { recordInvocationSafely } from '../telemetry/InvocationMetricStore.js';
 
 export class LlmClient {
   /**
@@ -50,6 +51,8 @@ export class LlmClient {
     this.maxOutputTokens = settings.maxOutputTokens ?? 2048;
     this.tokenBudget = settings.tokenBudget ?? 12000;
     this.onUsage = settings.onUsage ?? (() => {});
+    this.metricStore = settings.metricStore ?? null;
+    this.telemetry = settings.telemetry ?? {};
   }
 
   /**
@@ -71,11 +74,40 @@ export class LlmClient {
    * @param {{role:string,content:string}[]} messages
    * @returns {Promise<{ status:'success'|'failed', content?:string, reason?:string, usage?:object }>}
    */
-  async chat(messages, { responseFormat = null, temperature = this.temperature, maxOutputTokens = this.maxOutputTokens } = {}) {
+  async chat(messages, {
+    responseFormat = null,
+    temperature = this.temperature,
+    maxOutputTokens = this.maxOutputTokens,
+    telemetry = {},
+    telemetryFromResult = null
+  } = {}) {
+    const startedAt = new Date();
+    const metricContext = { ...this.telemetry, ...telemetry };
+    const complete = async (result, errorCode = null) => {
+      let derived = {};
+      try { derived = telemetryFromResult?.(result) ?? {}; } catch { /* telemetry cannot affect output */ }
+      await recordInvocationSafely(this.metricStore, {
+        ...metricContext,
+        ...derived,
+        provider: metricContext.provider ?? 'openai-compatible',
+        model: this.model,
+        operation: metricContext.operation ?? 'chat',
+        usage: result.usage,
+        estimatedInputTokens: result.estimatedContextTokens,
+        startedAt,
+        finishedAt: new Date(),
+        success: result.status === 'success',
+        errorCode: errorCode ?? result.reason
+      });
+      return result;
+    };
     const reason = this.unavailableReason();
-    if (reason) return { status: 'failed', reason };
+    if (reason) return complete({ status: 'failed', reason, estimatedContextTokens: null });
     const estimatedContextTokens = estimateTokens(messages);
-    if (estimatedContextTokens > this.tokenBudget) return { status: 'failed', reason: `llm-context-budget-exceeded:${estimatedContextTokens}/${this.tokenBudget}` };
+    if (estimatedContextTokens > this.tokenBudget) {
+      const reason = `llm-context-budget-exceeded:${estimatedContextTokens}/${this.tokenBudget}`;
+      return complete({ status: 'failed', reason, estimatedContextTokens });
+    }
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
@@ -96,18 +128,18 @@ export class LlmClient {
         signal: controller.signal
       });
       if (!response.ok) {
-        return { status: 'failed', reason: `llm-http-${response.status}` };
+        return complete({ status: 'failed', reason: `llm-http-${response.status}`, estimatedContextTokens });
       }
       const payload = await response.json();
       try { this.onUsage({ model: this.model, estimatedContextTokens, usage: normalizeUsage(payload.usage) }); } catch { /* telemetry must not fail a call */ }
       const content = payload?.choices?.[0]?.message?.content;
       if (typeof content !== 'string') {
-        return { status: 'failed', reason: 'llm-empty-completion', usage: payload.usage ?? {} };
+        return complete({ status: 'failed', reason: 'llm-empty-completion', usage: payload.usage ?? {}, estimatedContextTokens });
       }
-      return { status: 'success', content, usage: payload.usage ?? {} };
+      return complete({ status: 'success', content, usage: payload.usage ?? {}, estimatedContextTokens });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      return { status: 'failed', reason: `llm-request-failed:${message}` };
+      return complete({ status: 'failed', reason: `llm-request-failed:${message}`, estimatedContextTokens });
     } finally {
       clearTimeout(timer);
     }

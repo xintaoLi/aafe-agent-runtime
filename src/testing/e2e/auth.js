@@ -18,9 +18,11 @@
  * IN THE SOFTWARE.
  */
 
-import { mkdir, readFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, rename, rm } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { createInterface } from 'node:readline/promises';
+import { resolveTokenMcp, prepareTokenAuth } from './mcpAuth.js';
 
 export const AUTH_MODES = Object.freeze([
   'none',
@@ -242,8 +244,7 @@ export async function verifyAuthSession(playwright, config, statePath) {
       const visible = await page.locator(config.auth.readySelector).first().isVisible().catch(() => false);
       if (!visible) return { ok: false, reason: 'ready-selector' };
     }
-    await mkdir(path.dirname(statePath), { recursive: true });
-    await context.storageState({ path: statePath });
+    await saveAuthState(context, statePath);
     return { ok: true, refreshed: true, url: page.url() };
   } catch (error) {
     return { ok: false, reason: error instanceof Error ? error.message : String(error) };
@@ -268,9 +269,12 @@ export async function prepareE2eAuth({
 
   const statePath = config.authStatePath;
   const hasState = await storageStateLooksValid(statePath);
+  let tokenServer;
+  try { tokenServer = await resolveTokenMcp(config); }
+  catch { return needAuthResult('Get Token MCP 配置不可用或存在多个候选，请检查配置并明确 e2e.auth.mcp.server。'); }
   if (probeOnly) {
     if (hasState) return { mode, storageState: statePath, reused: true, pendingVerify: true };
-    if (mode === 'reuse') {
+    if (mode === 'reuse' && !tokenServer) {
       return needAuthResult('认证文件缺失或已过期。请先 `aafe e2e auth`，或使用默认的 --auth-mode=reuse-or-headed 重新登录。');
     }
     return { mode, storageState: null, pendingAnonymous: true };
@@ -278,7 +282,13 @@ export async function prepareE2eAuth({
 
   try {
     const anonymous = await probeAnonymousAccess(config);
-    if (anonymous.skipAuth) {
+    // A local dev server commonly returns the SPA shell with HTTP 200 while
+    // proxied business APIs still require bk_token.  When Get Token MCP is
+    // configured it is authoritative and must run before any anonymous
+    // shortcut; otherwise the test reaches the page but every API call is
+    // unauthenticated.
+    const anonymousVerified = anonymous.skipAuth && !tokenServer;
+    if (anonymousVerified) {
       console.error('E2E 认证：目标地址 HTTP 200 且未跳转登录（如 Dev 本地代理），跳过 SSO。');
       return { mode, storageState: null, skipped: true, reason: anonymous.reason };
     }
@@ -287,6 +297,10 @@ export async function prepareE2eAuth({
     const message = error instanceof Error ? error.message : String(error);
     console.error(`E2E 认证：匿名探测失败（${message}），继续校验登录态。`);
   }
+
+  // A configured MCP is the preferred authenticated path, even if a local
+  // manual-login cache exists. A failed MCP must not silently change identity.
+  if (tokenServer) return prepareTokenAuth(config, tokenServer);
 
   if (hasState) {
     try {
@@ -342,10 +356,21 @@ async function confirmCapturedSession(config, statePath, mode) {
   return { mode, storageState: statePath, captured: true, verified: true };
 }
 
+export async function saveAuthState(context, statePath) {
+  await mkdir(path.dirname(statePath), { recursive: true, mode: 0o700 });
+  const temporary = statePath + '.' + randomUUID() + '.tmp';
+  try {
+    await writeFile(temporary, JSON.stringify(await context.storageState()), { mode: 0o600, flag: 'wx' });
+    await rename(temporary, statePath);
+  } finally {
+    await rm(temporary, { force: true });
+  }
+}
+
 export async function captureAuthState({ config, mode = 'headed', env = process.env } = {}) {
   const playwright = await import('playwright');
   const statePath = config.authStatePath;
-  await mkdir(path.dirname(statePath), { recursive: true });
+  await mkdir(path.dirname(statePath), { recursive: true, mode: 0o700 });
   const startUrl = config.auth.loginUrl || config.baseUrl;
   if (!startUrl) return needAuthResult(NEED_AUTH_PROMPT);
 
@@ -369,7 +394,7 @@ export async function captureAuthState({ config, mode = 'headed', env = process.
         timeout: Math.min(config.auth.timeoutMs, 60000)
       });
     }
-    await context.storageState({ path: statePath });
+    await saveAuthState(context, statePath);
     if (!await storageStateLooksValid(statePath)) {
       return needAuthResult('登录完成后没有保存到 Cookie / LocalStorage。请确认已回到业务页后再保存。');
     }

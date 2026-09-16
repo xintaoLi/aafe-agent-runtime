@@ -62,6 +62,7 @@ async function updateCurrentProjectFromInstalledRuntime(options) {
         refreshEditorAdapters: true,
         refreshProjectKnowledgeConfig: true,
         refreshSubmitCliConfig: true,
+        initializeE2eDev: true,
         forceGeneratedFiles: true,
         preserveProjectKnowledge: true,
         preserveMemory: true,

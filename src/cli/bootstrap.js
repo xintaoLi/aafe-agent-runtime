@@ -51,11 +51,13 @@ import {
   workflowModeSkill
 } from './workflowModeRules.js';
 import { AGENTS_CONFIG_FILE, defaultAgentsConfig } from '../agent-platform/config/agentsConfig.js';
+import { initializeE2eDev } from './e2eDevSetup.js';
 
 export async function bootstrapProject(root, detection, options = {}) {
   const plan = createTemplatePlan(detection, options);
   await writeRuntime(root, detection, options, plan);
   await writeConfig(root, detection, options, plan);
+  await initializeE2eDev(root);
   // Last on purpose. Migrations retire superseded files and drop legacy config
   // keys, so they have to see the finished layout: the replacement tree must
   // already exist before its predecessor is removed, and `writeConfig` merges

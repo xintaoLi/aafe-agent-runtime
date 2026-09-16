@@ -293,7 +293,34 @@ async function routesForChangedFiles(knowledge, changedFiles) {
       });
     }
   }
-  return routes.slice(0, 15);
+  if (routes.length > 0) return routes.slice(0, 15);
+
+  // Deep view components are often owned by a feature module while the route
+  // lives in a separate router module. Fall back to semantic path affinity,
+  // but only among routes proven by the analyzer (never synthesize a URL from
+  // the component filename).
+  const candidates = [];
+  for (const entry of modules) {
+    const slice = await knowledge.getModule(normalizeModuleId(entry.id));
+    for (const route of slice?.routes ?? []) {
+      const record = normalizeRouteRecord(route);
+      if (!isRealRoute(record.path)) continue;
+      const score = Math.max(...changedFiles.map((file) => routeAffinity(file, record.path)), 0);
+      if (score <= 0) continue;
+      candidates.push({ moduleId: slice.id, path: record.path, file: record.file || null, score });
+    }
+  }
+  const best = Math.max(...candidates.map((item) => item.score), 0);
+  return candidates.filter((item) => item.score === best).slice(0, 3);
+}
+
+function routeAffinity(file, routePath) {
+  const fileTokens = new Set(String(file).toLowerCase().split(/[^a-z0-9]+/).filter((part) => part.length > 2));
+  const routeTokens = String(routePath).toLowerCase().split(/[^a-z0-9]+/)
+    .filter((part) => part.length > 2 && !part.startsWith(':'));
+  if (routeTokens.length === 0) return 0;
+  const matches = routeTokens.reduce((score, token) => score + (fileTokens.has(token) ? 1 : 0), 0);
+  return matches / routeTokens.length;
 }
 
 function coverageGaps(modules, existingTests) {

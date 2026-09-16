@@ -18,7 +18,7 @@
  * IN THE SOFTWARE.
  */
 
-export { TaskManager, buildTaskPrompt } from './TaskManager.js';
+export { TaskManager, buildTaskPrompt, compactTaskContext } from './TaskManager.js';
 export {
   buildRepoAuthPromptSection,
   resolveWorkspaceRepoAuth,
@@ -27,6 +27,9 @@ export {
 } from './workspaceRepoEnv.js';
 export { TaskScheduler } from './TaskScheduler.js';
 export { TaskStore, createTaskId } from './TaskStore.js';
+export { TASK_SNAPSHOT_SCHEMA_VERSION, createTaskSnapshot, applyTaskSnapshotPatch } from './TaskSnapshot.js';
+export { TASK_STORE_METHODS, assertTaskStoreContract } from './TaskStoreContract.js';
+export { SqliteTaskStore, migrateTaskStore } from './SqliteTaskStore.js';
 export {
   parseTapdAssociation,
   resolveEffectiveTapd,

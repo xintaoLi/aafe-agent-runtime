@@ -22,10 +22,12 @@ import { spawn } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { detectProject } from './detect.js';
-import { DEFAULT_E2E_CONFIG, isE2eEnabled, loadE2eConfig, readProjectConfig, NEED_BASE_URL_PROMPT } from '../testing/e2e/config.js';
+import { DEFAULT_E2E_CONFIG, loadE2eConfig, readProjectConfig, NEED_BASE_URL_PROMPT } from '../testing/e2e/config.js';
 import { detectPlaywright } from '../testing/e2e/runner.js';
 import { captureAuthState, storageStateLooksValid, NEED_AUTH_PROMPT } from '../testing/e2e/auth.js';
+import { withE2eConfigRoots } from '../testing/e2e/configContext.js';
 import { parsePlatformArgs } from './platform.js';
+import { startE2eDevServer } from '../testing/e2e/devServer.js';
 
 export const PLAYWRIGHT_PACKAGES = Object.freeze(['playwright', '@playwright/test']);
 
@@ -91,15 +93,18 @@ export async function ensurePlaywrightInstalled(root, { yes = false, dryRun = fa
 }
 
 export async function runE2eSetupCommand(root, args = []) {
+  return withE2eConfigRoots(root, args, () => runE2eSetupWithConfig(root, args));
+}
+
+async function runE2eSetupWithConfig(root, args = []) {
   const { subcommand, options } = parseE2eSetupArgs(args);
   if (subcommand === 'status') {
-    const config = await readProjectConfig(root);
     const setup = await inspectPlaywrightSetup(root);
     const e2e = await loadE2eConfig(root);
     const authValid = await storageStateLooksValid(e2e.authStatePath);
     const payload = {
       command: 'aafe e2e status',
-      enabled: isE2eEnabled(config.e2e),
+      enabled: e2e.enabled,
       playwright: setup,
       auth: {
         mode: e2e.authMode,
@@ -204,7 +209,9 @@ async function runE2eAuthCommand(root, args = []) {
     process.exitCode = 3;
     return { command: 'aafe e2e auth', needInput: 'auth', prompt: NEED_AUTH_PROMPT, persistBaseUrl: false };
   }
+  let devServer;
   try {
+    devServer = await startE2eDevServer(e2e);
     const captured = await captureAuthState({ config: e2e, mode: captureMode });
     if (captured.needInput) {
       console.error(captured.prompt);
@@ -225,6 +232,8 @@ async function runE2eAuthCommand(root, args = []) {
     console.error(`采集认证失败：${message}`);
     process.exitCode = 2;
     return { command: 'aafe e2e auth', status: 'failed', reason: message };
+  } finally {
+    await devServer?.stop();
   }
 }
 

@@ -26,11 +26,16 @@ const adapters = {
   }
 };
 
-const usage = 'Usage: aafe bot start --wecom [--root=<path>] [--config=<file>] [--no-recover]';
+const usage = 'Usage: aafe bot start --wecom [--root=<path>] [--config=<file>] [--no-recover]\n       aafe bot project init --wecom --workspace=<id> [--root=<path>] [--config=<file>] [--tool=vite|webpack|custom] [--build-config=<file>] [--dry-run]';
 
 export function parseBotArgs(args = []) {
   if (args.length === 0 || args[0] === 'help' || args[0] === '--help' || args[0] === '-h') {
     return { help: true };
+  }
+  if (args[0] === 'project' && args[1] === 'init') {
+    if (args.includes('--help')) return { help: true };
+    if (args.filter((arg) => arg === '--wecom').length !== 1) throw new Error(usage);
+    return { bot: 'wecom', project: true, args: args.slice(2).filter((arg) => arg !== '--wecom') };
   }
   if (args[0] !== 'start') throw new Error(usage);
   if (args.includes('--help') || args.includes('-h')) return { help: true };
@@ -53,6 +58,17 @@ export async function runBotCommand(root, args = []) {
     console.log(usage + '\n可用 Bot：' + Object.keys(adapters).join(', ') +
       '\nBot 为独立可选服务；默认安装和 update 不安装、加载或启动 Bot。');
     return;
+  }
+  if (options.project) {
+    const entry = new URL('../../ai-bots/wecom/src/project.js', import.meta.url);
+    const { access } = await import('node:fs/promises');
+    try { await access(entry); }
+    catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+      throw new Error('wecom-not-installed: project initialization requires the separate WeCom Bot source installation.');
+    }
+    const { runWeComProjectCommand } = await import(entry.href);
+    return runWeComProjectCommand(root, options.args);
   }
   return adapters[options.bot](root, options.args);
 }

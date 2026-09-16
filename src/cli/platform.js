@@ -32,6 +32,7 @@ import { renderImpactMarkdown } from '../knowledge/report/impactMarkdown.js';
 import { listRuns, replayRun } from '../agent-platform/state/RunStore.js';
 import { loadE2eConfig, NEED_BASE_URL_PROMPT, NEED_URL_ROLE_PROMPT } from '../testing/e2e/config.js';
 import { NEED_AUTH_PROMPT } from '../testing/e2e/auth.js';
+import { withE2eConfigRoots } from '../testing/e2e/configContext.js';
 
 /**
  * CLI surface for the agent platform (RFC §25).
@@ -369,6 +370,10 @@ async function replayStoredRun(root, options) {
  * because spawning the project's suite is a side effect the caller must own.
  */
 export async function runTestCommand(root, args = []) {
+  return withE2eConfigRoots(root, args, () => runTestWithConfig(root, args));
+}
+
+async function runTestWithConfig(root, args = []) {
   const options = parsePlatformArgs(args);
   if (options.inlineToken !== undefined) {
     console.error('拒绝从命令行读取令牌：不要使用 --token <值>。请写到 `.aafe.config.json` 的 repo.githubAccessToken / repo.gongfengAccessToken，或环境变量 GITHUB_TOKEN / GIT_PRIVATE_TOKEN。');
