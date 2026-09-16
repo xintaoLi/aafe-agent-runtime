@@ -26,6 +26,7 @@ import { scratchPrompt } from './scratch.js';
 import { normalizeUsage } from '../../../src/llm/usage.js';
 import { CodexTaskRuntime } from '../../../src/agent-platform/runtime/CodexTaskRuntime.js';
 import { randomUUID } from 'node:crypto';
+import { recordInvocationSafely } from '../../../src/telemetry/index.js';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 /** Answering a question never reads the project, so it runs outside it. */
@@ -60,6 +61,7 @@ export function createChatResponder({
   fetchImpl = globalThis.fetch,
   importSdk = null,
   selectModel = null,
+  metricStore = null,
   createCodexRuntime = () => new CodexTaskRuntime()
 } = {}) {
   const enabled = settings.enabled !== false;
@@ -72,6 +74,8 @@ export function createChatResponder({
       apiKeyEnv: settings.apiKeyEnv ?? 'AAFE_LLM_API_KEY',
       maxOutputTokens: settings.chatMaxOutputTokens ?? 768,
       tokenBudget: settings.tokenBudget ?? 4096,
+      metricStore,
+      telemetry: { source: 'wecom', operation: 'chat', provider: 'openai-compatible' },
       onUsage: (usage) => logger.event?.('llm.usage', { stage: 'chat', ...usage }),
       timeoutMs
     }, { fetchImpl, env })
@@ -81,6 +85,7 @@ export function createChatResponder({
   const backend = !enabled ? 'none' : http?.isConfigured() ? 'llm' : settings.codex ? 'codex' : cursorKey ? 'cursor' : 'none';
 
   async function callCodex(text) {
+    const startedAt = new Date();
     await mkdir(cwd, { recursive: true });
     const runtime = createCodexRuntime();
     try {
@@ -89,6 +94,9 @@ export function createChatResponder({
         codex: { ...settings.codex, timeoutMs }
       });
       logger.event?.('llm.usage', { stage: 'chat', provider: 'codex', usage: result.usage });
+      await recordInvocationSafely(metricStore, { source: 'wecom', provider: 'codex',
+        model: settings.codex?.model, operation: 'chat', usage: result.usage, startedAt,
+        success: result.status === 'completed', errorCode: result.status === 'completed' ? null : result.text });
       return result.text;
     } finally { await runtime.closeAll(); }
   }
@@ -103,6 +111,7 @@ export function createChatResponder({
   }
 
   async function callCursor(text) {
+    const startedAt = new Date();
     const sdk = await loadSdk();
     await mkdir(cwd, { recursive: true });
     const model = selectModel?.({ stage: 'chat', text }) ?? null;
@@ -114,6 +123,9 @@ export function createChatResponder({
     }, { timeoutMs, tokenBudget: settings.tokenBudget ?? 4096, label: 'chat' });
     if (result?.status && result.status !== 'finished') throw new Error(`cursor-prompt-${result.status}`);
     logger.event?.('llm.usage', { stage: 'chat', model, usage: normalizeUsage(result?.usage ?? result?.metrics) });
+    await recordInvocationSafely(metricStore, { source: 'wecom', provider: 'cursor', model,
+      operation: 'chat', usage: result?.usage ?? result?.metrics, startedAt,
+      success: !result?.status || result.status === 'finished', errorCode: result?.status === 'finished' ? null : result?.status });
     return result?.result ?? '';
   }
 

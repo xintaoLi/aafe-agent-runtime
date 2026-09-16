@@ -20,6 +20,8 @@
 
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
+import os from 'node:os';
+import { existsSync, readdirSync } from 'node:fs';
 import { createMessageInbox } from './inbox.js';
 import { createTaskManager } from '../../../src/agent-platform/tasks/index.js';
 import { resolveCursorMcpForRun, resolveCodexMcpForRun, toCursorMcpServers } from '../../../src/cli/agentMcp.js';
@@ -36,6 +38,9 @@ import { sessionKeyFromSource, sourceFromFrame } from './session.js';
 import { createChatResponder } from './chat.js';
 import { createIntentAnalyzer } from './understand.js';
 import { createWorkspaceStore } from './workspace.js';
+import { createProjectOnboarding } from './projectOnboarding.js';
+import { readFile } from 'node:fs/promises';
+import { InvocationMetricStore } from '../../../src/telemetry/index.js';
 
 export { loadWeComBotConfig, createTaskManagerOptions, resolveWeComTapdConfig, resolveWeComRepoConfig } from './config.js';
 export { parseWeComCommand, stripMentions } from './commands.js';
@@ -59,13 +64,37 @@ export {
   DEFAULT_MODEL_RULES
 } from './models.js';
 
+export function ensureWeComServiceEnv(env = process.env, {
+  home = os.homedir(),
+  execPath = process.execPath
+} = {}) {
+  const username = safeUserName();
+  if (!env.HOME && home) env.HOME = home;
+  if (!env.USER && username) env.USER = username;
+  if (!env.LOGNAME && username) env.LOGNAME = username;
+  if (!env.SHELL) env.SHELL = '/bin/zsh';
+  if (!env.TMPDIR) env.TMPDIR = os.tmpdir();
+  env.PATH = mergePath([
+    path.dirname(execPath),
+    ...nvmNodeBinDirs(home),
+    '/opt/homebrew/bin',
+    '/usr/local/bin',
+    '/usr/bin',
+    '/bin',
+    '/usr/sbin',
+    '/sbin'
+  ], env.PATH);
+  return env;
+}
+
 /**
  * Resident WeCom process. Must not reuse `aafe task`'s manager.close() on idle.
  */
 export async function startWeComBot(options = {}) {
-  const config = options.config ?? await loadWeComBotConfig(options);
+  const env = ensureWeComServiceEnv(options.env ?? process.env);
+  const config = options.config ?? await loadWeComBotConfig({ ...options, env });
   const logConfig = config.log ?? resolveWeComLogConfig({
-    env: options.env ?? process.env,
+    env,
     root: config.root
   });
   const logger = options.logger ?? createWeComLogger({
@@ -76,15 +105,12 @@ export async function startWeComBot(options = {}) {
     ? { servers: options.mcpServers }
     : await (config.agent?.provider === 'codex' ? resolveCodexMcpForRun : resolveCursorMcpForRun)(config.agent?.mcp, {
       root: config.root,
-      env: options.env ?? process.env
+      env
     });
 
   const manager = options.manager ?? createTaskManager(createTaskManagerOptions(config, {
     mcpServers: toCursorMcpServers(mcp.servers)
   }));
-  if (options.recoverOnStart !== false) {
-    await manager.initialize();
-  }
 
   const sdk = options.sdk ?? (options.WSClient ? {} : await loadWeComSdk());
   const WSClient = options.WSClient ?? sdk.default?.WSClient ?? sdk.WSClient ?? sdk.AiBot?.WSClient;
@@ -97,18 +123,33 @@ export async function startWeComBot(options = {}) {
     generateReqId,
     logger
   });
+  // WeCom renders a template card as its own message, never inside the
+  // streaming one, so it can never sit at the bottom of the panel the user is
+  // reading. Task controls are typed commands in the body text instead, and
+  // reporting `false` here keeps every surface honest about that.
+  const cardsSupported = () => false;
+  let initialized = false;
+  const initializeManager = async () => {
+    if (initialized || options.recoverOnStart === false) return [];
+    initialized = true;
+    return manager.initialize();
+  };
 
   const dedup = options.dedup ?? null;
   const inbox = options.inbox ?? createMessageInbox({ file: config.root ? path.join(config.root, '.aafe', 'wecom', 'inbox.json') : null });
   await inbox.ready?.();
   const pending = options.pending ?? createPendingStore();
   const workspaces = options.workspaces ?? createWorkspaceStore(config, {
-    persistCurrent: (id) => persistCurrentWorkspace(config.localConfigPath, id)
+    persistCurrent: (id) => persistCurrentWorkspace(config.localConfigPath, id),
+    refreshConfig: config.localConfigPath?.endsWith('.json')
+      ? async () => JSON.parse(await readFile(config.localConfigPath, 'utf8')) : null
   });
+  const projectOnboarding = options.projectOnboarding ?? createProjectOnboarding({ config, workspaces });
+  const metricStore = options.metricStore === false ? null : (options.metricStore
+    ?? new InvocationMetricStore({ root: config.root ?? process.cwd(), output: config.output ?? '.aafe' }));
   const replyAck = (frame, content, extra) => gateway.replyAck(frame, content, extra);
   const replyProgress = (frame, streamId, content, finish, extra) =>
     gateway.replyProgress(frame, streamId, content, finish, extra);
-  const replyCard = (frame, card) => gateway.replyCard(frame, card);
   // A rule that fails validation is dropped and logged, never fatal.
   for (const error of config.models?.configErrors ?? []) {
     logger.error?.(`wecom-model-rule-invalid:${error}`);
@@ -125,19 +166,27 @@ export async function startWeComBot(options = {}) {
     settings: config.intent ?? {},
     env: options.env ?? process.env,
     selectModel: (input) => models.model(input),
-    logger
+    logger,
+    metricStore
   });
   const chat = options.chat ?? createChatResponder({
     settings: config.intent ?? {},
     env: options.env ?? process.env,
     selectModel: (input) => models.model(input),
-    logger
+    logger,
+    metricStore
   });
   const progress = options.progress ?? createWeComProgressHub({
-    replyCard,
     // Deduplicated progress must await the ACK; a dropped non-blocking frame
     // must not be remembered as delivered.
-    replyProgress: (frame, streamId, content, finish) => gateway.replyProgress(frame, streamId, content, finish, { blocking: true }),
+    replyProgress: (frame, streamId, content, finish, extra = {}) => gateway.replyProgress(
+      frame,
+      streamId,
+      content,
+      finish,
+      { ...extra, blocking: true }
+    ),
+    supportsTemplateCard: cardsSupported,
     // Once the stream expires the bot can only write by sending a new message.
     pushMessage: (target, content) => gateway.sendMessage(target.chatid, {
       msgtype: 'markdown',
@@ -150,12 +199,13 @@ export async function startWeComBot(options = {}) {
     },
     logger
   });
-  attachWeComNotifier({
+    attachWeComNotifier({
     manager,
     sendMessage: (chatid, body) => gateway.sendMessage(chatid, body),
     sendMedia: (chatid, type, mediaId, extra) => gateway.sendMedia(chatid, type, mediaId, extra),
     uploadMedia: (buffer, options) => gateway.uploadMedia(buffer, options),
     progress,
+    supportsTemplateCard: cardsSupported,
     logger
   });
 
@@ -170,25 +220,30 @@ export async function startWeComBot(options = {}) {
   };
 
   gateway.onText((frame) => guard('message', () => inbox.dispatch(frame, () => handleWeComMessage(frame, {
-    manager, replyAck, replyProgress, replyCard, progress, pending, workspaces, config, dedup,
-    understanding, chat, models, logger
+    manager, replyAck, replyProgress, progress, pending, workspaces, config, dedup,
+    understanding, chat, models, logger, projectOnboarding,
+    metricStore
   }))));
+  // Card taps are the only one-click control surface WeCom gives a bot. The
+  // SDK emits them as `template_card_event`; with no listener they arrive and
+  // are dropped, so every button on a task card is silently dead.
   gateway.onCard?.((frame) => guard('card', () => inbox.dispatch(frame, () => handleWeComCard(frame, {
     manager,
     models,
-    sendText: (content, source) => gateway.sendMarkdown(source, content),
-    updateCard: (cardFrame, card) => gateway.updateCard(cardFrame, card),
     progress,
     pending,
     workspaces,
     config,
-    logger
+    logger,
+    projectOnboarding,
+    sendText: (content, source) => gateway.sendMarkdown(source, content),
+    updateCard: (cardFrame, card) => gateway.updateCard(cardFrame, card),
+    supportsTemplateCard: cardsSupported
   }))));
   gateway.onMedia((frame) => guard('media', () => inbox.dispatch(frame, () => handleWeComMedia(frame, {
     manager,
     replyAck,
     replyProgress,
-    replyCard,
     understanding,
     chat,
     models,
@@ -197,6 +252,7 @@ export async function startWeComBot(options = {}) {
     workspaces,
     config,
     dedup,
+    projectOnboarding,
     logger,
     downloadFile: (url, aeskey) => gateway.downloadFile(url, aeskey)
   }))));
@@ -229,6 +285,9 @@ export async function startWeComBot(options = {}) {
     logger.event?.('bot.kicked', {});
     void shutdown('kicked');
   });
+  gateway.onAuthenticated?.(() => {
+    guard('recover', initializeManager);
+  });
 
   if (options.installSignals !== false) {
     process.once('SIGINT', () => { void shutdown('sigint'); });
@@ -241,14 +300,20 @@ export async function startWeComBot(options = {}) {
   }
   logger.event?.('bot.start', {
     provider: config.agent?.provider ?? 'cursor',
-    intentBackend: understanding.backend ?? 'custom',
+    intentBackend: config.agent?.provider === 'codex' && config.workflow?.routing !== 'legacy'
+      ? 'codex-agent' : understanding.backend ?? 'custom',
     wsUrl: config.wsUrl,
     workspace: config.currentWorkspace ?? null,
     logEnabled: Boolean(logger.enabled),
-    logDir: logger.dir ?? null
+    logDir: logger.dir ?? null,
+    runtime: process.version,
+    entry: import.meta.url,
+    path: env.PATH
   });
   logger.info?.(`wecom-bot connecting ${config.wsUrl}`);
+  logger.info?.(`wecom-bot runtime ${process.version} entry=${import.meta.url}`);
 
+  if (options.keepAlive === false) await initializeManager();
   if (options.keepAlive === false) return { manager, gateway, config, models, shutdown };
   return new Promise(() => {});
 }
@@ -294,4 +359,34 @@ export async function loadWeComSdk() {
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   await startWeComBot();
+}
+
+function mergePath(prefixes, current) {
+  const seen = new Set();
+  return [...prefixes, ...(current ? String(current).split(path.delimiter) : [])]
+    .filter(Boolean)
+    .filter((entry) => {
+      const key = path.resolve(entry);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .join(path.delimiter);
+}
+
+function nvmNodeBinDirs(home) {
+  const root = home ? path.join(home, '.nvm', 'versions', 'node') : '';
+  if (!root || !existsSync(root)) return [];
+  try {
+    return readdirSync(root)
+      .filter((name) => existsSync(path.join(root, name, 'bin')))
+      .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
+      .map((name) => path.join(root, name, 'bin'));
+  } catch {
+    return [];
+  }
+}
+
+function safeUserName() {
+  try { return os.userInfo().username; } catch { return ''; }
 }

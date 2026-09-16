@@ -6,38 +6,48 @@
 
 ## 消息展示与反馈交互
 
-企微使用流式 Markdown 展示内容、模板卡片提供操作，不能原样嵌入 Agent 客户端的工具面板或文件 Diff。两种引擎共用展示协议，不交叉调用执行后端。
+### 测试登录：MCP 优先，本地授权缓存兜底
 
-此前差距主要来自适配层：把 `blocked` 映射为失败；终态统一加绿色“最终结论”；公开进展被忽略、结束后只剩“分析步数”；流式结论与任务通知再次拼接，重复输出错误、需求及 ID。现在按持久化任务状态和结构化结果统一渲染：
+本地 Codex/Cursor 任务执行 E2E 时优先使用 Get Token MCP；没有对应 MCP 时才复用经过验证的本地登录缓存，失效后请求登录授权。非交互 Bot 不会擅自完成 SSO：会让用户在本地执行授权命令，完成后续跑任务。MCP 已配置但调用/校验失败时保持阻塞，不自动重试或切换登录身份。
 
-| 场景 | 内容 | 卡片操作 |
-| --- | --- | --- |
-| 执行中 | 当前状态、公开进展、最近工作记录 | 查看状态 / 查看完整过程 / 终止 |
-| 等待反馈 | ⏸ 等待补充 / 确认、需要用户回答的问题、已完成部分、后续步骤 | 查看状态 / 查看完整过程 / 补充信息 |
-| 成功 / 失败 / 终止 | 对应状态、一次结果说明、可用文件/PR 信息 | 查看状态 / 查看完整过程 |
+任务指引使用 Bot 自带新版 `bin/aafe.js test`，通过 `--config-root=<原项目目录>` 读取 E2E 配置及登录缓存，并通过 `--mcp-config-root=<Bot根目录>` 提供 MCP 后备配置源；仍在隔离 worktree 内执行、保存用例和报告，不复制配置凭据、不切换到原仓库执行。恢复任务时同样附带此指引。Cursor Cloud 不传本机配置路径，需远端独立配置。
 
-例如，代码和单测通过、但缺少浏览器测试 URL 时，展示为：
+人工授权命令使用同一 CLI 的 `e2e auth`，带相同配置目录和本次 `--base-url`。授权缓存保存在原项目 `.aafe/e2e/auth/<env>.json`，原子写入、权限 0600；复用前验证，过期重新授权。不要提交缓存。MCP Cookie 仍只驻留内存，不写入缓存。默认通过 base URL 的状态码、最终同源地址和登录跳转特征验证；`e2e.auth.readySelector` 或同域 `checkUrl` 是可选的增强业务态校验。
 
-> ⏸ 等待补充 / 确认
->
-> **需要你反馈**
->
-> 请提供已部署本次改动的完整目标测试页面 URL。
->
-> 代码修改、5 项测试、ESLint 和格式检查均已通过；Commit、PR、TAPD 回填等待浏览器验证。
+企微流式消息的协议体只有 `content` 一个正文字段（`@wecom/aibot-node-sdk` 未提供 `thinking_content`），所以整个执行视图都渲染进这一个 Markdown 文档并原地刷新：**状态行**（准备任务 / 思考中 / 执行中 / 已完成 / 等待补充 / 确认）、**思考过程**（用 `<think>` 标签包裹，由企微客户端渲染成可折叠区域，内容是 Codex 的 reasoning 摘要与脱敏工具活动按时间自然交错）、**当前输出**，以及结束时的**最终结果**。
 
-这仍然是阻塞任务，不会展示“执行失败”或宣称已交付。Bot 不根据工具调用次数宣称测试通过；验证依据在展开视图中标注为“Agent 报告的验证记录”，业务核验与交付门禁保持不变。
+思考过程的来源是 `codex exec --json` 的 `item.completed` + `item.type="reasoning"`（`item.text` 为推理摘要）；工具活动来自 `item.started` + `command_execution`，同样只保留脱敏摘要（如「正在执行命令（3 次）」），原始命令与工具参数不对外发送。折叠区内是**全文**——闭合状态下不占屏幕空间，这才是「展开」的价值所在；只有主动推送的 markdown 消息因为没有流式渲染能力，才退回只显示最近 3 步的引用块形态。
 
-- 发起人点击「补充信息」后直接回复 URL 或其他反馈，即续接指定任务，不调用意图分类模型。点击按钮本身不执行、不批准 Commit/PR/回填。补充前再次校验任务状态和操作权限，其他群成员不能借此授权执行。
-- 发送「取消」只退出待补充输入，不取消原任务；「做：新需求」仍是新请求。输入绑定按用户/会话隔离，30 分钟有效，重启后可重新点击按钮；没有可用卡片时发送 `继续 <TaskID>：<反馈>`。
-- 流式消息结束后发送与最终状态对应的新卡片，已完成任务不再提供终止按钮。卡片发送失败不会把任务结果改成失败，仍可用文本命令查询/续接。
-- 「查看完整过程」展示最近一轮保留的公开工作记录（最多 80 个事件块，不是全部历史或完整原始日志）；内存快照缺失时从任务持久化事件恢复。公开进展与内部 reasoning 分离，不展示原始推理或工具完整响应；常见凭证字段与认证头在展示前脱敏。
-- 普通 Markdown 按不超过 3000 UTF-8 字节分段，避免中文长消息超限；实时视图有 18000 字节上限，超过后保留首尾并标记省略。代码块/链接恰好跨分段时不能保证跨消息排版连续。
-- 默认关闭企鹅动画，内容无变化不重复发心跳帧；保留长任务的流式到期转推送与无输出提示。展示、去重、分段、卡片和记录恢复均为本地处理，不新增模型调用。减少的是消息噪声和重复分类调用，不能据此声称模型总 Tokens 按固定比例下降。
+Bot 不再使用 `F/Q/R` 引用编号、企鹅动画或模型名称，也**不发送任务操作卡片**：企微的模板卡片只能作为独立消息，无法内嵌到流式消息底部，因此控制入口统一为正文命令（`终止 <对话ID>`、`查看完整过程 <对话ID>`、`状态 <对话ID>`）。任务开始即创建 stream，正文始终是可读的完整视图而不是占位符；任务结束时同一条消息原地替换为最终结果。引用消息按企微原生引用内容续接。
 
-回归：项目根运行 `npm run test:wecom-bot`，覆盖流式/推送、阻塞结果、权限、反馈续接、记录恢复和中文分段。重启现有 Bot 后生效，不会自动重跑历史任务；真实企微客户端的排版和卡片送达仍需上线验收。
+**企微能力边界**（决定 UI 能做到什么程度，勿再按超出此范围的设计实现）：
+
+- 流式消息体只有 `id` / `finish` / `content` / `msg_item` / `feedback` 五个字段，没有独立的「思考」字段。**思考过程的折叠展示靠 `content` 里的 `<think></think>` 标签触发客户端渲染**（被动回复消息文档原文：「若 content 中包含思考过程 `<think></think>` 标签，客户端会展示思考过程」）。标签名必须是 `think`——`<thinking>` 不被识别，内容会被客户端丢弃。`msg_item` 仅支持图片且只在结束帧可用。
+- 模板卡片**始终是独立消息**，不能内嵌到流式消息内；`update_template_card` 必须由用户点击事件在 5 秒内触发，**无法用来自动刷新任务状态**。这是移除任务卡片的直接原因。
+- 流式消息在 `finish: true` 之前被客户端视为「进行中」，**不支持选中、右键菜单和引用**；结束帧之后恢复。
+- markdown 支持行内代码（等宽 + 灰底）、引用、分割线、列表、链接、加粗；**代码块与表格属于 markdown_v2**；颜色只有 `<font color="info|comment|warning">` 三档（绿 / 灰 / 橙红），不支持任意色值；`<details>` / `<summary>` 等 HTML 不被解析——**标准 Markdown 没有折叠语法**，折叠只能走 `<think>` 标签。
+
+普通 Markdown 按不超过 3000 UTF-8 字节分段；流式消息超过企微时限后切换为主动 Markdown 推送。两者只改变传输方式，不改变或总结 Agent 内容。
+
+回归：项目根运行 `npm run test:wecom-bot`。重启现有 Bot 后生效，不会自动重跑历史任务。
 
 ## 自然语言请求与澄清
+
+### Codex 默认：Agent 主导
+
+Codex 模式默认 `workflow.routing: "agent"`。普通消息、问答和任务补充直接交给 Codex，不经过本地分类模型、关键词意图判断或置信度门槛，也不调用 Cursor 分类后端。Codex 根据完整用户请求、补充、附件与 AAFE 技能决定回答、分析、实现或询问；传递消息不代表授予修改/提交权限。
+
+本地仅负责身份权限、确定性控制命令、任务绑定、工作区隔离、并发/取消和产物核验。唯一活跃的本人任务直接接收补充；多个候选或较旧任务交给 Codex 协调，不再直接输出“多个未结束任务，请带显式 Task ID”。指定任务 ID/引用沿用已有绑定规则。明确新任务可发 `做：<新需求>`；单一会话内的新话题交给 Codex 理解，但不会因此自动切换仓库。未配置目标仓库时仍需选择工作区。
+
+Codex 协调使用相同的 Codex 配置，在临时目录执行只读、无 MCP 的短轮次，读取当前用户在此会话中的任务摘要、需求链接及阻塞原因。它决定续接、新建或自然语言提问；同一需求有多个旧任务时可选择保留进展的相关任务，不要求用户手抄 Task ID，也不取消/合并旧任务。最多提供最近 40 项的限长摘要，超出时提示模型上下文不完整。返回 ID 必须属于已提供的本人任务，执行前再核验权限。失败只提示 Codex 暂不可用，不退回关键词分类。只有需要协调时增加这一次模型调用；唯一明确任务直接续接。
+
+协调提问会保留原消息，下一条反馈连同原请求再次交给 Codex。`继续`、`好的` 等会话回复同样走这条链路，不在本地推断为某项提交授权。状态/停止等显式控制操作仍由本地处理。日志 `task.route.delegated/decided` 记录协调是否发生及选中任务，不记录凭据。
+
+例如“使用 /path/local.settings.e2e.js 这里配置，结合 Playwright 执行测试”会续接待反馈任务并原样交给 Codex；不能再被本地置信度不足拦成 ask。续接复用原生 Codex 会话，已有只读/禁止提交限制保留在上下文中，由 Codex遵守。旧版未完成的意图澄清会合并原请求与反馈后交给 Codex，不继续本地重复询问。
+
+启动日志为 `intentBackend: "codex-agent"`，普通消息记录 `intent.delegated`。问答不因缺交付技能在调用模型前被拦截；真正需要交付时仍须满足技能、授权和证据门禁。Agent 主导模式的只读请求将交付门禁记录为不适用，而不是自动提交。
+
+如需回退旧路由，可设置 `"workflow": { "mode": "auto", "routing": "legacy" }`。Cursor 暂保留旧路由。下面的关键词、分类置信度与独立意图模型说明适用于 legacy 模式；`intentConfidence` 不再阻断 Codex Agent 主导模式的普通消息。
 
 - “分析 PR，处理冲突，移除依赖”包含明确修改动作，按开发任务执行；“分析如何处理冲突”“仅分析，不修改”仍是只读分析。PR、bug 等名词本身不是修改授权。
 - 澄清按原请求与最近反馈共同解析，最新明确的执行限制优先。补充仓库路径不会丢失原 PR、依赖清单或此前“仅分析”的限制，不要求重复套用固定句式。
@@ -51,7 +61,17 @@
 
 ## 公共接入与启动
 
-在 `ai-bots/wecom` 下安装依赖，复制 `wecom.local.json.example` 为 `wecom.local.json`，然后运行 `npm start`。
+运行环境统一使用 Node.js 24 LTS，当前基线为 `24.21.0`；Node 18/20 已结束官方支持，不再作为 Bot 运行环境。进入项目后可执行 `nvm use`（读取仓库根目录 `.nvmrc`），再安装依赖。
+
+在 `ai-bots/wecom` 下安装依赖和 Chromium，复制 `wecom.local.json.example` 为 `wecom.local.json`，然后运行 `npm start`。
+
+```bash
+cd ai-bots/wecom
+npm install
+npm run playwright:install
+```
+
+WeCom Bot 自身固定依赖 `playwright` 与 `@playwright/test`，E2E 执行不要求每个业务项目重复安装 Playwright；业务项目仍需提供自身的 Vite/Webpack 启动配置。升级 Bot 依赖后应重新执行 `npm run playwright:install`，确保 Chromium 与当前 Playwright 版本匹配。
 
 首次使用还需在项目根安装依赖（包含 Cursor SDK），再在本目录安装企微 SDK。准备好企微智能机器人的长连接 Bot ID 和 Secret，由服务环境注入 `WECOM_BOT_ID`、`WECOM_BOT_SECRET`，或填写本地 JSON 的 `botId`、`secret`。下面的 JSON 示例均假设这两个凭证已从服务环境注入。
 
@@ -131,6 +151,156 @@ AAFE_WECOM_PROVIDER=cursor npm start
 ```
 
 本地任务默认尝试使用独立 Git worktree；不能建立时回退到同目录互斥执行。`cursor.model` / `AAFE_WECOM_CURSOR_MODEL` 是默认模型配置，不会覆盖所有 `cursor.models.rules` 命中结果。企微任务、分类和问答按规则选模型；模型是否可用以本账号为准，可用本目录的 `npm run check:models` 检查 Cursor 模型规则（该命令不是 OpenAI 模型检查）。
+
+### 项目级 E2E 测试地址（本地 Codex / Cursor）
+
+普通 `aafe` 在安装项目内运行，只读取该项目 `.aafe.config.json` 的单个 `e2e.baseUrl`；不需要配置多项目映射。
+
+WeCom Bot 是多项目入口：在 `wecom.local.json` 的每个工作区配置独立地址，空字符串表示未设置，不会跨项目复用：
+
+```json
+{
+  "workspaces": [
+    {
+      "id": "app",
+      "cwd": "/absolute/path/to/local-git-repo",
+      "e2e": {
+        "baseUrl": "https://test.example.com/#/logs?bizId=2",
+        "urlRole": "template"
+      }
+    },
+    {
+      "id": "another-app",
+      "cwd": "/absolute/path/to/another-project",
+      "e2e": {
+        "baseUrl": "https://another-test.example.com",
+        "urlRole": "origin"
+      }
+    }
+  ]
+}
+```
+
+`urlRole` 默认 `template`：复用环境、路由模式与业务参数拼接变更涉及的页面；`target` 表示完整目标页，`origin` 表示环境根地址。URL 必须是 HTTP(S)，不要包含账号密码或 Token。也可在目标项目 `.aafe.config.json` 配置同样的 `e2e.baseUrl` / `e2e.urlRole`，作为未配置工作区地址时的来源。
+
+触发适用的 E2E 时，Bot 将工作区地址同时加入测试和登录命令。Agent 按以下顺序选址：本轮用户明确指定的测试地址 → TAPD 正文／需求描述中明确标注的应用测试地址 → 工作区配置 → 项目配置或指定的配置文件。任务地址只覆盖本次执行，不改写项目默认值；TAPD 链接本身不是测试地址。需求解析由 Agent 完成，不以关键词规则阻断。CLI 手动调用仍支持 `--base-url` 和环境变量覆盖。
+
+建议在 TAPD 正文或企微需求消息中补充：
+
+```text
+测试地址：https://test.example.com/#/logs?bizId=2
+地址用途：本次目标页面
+部署情况：已部署本需求分支代码
+验收步骤：模拟 Space 解析失败，检查下拉切换及无权限提示。
+```
+
+Bot 每次执行按任务绑定的工作区 ID 和路径读取配置，而不是读取聊天当前切换到的项目。重启 Bot 加载配置后，历史任务续跑也使用该项目更新后的地址；清空工作区地址则回退到该项目自己的 `.aafe.config.json`，不沿用旧任务地址快照。独立 worktree 的 `--config-root` 始终指向原项目；Bot 根目录只可作为 MCP 配置后备，不是其他项目的 E2E 默认配置来源。Bot 生成的测试／登录命令携带 `--project-e2e`，忽略服务级 URL 环境变量，防止串用地址；普通 CLI 不受影响。
+
+只有地址不代表本次代码已部署：Agent 需核实验证范围并如实记录。登录仍走已配置的 Get Token MCP；没有该 MCP 才使用已验证的本地登录缓存／授权登录。配置地址不会自动开启无关任务的测试，也不会跳过登录、权限或明确的验收要求。
+
+### 本地 Vite / Webpack 开发服务 + Playwright
+
+#### Bot 项目初始化：Vite / Webpack
+
+**新增项目的 E2E 初始化**：Bot 收到消息或切换工作区时会刷新 JSON 配置中的 `workspaces`，但选中或使用未初始化项目时不再前置询问，也不会把 E2E 初始化显示成当前任务的审批项。只有 Agent 判定本次确实需要 UI 验证时，才检查并安全初始化缺失模板；项目已有配置时直接采用。运维人员仍可显式发送 `初始化 E2E <项目ID>`，也可使用下方 CLI 脚本预先初始化。
+
+成功初始化后在项目 `.aafe/e2e/project-init.json` 保存一次性标记；后续执行直接复用。已有有效开发配置也会直接采用，不强制迁移。显式并发初始化会合并为一次执行；失败不写成功标记。初始化成功不代表代理、登录或 E2E 验证已通过。
+
+在 AAFE 源码根目录，按 `workspaces[].id` 初始化**指定本地项目**，不启动 Bot、不要求企微凭据：
+
+```sh
+node bin/aafe.js bot project init --wecom --workspace=app --dry-run
+node bin/aafe.js bot project init --wecom --workspace=app
+```
+
+或在 `ai-bots/wecom` 目录使用脚本：
+
+```sh
+npm run project:init -- --workspace=app --dry-run
+npm run project:init -- --workspace=app
+```
+
+支持 `--config=<Bot配置JSON>`、`--root=<Bot根目录>`；项目相对路径相对于 Bot 根目录，初始化始终落到该项目 `cwd`，不会使用聊天当前项目。配置示例：
+
+```json
+{
+  "workspaces": [
+    {
+      "id": "app",
+      "cwd": "/projects/vite-app",
+      "e2eInit": {
+        "tool": "vite",
+        "configFile": "vite.config.ts",
+        "proxyTarget": "https://app-test.example.com",
+        "proxyPaths": ["/api", "/rest"]
+      }
+    },
+    {
+      "id": "admin",
+      "cwd": "/projects/webpack-admin",
+      "e2eInit": {
+        "tool": "webpack",
+        "configFile": "webpack.config.cjs",
+        "proxyTarget": "https://admin-test.example.com",
+        "proxyPaths": ["/api"]
+      }
+    }
+  ]
+}
+```
+
+`tool` / `configFile` 可省略：静态检查 `package.json`、开发脚本中的 `--config` 和 Vite/Webpack 配置文件名，不执行配置文件来探测。多种构建同时存在时用 `--tool=vite|webpack|custom` 选择；非默认入口可用 `--build-config=config/vite.dev.ts`。开发脚本中的额外 mode/env/root 参数需核对并在项目配置中适配，不会盲目执行或复制任意脚本内容。
+
+- Vite：生成 `aafe.e2e.vite.mjs`，通过 Vite 配置加载器读取原配置（含 TS），保留插件、别名等构建设置；仅替换 E2E server/proxy，开启 `strictPort`，避免端口自动漂移。[Vite server 配置说明](https://vite.dev/config/server-options)
+- Webpack：生成 `aafe.e2e.webpack.cjs`，支持标准对象/函数配置，保留构建插件。
+- 自定义构建（如 bkmonitor-cli）：识别为 `custom`，优先记录已有 `npm run dev:e2e`，仅生成通用 Cookie/代理设置文件；仍需将设置接到自定义工厂，初始化不会冒充完成适配。
+
+`e2eInit` 是初始化种子，不是测试运行时的第二份全局配置。落盘位置仍是目标项目 `.aafe.config.json → e2e.devServer`。已有自定义配置及生成文件不覆盖；上一版完全未修改的默认 Webpack 配置可迁移为识别出的构建类型。重跑会补缺并输出保留文件列表。远程仓库必须先有本地 checkout，不自动克隆。完成代理和登录验证条件检查后，在项目配置中启用 `devServer.enabled`。
+
+#### 开发服务运行配置
+
+`aafe init` 和 `aafe update` 在**执行命令的安装项目**内初始化：
+
+- `.aafe.config.json → e2e.devServer`：启动 argv、代理目标、本地 URL 等项目配置，默认关闭。
+- `local.settings.e2e.aafe.cjs`：独立代理配置，只转发当前浏览器请求 Cookie；不读取 `.cookie`。
+- `aafe.e2e.webpack.cjs` 或 `aafe.e2e.vite.mjs`：根据构建类型生成的包装入口。
+
+仅补缺，不覆盖已有文件/配置，`update --force` 也不覆盖这些项目自有文件；`update --dry-run` 不创建文件。不安装 Webpack、不启动服务、不获取 Token，也不改写已有 `local.settings.e2e.js`。每个 Bot 项目分别运行 init/update，不能在 Bot 根目录初始化一次后共用代理目标。
+
+在目标项目 `.aafe.config.json` 合并（代理路径按项目实际接口填写）：
+
+```json
+{
+  "e2e": {
+    "enabled": true,
+    "devServer": {
+      "enabled": true,
+      "command": ["npx", "--no-install", "webpack", "serve", "--config", "aafe.e2e.webpack.cjs"],
+      "webpackConfig": "webpack.config.js",
+      "url": "http://127.0.0.1:8011",
+      "proxyTarget": "https://your-test-backend.example.com",
+      "proxyPaths": ["/api", "/rest", "/apm"],
+      "secure": true,
+      "timeoutMs": 120000,
+      "env": {}
+    },
+    "auth": {
+      "mode": "reuse-or-headed",
+      "readySelector": "[data-testid=logged-in-app]"
+    }
+  }
+}
+```
+
+选择器必须替换为真实的登录后元素，或配置真实的同源 `auth.checkUrl`；不能以开发首页返回 200 代替登录验证。代理默认验证 TLS，不复制参考项目的 `secure: false`。模板使用 Webpack Dev Server 4/5 的 `onProxyReq` 代理接口。
+
+执行 `aafe test --run` 时，启用的 `devServer.url` 作为本地测试地址（高于普通 `e2e.baseUrl`）；显式 `--base-url` 仍优先。Bot 做本地验证时会移除工作区默认地址参数，保留用户明确指定环境的优先权。实际执行链路：在任务 checkout 启动 argv → 等待本地服务就绪 → 现有 Get Token MCP/缓存/授权登录 → 向本地应用域注入 Cookie → 经代理转发至目标后端 → 验证登录 → Playwright → finally 关闭本次创建的服务。Token 不写入代理配置；人工登录缓存仍按现有规则保存在原项目。MCP 缺失才走缓存/授权，MCP 失败不会静默绕过。
+
+Bot 命令传入 `--dev-port=<任务端口>`，执行器向子进程传入 `AAFE_E2E_CONFIG_ROOT`、`AAFE_E2E_DEV_URL`、`AAFE_E2E_PORT`；配置从原项目读取，代码在 worktree 中运行。端口被占用则报错，不复用可能属于其他分支的服务。服务仅允许本地 HTTP 地址；当前进程组清理适用于 macOS/Linux。dry-run 不启动服务；配置的远程测试地址不会启动本地服务。
+
+任务 worktree 是独立 git checkout，源项目里由 `aafe init/update` 创建的未跟踪 E2E 适配文件不一定存在。运行 `aafe test --run` 时会自动在任务 worktree 内补齐 `local.settings.e2e.aafe.cjs`，以及命令 argv 引用到的 `aafe.e2e.webpack.cjs` / `aafe.e2e.vite.mjs`；已有文件不覆盖，测试结束后清理由本次创建的临时适配文件。该步骤只发生在任务 worktree，不修改源项目 `.aafe.config.json`、`local.settings*` 或 `.cookie`，因此不需要在企微里再次询问“是否允许适配 E2E 启动配置”。
+
+**bklog 的现有配置适配**：它的 `webpack.config.js` 是 `bkmonitor-cli` 自定义工厂，不适用通用包装入口。保留已有 `local.settings.e2e.js`，将 `devServer.command` 改为 `["npm", "run", "dev:e2e"]`。项目的 `BKLOG_E2E_DEV` 配置分支需改为加载生成的 `local.settings.e2e.aafe.cjs`，或让原文件等价读取上述环境变量及项目代理配置。这样既保留现有构建插件，又支持任务端口隔离。初始化不会自动重写业务 Webpack 工厂；未接入的旧脚本仍可能固定使用 8011，应完成适配后再启用。
 
 ### Cursor Cloud 工作区
 
@@ -275,11 +445,43 @@ GitHub 凭据读取顺序：Bot `repo` 覆盖 → AAFE 运行目录 `.aafe.confi
 
 Bot 默认覆盖目标项目的工作流模式（不修改项目 `.aafe.config.json`）。在 `wecom.local.json` 中配置独立分组，Cursor / Codex 共用交互策略，各自执行通道仍隔离：
 
+Auto / autonomous 使用“仅真实阻断才询问”的交互覆盖策略：优先读取用户指定的测试配置和现有上下文，不要求用户把配置中的 URL 再抄一遍；URL 角色明确时自行判定。检查后仍缺少**可选 UI 验证**的应用地址，记录 UI 未执行、原因及风险，继续独立验证和其他已授权的 Commit / PR / TAPD 步骤，不要求口令式回复“跳过 UI 验证，继续交付”。TAPD 回填和最终结果必须如实写出 UI 未验证，不能宣称 E2E 通过。
+
+此 Bot 策略明确覆盖旧项目技能里“缺 UI URL 一律 Hard Ask”的要求；策略纳入 Codex 工作流指纹，旧任务续接时重新判定旧等待项。底层 `aafe test --run` 缺 URL 仍返回未执行/阻塞，Bot 根据步骤适用性决定是否跳过，不能篡改测试报告。项目技能文件不被自动改写。
+
+用户明确要求 UI 通过才能交付、真实测试失败、必需认证失效、权限拒绝、目标不明且可能造成实质影响、缺少授权的破坏性操作和产品/安全取舍仍属阻断。保留用户“不要提交”等限制及原生安全审批；`workflow.mode: "ask"` 仍按确认模式执行。非阻断决策简短说明后继续，真正缺失的信息合并成一个具体问题。
+
 ```json
 "workflow": { "mode": "auto", "intentConfidence": 0.7 }
 ```
 
 `auto`（默认）使用 AAFE autonomous 自主判断；`ask` 强制询问；`project` 恢复继承目标项目 `mode.workflow`。非法模式按 ask。优先级为：任务发起人的明确会话限制 > Bot 覆盖 > 项目配置。覆盖在新任务和续跑时应用，重启 Bot 生效。Auto 不代表无条件 Commit/PR/回填，也不放宽沙箱权限。
+
+### 自主推进与等待策略
+
+Bot 默认使用 `balanced` 自主级别。“发现信息不完整”不会直接停止整个任务：可从 Snapshot、会话、仓库、项目配置、Git、Knowledge 或工具结果获得的信息由 Agent 自行探查；低风险项采用安全默认值；只影响后续的项延后处理；仍有独立步骤时进入 `partially_blocked` 并自动续跑。只有全部安全路径都耗尽时才进入 `waiting_user`，敏感或外部写入则进入 `waiting_approval`。
+
+```json
+{
+  "autonomy": {
+    "level": "balanced",
+    "readWorkspace": "auto",
+    "modifyTaskFiles": "auto",
+    "runTests": "auto",
+    "startDevServer": "auto",
+    "installLockedDependencies": "auto",
+    "addDependency": "policy",
+    "commit": "policy",
+    "push": "confirm",
+    "createPullRequest": "confirm",
+    "deploy": "confirm",
+    "externalWrite": "confirm",
+    "destructiveOperation": "confirm"
+  }
+}
+```
+
+同一个 `taskId + stepId + blockerType + normalizedRequirement` 生成稳定 Blocker ID。相同等待状态不会重复投递；统一事件和旧 Provider 事件即使并发到达，也只发送一次 Agent 终态文本。
 
 ask 反馈续接：
 
@@ -324,7 +526,7 @@ AAFE_WECOM_PROVIDER=codex npm start
 
 两套凭证可以同时保留，但彼此不通用；切换到 ChatGPT 登录方式需额外清理 OpenAI Key 来源。不要使用通用 `AAFE_WECOM_MODEL` / `WECOM_MODEL` 同时承载两家的模型 ID：切换前检查或清除它们，Codex 优先使用 `AAFE_WECOM_CODEX_MODEL`。本地 JSON 的 `cursor.model`、`cursor.models.rules`（以及旧顶层兼容字段） 不用于选择 Codex 任务模型。
 
-Cursor Cloud 切到 Codex 时，还需将 `currentWorkspace` 改成本地工作区；若同一会话已经用仓库卡片选择过远程仓库，应在企微重新选择本地仓库。引擎切换不会自动克隆仓库。
+Cursor Cloud 切到 Codex 时，还需将 `currentWorkspace` 改成本地工作区；若同一会话此前选择过远程仓库，应在企微重新选择本地仓库。引擎切换不会自动克隆仓库。
 
 ### 严格单引擎执行
 
@@ -356,9 +558,9 @@ Cursor Cloud 切到 Codex 时，还需将 `currentWorkspace` 改成本地工作�
 | `继续 <TaskID>：补充`、引用任务回复 | 在已有任务中续跑 |
 | `按方案实现`、`提交 PR` | 结合任务绑定推进；发起人的明确操作可切换模式和模型 |
 | `状态 <TaskID>`、`取消 <TaskID>`、`列表` | 本地控制路径，不调用分类模型 |
-| `仓库`、仓库卡片 | 查询或选择工作区 |
+| `仓库`、`切换 <id>` | 查询或选择工作区 |
 
-任务关联优先级：显式 Task ID → 引用 → 唯一活跃任务 → 近期完成任务。多个候选、过期任务或低置信新需求会要求补充信息。群聊参与者可以显式补充，取消只允许发起人；卡片和文本共用访问校验。
+任务关联优先级：显式 Task ID → 引用 → 唯一活跃任务 → 近期完成任务。多个候选、过期任务或低置信新需求会要求补充信息。群聊参与者可以显式补充，取消只允许发起人。
 
 新任务 ID 为 `task-wecom-<16位hex>-<8位hex>`，由消息身份稳定生成，兼容旧时间戳 ID。重复投递不会重复创建任务，同一条补充不会重复入队。相同文字但不同 msgid 仍视为不同消息。
 

@@ -23,7 +23,6 @@ import path from 'node:path';
 import { inferMediaType } from './media.js';
 import { notifyTargetFromSource } from './session.js';
 import { buildTaskPresentation, renderTaskPresentation } from './presentation.js';
-import { buildTaskCard } from './cards.js';
 import { splitWeComMarkdown } from './markdown.js';
 
 const NOTIFY_EVENTS = new Set(['task.finished', 'task.failed', 'task.cancelled', 'task.blocked']);
@@ -45,9 +44,10 @@ export function createRateLimiter({ maxPerMinute = 30, now = () => Date.now() } 
   };
 }
 
-export function formatTaskNotify(task, event = {}, { includeConclusion = true } = {}) {
+export function formatTaskNotify(task, event = {}, { includeConclusion = true, includeTaskId = true } = {}) {
   const view = buildTaskPresentation(task, event);
-  return [renderTaskPresentation(view, { includeSummary: includeConclusion }), formatTaskFooter(view.taskId)]
+  const supportsTemplateCards = event?.supportsTemplateCards ?? true;
+  return [renderTaskPresentation(view, { includeSummary: includeConclusion }), includeTaskId ? formatTaskFooter(view.taskId, { supportsTemplateCards }) : '']
     .filter(Boolean).join('\n\n');
 }
 
@@ -55,7 +55,10 @@ export function formatTaskNotify(task, event = {}, { includeConclusion = true } 
  * Inline code is the only copy-friendly affordance in WeCom markdown, so the
  * id sits alone on its own line for a clean long-press select.
  */
-export function formatTaskFooter(taskId, { running = false } = {}) {
+export function formatTaskFooter(taskId, {
+  running = false,
+  supportsTemplateCards = true
+} = {}) {
   const id = String(taskId ?? '').trim();
   if (!id) return '';
   const lines = [`对话 ID：\`${id}\``];
@@ -63,7 +66,11 @@ export function formatTaskFooter(taskId, { running = false } = {}) {
   // template-card buttons under the message; the typed command is the fallback
   // when the combined stream+card frame was rejected.
   if (running) {
-    lines.push(`展开或停止请点消息下方按钮；也可发送 \`终止 ${id}\``);
+    if (supportsTemplateCards) {
+      lines.push(`展开或停止请点消息下方按钮；也可发送 \`终止 ${id}\``);
+    } else {
+      lines.push(`任务执行中：发送 \`终止 ${id}\` 可中止任务；发送 \`查看完整过程 ${id}\` 查看更多进展。`);
+    }
   }
   return lines.join('\n');
 }
@@ -96,24 +103,43 @@ export function attachWeComNotifier({
   sendMedia,
   uploadMedia,
   progress,
+  supportsTemplateCard = () => true,
   limiter = createRateLimiter(),
   logger = console
 } = {}) {
   if (!manager?.subscribe) return () => {};
-  return manager.subscribe(async (event) => {
+  const unifiedTerminal = new Set();
+  const deliveredTerminal = new Map();
+  const handle = async (event, { unified = false } = {}) => {
+    const terminal = NOTIFY_EVENTS.has(event?.type)
+      || ['execution.completed', 'execution.failed', 'execution.cancelled'].includes(event?.type);
+    // Provider events are mirrored onto the unified channel. Ignore their old
+    // aliases once that channel exists, while retaining scheduler/task events.
+    if (!unified && manager.subscribeExecution && /^(?:cursor|codex)\./.test(event?.type ?? '')) return;
+    if (!unified && terminal && unifiedTerminal.delete(event?.taskId)) return;
     let task = event?.task ?? null;
     if (!task && event?.taskId && manager.get) {
       try { task = await manager.get(event.taskId); } catch { /* notify must not throw */ }
     }
+    const terminalKey = terminal && task ? [task.id, task.status, task.blocker?.id ?? '', task.checkpoint?.runId ?? '', task.updatedAt ?? ''].join(':') : null;
+    if (terminalKey && deliveredTerminal.get(task.id) === terminalKey) return;
+    // Claim before awaiting progress/network delivery so unified and legacy
+    // terminal events racing in the same tick cannot both create a card.
+    if (terminalKey) deliveredTerminal.set(task.id, terminalKey);
     if (progress && event?.taskId && (task?.source?.type === 'wecom' || progress.has?.(event.taskId))) {
       try {
         const streamed = await progress.handle(event, { task });
-        if (streamed && NOTIFY_EVENTS.has(event.type)) return;
+        if (streamed && terminal) {
+          if (unified) unifiedTerminal.add(event.taskId);
+          if (terminalKey) deliveredTerminal.set(task.id, terminalKey);
+          return;
+        }
       } catch (error) {
         logger.error?.(`wecom-progress-handle-failed:${event.taskId}:${error instanceof Error ? error.message : error}`);
       }
     }
-    if (!NOTIFY_EVENTS.has(event?.type)) return;
+    if (!terminal) return;
+    if (unified) unifiedTerminal.add(event.taskId);
     if (!task || task.source?.type !== 'wecom') return;
     const target = notifyTargetFromSource(task.source);
     if (!target) return;
@@ -122,7 +148,11 @@ export function attachWeComNotifier({
       logger.event?.('notify.skip', { taskId: task.id, type: event.type, reason: 'rate-limited' });
       return;
     }
-    const content = formatTaskNotify(task, event);
+    const content = nativeAgentResult(task, event);
+    if (!content) {
+      await sendResultMedia(task, { sendMedia, uploadMedia, logger, chatid: target.chatid });
+      return;
+    }
     try {
       const pages = splitWeComMarkdown(content);
       for (let index = 0; index < pages.length; index += 1) {
@@ -130,23 +160,17 @@ export function attachWeComNotifier({
           logger.warn?.(`wecom-notify-rate-limited:${target.chatid}`);
           break;
         }
-        await sendMessage(target.chatid, {
+        const response = await sendMessage(target.chatid, {
           msgtype: 'markdown',
           markdown: { content: pages[index] },
           chat_type: target.chatType
         });
       }
       logger.event?.('notify.out', { taskId: task.id, type: event.type, chatid: target.chatid });
-      if (limiter.allow(target.chatid)) {
-        try {
-          await sendMessage(target.chatid, { msgtype: 'template_card',
-            template_card: buildTaskCard({ ...task, status: buildTaskPresentation(task, event).status }), chat_type: target.chatType });
-        } catch (error) {
-          logger.warn?.(`wecom-final-card-failed:${task.id}:${error.message ?? error}`);
-        }
-      }
+      if (terminalKey) deliveredTerminal.set(task.id, terminalKey);
       await sendResultMedia(task, { sendMedia, uploadMedia, logger, chatid: target.chatid });
     } catch (error) {
+      if (terminalKey && deliveredTerminal.get(task.id) === terminalKey) deliveredTerminal.delete(task.id);
       logger.error?.(`wecom-notify-failed:${task.id}:${error instanceof Error ? error.message : error}`);
       logger.event?.('notify.failed', {
         taskId: task.id,
@@ -154,7 +178,20 @@ export function attachWeComNotifier({
         error: error instanceof Error ? error.message : String(error)
       });
     }
-  });
+  };
+
+  const unsubscribeLegacy = manager.subscribe((event) => handle(event));
+  const unsubscribeUnified = manager.subscribeExecution?.((event) => handle(event, { unified: true }));
+  return () => {
+    unsubscribeLegacy?.();
+    unsubscribeUnified?.();
+  };
+}
+
+export function nativeAgentResult(task, event = {}) {
+  const view = buildTaskPresentation(task, event);
+  const content = renderTaskPresentation(view);
+  return content ? `**最终结果**\n${content}` : '';
 }
 
 async function sendResultMedia(task, {

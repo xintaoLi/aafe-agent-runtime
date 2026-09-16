@@ -58,7 +58,8 @@ export function parseWeComQuote(frame = {}) {
   }
   const msgtype = nonEmpty(quote.msgtype);
   const text = quoteText(quote);
-  return { present: true, msgtype, text, note: quoteNote(msgtype, text) };
+  const messageId = nonEmpty(quote.msgid ?? quote.message_id ?? quote.messageId ?? quote.origin_msgid ?? quote.original_msgid);
+  return { present: true, msgtype, messageId, text, note: quoteNote(msgtype, text) };
 }
 
 export function scanTaskId(text) {

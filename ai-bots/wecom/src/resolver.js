@@ -134,6 +134,14 @@ export async function resolveWeComAction(command, context, manager) {
     return { type: 'status', task, scheduler: manager.stats?.() ?? null };
   }
 
+  if (command.type === 'process') {
+    const task = await requireTask(manager, command.taskId);
+    if (!task || !canAccessTask(task, source)) {
+      return { type: 'error', message: `找不到任务 ${command.taskId}` };
+    }
+    return { type: 'process', task, taskId: task.id };
+  }
+
   if (command.type === 'cancel') {
     const task = await requireTask(manager, command.taskId);
     if (!task || !canAccessTask(task, source)) {
@@ -192,7 +200,8 @@ async function createRequirementTask(requirement, context, manager, intent = nul
       requirement,
       intent,
       provider,
-      message: (intent?.kind === 'analysis' ? '已明确仅分析，只需补充执行仓库。\n' : '已明确需要修改实现，只需补充执行仓库。\n')
+      message: (intent?.kind === 'agent' ? '请选择本次会话的目标仓库，消息将交给 Codex 处理。\n'
+        : intent?.kind === 'analysis' ? '已明确仅分析，只需补充执行仓库。\n' : '已明确需要修改实现，只需补充执行仓库。\n')
         + formatWorkspacePrompt(context.botRoot ?? process.cwd(), context.workspaces ?? [])
     };
   }
@@ -341,12 +350,13 @@ async function bindImplicitCommand(command, context, manager) {
       lookup: (id) => requireTask(manager, id),
       now: context.now,
       staleMs: staleWindow(command.intent, context),
-      warmCompletedMs: context.warmCompletedMs
+      warmCompletedMs: context.warmCompletedMs,
+      strictRecent: command.intent?.source === 'agent-direct'
     });
     if (command.type === 'implicit-continue') {
       return followUp(anchor, all, command.message, source, command.intent);
     }
-    return routeFreeform(command, anchor, all, source);
+    return routeFreeform(command, anchor, all, source, { ...context, manager });
   }
   if (command.type === 'implicit-status') {
     const open = await listOpenTasks(manager, source, { match: 'owner' });
@@ -365,10 +375,28 @@ async function bindImplicitCommand(command, context, manager) {
   return command;
 }
 
-function routeFreeform(command, anchor, tasks = [], source = {}) {
+async function routeFreeform(command, anchor, tasks = [], source = {}, context = {}) {
   const intent = command.intent ?? null;
   const prefer = intentPreference(intent) ?? command.prefer ?? 'work';
   const text = command.text;
+  if (intent?.source === 'agent-direct' && ['multiple', 'ambiguous', 'stale'].includes(anchor.kind)) {
+    const owned = tasks.filter((task) => ownedBy(task, source));
+    try {
+      if (!context.agentRouter) throw new Error('codex-route-unavailable');
+      const decision = await context.agentRouter({ text, tasks: owned, quote: context.quote });
+      if (decision.action === 'create') return { type: 'create', requirement: text, intent };
+      if (decision.action === 'ask' && typeof decision.question === 'string' && decision.question.trim()) {
+        return { type: 'error', agentRouteQuestion: true, message: decision.question };
+      }
+      const selected = owned.find((task) => task.id === decision.taskId);
+      const latest = selected && await requireTask(context.manager, selected.id);
+      if (decision.action !== 'continue' || !latest || !ownedBy(latest, source) || !canControlTask(latest, source)) throw new Error('codex-route-invalid-target');
+      return { type: 'continue', taskId: selected.id, message: text,
+        actorRole: 'owner', anchor: 'agent', via: 'codex-coordinator' };
+    } catch {
+      return { type: 'error', message: 'Codex 暂时未能完成会话处理，本次未执行任何任务。请稍后重试。' };
+    }
+  }
   if (anchor.kind === 'missing') {
     return { type: 'error', message: `找不到任务 ${anchor.taskId}` };
   }
@@ -379,6 +407,14 @@ function routeFreeform(command, anchor, tasks = [], source = {}) {
   // heuristic. Starting separate work while pointing at an old task is what
   // `做：<需求>` is for.
   if (isExplicitAnchor(anchor)) return continueAnchor(anchor, text);
+  if (intent?.source === 'agent-direct') {
+    // Only identity, explicit references and session scope are decided here.
+    // Whether this is analysis, implementation or clarification is Codex's job.
+    const gated = anchorGate(anchor, source);
+    if (gated) return gated;
+    if (anchor.task) return continueAnchor(anchor, text);
+    return { type: 'create', requirement: text, intent };
+  }
   if (prefer === 'new' || (prefer !== 'follow' && isNewWork(text))) {
     // A classifier that labels the decision as "code" would otherwise start a
     // second investigation whose requirement is the decision itself.

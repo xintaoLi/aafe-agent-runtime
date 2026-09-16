@@ -103,10 +103,26 @@ export async function loadWeComBotConfig({
     codex,
     cursor,
     workflow: {
+      routing: local.workflow?.routing === 'legacy' ? 'legacy' : provider === 'codex' ? 'agent' : 'legacy',
       mode: firstNonEmpty(env.AAFE_WECOM_WORKFLOW_MODE, local.workflow?.mode) ?? 'auto',
       intentConfidence: Number.isFinite(local.workflow?.intentConfidence)
         && local.workflow.intentConfidence >= 0.5 && local.workflow.intentConfidence <= 1
         ? local.workflow.intentConfidence : 0.7
+    },
+    autonomy: {
+      level: firstNonEmpty(local.autonomy?.level, 'balanced'),
+      readWorkspace: local.autonomy?.readWorkspace ?? 'auto',
+      modifyTaskFiles: local.autonomy?.modifyTaskFiles ?? 'auto',
+      runTests: local.autonomy?.runTests ?? 'auto',
+      startDevServer: local.autonomy?.startDevServer ?? 'auto',
+      installLockedDependencies: local.autonomy?.installLockedDependencies ?? 'auto',
+      addDependency: local.autonomy?.addDependency ?? 'policy',
+      commit: local.autonomy?.commit ?? 'policy',
+      push: local.autonomy?.push ?? 'confirm',
+      createPullRequest: local.autonomy?.createPullRequest ?? 'confirm',
+      deploy: local.autonomy?.deploy ?? 'confirm',
+      externalWrite: local.autonomy?.externalWrite ?? 'confirm',
+      destructiveOperation: local.autonomy?.destructiveOperation ?? 'confirm'
     },
     wsUrl: firstNonEmpty(env.WECOM_WS_URL, local.wsUrl) ?? DEFAULT_WS_URL,
     repository,
@@ -250,6 +266,7 @@ export function createTaskManagerOptions(config, extra = {}) {
   const useCloud = Boolean(repository);
   return {
     root: config.root,
+    projectWorkspaces: config.workspaces ?? [],
     enabledProvider: extra.provider ?? agent.provider ?? 'cursor',
     output: manager.output ?? '.aafe',
     maxConcurrentTasks: manager.maxConcurrentTasks ?? 4,
@@ -270,6 +287,7 @@ export function createTaskManagerOptions(config, extra = {}) {
     },
     runtimeOptions: {
       workflowOverride: config.workflow?.mode ?? 'auto',
+      autonomy: config.autonomy,
       codex: (extra.provider ?? agent.provider) === 'codex'
         ? { ...config.codex, mcpServers: extra.mcpServers ?? {} } : undefined,
       tokenBudget: Number(manager.tokenBudget) > 0 ? Number(manager.tokenBudget) : 12000,

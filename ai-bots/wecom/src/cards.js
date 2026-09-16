@@ -21,13 +21,17 @@
 const STATUS_TITLE = Object.freeze({
   created: '准备任务',
   queued: '任务排队中',
-  running: '⚙️ 执行中',
+  running: '执行中',
+  running_with_assumptions: '使用安全默认值执行',
+  partially_blocked: '部分受阻，继续执行',
   waiting: '任务等待补充',
+  waiting_user: '等待补充信息',
+  waiting_approval: '等待操作授权',
   verifying: '任务验证中',
-  blocked: '⏸ 等待补充 / 确认',
-  completed: '✅ 已完成',
-  failed: '❌ 执行失败',
-  cancelled: '⛔ 已终止'
+  blocked: '等待补充 / 确认',
+  completed: '已完成',
+  failed: '执行失败',
+  cancelled: '已终止'
 });
 
 /**
@@ -43,13 +47,14 @@ export function buildTaskCard(task) {
   const detail = typeof task === 'string' ? null : task;
   const card = {
     card_type: 'button_interaction',
-    main_title: { title: STATUS_TITLE[detail?.status] ?? '⚙️ 执行中', desc: id },
+    main_title: { title: '任务操作', desc: STATUS_TITLE[detail?.status] ?? '执行中' },
     // Reading comes before stopping, in both senses: it is the safer action and
     // the one anyone in the group is allowed to take.
     button_list: [
       { text: '查看状态', style: 1, key: `status:${id}` },
-      { text: '查看完整过程', style: 1, key: `process:${id}` },
-      ...(detail?.status === 'blocked'
+      { text: '展开思考过程', style: 1, key: `process:${id}` },
+      { text: '发送可复制结果', style: 1, key: `copy:${id}` },
+      ...(['blocked', 'waiting_user', 'waiting_approval'].includes(detail?.status)
         ? [{ text: '补充信息', style: 1, key: `feedback:${id}` }]
         : ['completed', 'failed', 'cancelled'].includes(detail?.status) ? []
           : [{ text: '终止', style: 3, key: `cancel:${id}` }])
@@ -78,7 +83,7 @@ function taskSubTitle(task) {
 export function buildCancelledCard(taskId, cardTaskId) {
   return {
     card_type: 'text_notice',
-    main_title: { title: '⛔ 已终止', desc: String(taskId) },
+    main_title: { title: '已终止', desc: String(taskId) },
     task_id: cardTaskId || freshCardTaskId('run', taskId)
   };
 }

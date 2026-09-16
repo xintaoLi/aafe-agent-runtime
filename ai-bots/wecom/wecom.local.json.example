@@ -3,6 +3,21 @@
   "secret": "your-wecom-bot-secret",
   "provider": "cursor",
   "workflow": { "mode": "auto", "intentConfidence": 0.7 },
+  "autonomy": {
+    "level": "balanced",
+    "readWorkspace": "auto",
+    "modifyTaskFiles": "auto",
+    "runTests": "auto",
+    "startDevServer": "auto",
+    "installLockedDependencies": "auto",
+    "addDependency": "policy",
+    "commit": "policy",
+    "push": "confirm",
+    "createPullRequest": "confirm",
+    "deploy": "confirm",
+    "externalWrite": "confirm",
+    "destructiveOperation": "confirm"
+  },
   "codex": {
     "delivery": { "enabled": true },
     "CODEX_API_KEY": "",
@@ -15,7 +30,15 @@
     {
       "id": "local",
       "name": "当前目录",
-      "cwd": "."
+      "cwd": ".",
+      "e2eInit": {
+        "proxyTarget": "",
+        "proxyPaths": ["/api"]
+      },
+      "e2e": {
+        "baseUrl": "",
+        "urlRole": "template"
+      }
     },
     {
       "id": "demo",

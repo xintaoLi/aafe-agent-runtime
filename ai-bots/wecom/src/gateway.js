@@ -24,6 +24,15 @@ import { WELCOME_TEXT } from './help.js';
 import { describeWeComError } from './logger.js';
 import { notifyTargetFromSource, sourceFromFrame } from './session.js';
 
+const STREAM_PENDING_CONTENT = '处理中';
+/**
+ * WeCom rejects a card for reasons that are usually scoped to one message — a
+ * `task_id` already used, a stream already closed. Losing every later control
+ * card for the rest of the process because of a single rejection is worse than
+ * trying again, so the capability is disabled only for a cooldown window.
+ */
+const CARD_DISABLE_COOLDOWN_MS = 5 * 60_000;
+
 export function createWeComGateway({
   botId,
   secret,
@@ -35,24 +44,15 @@ export function createWeComGateway({
   maxReconnectAttempts = -1
 } = {}) {
   if (!WSClient) throw new Error('wecom-ws-client-missing');
-  /**
-   * `stream_with_template_card` puts an interactive button inside the live
-   * message instead of a second card message. WeCom accepts the card only once
-   * per message, so the caller attaches it on a single frame.
-   *
-   * @returns {Promise<boolean>} false when unsupported or rejected, so the
-   * caller can still deliver the text on a plain stream frame.
-   */
-  async function streamWithCard(frame, streamId, content, finish, card) {
-    if (typeof client.replyStreamWithCard !== 'function') return false;
-    try {
-      await client.replyStreamWithCard(frame, streamId, content, finish, { templateCard: card });
-      return true;
-    } catch (error) {
-      logger.warn?.(`wecom-stream-card-failed:${describeWeComError(error)}`);
-      return false;
-    }
-  }
+
+  let templateCardDisabledAt = 0;
+  const disableTemplateCard = (reason) => {
+    if (!templateCardDisabledAt) logger.warn?.(`wecom-template-card-disabled:${reason}`);
+    templateCardDisabledAt = Date.now();
+  };
+  const templateCardEnabled = () =>
+    templateCardDisabledAt === 0
+    || Date.now() - templateCardDisabledAt >= CARD_DISABLE_COOLDOWN_MS;
 
   const client = new WSClient({
     botId,
@@ -64,9 +64,11 @@ export function createWeComGateway({
 
   let kicked = false;
   const onKicked = [];
+  const onAuthenticated = [];
 
   client.on?.('authenticated', () => {
     logger.info?.('wecom-bot authenticated');
+    for (const listener of onAuthenticated) listener();
   });
   client.on?.('error', (error) => {
     logger.error?.(`wecom-bot error:${error instanceof Error ? error.message : error}`);
@@ -122,57 +124,138 @@ export function createWeComGateway({
     onKicked(handler) {
       onKicked.push(handler);
     },
+    onAuthenticated(handler) {
+      onAuthenticated.push(handler);
+    },
     async replyWelcome(frame, content = WELCOME_TEXT) {
       await client.replyWelcome(frame, {
         msgtype: 'text',
         text: { content }
       });
     },
+    /**
+     * Opens the live message and keeps it as the single surface the user
+     * watches. The WeCom stream body carries only `content`, so the status
+     * line, the thinking steps and the current output are all rendered into
+     * that one markdown field and refreshed in place.
+     */
     async replyAck(frame, content, { finish = true, card = null } = {}) {
       const streamId = generateReqId('stream');
-      let cardAttached = false;
-      if (card) cardAttached = await streamWithCard(frame, streamId, content, finish, card);
-      if (!cardAttached) await client.replyStream(frame, streamId, content, finish);
-      return { streamId, cardAttached };
+      const streamContent = normalizeStreamContent(content, finish);
+      if (card && typeof client.replyStreamWithCard === 'function') {
+        try {
+          await client.replyStreamWithCard(frame, streamId, streamContent, finish, {
+            templateCard: card,
+            streamFeedback: { id: `stream:${streamId}` },
+            cardFeedback: { id: `card:${card.task_id ?? streamId}` }
+          });
+          logger.event?.('wecom.stream.reply', {
+            streamId,
+            finish,
+            contentBytes: Buffer.byteLength(streamContent),
+            withCard: true,
+            contentPreview: clipLog(streamContent)
+          });
+          return { streamId, cardAttached: true };
+        } catch (error) {
+          logger.warn?.(`wecom-stream-card-failed:${describeWeComError(error)}`);
+          disableTemplateCard('stream-with-card');
+        }
+      }
+      if (typeof client.reply === 'function') {
+        const body = {
+          msgtype: 'stream',
+          stream: {
+            id: streamId,
+            finish,
+            content: streamContent,
+            feedback: { id: `stream:${streamId}` }
+          }
+        };
+        logger.event?.('wecom.stream.reply', streamLogPayload(body));
+        await client.reply(frame, body);
+      } else {
+        logger.event?.('wecom.stream.reply', {
+          streamId,
+          finish,
+          contentBytes: Buffer.byteLength(streamContent),
+          fallback: 'replyStream'
+        });
+        await client.replyStream(frame, streamId, streamContent, finish, undefined, { id: `stream:${streamId}` });
+      }
+      void card;
+      return { streamId, cardAttached: false };
     },
     async replyCard(frame, card) {
       if (!card) return null;
-      if (typeof client.replyTemplateCard === 'function') {
-        try {
-          return await client.replyTemplateCard(frame, card);
-        } catch (error) {
-          logger.warn?.(`wecom-reply-card-failed:${describeWeComError(error)}`);
-        }
-      }
+      if (!templateCardEnabled()) return null;
       const target = notifyTargetFromSource(sourceFromFrame(frame));
       if (!target) throw new Error('wecom-card-chat-missing');
-      return client.sendMessage(target.chatid, {
-        msgtype: 'template_card',
-        // The reply attempt already consumed this task_id on the WeCom side.
-        template_card: { ...card, task_id: freshCardTaskId('run', card.task_id) },
-        chat_type: target.chatType
-      });
+      try {
+        // The triggering req_id has normally already been consumed by the
+        // stream reply. A second replyTemplateCard on that req_id is invalid;
+        // proactive send is the supported fallback and creates a real card
+        // message with clickable callbacks.
+        return await client.sendMessage(target.chatid, {
+          msgtype: 'template_card',
+          // A rejected combined response may still have consumed task_id.
+          // Proactive cards therefore always get a fresh protocol identity;
+          // their callback keys continue to carry the stable AAFE task id.
+          template_card: { ...card, task_id: freshCardTaskId('run', card.task_id) },
+          chat_type: target.chatType
+        });
+      } catch (error) {
+        logger.warn?.(`wecom-send-card-failed:${describeWeComError(error)}`);
+        disableTemplateCard('send');
+        return null;
+      }
     },
     async updateCard(frame, card, userids) {
-      return client.updateTemplateCard(frame, card, userids);
+      if (!templateCardEnabled() || typeof client.updateTemplateCard !== 'function') return null;
+      try {
+        return await client.updateTemplateCard(frame, card, userids);
+      } catch (error) {
+        disableTemplateCard('update');
+        throw error;
+      }
     },
     /**
      * Non-blocking drops a frame when the previous one is still unacked, which
      * is right for animation but wrong for a stage the user must see.
      */
-    async replyProgress(frame, streamId, content, finish = false, { blocking = false, card = null } = {}) {
-      if (card && await streamWithCard(frame, streamId, content, finish, card)) {
-        return { cardAttached: true };
-      }
+    async replyProgress(frame, streamId, content, finish = false, {
+      blocking = false,
+      card = null
+    } = {}) {
+      const streamContent = normalizeStreamContent(content, finish);
+      // The control card rides on the frame that opened the stream. This
+      // channel stays text-only so the process text remains selectable.
+      void card;
       if (!finish && !blocking && typeof client.replyStreamNonBlocking === 'function') {
-        await client.replyStreamNonBlocking(frame, streamId, content, finish);
+        logger.event?.('wecom.stream.reply', {
+          streamId,
+          finish,
+          contentBytes: Buffer.byteLength(streamContent),
+          fallback: 'replyStreamNonBlocking'
+        });
+        await client.replyStreamNonBlocking(frame, streamId, streamContent, finish);
         return { cardAttached: false };
       }
-      await client.replyStream(frame, streamId, content, finish);
+      logger.event?.('wecom.stream.reply', {
+        streamId,
+        finish,
+        contentBytes: Buffer.byteLength(streamContent),
+        fallback: 'replyStream'
+      });
+      await client.replyStream(frame, streamId, streamContent, finish);
       return { cardAttached: false };
     },
     async sendMessage(chatid, body) {
       return client.sendMessage(chatid, body);
+    },
+    supportsTemplateCard() {
+      return templateCardEnabled()
+        && typeof client.sendMessage === 'function';
     },
     /**
      * A card-event req_id only accepts `aibot_respond_update_msg`, so text that
@@ -216,4 +299,25 @@ function isTemplateCardEvent(frame) {
   const event = cardEventPayload(frame);
   return event.eventtype === 'template_card_event'
     || Boolean(event.event_key ?? event.eventKey ?? event.EventKey);
+}
+
+function normalizeStreamContent(content, finish) {
+  const text = typeof content === 'string' ? content : String(content ?? '');
+  if (finish || text.trim()) return text;
+  return STREAM_PENDING_CONTENT;
+}
+
+function streamLogPayload(body = {}) {
+  const stream = body.stream ?? {};
+  return {
+    streamId: stream.id ?? null,
+    finish: Boolean(stream.finish),
+    contentBytes: Buffer.byteLength(String(stream.content ?? '')),
+    contentPreview: clipLog(stream.content)
+  };
+}
+
+function clipLog(value, max = 160) {
+  const text = String(value ?? '').replace(/\s+/g, ' ').trim();
+  return text.length > max ? `${text.slice(0, max)}…` : text;
 }

@@ -28,18 +28,22 @@ import { renderTaskPresentation } from './presentation.js';
 import { redactDisplayText } from './logger.js';
 
 export const THINKING_PREVIEW_LIMIT = 3;
-export const RESULT_HEADING = '✅ 最终结论';
+export const RESULT_HEADING = '最终结果';
 
 export const AGENT_UI_STATUS = Object.freeze({
   created: { id: 'created', label: '准备任务' },
-  thinking: { id: 'thinking', label: '⌛ 思考中' },
-  planning: { id: 'planning', label: '🧠 制定方案' },
-  executing: { id: 'executing', label: '⚙️ 执行中' },
-  completed: { id: 'completed', label: '✅ 已完成' },
-  canceling: { id: 'canceling', label: '⏹ 正在终止' },
-  canceled: { id: 'canceled', label: '⛔ 已终止' },
-  failed: { id: 'failed', label: '❌ 执行失败' },
-  blocked: { id: 'blocked', label: '⏸ 等待补充 / 确认' }
+  thinking: { id: 'thinking', label: '思考中' },
+  planning: { id: 'planning', label: '制定方案' },
+  executing: { id: 'executing', label: '执行中' },
+  completed: { id: 'completed', label: '已完成' },
+  canceling: { id: 'canceling', label: '正在终止' },
+  canceled: { id: 'canceled', label: '已终止' },
+  failed: { id: 'failed', label: '执行失败' },
+  blocked: { id: 'blocked', label: '等待补充 / 确认' },
+  waiting_user: { id: 'waiting_user', label: '等待补充信息' },
+  waiting_approval: { id: 'waiting_approval', label: '等待操作授权' },
+  partially_blocked: { id: 'partially_blocked', label: '部分受阻，继续执行' },
+  running_with_assumptions: { id: 'running_with_assumptions', label: '使用安全默认值执行' }
 });
 
 const TOOL_SUMMARY = Object.freeze({
@@ -76,7 +80,11 @@ const ALIAS = Object.freeze({
   失败: 'failed',
   已超时: 'failed',
   blocked: 'blocked',
-  被阻塞: 'blocked'
+  被阻塞: 'blocked',
+  waiting_user: 'waiting_user',
+  waiting_approval: 'waiting_approval',
+  partially_blocked: 'partially_blocked',
+  running_with_assumptions: 'running_with_assumptions'
 });
 
 export function getThinkingPreview(steps = [], limit = THINKING_PREVIEW_LIMIT) {
@@ -90,16 +98,16 @@ export function resolveAgentUiStatus({ status, transcript = [], finished = false
   if (finished || isTerminalUiStatus(aliased)) {
     if (aliased === 'canceled') return 'canceled';
     if (aliased === 'failed') return 'failed';
-    if (aliased === 'blocked') return 'blocked';
+    if (['blocked', 'waiting_user', 'waiting_approval'].includes(aliased)) return aliased;
     if (aliased === 'completed') return 'completed';
     if (aliased === 'canceling') return 'canceling';
     return aliased && isTerminalUiStatus(aliased) ? aliased : 'completed';
   }
+  if (['partially_blocked', 'running_with_assumptions'].includes(aliased)) return aliased;
   if (aliased === 'executing' || hasToolStep(transcript)) return 'executing';
   if (aliased === 'planning') return 'planning';
   if (aliased === 'created') return 'created';
   if (aliased === 'thinking') return 'thinking';
-  if (hasToolStep(transcript)) return 'executing';
   return 'thinking';
 }
 
@@ -111,16 +119,27 @@ export function buildAgentUIState({
   finished = false,
   expanded = false,
   taskId = '',
-  presentation = null
+  presentation = null,
+  supportsTemplateCards = true,
+  // Streaming views drive WeCom's native `<think>` block, which is where the
+  // provider's real reasoning belongs. Without this the block only ever held
+  // tool names, because the reasoning was filtered out before rendering.
+  thinkTag = false
 } = {}) {
   const uiStatus = resolveAgentUiStatus({ status, transcript, finished });
   // The last assistant text appears as the live update or final result, not
   // twice in the work log. Earlier public commentary remains readable.
   const lastAssistant = transcript.findLastIndex((item) => item.kind === 'assistant');
   const lastText = String(transcript[lastAssistant]?.text ?? '').trim();
-  const omitLast = finished ? !presentation || presentation.summary.includes(lastText) : !expanded;
+  const duplicatesResult = Boolean(presentation?.summary)
+    && (presentation.summary.includes(lastText) || lastText.includes(presentation.summary));
+  const omitLast = finished ? !presentation || duplicatesResult : !expanded;
   const activity = transcript.filter((block, index) => !omitLast || index !== lastAssistant);
-  const steps = collectThinkingSteps(activity, { expanded });
+  const steps = collectThinkingSteps(activity, {
+    expanded,
+    includeProviderThinking: thinkTag,
+    fullText: thinkTag
+  });
   const preview = getThinkingPreview(steps.map((step) => step.summary));
   return {
     taskId: String(taskId ?? ''),
@@ -130,6 +149,7 @@ export function buildAgentUIState({
     thinking: {
       preview,
       full: steps,
+      supportsTemplateCards: Boolean(supportsTemplateCards),
       expanded: Boolean(expanded),
       total: steps.length
     },
@@ -139,38 +159,28 @@ export function buildAgentUIState({
       : null,
     header: header || '',
     footer: finished ? stripDuplicateConclusion(footer) : footer,
+    transcript,
     finished: Boolean(finished)
   };
 }
 
-export function renderAgentUI(state) {
-  if (state.finished && state.presentation) {
-    return [
-      renderTaskPresentation(state.presentation, { expanded: state.thinking.expanded }),
-      renderThinkingSection(state),
-      state.taskId ? '对话 ID：`' + state.taskId + '`' : ''
-    ].filter(Boolean).join('\n\n');
-  }
+export function renderAgentUI(state, { thinkTag = false } = {}) {
   const parts = [];
-  if (state.header) parts.push(state.header);
   if (shouldShowStatusLine(state)) parts.push(`**${state.label}**`);
-  if (state.status === 'canceling') {
-    parts.push('正在停止当前任务...');
-    appendTaskMeta(parts, state, { running: false });
-    return parts.filter(Boolean).join('\n\n');
-  }
-  const thinking = renderThinkingSection(state);
+
+  const thinking = renderThinkingSection(state, { thinkTag });
   if (thinking) parts.push(thinking);
   if (state.current) parts.push(state.current);
-  if (state.finished && state.result) {
-    const body = [state.result.content, state.footer].filter(Boolean).join('\n\n');
-    parts.push(`---\n**${state.status === 'completed' ? RESULT_HEADING : '本轮结果'}**\n${body}`);
-    if (!state.footer) appendTaskMeta(parts, state, { running: false });
-  } else {
-    if (state.finished && state.footer) parts.push(`---\n${state.footer}`);
-    else appendTaskMeta(parts, state, { running: !state.finished });
+
+  if (state.finished && state.status !== 'canceled') {
+    const result = state.presentation
+      ? renderTaskPresentation(state.presentation, { expanded: state.thinking.expanded })
+      : [state.label ? `**${state.label}**` : '', state.result?.content].filter(Boolean).join('\n');
+    if (result) parts.push(`---\n**${RESULT_HEADING}**\n${result}`);
   }
-  return parts.filter(Boolean).join('\n\n');
+  if (state.status === 'canceled' && !thinking) parts.push('任务已被用户终止。');
+  appendTaskMeta(parts, state, { running: !state.finished });
+  return parts.filter(Boolean).join('\n\n') || (state.finished ? '' : '正在处理…');
 }
 
 export function lastThinkingActivity(transcript = []) {
@@ -178,41 +188,31 @@ export function lastThinkingActivity(transcript = []) {
   return steps.at(-1)?.summary ?? lastAssistantClip(transcript);
 }
 
-export function collectThinkingSteps(transcript = [], { expanded = false } = {}) {
+export function collectThinkingSteps(transcript = [], {
+  expanded = false,
+  includeProviderThinking = false,
+  fullText = false
+} = {}) {
   const lines = [];
   for (const group of buildProcessTree(transcript)) {
     if (group.type === 'tool') {
       const summary = summarizeTool(group.name);
-      if (expanded) {
-        lines.push({
-          summary: group.items.length > 1 ? `**${group.name}** · ${group.items.length} 次` : `**${group.name}**`,
-          kind: 'tool',
-          name: group.name
-        });
-        for (const item of group.items) {
-          lines.push({
-            summary: item ? `· \`${clipHead(item, 48)}\`` : `· ${group.name}`,
-            kind: 'tool-item',
-            name: group.name
-          });
-        }
-      } else {
-        for (const item of group.items) {
-          lines.push({
-            summary: item ? `${summary} \`${clipHead(item, 48)}\`` : summary,
-            kind: 'tool',
-            name: group.name
-          });
-        }
-      }
+      lines.push({
+        summary: expanded && group.items.length > 1 ? `${summary}（${group.items.length} 次）` : summary,
+        kind: 'tool',
+        name: group.name
+      });
       continue;
     }
     if (['status', 'assistant'].includes(group.type) && group.text) {
       lines.push({ summary: expanded ? group.text : clipHead(group.text, 240), kind: group.type });
       continue;
     }
-    if (group.type === 'thinking') {
-      lines.push({ summary: '正在分析…', kind: 'thinking' });
+    if (includeProviderThinking && group.type === 'thinking' && group.text) {
+      // A collapsed `<think>` block costs no screen space, so it carries the
+      // reasoning in full; only the always-visible quoted form gets clipped.
+      const text = redactDisplayText(group.text);
+      lines.push({ summary: expanded || fullText ? text : clipHead(text, 240), kind: 'thinking' });
     }
   }
   return lines;
@@ -264,23 +264,45 @@ export function mergeText(previous, next) {
   return `${previous}${incoming}`;
 }
 
-function renderThinkingSection(state) {
+function renderThinkingSection(state, { thinkTag = false } = {}) {
   const { thinking, status } = state;
-  if (status === 'canceled') return renderCanceledSteps(thinking);
+  if (status === 'canceled') return renderCanceledSteps(thinking, { thinkTag });
   if (!thinking.total) return '';
-  const lines = thinking.expanded ? thinking.full.map((step) => step.summary) : thinking.preview;
-  const hidden = thinking.expanded ? 0 : Math.max(0, thinking.total - THINKING_PREVIEW_LIMIT);
-  const title = thinking.expanded ? '**工作记录**（最近一轮，最多 80 条；工具调用不代表验证通过）' : '**最近进展**';
-  const quoted = lines.map((line) => line.split('\n').map((part) => `> ${part}`).join('\n'));
-  if (hidden > 0) quoted.push(`> 另有 ${hidden} 步，点下方「查看完整过程」`);
+  // A collapsible block costs no screen space while closed, so it carries the
+  // whole log — that is what makes "expand" worth having. Only the quoted
+  // fallback, which is always visible, has to stay short.
+  const expandAll = thinkTag || thinking.expanded;
+  const lines = expandAll ? thinking.full.map((step) => step.summary) : thinking.preview;
+  const hidden = expandAll ? 0 : Math.max(0, thinking.total - THINKING_PREVIEW_LIMIT);
+  if (hidden > 0) {
+    // `查看完整过程` is the command `commands.js` actually parses; anything else
+    // here becomes a dead end the user has to discover the hard way.
+    lines.push(`另有 ${hidden} 步，发送 \`查看完整过程 ${state.taskId || '<TaskID>'}\` 查看`);
+  }
+  const body = lines.filter(Boolean).join('\n');
+  if (!body) return '';
+  // WeCom renders a `<think>…</think>` block inside a streaming message as its
+  // own collapsible "思考过程" area. That is the only real expand/collapse WeCom
+  // offers: standard markdown has no fold syntax and `<details>` is not parsed.
+  // It must be spelled exactly `<think>` — the similar `<thinking>` is not
+  // recognised and its content is dropped by the client.
+  return thinkTag ? `<think>\n${body}\n</think>` : asQuotedSection(body, thinking.expanded);
+}
+
+/** Pushed markdown messages are not stream replies; keep the quoted form there. */
+function asQuotedSection(body, expanded) {
+  const title = expanded ? '**思考过程（已展开）**' : '**思考过程**';
+  const quoted = body.split('\n').map((line) => `> ${line}`);
   return [title, ...quoted].filter(Boolean).join('\n');
 }
 
-function renderCanceledSteps(thinking) {
+function renderCanceledSteps(thinking, { thinkTag = false } = {}) {
   if (!thinking.total) return '任务已被用户终止。';
-  const done = getThinkingPreview(thinking.full.map((step) => step.summary), thinking.expanded ? thinking.total : 8)
-    .map((line) => `- ${line}`);
-  return ['任务已被用户终止。', '已记录活动（不代表完成）：', ...done].join('\n');
+  const done = getThinkingPreview(thinking.full.map((step) => step.summary), thinking.expanded ? thinking.total : 8);
+  if (thinkTag) {
+    return ['任务已被用户终止。', `<think>\n${done.join('\n')}\n</think>`, '已记录活动（不代表完成）。'].join('\n\n');
+  }
+  return ['任务已被用户终止。', '已记录活动（不代表完成）：', ...done.map((line) => `- ${line}`)].join('\n');
 }
 
 function buildResult({ uiStatus, transcript, footer, taskId }) {
@@ -313,19 +335,27 @@ function synthesizeConclusion({ lastAssistant, uiStatus, taskId, transcript = []
 }
 
 function shouldShowStatusLine(state) {
-  if (!state.finished) return true;
-  return state.status !== 'completed';
+  return !state.finished;
 }
 
+/**
+ * The task id stays on every view. `supportsTemplateCards` only says the bot
+ * believes the card capability is up — it cannot know whether this particular
+ * message actually rendered its buttons, and a view that promises controls the
+ * user cannot see is worse than one line of copyable fallback.
+ */
 function appendTaskMeta(parts, state, { running = false } = {}) {
   if (state.footer && !state.finished) {
     parts.push(`---\n${state.footer}`);
   }
   if (state.finished && state.footer) return;
   if (!state.taskId) return;
-  const lines = [`对话 ID：\`${state.taskId}\``];
+  const id = state.taskId;
+  const lines = [`对话 ID：\`${id}\``];
   if (running) {
-    lines.push('展开或停止请点消息下方按钮；也可发送 `终止 ' + state.taskId + '`');
+    lines.push(state.thinking?.supportsTemplateCards
+      ? '展开或停止请点消息下方按钮；也可发送 `终止 ' + id + '`'
+      : '任务执行中：发送 `终止 ' + id + '` 可中止任务；发送 `查看完整过程 ' + id + '` 查看进展。');
   }
   parts.push(`---\n${lines.join('\n')}`);
 }
@@ -367,7 +397,7 @@ function isStall(detail, footer) {
 }
 
 function isTerminalUiStatus(status) {
-  return status === 'completed' || status === 'canceled' || status === 'failed' || status === 'blocked';
+  return ['completed', 'canceled', 'failed', 'blocked', 'waiting_user', 'waiting_approval'].includes(status);
 }
 
 function hasToolStep(transcript = []) {

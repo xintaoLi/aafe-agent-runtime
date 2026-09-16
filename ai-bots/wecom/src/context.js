@@ -55,6 +55,7 @@ const CONFIDENCE = Object.freeze({
   'explicit:task-id': 1,
   'explicit:task-suffix': 0.9,
   'quoted:task-id': 0.95,
+  'quoted:message-binding': 1,
   'quoted:task-suffix': 0.85,
   'quoted:requirement-match': 0.8,
   'quoted:tapd-story': 0.8,
@@ -96,7 +97,8 @@ export async function resolveTaskAnchor({
   lookup = null,
   now = Date.now,
   staleMs = DEFAULT_STALE_MS,
-  warmCompletedMs = WARM_COMPLETED_MS
+  warmCompletedMs = WARM_COMPLETED_MS,
+  strictRecent = false
 } = {}) {
   const foreignActive = tasks.filter((task) => isActive(task) && !ownedBy(task, source));
 
@@ -140,6 +142,7 @@ export async function resolveTaskAnchor({
   // Nothing live: a just-completed owned task is still the conversation for a
   // short window. Newest first, so recent[0] is the one they just watched.
   const recent = tasks.filter((task) => ownedBy(task, source) && isWarmCompleted(task, now(), warmCompletedMs));
+  if (strictRecent && recent.length > 1) return undecided('ambiguous', recent, foreignActive);
   if (recent.length) {
     return anchor('recent', recent[0], source, 'last-completed', foreignActive);
   }
@@ -217,6 +220,10 @@ export function ownedBy(task, source = {}) {
  * when typed must not fail when quoted.
  */
 async function matchQuotedTask(tasks, quote, lookup) {
+  if (quote.taskId) {
+    const task = tasks.find((item) => item.id === quote.taskId) ?? (lookup ? await lookup(quote.taskId) : null);
+    if (task) return { task, via: 'message-binding' };
+  }
   const body = String(quote.text ?? '').trim();
   const named = scanTaskId(body);
   if (named) {

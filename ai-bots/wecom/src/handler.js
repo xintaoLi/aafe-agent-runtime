@@ -18,13 +18,7 @@
  * IN THE SOFTWARE.
  */
 
-import {
-  buildTaskCard,
-  buildCancelledCard,
-  buildWorkspacePickerCard,
-  buildWorkspaceSwitchedCard,
-  parseCardEvent
-} from './cards.js';
+import { buildCancelledCard, buildTaskCard, buildWorkspaceSwitchedCard, parseCardEvent } from './cards.js';
 import { HELP_TEXT, IDENTITY_TEXT, MEDIA_UNSUPPORTED_TEXT, UNCLEAR_TEXT, greetingText } from './help.js';
 import { analyzeWeComIntent } from './intent.js';
 import { describeWeComError, summarizeWeComFrame } from './logger.js';
@@ -35,7 +29,7 @@ import {
   parseWeComMedia,
   weComMediaDir
 } from './media.js';
-import { formatListReply, formatStatusReply, formatTaskFooter } from './notify.js';
+import { formatListReply, formatStatusReply, formatTaskFooter, formatTaskNotify } from './notify.js';
 import { parseWeComQuote } from './quote.js';
 import { buildTaskPresentation, taskFeedbackRevision } from './presentation.js';
 import { renderStoredProcess } from './progress.js';
@@ -45,13 +39,15 @@ import { sessionKeyFromSource, sourceFromFrame } from './session.js';
 import { pickSmalltalkReply } from './smalltalk.js';
 import { fastIntent } from './understand.js';
 import { extractWorkspaceTargets, formatWorkspaceList } from './workspace.js';
+import { createCodexTaskRouter } from './codexRouter.js';
+import { stripMentions } from './commands.js';
 
 export const UNDERSTANDING_TEXT = '正在理解分析中…';
 export const REUSE_ANALYSIS_TEXT = '这是对上一轮结论的后续指令。请直接复用已有分析与上下文执行，不要重新从零分析，除非结论已过时或本次明确要求重做。';
 const INTENT_ACK_GRACE_MS = 150;
 const PENDING = Symbol('intent-pending');
 
-export const THINKING_TEXT = '让我想想…';
+export const THINKING_TEXT = '处理中';
 
 const CONTROL_TYPES = new Set([
   'help',
@@ -64,13 +60,12 @@ const CONTROL_TYPES = new Set([
   'workspace-list',
   'workspace-pick'
 ]);
-const TERMINAL_TASK = new Set(['completed', 'failed', 'cancelled', 'blocked']);
+const TERMINAL_TASK = new Set(['completed', 'failed', 'cancelled', 'blocked', 'waiting_user', 'waiting_approval']);
 
 export async function handleWeComMessage(frame, {
   manager,
   replyAck,
   replyProgress,
-  replyCard,
   progress,
   pending,
   workspaces,
@@ -80,6 +75,9 @@ export async function handleWeComMessage(frame, {
   attachments = [],
   understanding = null,
   chat = null,
+  agentRouter = null,
+  metricStore = null,
+  projectOnboarding = null,
   random = Math.random,
   intentAckGraceMs = INTENT_ACK_GRACE_MS,
   logger = console
@@ -101,6 +99,16 @@ export async function handleWeComMessage(frame, {
     quoted: quote.present
   });
 
+  const stream = createReplyStream({ frame, replyAck, replyProgress, logger });
+  const parsed = analyzeWeComIntent(frame?.body?.text?.content);
+  const agentDirect = config?.agent?.provider === 'codex' && config?.workflow?.routing !== 'legacy';
+  // Open the WeCom stream before workspace refresh, onboarding checks or any
+  // model/Agent routing. This is the transport ACK users are waiting for; the
+  // same message is updated in place once a meaningful stage is available.
+  if (agentDirect || (!CONTROL_TYPES.has(parsed.type) && parsed.type !== 'ack')) {
+    await stream.push(THINKING_TEXT);
+  }
+
   // WeCom only pushes group messages that @ the bot, so this is a second line
   // of defence rather than the gate. It logs by default instead of dropping,
   // because a mixed message can carry the mention outside the text items and
@@ -114,12 +122,28 @@ export async function handleWeComMessage(frame, {
     if (config?.requireGroupMention) return { skipped: true, reason: 'group-no-mention' };
   }
 
+  try {
+    if (await workspaces?.refresh?.()) manager.projectWorkspaces = workspaces.list();
+  } catch { logger.event?.('workspace.refresh.failed', { reason: 'config-unreadable-keeping-existing' }); }
+  const projectReply = await projectOnboarding?.handle(stripMentions(frame?.body?.text?.content ?? ''));
+  if (projectReply) {
+    await stream.push(projectReply, { finish: true });
+    return { skipped: false, action: { type: 'project-e2e-init' }, reply: projectReply };
+  }
   const waiting = pending?.get(sessionKey);
-  const parsed = analyzeWeComIntent(frame?.body?.text?.content);
-  const gateReply = !waiting && !quote.present && ['ack', 'implicit-route'].includes(parsed.type)
+  // These are conversational utterances, not transport-level control commands.
+  if (agentDirect && ['smalltalk', 'ack', 'ambiguous-continue', 'implicit-continue'].includes(parsed.type)) {
+    parsed.text ??= parsed.message ?? frame?.body?.text?.content ?? '';
+    parsed.type = 'implicit-route';
+  }
+  const gateReply = !agentDirect && !waiting && !quote.present && ['ack', 'implicit-route'].includes(parsed.type)
     ? await resolvePendingGateReply(parsed.text, source, manager) : null;
   const command = gateReply ?? bindPendingCommand(parsed.type === 'ack' && quote.present
     ? { ...parsed, type: 'implicit-route', prefer: 'follow' } : parsed, waiting);
+  if (agentDirect && ['implicit-route', 'create', 'continue', 'workspace-choice'].includes(command.type)) {
+    command.intent = { kind: 'agent', needsCode: true, source: 'agent-direct' };
+    logger.event?.('intent.delegated', { conversationId: source.conversationId, provider: 'codex', routing: 'agent' });
+  }
   if (command.clarification) {
     if (!quote.present && waiting?.quote?.present) quote = waiting.quote;
     attachments = [...(waiting?.attachments ?? []), ...attachments]
@@ -127,10 +151,9 @@ export async function handleWeComMessage(frame, {
   }
   // Control words ("状态"/"终止"/"列表") stay on the regex fast path: a model
   // round trip would cost seconds before a stop can even be attempted.
-  const stream = createReplyStream({ frame, replyAck, replyProgress, logger });
   if (command.feedbackTask) {
     const target = await manager.get(command.taskId).catch(() => null);
-    if (!target || !canControlTask(target, source) || target.status !== 'blocked'
+    if (!target || !canControlTask(target, source) || !['blocked', 'waiting_user', 'waiting_approval'].includes(target.status)
       || command.feedbackRevision !== taskFeedbackRevision(target)) {
       pending?.clear(sessionKey);
       const reply = '原任务状态或操作权限已变化。请先查询状态，再明确要继续的任务。';
@@ -169,7 +192,7 @@ export async function handleWeComMessage(frame, {
     return { skipped: false, command, action, intent: null, reply: answer };
   }
 
-  if ((understanding || config?.workflow) && command.type === 'implicit-route') {
+  if (!agentDirect && (understanding || config?.workflow) && command.type === 'implicit-route') {
     const analysis = analyzeIntent(command, {
       understanding: understanding ?? { analyze: (input) => fastIntent(input.text, input) },
       manager,
@@ -182,7 +205,6 @@ export async function handleWeComMessage(frame, {
     // would only flash a frame the user cannot read. Announce it once it is
     // clear the answer needs waiting for.
     const settled = await Promise.race([analysis, waitFor(intentAckGraceMs, PENDING)]);
-    if (settled === PENDING) await stream.push(UNDERSTANDING_TEXT);
     command.intent = settled === PENDING ? await analysis : settled;
     if (!['code', 'analysis', 'question', 'followup'].includes(command.intent?.kind)
       || !Number.isFinite(command.intent?.confidence)
@@ -198,7 +220,6 @@ export async function handleWeComMessage(frame, {
       await stream.push(reply, { finish: true });
       return { skipped: false, command, action: { type: 'clarify' }, intent: command.intent, reply };
     }
-    if (understanding && command.intent) await stream.push(formatIntentStage(command.intent));
 
     // A question that needs no repository is answered here and now. Spinning up
     // an agent, a branch and a task record to say one paragraph is theatre.
@@ -224,8 +245,15 @@ export async function handleWeComMessage(frame, {
   }
 
   // Without the analyzer, preserve the explicit command router's task anchors.
-  if (!understanding && !config?.workflow && command.type === 'implicit-route') delete command.intent;
+  if (!agentDirect && !understanding && !config?.workflow && command.type === 'implicit-route') delete command.intent;
   const action = await resolveWeComAction(command, buildActionContext({
+    agentRouter: agentDirect ? async (input) => {
+      await stream.push('Codex 正在结合现有任务处理这条消息…');
+      logger.event?.('task.route.delegated', { conversationId: source.conversationId, candidateCount: input.tasks.length });
+      const decision = await (agentRouter ?? createCodexTaskRouter(config.codex, { metricStore }))(input);
+      logger.event?.('task.route.decided', { conversationId: source.conversationId, action: decision.action, taskId: decision.taskId ?? null });
+      return decision;
+    } : null,
     source,
     config,
     workspaces,
@@ -237,7 +265,9 @@ export async function handleWeComMessage(frame, {
       : [command.text ?? command.requirement ?? '']
   }), manager);
 
-  if (action.type === 'need-workspace') {
+  if (action.agentRouteQuestion) {
+    pending?.set(sessionKey, { type: 'need-intent', text: command.text, feedback: [], attachments, quote });
+  } else if (action.type === 'need-workspace') {
     pending?.set(sessionKey, {
       type: 'need-workspace',
       requirement: action.requirement,
@@ -251,41 +281,28 @@ export async function handleWeComMessage(frame, {
     pending?.clear(sessionKey);
   }
 
-  const reply = replyForAction(action, command, { workspaces, config, attachments });
   const keepOpen = action.type === 'created' || action.type === 'continue';
-  const pickerCard = cardForAction(action, { workspaces: workspaces?.list?.() ?? config?.workspaces ?? [] });
-  const taskCard = keepOpen && action.task?.id ? buildTaskCard(
-    action.type === 'continue' ? { ...action.task, status: 'queued' } : action.task
-  ) : null;
+  const processText = action.type === 'process'
+    ? await resolveStoredProcess(action.task?.id, action.task, { manager, progress })
+    : null;
   // The live view appends the footer itself, so the header it reuses stays clean.
-  const ack = withTaskFooter(reply, action.task);
-  // WeCom accepts a card only on the frame that opens the stream. Classification
-  // may have already opened it, so a later combo attach can miss; then the
-  // buttons go out as a standalone card instead of fake markdown.
-  const streamId = await stream.push(ack, {
-    finish: !keepOpen,
-    card: taskCard
+  const ack = replyForAction(action, command, {
+    workspaces,
+    config,
+    attachments,
+    processText
   });
-  if (pickerCard) {
-    try {
-      await replyCard?.(frame, pickerCard);
-    } catch (error) {
-      logger.error?.(`wecom-reply-card-failed:${describeWeComError(error)}`);
-    }
-  }
-  if (taskCard && !stream.cardAttached) {
-    try {
-      await replyCard?.(frame, taskCard);
-    } catch (error) {
-      logger.error?.(`wecom-task-card-failed:${describeWeComError(error)}`);
-    }
-  }
+  // WeCom renders a template card as its own separate message — it can never be
+  // a footer inside the streaming one — so a task panel cannot sit at the
+  // bottom of the message the user is reading. The controls are typed commands
+  // in the body text instead, which is what the progress view already emits.
+  const streamId = await stream.push(ack, { finish: !keepOpen });
   if (keepOpen && progress && action.task?.id) {
     progress.open({
       taskId: action.task.id,
       frame,
       streamId,
-      header: reply
+      header: ''
     });
   }
 
@@ -302,13 +319,16 @@ export async function handleWeComMessage(frame, {
   if (action.type === 'continue') {
     const followUp = [
       TERMINAL_TASK.has(action.task?.status) ? REUSE_ANALYSIS_TEXT : null,
+      quote.present && quote.text ? `用户引用了此前消息：\n“${quote.text}”\n请针对这条内容处理本次反馈。` : null,
       action.message,
       formatAttachmentNote(attachments)
     ].filter(Boolean).join('\n\n');
     // Who said it travels with the text: the agent has to know whether this is
     // the task owner changing the requirement or a bystander adding detail.
     const author = { userId: source.userId ?? null, role: action.actorRole ?? 'owner' };
-    const nextIntent = fastIntent(action.message, { hasActiveTask: true });
+    const nextIntent = agentDirect && action.task.provider === 'codex'
+      ? { kind: 'agent', needsCode: true, source: 'agent-direct' }
+      : fastIntent(action.message, { hasActiveTask: true });
     const executionIntent = nextIntent?.kind === 'code' || ['apply', 'ship'].includes(nextIntent?.action)
       ? { ...nextIntent, kind: 'code', needsCode: true } : nextIntent;
     const nextModel = action.task.provider !== 'codex' && ['code', 'analysis', 'question'].includes(executionIntent?.kind) && author.role === 'owner'
@@ -424,6 +444,7 @@ async function smalltalkReply(command, { manager, source, random, logger }) {
 function createReplyStream({ frame, replyAck, replyProgress, logger = console }) {
   let streamId = null;
   let cardAttached = false;
+  const openedAt = Date.now();
   return {
     get id() {
       return streamId;
@@ -436,6 +457,12 @@ function createReplyStream({ frame, replyAck, replyProgress, logger = console })
         const ack = unwrapStreamAck(await replyAck?.(frame, content, { finish, card }));
         streamId = ack.streamId;
         if (ack.cardAttached) cardAttached = true;
+        logger.event?.('message.ack', {
+          msgid: frame?.body?.msgid ?? null,
+          streamId,
+          finish,
+          latencyMs: Date.now() - openedAt
+        });
         return streamId;
       }
       if (!replyProgress) return streamId;
@@ -467,15 +494,20 @@ export async function handleWeComCard(frame, {
   progress,
   pending,
   workspaces,
+  projectOnboarding = null,
   config,
+  supportsTemplateCard = () => true,
   logger = console
 } = {}) {
+  try {
+    if (await workspaces?.refresh?.()) manager.projectWorkspaces = workspaces.list();
+  } catch { logger.event?.('workspace.refresh.failed', { reason: 'config-unreadable-keeping-existing' }); }
   const parsed = parseCardEvent(frame);
   const source = sourceFromFrame(frame);
   const sessionKey = sessionKeyFromSource(source);
   const waiting = pending?.get(sessionKey);
   const attachments = waiting?.attachments ?? [];
-  if (['status', 'process', 'cancel', 'feedback'].includes(parsed.action) && parsed.value) {
+  if (['status', 'process', 'copy', 'cancel', 'feedback'].includes(parsed.action) && parsed.value) {
     const task = await manager.get(parsed.value).catch(() => null);
     if (!task || !canAccessTask(task, source)) {
       await pushText(sendText, source, `找不到任务 ${parsed.value}`, logger);
@@ -497,6 +529,11 @@ export async function handleWeComCard(frame, {
       ? formatStatusReply(task, manager.stats?.() ?? null)
       : `找不到任务 ${parsed.value}`;
     await pushText(sendText, source, text, logger);
+    if (task && updateCard) {
+      const currentCard = buildTaskCard(task);
+      try { await updateCard(frame, { ...currentCard, task_id: parsed.cardTaskId ?? currentCard.task_id }); }
+      catch (error) { logger.warn?.(`wecom-card-status-update-failed:${task.id}:${describeWeComError(error)}`); }
+    }
     logger.event?.('card.out', {
       conversationId: source.conversationId,
       command: 'status',
@@ -512,6 +549,25 @@ export async function handleWeComCard(frame, {
     const events = cached ? [] : await manager.events?.(parsed.value).catch(() => []);
     const text = cached || (task && renderStoredProcess(task, events))
       || `找不到任务 ${parsed.value} 的过程记录。任务结束后过程会保留一段时间，也可发送 \`状态 ${parsed.value}\`。`;
+    if (task && updateCard) {
+      const currentCard = buildTaskCard(task);
+      try {
+        await updateCard(frame, {
+          ...currentCard,
+          task_id: parsed.cardTaskId ?? currentCard.task_id,
+          main_title: { title: '思考 / 工具步骤', desc: '已展开，正文已单独发送便于复制' },
+          sub_title_text: clipCardText(text),
+          button_list: [
+            { text: '查看状态', style: 1, key: `status:${parsed.value}` },
+            { text: '发送可复制结果', style: 1, key: `copy:${parsed.value}` },
+            ...(['completed', 'failed', 'cancelled'].includes(task.status)
+              ? [] : [{ text: '终止', style: 3, key: `cancel:${parsed.value}` }])
+          ]
+        });
+      } catch (error) {
+        logger.warn?.(`wecom-card-process-update-failed:${task.id}:${describeWeComError(error)}`);
+      }
+    }
     await pushText(sendText, source, text, logger);
     logger.event?.('card.out', {
       conversationId: source.conversationId,
@@ -522,21 +578,34 @@ export async function handleWeComCard(frame, {
     return { skipped: false, command: { type: 'process', taskId: parsed.value }, action: { type: 'process' }, reply: text };
   }
 
+  if (parsed.action === 'copy' && parsed.value) {
+    const task = await manager.get(parsed.value).catch(() => null);
+    const text = task ? formatTaskNotify(task, {}, { includeTaskId: false }) : `找不到任务 ${parsed.value}`;
+    await pushText(sendText, source, text, logger);
+    return { skipped: false, command: { type: 'copy', taskId: parsed.value }, action: { type: 'copy', task }, reply: text };
+  }
+
   if (parsed.action === 'feedback' && parsed.value) {
     const task = await manager.get(parsed.value).catch(() => null);
     if (!task || !canControlTask(task, source)) {
       await pushText(sendText, source, '只有任务发起人可以通过此入口补充执行指令。', logger);
       return { skipped: true, reason: 'not-task-owner' };
     }
-    if (task.status !== 'blocked') {
-      await pushText(sendText, source, '任务状态已变化，请点击「查看状态」。', logger);
+    if (!['blocked', 'waiting_user', 'waiting_approval'].includes(task.status)) {
+      const text = Boolean(supportsTemplateCard?.())
+        ? '任务状态已变化，请点击「查看状态」。'
+        : `任务状态已变化，请发送 \`状态 ${parsed.value}\``;
+      await pushText(sendText, source, text, logger);
       return { skipped: true, reason: 'task-not-blocked' };
     }
-    const view = buildTaskPresentation(task);
-    if (pending) pending.set(sessionKey, { type: 'task-feedback', taskId: task.id, revision: taskFeedbackRevision(task) });
-    const text = [view.question, pending
-      ? '请直接回复补充内容，将续接下方任务；发送「取消」退出补充。点击本按钮不会执行或批准提交。'
-      : '请发送 `继续 <对话ID>：<反馈>` 续接任务。', formatTaskFooter(task.id)].join('\n\n');
+      const view = buildTaskPresentation(task);
+      if (pending) pending.set(sessionKey, { type: 'task-feedback', taskId: task.id, revision: taskFeedbackRevision(task) });
+      const text = [view.question, pending
+        ? (supportsTemplateCard?.()
+          ? '请直接回复补充内容，将续接下方任务；发送「取消」退出补充。点击本按钮不会执行或批准提交。'
+          : `请直接回复补充内容，将续接下方任务；发送 \`取消 ${parsed.value}\` 退出补充。`
+        )
+        : '请发送 `继续 <对话ID>：<反馈>` 续接任务。', formatTaskFooter(task.id)].join('\n\n');
     await pushText(sendText, source, text, logger);
     return { skipped: false, action: { type: 'need-feedback', task }, reply: text };
   }
@@ -590,7 +659,9 @@ export async function handleWeComCard(frame, {
       models
     }), manager);
     if (action.type === 'created') pending?.clear(sessionKey);
-    const reply = replyForAction(action, command, { workspaces, config, attachments });
+    const onboarding = ['created', 'workspace-switched'].includes(action.type)
+      ? await projectOnboarding?.suggest(action.workspace ?? action.task?.workspace, sessionKey) : '';
+    const reply = [replyForAction(action, command, { workspaces, config, attachments }), onboarding].filter(Boolean).join('\n\n');
     if (updateCard) {
       try {
         const workspace = action.workspace ?? action.task?.workspace ?? null;
@@ -624,6 +695,11 @@ export async function handleWeComCard(frame, {
 
   logger.warn?.(`wecom-card-event-unknown:${parsed.action ?? 'none'}`);
   return { skipped: true, reason: 'unknown-card-event' };
+}
+
+function clipCardText(value, max = 260) {
+  const text = String(value ?? '').replace(/\s+/g, ' ').trim();
+  return text.length > max ? `${text.slice(0, max)}…` : text;
 }
 
 async function pushText(sendText, source, content, logger) {
@@ -723,9 +799,10 @@ function bindPendingCommand(command, waiting) {
   };
 }
 
-function buildActionContext({ source, config, workspaces, attachments = [], models = null, quote = null, requestTexts = null }) {
+function buildActionContext({ source, config, workspaces, attachments = [], models = null, quote = null, requestTexts = null, agentRouter = null }) {
   const sessionKey = sessionKeyFromSource(source);
   return {
+    agentRouter,
     source,
     requestTexts,
     repository: config?.repository ?? null,
@@ -746,51 +823,24 @@ function buildActionContext({ source, config, workspaces, attachments = [], mode
   };
 }
 
-/**
- * The mention is plain text in the body, not a structured field, so this is all
- * there is to look at. Mixed messages are flattened first because the `@` may
- * sit in a different item than the request.
- */
-function mentionsAnyone(frame) {
-  const body = frame?.body ?? {};
-  const parts = [body.text?.content ?? ''];
-  for (const item of body.mixed?.msg_item ?? []) {
-    if (item?.text?.content) parts.push(item.text.content);
-  }
-  const raw = parts.join(' ').trim();
-  return raw.length === 0 || raw.includes('@');
-}
-
-function withTaskFooter(text, task) {
-  const footer = formatTaskFooter(task?.id, { running: task ? !TERMINAL_TASK.has(task.status) : false });
-  return footer ? `${text}\n\n${footer}` : text;
-}
-
-function cardForAction(action, extras = {}) {
-  if (action.type === 'need-workspace' || action.type === 'workspace-pick') {
-    return buildWorkspacePickerCard(extras.workspaces ?? []);
-  }
-  return null;
+async function resolveStoredProcess(taskId, task, { manager, progress }) {
+  if (!taskId) return `找不到任务 ${taskId} 的过程记录。任务结束后过程会保留一段时间，也可发送 \`状态 ${taskId}\`。`;
+  const cached = progress?.renderProcess?.(taskId);
+  const events = cached ? [] : await manager.events?.(taskId).catch(() => []);
+  return cached || (task && renderStoredProcess(task, events))
+    || `找不到任务 ${taskId} 的过程记录。任务结束后过程会保留一段时间，也可发送 \`状态 ${taskId}\`。`;
 }
 
 function replyForAction(action, command, extras = {}) {
+  if (action.type === 'process') {
+    return extras.processText
+      || '找不到任务过程记录。任务结束后过程会保留一段时间，也可发送 `状态 <任务ID>`。';
+  }
   if (action.type === 'created') {
-    const where = describeTaskWorkspace(action.workspace ?? action.task?.workspace);
-    const kind = action.intent?.label ? ` · ${action.intent.label}` : '';
-    const model = action.task?.model ? ` · ${action.task.model}` : '';
-    const engine = action.task?.provider === 'codex' || action.provider === 'codex' ? ' · Codex' : '';
-    return withAttachments(
-      `**${action.task.id}**${kind}${model}${engine}\n${action.task.requirement}\n${where}`,
-      extras.attachments
-    );
+    return THINKING_TEXT;
   }
   if (action.type === 'continue') {
-    return withAttachments(
-      [`**${action.task.id}** 继续`, action.message, continueNote(action)]
-        .filter(Boolean)
-        .join('\n'),
-      extras.attachments
-    );
+    return THINKING_TEXT;
   }
   if (action.type === 'status') {
     return formatStatusReply(action.task, action.scheduler);
@@ -814,6 +864,29 @@ function replyForAction(action, command, extras = {}) {
     return formatWorkspaceList(extras.workspaces?.list?.() ?? [], extras.workspaces?.getActive?.()?.id);
   }
   return HELP_TEXT;
+}
+
+/**
+ * The mention is plain text in the body, not a structured field, so this is all
+ * there is to look at. Mixed messages are flattened first because the `@` may
+ * sit in a different item than the request.
+ */
+function mentionsAnyone(frame) {
+  const body = frame?.body ?? {};
+  const parts = [body.text?.content ?? ''];
+  for (const item of body.mixed?.msg_item ?? []) {
+    if (item?.text?.content) parts.push(item.text.content);
+  }
+  const raw = parts.join(' ').trim();
+  return raw.length === 0 || raw.includes('@');
+}
+
+function withTaskFooter(text, task, { supportsTemplateCards = true, includeTaskId = true } = {}) {
+  const footer = includeTaskId ? formatTaskFooter(task?.id, {
+    running: task ? !TERMINAL_TASK.has(task.status) : false,
+    supportsTemplateCards
+  }) : '';
+  return footer ? `${text}\n\n${footer}` : text;
 }
 
 /**

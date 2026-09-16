@@ -21,10 +21,14 @@
 import { redactDisplayText } from './logger.js';
 
 export const TASK_RESULT_LABELS = Object.freeze({
-  completed: '✅ 已完成',
-  blocked: '⏸ 等待补充 / 确认',
-  failed: '❌ 执行失败',
-  cancelled: '⛔ 已终止'
+  completed: '已完成',
+  blocked: '等待补充 / 确认',
+  waiting_user: '等待补充信息',
+  waiting_approval: '等待操作授权',
+  partially_blocked: '部分受阻，继续执行',
+  running_with_assumptions: '使用安全默认值执行',
+  failed: '执行失败',
+  cancelled: '已终止'
 });
 
 /** Shared presentation of public output and persisted facts; no model calls. */
@@ -34,17 +38,18 @@ export function buildTaskPresentation(task = {}, event = {}) {
   const status = task.status ?? event.status
     ?? ({ 'task.failed': 'failed', 'task.blocked': 'blocked', 'task.cancelled': 'cancelled' }[event.type])
     ?? 'completed';
-  const rawText = clean(result.text ?? result.execution?.text);
+  const rawText = cleanAgentResult(result.text ?? result.execution?.text);
   const legacy = rawText.split(/\n\s*待处理[：:]\s*/);
-  const summary = clean(outcome.summary) || legacy[0]?.trim() || '';
+  const summary = cleanAgentResult(outcome.summary) || legacy[0]?.trim() || '';
   const remaining = unique(outcome.remainingSteps ?? legacy[1]?.split('\n').map((line) => line.replace(/^\s*[-*•⦁]\s*/, '')) ?? []);
   const error = status === 'completed' ? '' : clean(
     result.deliveryVerification?.error ?? task.error ?? event.error ?? event.reason
   );
+  const infrastructure = isInfrastructureBlock(task.blocker, error || rawText || summary);
   // Blocked task.error often duplicates result.text. A different verification
   // failure must remain visible even if the Agent claimed success.
   const issue = error && error !== rawText && error !== summary ? error : '';
-  const question = status === 'blocked'
+  const question = !infrastructure && ['blocked', 'waiting_user', 'waiting_approval'].includes(status)
     ? remaining.find((step) => /请提供|请补充|请确认|是否|需要你|please (?:provide|confirm)/i.test(step))
       || clean(task.delivery?.gates?.find((gate) => gate.gate === task.delivery?.pendingGate)?.reason)
       || summary.match(/(?:请提供|请补充|请确认)[^\n。！？]*[。！？]?/)?.[0]
@@ -54,12 +59,12 @@ export function buildTaskPresentation(task = {}, event = {}) {
   return {
     taskId: String(task.id ?? event.taskId ?? ''),
     status,
-    label: TASK_RESULT_LABELS[status] ?? status,
+    label: infrastructure ? '运行环境受阻' : TASK_RESULT_LABELS[status] ?? status,
     requirement: requirementLink(task.requirement ?? task.goal),
     summary: (question ? summary.replace(question, '').trim() : summary) || (status === 'completed' ? '任务已完成，但 Agent 未给出文字说明。'
       : status === 'cancelled' ? '任务已终止。' : ''),
     question,
-    issue,
+    issue: issue || (infrastructure ? error || rawText || summary : ''),
     remaining: remaining.filter((step) => step !== question && !summary.includes(step)),
     evidence: unique(outcome.evidence ?? []),
     files: unique((Array.isArray(git.files ?? git.changedFiles ?? git.diffs) ? git.files ?? git.changedFiles ?? git.diffs : [])
@@ -94,7 +99,10 @@ export function renderTaskPresentation(view, { expanded = false, includeSummary 
     parts.push(`改动文件（${view.files.length}）：\n${files.map((file) => `- ${file}`).join('\n')}${files.length < view.files.length ? '\n其余文件见「查看完整过程」。' : ''}`);
   }
   if (view.pr) parts.push(`PR：${view.pr}`);
-  if (view.status === 'blocked') parts.push('点击「补充信息」后回复；也可发送 `继续 <对话ID>：<反馈>`（替换为下方 ID）。');
+  if ((view.status === 'waiting_user' || view.status === 'blocked') && view.question) {
+    parts.push('请发送 `继续 <对话ID>：<反馈>` 补充这一项必要信息；其他可执行步骤已优先处理。');
+  }
+  if (view.status === 'waiting_approval') parts.push('下一步涉及敏感或外部写入操作，请发送 `继续 <对话ID>：允许执行` 明确授权。');
   return parts.filter(Boolean).join('\n\n');
 }
 
@@ -117,6 +125,26 @@ function clip(text, max) {
 
 function clean(value) {
   return redactDisplayText(typeof value === 'string' ? value : value?.message ?? '').trim();
+}
+
+function isInfrastructureBlock(blocker, text) {
+  return blocker?.type === 'environment'
+    || /^(?:codex|cursor)-(?:mcp-startup-failed|cli-not-found|process-error|invalid-timeout|run-timeout|context-budget-exceeded)|mcp.*(?:startup|initialize|认证|连通性)/i
+      .test(String(text ?? '').trim());
+}
+
+/**
+ * Codex/Cursor may include serialized tool events in a terminal text payload.
+ * They belong to the process channel, never to the user-facing conclusion.
+ * Remove whole tool paragraphs while preserving the Agent's following result.
+ */
+export function cleanAgentResult(value) {
+  const text = clean(value);
+  if (!text) return '';
+  return text.split(/\n\s*\n/)
+    .filter((paragraph) => !/^(?:command|shell|tool(?:_call)?)(?:\s|:)/i.test(paragraph.trim()))
+    .join('\n\n')
+    .trim();
 }
 
 function unique(values) {

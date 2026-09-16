@@ -26,6 +26,7 @@ import { isNewWork } from './intent.js';
 import { scanTaskId } from './quote.js';
 import { scratchPrompt } from './scratch.js';
 import { normalizeUsage } from '../../../src/llm/usage.js';
+import { recordInvocationSafely } from '../../../src/telemetry/index.js';
 
 export const INTENT_KINDS = Object.freeze(['code', 'analysis', 'question', 'followup']);
 
@@ -309,6 +310,7 @@ export function createIntentAnalyzer({
   fetchImpl = globalThis.fetch,
   importSdk = null,
   selectModel = null,
+  metricStore = null,
   now = () => Date.now()
 } = {}) {
   const enabled = settings.enabled !== false;
@@ -321,6 +323,8 @@ export function createIntentAnalyzer({
       apiKeyEnv: settings.apiKeyEnv ?? 'AAFE_LLM_API_KEY',
       maxOutputTokens: settings.maxOutputTokens ?? 256,
       tokenBudget: settings.tokenBudget ?? 4096,
+      metricStore,
+      telemetry: { source: 'wecom', operation: 'intent', provider: 'openai-compatible' },
       onUsage: (usage) => logger.event?.('llm.usage', { stage: 'intent', ...usage }),
       timeoutMs
     }, { fetchImpl, env })
@@ -344,7 +348,12 @@ export function createIntentAnalyzer({
     const result = await http.chatJson([
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: JSON.stringify(payload) }
-    ]);
+    ], {
+      telemetryFromResult: (response) => {
+        const parsed = response.status === 'success' ? parseIntent(response.content) : null;
+        return parsed ? { route: parsed.kind, routeConfidence: parsed.confidence } : {};
+      }
+    });
     if (result.status !== 'success') throw new Error(result.reason ?? 'llm-failed');
     return result.data ?? result.content;
   }
@@ -364,7 +373,7 @@ export function createIntentAnalyzer({
     );
     if (result?.status && result.status !== 'finished') throw new Error(`cursor-prompt-${result.status}`);
     logger.event?.('llm.usage', { stage: 'intent', model, usage: normalizeUsage(result?.usage ?? result?.metrics) });
-    return result?.result ?? '';
+    return { raw: result?.result ?? '', usage: result?.usage ?? result?.metrics, model };
   }
 
   return {
@@ -394,11 +403,18 @@ export function createIntentAnalyzer({
       };
       const startedAt = now();
       try {
-        const raw = await withTimeout(
+        const response = await withTimeout(
           backend === 'llm' ? callHttp(payload) : callCursor(payload),
           timeoutMs
         );
+        const raw = backend === 'cursor' ? response.raw : response;
         const parsed = parseIntent(raw);
+        if (backend === 'cursor') {
+          await recordInvocationSafely(metricStore, { source: 'wecom', provider: 'cursor',
+            model: response.model, operation: 'intent', usage: response.usage, startedAt,
+            success: Boolean(parsed), route: parsed?.kind, routeConfidence: parsed?.confidence,
+            errorCode: parsed ? null : 'intent-unparsable' });
+        }
         if (!parsed) return { ...fallback, reason: 'intent-unparsable' };
         return { ...parsed, source: backend, elapsedMs: now() - startedAt };
       } catch (error) {

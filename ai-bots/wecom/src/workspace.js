@@ -21,6 +21,20 @@
 import { access } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { normalizeUrlRole } from '../../../src/testing/e2e/config.js';
+
+function workspaceE2e(raw) {
+  if (!raw?.baseUrl) return {};
+  const baseUrl = String(raw.baseUrl).trim();
+  let url;
+  try { url = new URL(baseUrl); } catch { throw new Error('workspace.e2e.baseUrl must be an absolute HTTP(S) URL'); }
+  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) {
+    throw new Error('workspace.e2e.baseUrl must be HTTP(S) without embedded credentials');
+  }
+  const urlRole = normalizeUrlRole(raw.urlRole ?? 'template');
+  if (!urlRole) throw new Error('workspace.e2e.urlRole must be target, origin or template');
+  return { e2e: { baseUrl, urlRole } };
+}
 
 export function parseWorkspaces(raw, { root, repository, baseBranch } = {}) {
   const list = [];
@@ -62,13 +76,14 @@ export function normalizeWorkspace(raw, { root, index = 0 } = {}) {
     name: nonEmpty(raw.name ?? raw.title) ?? (cwd ? path.basename(cwd) : repository),
     cwd,
     repository,
+    ...workspaceE2e(raw.e2e),
     baseBranch: nonEmpty(raw.baseBranch ?? raw.branch) ?? 'main'
   }, root);
 }
 
-export function createWorkspaceStore(config = {}, { persistCurrent } = {}) {
+export function createWorkspaceStore(config = {}, { persistCurrent, refreshConfig } = {}) {
   const root = path.resolve(config.root ?? process.cwd());
-  const workspaces = parseWorkspaces(config.workspaces, {
+  let workspaces = parseWorkspaces(config.workspaces, {
     root,
     repository: config.repository,
     baseBranch: config.baseBranch
@@ -84,6 +99,16 @@ export function createWorkspaceStore(config = {}, { persistCurrent } = {}) {
 
   return {
     root,
+    async refresh() {
+      if (!refreshConfig) return false;
+      const next = await refreshConfig();
+      if (!Array.isArray(next?.workspaces)) return false;
+      const parsed = parseWorkspaces(next.workspaces, { root, baseBranch: config.baseBranch });
+      if (JSON.stringify(parsed) === JSON.stringify(workspaces)) return false;
+      workspaces = parsed;
+      if (!find(currentId)) currentId = pickCurrentId(workspaces, next.currentWorkspace);
+      return true;
+    },
     list: () => [...workspaces],
     hasConfigured: () => workspaces.length > 0,
     getActive(conversationId) {
@@ -194,7 +219,8 @@ export function toTaskWorkspace(workspace, root) {
       cwd,
       repository: workspace.repository,
       baseBranch: workspace.baseBranch ?? 'main',
-      mode: 'cloud'
+      mode: 'cloud',
+      ...workspaceE2e(workspace.e2e)
     };
   }
   return {
@@ -203,7 +229,8 @@ export function toTaskWorkspace(workspace, root) {
     cwd,
     repository: null,
     baseBranch: workspace.baseBranch ?? 'main',
-    mode: 'local'
+    mode: 'local',
+    ...workspaceE2e(workspace.e2e)
   };
 }
 
@@ -215,7 +242,8 @@ function toWorkspace(input, root) {
     cwd,
     repository: input.repository ?? null,
     baseBranch: input.baseBranch ?? 'main',
-    mode: input.repository ? 'cloud' : 'local'
+    mode: input.repository ? 'cloud' : 'local',
+    ...workspaceE2e(input.e2e)
   };
 }
 

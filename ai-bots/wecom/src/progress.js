@@ -20,7 +20,6 @@
 
 import { describeWeComError } from './logger.js';
 import { buildTaskPresentation } from './presentation.js';
-import { buildTaskCard } from './cards.js';
 import { notifyTargetFromSource, sourceFromFrame } from './session.js';
 import {
   buildAgentUIState,
@@ -42,12 +41,13 @@ const STATUS = {
   'cursor.agent.created': { status: 'created' },
   'cursor.agent.resumed': { status: 'created' },
   'task.cursor.bound': { status: 'created' },
-  'cursor.run.started': { status: 'thinking' },
-  'cursor.run.recovered': { status: 'thinking' },
+  'cursor.run.started': { status: 'thinking', log: 'Agent 已开始执行' },
+  'cursor.run.recovered': { status: 'thinking', log: '已恢复 Agent 执行' },
   'cursor.run.completed': { status: 'thinking' },
   'task.followup.queued': { status: 'thinking', log: '已收到补充' },
   'task.followup.pending': { status: 'thinking', log: '即将开始下一轮' },
   'task.blocked': { status: 'blocked', log: '被阻塞' },
+  'task.partially_blocked': { status: 'partially_blocked', log: '部分步骤受阻，继续执行其余步骤' },
   'task.failed': { status: 'failed', log: '失败' },
   'task.cancelled': { status: 'canceled', log: '已取消' }
 };
@@ -74,11 +74,11 @@ const PUSH_MAX_BYTES = 3_000;
 const STREAM_EXPIRED_ERRCODE = 846608;
 
 /**
- * A WeCom stream reply is plain markdown text with no spinner element, so the
- * loading effect has to come from swapping characters between refreshes. Frames
- * stay ASCII plus one emoji so every client renders them instead of tofu.
+ * A WeCom stream reply is plain markdown text with no spinner element. Keep
+ * the visible status text steady; motion and decorative emoji make the bot feel
+ * less like the Codex agent output users expect.
  */
-const DANCE_FRAMES = ['(>🐧)>', '^(🐧)^', '<(🐧<)', '^(🐧)^'];
+const DANCE_FRAMES = [''];
 
 export function danceFrame(tick = 0) {
   const frames = DANCE_FRAMES.length;
@@ -87,6 +87,29 @@ export function danceFrame(tick = 0) {
 }
 
 export function formatProgressEvent(event = {}) {
+  // The unified channel rewrites the provider's `*.run.started` into this
+  // event, and the notifier drops the original on the legacy channel. The
+  // message therefore has to be produced here: without it a run that has not
+  // called a tool yet renders as a bare "思考中" with nothing under it.
+  if (event.type === 'execution.started') {
+    return { kind: 'status', text: 'thinking', log: 'Agent 已开始执行' };
+  }
+  if (event.type === 'thinking.delta') {
+    const text = eventText(event.payload);
+    return text ? { kind: 'thinking', text } : null;
+  }
+  if (event.type === 'message.delta') {
+    const text = eventText(event.payload);
+    return text ? { kind: 'assistant', text, messageId: event.payload?.messageId } : null;
+  }
+  if (event.type === 'tool.started') {
+    const tools = event.payload?.tools ?? (event.payload?.tool
+      ? [{ name: event.payload.tool, detail: event.payload.detail ?? '' }] : []);
+    return tools.length ? { kind: 'tool', tools } : null;
+  }
+  if (['execution.completed', 'execution.failed', 'execution.cancelled'].includes(event.type)) {
+    return { kind: 'terminal', type: event.type };
+  }
   const type = event.type?.replace(/^codex\./, 'cursor.').replace(/^task\.codex\./, 'task.cursor.');
   if (!type) return null;
   if (TERMINAL.has(type)) return { kind: 'terminal', type, ...(type === 'task.blocked' ? { log: '被阻塞' } : {}) };
@@ -103,6 +126,12 @@ export function formatProgressEvent(event = {}) {
   return null;
 }
 
+/**
+ * The one view both channels render. WeCom's stream body exposes a single
+ * `content` field, so status line, recent thinking steps, current output and
+ * eventually the result all live in this document and are refreshed in place;
+ * the pushed-message channel reuses it so the two surfaces never disagree.
+ */
 export function renderProgressView({
   header,
   transcript = [],
@@ -116,7 +145,11 @@ export function renderProgressView({
   // as a stray character instead of reading as motion.
   animate = true,
   expanded = false,
-  maxBytes = MAX_BYTES
+  maxBytes = MAX_BYTES,
+  supportsTemplateCards = true,
+  // Only a streaming reply renders `<think>` as a collapsible area; a pushed
+  // markdown message would show the tag as literal text.
+  thinkTag = false
 } = {}) {
   const dancing = animate && !finished && status !== 'canceling' && status !== 'canceled'
     && status !== 'completed' && status !== 'failed' && status !== 'blocked';
@@ -128,14 +161,16 @@ export function renderProgressView({
     finished,
     expanded,
     taskId,
-    presentation
-  })), maxBytes);
+    presentation,
+    supportsTemplateCards,
+    thinkTag
+  }), { thinkTag }), maxBytes);
 }
 
 export function createWeComProgressHub({
   replyProgress,
-  replyCard,
   pushMessage,
+  supportsTemplateCard = () => true,
   logger = console,
   now = () => Date.now(),
   textFlushMs = TEXT_FLUSH_MS,
@@ -194,7 +229,9 @@ export function createWeComProgressHub({
       tick: session.tick,
       taskId: session.taskId,
       presentation: session.presentation,
-      animate: danceMs > 0
+      animate: danceMs > 0,
+      supportsTemplateCards: Boolean(supportsTemplateCard?.()),
+      thinkTag: true
     });
     capture(session, { finished: finish });
     if (!finish) session.tick += 1;
@@ -246,7 +283,8 @@ export function createWeComProgressHub({
       animate: false,
       taskId: session.taskId,
       presentation: session.presentation,
-      maxBytes: PUSH_MAX_BYTES
+      maxBytes: PUSH_MAX_BYTES,
+      supportsTemplateCards: Boolean(supportsTemplateCard?.())
     });
     capture(session, { finished: finish });
     session.updatedAt = ts;
@@ -285,7 +323,8 @@ export function createWeComProgressHub({
       finished: false,
       animate: false,
       taskId: session.taskId,
-      presentation: session.presentation
+      presentation: session.presentation,
+      supportsTemplateCards: Boolean(supportsTemplateCard?.())
     });
     capture(session, { finished: false });
     try {
@@ -399,7 +438,8 @@ export function createWeComProgressHub({
         animate: false,
         taskId: snap.taskId,
         presentation: snap.presentation,
-        maxBytes: MAX_BYTES
+        maxBytes: MAX_BYTES,
+        supportsTemplateCards: Boolean(supportsTemplateCard?.())
       });
     },
     async tick() {
@@ -413,6 +453,20 @@ export function createWeComProgressHub({
       session.lastEventAt = now();
       if (item.kind === 'terminal') {
         const finalTask = task ?? event.task ?? { id: event.taskId, status: event.status };
+        const terminalText = [
+          event?.payload?.content,
+          event?.payload?.text,
+          finalTask?.result?.text,
+          finalTask?.result?.content,
+          finalTask?.blocker?.question,
+          finalTask?.blocker?.message,
+          finalTask?.error?.message,
+          typeof finalTask?.error === 'string' ? finalTask.error : null
+        ].find((value) => typeof value === 'string' && value.trim());
+        // Keep the terminal result separate from the last public commentary.
+        // The result is rendered in its own section and must not swallow the
+        // final progress sentence when buildAgentUIState omits it there.
+        if (terminalText) appendBlock(session, { kind: 'assistant', text: terminalText, messageId: 'terminal' });
         session.presentation = buildTaskPresentation(finalTask, event);
         session.status = session.presentation.status;
         const delivered = await flushSession(session, {
@@ -421,10 +475,8 @@ export function createWeComProgressHub({
           // message, and it carries the files, PR and media this view does not.
           handoff: true
         });
-        if (delivered && replyCard) {
-          try { await replyCard(session.frame, buildTaskCard({ ...finalTask, status: session.status })); }
-          catch (error) { logger.warn?.(`wecom-final-card-failed:${event.taskId}:${describeWeComError(error)}`); }
-        }
+        // The initial controls card is intentionally not recreated here.
+        // Terminal content is delivered as selectable native text.
         return delivered;
       }
       if (item.kind === 'status') {
@@ -444,7 +496,7 @@ export function createWeComProgressHub({
       if (item.kind === 'thinking' || item.kind === 'assistant') {
         if (session.status === 'created') session.status = 'thinking';
         const last = session.transcript[session.transcript.length - 1];
-        const same = last?.kind === item.kind;
+        const same = last?.kind === item.kind && (!item.messageId || last.messageId === item.messageId);
         mergeTextBlock(session, item);
         session.updatedAt = now();
         if (!same || now() - session.lastFlushAt >= textFlushMs) return flushSession(session);
@@ -479,15 +531,7 @@ export function createWeComProgressHub({
     },
     async close() {
       clearInterval(timer);
-      for (const session of [...sessions.values()]) {
-        session.status = 'blocked';
-        session.presentation = buildTaskPresentation({ id: session.taskId, status: 'blocked',
-          result: { text: '机器人进程退出，本轮未完成。重启后请查询状态，再决定是否继续。' } });
-        await flushSession(session, {
-          finish: true,
-          footer: `机器人进程退出，本轮未完成。重启后会标记为中断，发送 \`继续 ${session.taskId}\` 可恢复。`
-        });
-      }
+      sessions.clear();
     }
   };
 }
@@ -527,7 +571,8 @@ export function renderStoredProcess(task, events = []) {
   const finished = ['completed', 'failed', 'blocked', 'cancelled'].includes(task.status);
   return renderProgressView({ transcript: snapshot.transcript, status: task.status,
     presentation: finished ? buildTaskPresentation(task) : null,
-    taskId: task.id, finished, expanded: true, animate: false });
+    taskId: task.id, finished, expanded: true, animate: false,
+    supportsTemplateCards: true });
 }
 
 const STREAM_STOP_NOTICE = '实时进度已到企微 10 分钟上限，且无法继续推送。请发送 `状态` 查询；完成后如可推送会再通知。';
@@ -609,6 +654,15 @@ function extractTextFromPayload(payload) {
     .filter((block) => block?.type === 'text' && block.text)
     .map((block) => block.text)
     .join('');
+}
+
+/**
+ * A unified `thinking.delta` carries its text under `thinking`, not `text`.
+ * Reading only `text`/`content` therefore dropped every reasoning chunk, which
+ * is why the collapsible block had nothing but tool summaries in it.
+ */
+function eventText(payload = {}) {
+  return String(payload?.text ?? payload?.content ?? payload?.thinking ?? '').trim();
 }
 
 function toolDetail(tool) {

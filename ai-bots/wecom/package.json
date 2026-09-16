@@ -11,14 +11,18 @@
     ".": "./src/index.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=24.21.0 <25"
   },
   "scripts": {
+    "project:init": "node ../../bin/aafe.js bot project init --wecom --root=../..",
+    "playwright:install": "playwright install chromium",
     "start": "node ../../bin/aafe.js bot start --wecom --root=../..",
-    "dev": "WECOM_LOG=1 WECOM_LOG_LEVEL=debug node --watch ../../bin/aafe.js bot start --wecom --root=../..",
+    "dev": "WECOM_LOG=1 WECOM_LOG_LEVEL=debug node --watch-path=src --watch-path=../../src ../../bin/aafe.js bot start --wecom --root=../..",
     "check:models": "node ../../bin/aafe.js wecom --check-models --root=../.."
   },
   "dependencies": {
-    "@wecom/aibot-node-sdk": "^1.0.7"
+    "@playwright/test": "^1.63.0",
+    "@wecom/aibot-node-sdk": "^1.0.7",
+    "playwright": "^1.63.0"
   }
 }
