@@ -86,7 +86,7 @@ const hub = createWeComProgressHub({
   replyCard: async (_frame, card) => { cards.push(card); },
   now: () => clock, heartbeatMs: 1000, textFlushMs: 0, stallMs: 0
 });
-hub.open({ taskId: task.id, frame, streamId: 'stream-ui', header: task.id + ' 继续\n旧需求不应重复' });
+hub.open({ taskId: task.id, frame, streamId: 'stream-ui', header: '> **alice：**\n> 本次任务原始消息' });
 await hub.handle({ taskId: task.id, type: 'codex.run.started' });
 clock += 1001;
 await hub.tick();
@@ -107,7 +107,8 @@ await hub.handle({ type: 'task.finished', taskId: task.id, status: 'blocked' }, 
 const final = frames.at(-1).content;
 assert.equal(frames.at(-1).finish, true);
 assert.match(final, /等待浏览器验证/);
-assert.doesNotMatch(final, /执行失败|最终结论|旧需求不应重复/);
+assert.match(final, /^> \*\*alice：\*\*[\s\S]*本次任务原始消息/);
+assert.doesNotMatch(final, /执行失败|最终结论/);
 assert.equal(final.split(summary).length - 1, 1);
 // A blocked task is resumed with `继续 <对话ID>：<反馈>`, so the finished view
 // has to carry a copyable id rather than only the placeholder in the prompt.
@@ -128,7 +129,7 @@ const restored = renderStoredProcess(task, events);
 assert.match(restored, /测试命令已经启动/);
 assert.match(restored, /正在定位 Space/);
 assert.doesNotMatch(restored, /command \/bin\/zsh|Shell npm test/);
-assert.doesNotMatch(restored.split('**最终结果**')[0], /npm test/);
+assert.doesNotMatch(restored.split('**结论**')[0], /npm test/);
 assert.doesNotMatch(restored, /上一轮旧记录|另一段内部推理/);
 const pending = createPendingStore();
 const continued = [], replies = [];
@@ -205,7 +206,7 @@ attachWeComNotifier({ manager: { subscribe(callback) { notify = callback; return
 await notify({ type: 'task.blocked', taskId: task.id, task: longTask });
 assert.ok(pushed.length > 1);
 assert.ok(pushed.every((page) => Buffer.byteLength(page) <= 3000));
-assert.match(pushed.join(''), /最终结果/);
+assert.match(pushed.join(''), /结论/);
 assert.match(pushed.join(''), /这是很长的公开结论/);
 assert.doesNotMatch(pushed.join(''), /任务操作|command \/bin\/zsh/);
 assert.equal(notifyErrors.length, 0, '终态只推送原生正文，不再尝试模板卡片');

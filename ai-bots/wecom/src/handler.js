@@ -47,7 +47,7 @@ export const REUSE_ANALYSIS_TEXT = '这是对上一轮结论的后续指令。�
 const INTENT_ACK_GRACE_MS = 150;
 const PENDING = Symbol('intent-pending');
 
-export const THINKING_TEXT = '处理中';
+export const THINKING_TEXT = '<think>\n正在分析任务并准备执行。';
 
 const CONTROL_TYPES = new Set([
   'help',
@@ -106,7 +106,7 @@ export async function handleWeComMessage(frame, {
   // model/Agent routing. This is the transport ACK users are waiting for; the
   // same message is updated in place once a meaningful stage is available.
   if (agentDirect || (!CONTROL_TYPES.has(parsed.type) && parsed.type !== 'ack')) {
-    await stream.push(THINKING_TEXT);
+    await stream.push(`${formatTaskSource(frame, source)}\n\n${THINKING_TEXT}`);
   }
 
   // WeCom only pushes group messages that @ the bot, so this is a second line
@@ -302,7 +302,7 @@ export async function handleWeComMessage(frame, {
       taskId: action.task.id,
       frame,
       streamId,
-      header: ''
+      header: formatTaskSource(frame, source)
     });
   }
 
@@ -363,6 +363,19 @@ export async function handleWeComMessage(frame, {
     streamId
   });
   return { skipped: false, command, action, intent: command.intent ?? null, reply: ack };
+}
+
+function formatTaskSource(frame, source) {
+  const text = stripMentions(frame?.body?.text?.content ?? '').trim();
+  const media = text ? '' : mediaRequirement(parseWeComMedia(frame));
+  const content = clipTaskSource(text || media || '用户提交的任务');
+  const author = String(source?.userId ?? '用户').trim() || '用户';
+  return [`> **${author}：**`, ...content.split('\n').map((line) => `> ${line}`)].join('\n');
+}
+
+function clipTaskSource(value, max = 800) {
+  const text = String(value ?? '').trim();
+  return text.length > max ? `${text.slice(0, max)}…` : text;
 }
 
 async function analyzeIntent(command, { understanding, manager, source, attachments, quote, logger }) {

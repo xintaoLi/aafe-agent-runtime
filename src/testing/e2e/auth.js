@@ -300,7 +300,10 @@ export async function prepareE2eAuth({
 
   // A configured MCP is the preferred authenticated path, even if a local
   // manual-login cache exists. A failed MCP must not silently change identity.
-  if (tokenServer) return prepareTokenAuth(config, tokenServer);
+  if (tokenServer) {
+    console.error('E2E 认证：已匹配 Get Token MCP，正在获取登录凭证并注入目标域 Cookie。');
+    return prepareTokenAuth(config, tokenServer);
+  }
 
   if (hasState) {
     try {

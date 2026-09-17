@@ -28,7 +28,7 @@ import { renderTaskPresentation } from './presentation.js';
 import { redactDisplayText } from './logger.js';
 
 export const THINKING_PREVIEW_LIMIT = 3;
-export const RESULT_HEADING = '最终结果';
+export const RESULT_HEADING = '结论';
 
 export const AGENT_UI_STATUS = Object.freeze({
   created: { id: 'created', label: '准备任务' },
@@ -124,7 +124,8 @@ export function buildAgentUIState({
   // Streaming views drive WeCom's native `<think>` block, which is where the
   // provider's real reasoning belongs. Without this the block only ever held
   // tool names, because the reasoning was filtered out before rendering.
-  thinkTag = false
+  thinkTag = false,
+  thinkClosed = finished
 } = {}) {
   const uiStatus = resolveAgentUiStatus({ status, transcript, finished });
   // The last assistant text appears as the live update or final result, not
@@ -133,13 +134,16 @@ export function buildAgentUIState({
   const lastText = String(transcript[lastAssistant]?.text ?? '').trim();
   const duplicatesResult = Boolean(presentation?.summary)
     && (presentation.summary.includes(lastText) || lastText.includes(presentation.summary));
-  const omitLast = finished ? !presentation || duplicatesResult : !expanded;
+  const omitLast = finished ? !presentation || duplicatesResult : (!expanded && !thinkTag);
   const activity = transcript.filter((block, index) => !omitLast || index !== lastAssistant);
-  const steps = collectThinkingSteps(activity, {
+  const collected = collectThinkingSteps(activity, {
     expanded,
-    includeProviderThinking: thinkTag,
+    // Raw provider chain-of-thought is never user-facing. The native section
+    // contains public Agent commentary plus redacted tool summaries.
+    includeProviderThinking: false,
     fullText: thinkTag
   });
+  const steps = thinkTag ? compactThinkingSteps(collected) : collected;
   const preview = getThinkingPreview(steps.map((step) => step.summary));
   return {
     taskId: String(taskId ?? ''),
@@ -153,20 +157,23 @@ export function buildAgentUIState({
       expanded: Boolean(expanded),
       total: steps.length
     },
-    current: finished || expanded || uiStatus === 'canceling' ? '' : lastAssistantClip(transcript),
+    current: finished || expanded || thinkTag || uiStatus === 'canceling' ? '' : lastAssistantClip(transcript),
     result: finished && uiStatus !== 'canceled'
       ? buildResult({ uiStatus, transcript, footer, taskId })
       : null,
     header: header || '',
     footer: finished ? stripDuplicateConclusion(footer) : footer,
     transcript,
+    thinkTag: Boolean(thinkTag),
+    thinkClosed: Boolean(thinkClosed),
     finished: Boolean(finished)
   };
 }
 
 export function renderAgentUI(state, { thinkTag = false } = {}) {
   const parts = [];
-  if (shouldShowStatusLine(state)) parts.push(`**${state.label}**`);
+  if (state.header) parts.push(state.header);
+  if (shouldShowStatusLine(state) && !thinkTag) parts.push(`**${state.label}**`);
 
   const thinking = renderThinkingSection(state, { thinkTag });
   if (thinking) parts.push(thinking);
@@ -286,7 +293,35 @@ function renderThinkingSection(state, { thinkTag = false } = {}) {
   // offers: standard markdown has no fold syntax and `<details>` is not parsed.
   // It must be spelled exactly `<think>` — the similar `<thinking>` is not
   // recognised and its content is dropped by the client.
-  return thinkTag ? `<think>\n${body}\n</think>` : asQuotedSection(body, thinking.expanded);
+  // WeCom shows "正在思考" only while the native element remains open.
+  // Therefore a live frame must end at the thinking block: no footer or answer
+  // may follow it. The terminal frame closes the block before rendering the
+  // conclusion and conversation id.
+  return thinkTag
+    ? `<think>\n${body}${state.thinkClosed ? '\n</think>' : ''}`
+    : asQuotedSection(body, thinking.expanded);
+}
+
+function compactThinkingSteps(steps) {
+  const toolCounts = new Map();
+  const narrative = [];
+  for (const step of steps) {
+    const text = String(step?.summary ?? '').trim();
+    if (!text) continue;
+    if (step.kind === 'tool') {
+      toolCounts.set(text, (toolCounts.get(text) ?? 0) + 1);
+      continue;
+    }
+    if (narrative.at(-1)?.summary === text) continue;
+    narrative.push(step);
+  }
+  const toolSummary = [...toolCounts.entries()].map(([summary, count]) => ({
+    kind: 'tool',
+    summary: count > 1 ? `${summary}（${count} 次）` : summary
+  }));
+  // Keep the current Agent explanation readable and summarize mechanical
+  // activity instead of emitting dozens of alternating Read/Grep lines.
+  return [...narrative.slice(-5), ...toolSummary.slice(-5)];
 }
 
 /** Pushed markdown messages are not stream replies; keep the quoted form there. */
@@ -345,19 +380,9 @@ function shouldShowStatusLine(state) {
  * user cannot see is worse than one line of copyable fallback.
  */
 function appendTaskMeta(parts, state, { running = false } = {}) {
-  if (state.footer && !state.finished) {
-    parts.push(`---\n${state.footer}`);
-  }
-  if (state.finished && state.footer) return;
+  if (running && state.thinkTag && !state.thinkClosed) return;
   if (!state.taskId) return;
-  const id = state.taskId;
-  const lines = [`对话 ID：\`${id}\``];
-  if (running) {
-    lines.push(state.thinking?.supportsTemplateCards
-      ? '展开或停止请点消息下方按钮；也可发送 `终止 ' + id + '`'
-      : '任务执行中：发送 `终止 ' + id + '` 可中止任务；发送 `查看完整过程 ' + id + '` 查看进展。');
-  }
-  parts.push(`---\n${lines.join('\n')}`);
+  parts.push(`---\n对话 ID：\`${state.taskId}\``);
 }
 
 function summarizeTool(name) {

@@ -61,18 +61,7 @@ export function formatTaskFooter(taskId, {
 } = {}) {
   const id = String(taskId ?? '').trim();
   if (!id) return '';
-  const lines = [`对话 ID：\`${id}\``];
-  // Stream markdown cannot host a callback. The clickable controls are the
-  // template-card buttons under the message; the typed command is the fallback
-  // when the combined stream+card frame was rejected.
-  if (running) {
-    if (supportsTemplateCards) {
-      lines.push(`展开或停止请点消息下方按钮；也可发送 \`终止 ${id}\``);
-    } else {
-      lines.push(`任务执行中：发送 \`终止 ${id}\` 可中止任务；发送 \`查看完整过程 ${id}\` 查看更多进展。`);
-    }
-  }
-  return lines.join('\n');
+  return `对话 ID：\`${id}\``;
 }
 
 export function formatStatusReply(task, scheduler = null) {
@@ -191,7 +180,13 @@ export function attachWeComNotifier({
 export function nativeAgentResult(task, event = {}) {
   const view = buildTaskPresentation(task, event);
   const content = renderTaskPresentation(view);
-  return content ? `**最终结果**\n${content}` : '';
+  if (!content) return '';
+  const request = String(task?.requirement ?? task?.goal ?? '').trim();
+  const author = String(task?.source?.userId ?? '用户').trim() || '用户';
+  const source = request
+    ? [`> **${author}：**`, ...request.split('\n').map((line) => `> ${line}`)].join('\n')
+    : '';
+  return [source, `**结论**\n${content}`, formatTaskFooter(task?.id)].filter(Boolean).join('\n\n');
 }
 
 async function sendResultMedia(task, {

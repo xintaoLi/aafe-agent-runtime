@@ -57,6 +57,7 @@ import {
   createTaskManagerOptions,
   loadWeComBotConfig,
   resolveWeComIntentConfig,
+  resolveWeComLlmConfig,
   resolveWeComModelConfig,
   resolveWeComRepoConfig,
   resolveWeComTapdConfig
@@ -75,7 +76,7 @@ import { createWeComLogger, resolveWeComLogConfig, sanitizeLogValue } from '../a
 import { inferMediaType, mediaRequirement, parseWeComMedia } from '../ai-bots/wecom/src/media.js';
 import { createMessageDedup } from '../ai-bots/wecom/src/dedup.js';
 import { createWeComGateway } from '../ai-bots/wecom/src/gateway.js';
-import { handleWeComMessage, REUSE_ANALYSIS_TEXT } from '../ai-bots/wecom/src/handler.js';
+import { handleWeComMessage, REUSE_ANALYSIS_TEXT, THINKING_TEXT } from '../ai-bots/wecom/src/handler.js';
 import { HELP_TEXT, IDENTITY_TEXT, WELCOME_TEXT } from '../ai-bots/wecom/src/help.js';
 import {
   attachWeComNotifier,
@@ -520,7 +521,8 @@ const handled = await handleWeComMessage({
   dedup: createMessageDedup()
 });
 assert.equal(handled.action.type, 'created');
-assert.equal(replies[0], '处理中');
+assert.equal(replies[0].endsWith(THINKING_TEXT), true);
+assert.match(replies[0], /^> \*\*user-a：\*\*/);
 assert.equal(ackFinishes[0], false);
 // WeCom renders a template card as its own separate message, so a task panel
 // can never sit at the bottom of the running one. No card is sent at all; the
@@ -528,8 +530,8 @@ assert.equal(ackFinishes[0], false);
 assert.equal(opened.some((item) => item.card), false);
 assert.equal(replies[0].includes(handled.action.task.id), false);
 const openedSession = opened.find((item) => item.taskId);
-// The header the live view reuses stays free of the footer it appends itself.
-assert.equal(openedSession.header, '');
+// Every live and terminal frame keeps the originating request at the top.
+assert.match(openedSession.header, /^> \*\*user-a：\*\*[\s\S]*增加手机号搜索/);
 assert.equal(openedSession.taskId, handled.action.task.id);
 assert.equal(openedSession.streamId, 'stream-create');
 await delay(10);
@@ -594,7 +596,7 @@ assert.equal(tapdHandled.action.task.taskBranch, null);
 assert.equal(tapdHandled.action.task.context.tapd.enabled, true);
 assert.equal(tapdHandled.action.task.context.tapd.association.shortId, '137887277');
 assert.equal(tapdHandled.action.task.context.tapd.association.entryType, 'story');
-assert.equal(tapdReplies[0], '处理中');
+assert.equal(tapdReplies[0].endsWith(THINKING_TEXT), true);
 await delay(10);
 assert.deepEqual(tapdStarted, [tapdHandled.action.task.id]);
 
@@ -657,7 +659,7 @@ assert.equal(latestFollow.action.task.id, 'task-stale-running');
 assert.equal(latestFollow.action.anchor, 'active');
 // An implicit target is stated with the way to change it, so a wrong guess
 // surfaces on the next message instead of inside the agent's report.
-assert.equal(latestFollow.reply, '处理中');
+assert.equal(latestFollow.reply.endsWith(THINKING_TEXT), true);
 
 // Naming it explicitly still resumes it.
 const explicitFollow = await handleWeComMessage({
@@ -727,7 +729,7 @@ assert.equal(squashDecision.action.anchor, 'recent');
 assert.equal(squashDecision.intent.kind, 'followup');
 assert.equal(squashDecision.intent.action, 'apply');
 assert.equal(squashDecision.intent.source, 'rules-fast');
-assert.equal(squashDecision.reply, '处理中');
+assert.equal(squashDecision.reply.endsWith(THINKING_TEXT), true);
 assert.equal(justAnalysed.continues.length, 1);
 assert.match(justAnalysed.continues[0].message, new RegExp(REUSE_ANALYSIS_TEXT));
 assert.match(justAnalysed.continues[0].message, /全部 squash 成1个/);
@@ -930,7 +932,7 @@ const byText = await handleWeComMessage({
 });
 assert.equal(byText.action.task.id, 'task-20260903124651-e441a17b');
 assert.equal(byText.action.via, 'requirement-match');
-assert.equal(byText.reply, '处理中');
+assert.equal(byText.reply.endsWith(THINKING_TEXT), true);
 
 // A quote that matches nothing degrades to normal routing rather than binding
 // to a task by accident.
@@ -1015,7 +1017,7 @@ assert.equal(bystanderQuote.action.type, 'continue');
 assert.equal(bystanderQuote.action.task.id, 'task-20260904100000-aaaabbbb');
 assert.equal(bystanderQuote.action.actorRole, 'participant');
 assert.equal(bystanderQuote.action.ownerId, 'user-a');
-assert.equal(bystanderQuote.reply, '处理中');
+assert.equal(bystanderQuote.reply.endsWith(THINKING_TEXT), true);
 assert.deepEqual(anchorGroup.continues.at(-1).options.author, { userId: 'user-b', role: 'participant' });
 
 // Without that reference the same words are refused: an implicit reply must
@@ -1498,7 +1500,7 @@ await handleWeComMessage({
 });
 await delay(10);
 assert.equal(alreadyActiveFailed.length, 0);
-assert.equal(alreadyActiveReplies[0], '处理中');
+assert.equal(alreadyActiveReplies[0].endsWith(THINKING_TEXT), true);
 
 const newDuringOpen = await handleWeComMessage({
   ...textFrame,
@@ -1769,7 +1771,7 @@ assert.match(
   /错误：boom/
 );
 assert.equal(formatTaskFooter('task-1'), '对话 ID：`task-1`');
-assert.equal(formatTaskFooter('task-1', { running: true }), '对话 ID：`task-1`\n展开或停止请点消息下方按钮；也可发送 `终止 task-1`');
+assert.equal(formatTaskFooter('task-1', { running: true }), '对话 ID：`task-1`');
 assert.equal(formatTaskFooter(null), '');
 assert.match(formatListReply([]), /没有未结束/);
 
@@ -1830,11 +1832,11 @@ assert.equal(renderProgressView({
     { kind: 'tool', tools: [{ name: 'Read', detail: 'src/a.js' }] },
     { kind: 'assistant', text: '正在看复制按钮' }
   ]
-}), '**执行中**\n\n**思考过程**\n> 正在读取文件\n\n正在看复制按钮');
+}), '**t1**\n\n**执行中**\n\n**思考过程**\n> 正在读取文件\n\n正在看复制按钮');
 assert.equal(renderProgressView({
   header: '**t1**',
   transcript: [{ kind: 'tool', tools: [{ name: 'Read', detail: 'src/a.js' }] }]
-}), '**执行中**\n\n**思考过程**\n> 正在读取文件');
+}), '**t1**\n\n**执行中**\n\n**思考过程**\n> 正在读取文件');
 const collapsed = renderProgressView({
   header: '**t1**',
   transcript: [
@@ -1858,7 +1860,7 @@ const finishedView = renderProgressView({
   footer: '任务 **t1** 已完成',
   finished: true
 });
-assert.match(finishedView, /最终结果|思考过程/);
+assert.match(finishedView, /结论|思考过程/);
 assert.match(finishedView, /复制按钮已修好/);
 assert.doesNotMatch(finishedView, /src\/a\.js/);
 assert.equal(finishedView.includes('**正在**'), false);
@@ -1868,9 +1870,9 @@ const danceTitles = [0, 1, 2, 3, 4].map((tick) => renderProgressView({
   transcript: [],
   tick
 }).split('\n')[0]);
-assert.deepEqual(danceTitles, Array(5).fill('**思考中**'));
+assert.deepEqual(danceTitles, Array(5).fill('**t1** 继续'));
 assert.equal(new Set([0, 1, 2, 3].map((tick) => danceFrame(tick))).size, 1);
-assert.equal(renderProgressView({ header: '**t1**', transcript: [], tick: 1 }), '**思考中**');
+assert.equal(renderProgressView({ header: '**t1**', transcript: [], tick: 1 }), '**t1**\n\n**思考中**');
 const runningBox = renderProgressView({
   header: '**task-live** 继续',
   transcript: [{ kind: 'tool', tools: [{ name: 'Read', detail: 'src/a.js' }] }],
@@ -1882,7 +1884,7 @@ assert.equal(runningBox.includes('**点击终止**'), false);
 // The id and the typed stop command are the fallback when no button rendered,
 // and there is no way to know that from here, so they are always present.
 assert.match(runningBox, /对话 ID：`task-live`/);
-assert.match(runningBox, /终止 task-live/);
+assert.doesNotMatch(runningBox, /终止 task-live|查看完整过程/);
 assert.equal(
   renderProgressView({
     header: '**task-live**',
@@ -1900,7 +1902,7 @@ const emptyFinish = renderProgressView({
   finished: true,
   taskId: 't-empty'
 });
-assert.match(emptyFinish, /最终结果/);
+assert.match(emptyFinish, /结论/);
 assert.doesNotMatch(emptyFinish, /src\/a\.js/);
 const expandedProcess = renderProgressView({
   header: '**t1**',
@@ -1968,7 +1970,7 @@ const cotCollapsed = renderProgressView({
   header: '**t-cot**',
   transcript: [{ kind: 'thinking', text: '我现在考虑是不是应该先调用 AST Agent，但是又需要判断当前文件是否存在' }]
 });
-assert.equal(cotCollapsed, '**思考中**');
+assert.equal(cotCollapsed, '**t-cot**\n\n**思考中**');
 assert.doesNotMatch(cotCollapsed, /AST Agent|当前文件/);
 // One document carries everything now: the tool step appears as its redacted
 // summary, the private reasoning and the raw command never leave the process.
@@ -1996,6 +1998,24 @@ assert.equal(uiState.status, 'completed');
 assert.equal(uiState.thinking.total, 1);
 assert.match(uiState.result.content, /问题在复制按钮/);
 
+const compactNativeThinking = renderProgressView({
+  header: '> **user-a：**\n> 修复检索页交互',
+  thinkTag: true,
+  taskId: 'task-compact',
+  transcript: [
+    { kind: 'assistant', text: '已定位到检索组件，正在核对触发条件。' },
+    { kind: 'tool', tools: [{ name: 'Read', detail: 'a.js' }] },
+    { kind: 'tool', tools: [{ name: 'Grep', detail: 'submit' }] },
+    { kind: 'tool', tools: [{ name: 'Read', detail: 'b.js' }] },
+    { kind: 'assistant', text: '解析器单测已通过，下一步进行 E2E 验证。' }
+  ]
+});
+assert.match(compactNativeThinking, /^> \*\*user-a：\*\*[\s\S]*<think>/);
+assert.match(compactNativeThinking, /已定位到检索组件[\s\S]*解析器单测已通过/);
+assert.match(compactNativeThinking, /正在读取文件（2 次）/);
+assert.equal(compactNativeThinking.includes('对话 ID'), false);
+assert.equal(compactNativeThinking.includes('</think>'), false);
+
 const streamUpdates = [];
 const hub = createWeComProgressHub({
   danceMs: 2500,
@@ -2015,7 +2035,9 @@ await hub.handle({ type: 'cursor.run.started', taskId: 'task-live' });
 assert.equal(streamUpdates.at(-1).finish, false);
 // Status line, thinking log and current output share one document, and the log
 // rides inside WeCom's `<think>` block so the client renders it collapsed.
-assert.match(streamUpdates.at(-1).content, /思考中[\s\S]*<think>[\s\S]*Agent 已开始执行[\s\S]*<\/think>/);
+assert.match(streamUpdates.at(-1).content, /^已创建任务 \*\*task-live\*\*[\s\S]*<think>[\s\S]*Agent 已开始执行$/);
+assert.equal(streamUpdates.at(-1).content.includes('</think>'), false);
+assert.equal(streamUpdates.at(-1).content.includes('对话 ID'), false);
 assert.equal(streamUpdates.at(-1).content.includes('<thinking>'), false);
 await hub.handle({
   type: 'cursor.message',
@@ -2094,6 +2116,7 @@ await listeners.at(-1)({
 });
 assert.equal(streamUpdates.at(-1).finish, true);
 assert.match(streamUpdates.at(-1).content, /已完成[\s\S]*修改已完成/);
+assert.match(streamUpdates.at(-1).content, /<think>[\s\S]*<\/think>[\s\S]*结论/);
 // The thinking preview stays in the finished view so it remains readable
 // without a second round trip; raw tool arguments still do not leak.
 assert.doesNotMatch(streamUpdates.at(-1).content, /Read src\/copy\.js/);
@@ -2128,7 +2151,8 @@ await ttlHub.handle({
 });
 assert.equal(ttlStream.length, 2);
 assert.equal(ttlStream.at(-1).finish, true, '到期前自己收尾，不等企微拒绝');
-assert.match(ttlStream.at(-1).content, /实时进度已到企微/);
+assert.doesNotMatch(ttlStream.at(-1).content, /实时进度已到企微|任务仍在运行/);
+assert.match(ttlStream.at(-1).content, /对话 ID：`task-long`/);
 assert.match(ttlStream.at(-1).content, /还在改代码/);
 assert.equal(ttlStream.at(-1).content.includes('**✅ 最终结论**'), false, '任务还没结束，不能当结论收');
 assert.equal(ttlStream.at(-1).content.includes('🐧'), false);
@@ -2164,7 +2188,7 @@ await listeners.at(-1)({
 });
 assert.equal(ttlPushed.length, 1, '终态归 notifier 发，进度通道不重复推一条');
 assert.equal(longFinish.length, 1, '终态直接发送 Agent 的最终文本');
-assert.match(longFinish[0].body.markdown.content, /最终结果[\s\S]*修改已完成/);
+assert.match(longFinish[0].body.markdown.content, /结论[\s\S]*修改已完成/);
 assert.equal(ttlHub.has('task-long'), false);
 await ttlHub.close();
 
@@ -2229,7 +2253,8 @@ soloHub.open({ taskId: 'task-solo', frame: textFrame, streamId: 'stream-solo', h
 soloClock += 9 * MINUTE;
 await soloHub.handle({ taskId: 'task-solo', type: 'cursor.message', payload: { type: 'assistant', text: 'y' } });
 assert.equal(soloStream.at(-1).finish, true);
-assert.match(soloStream.at(-1).content, /实时进度已到企微/);
+assert.doesNotMatch(soloStream.at(-1).content, /实时进度已到企微|任务仍在运行/);
+assert.match(soloStream.at(-1).content, /对话 ID：`task-solo`/);
 assert.match(soloStream.at(-1).content, /y/);
 assert.equal(soloHub.has('task-solo'), false);
 
@@ -2494,7 +2519,7 @@ const imageHandled = await handleWeComMedia({
 assert.equal(imageHandled.action.type, 'created');
 assert.match(imageHandled.action.task.requirement, /bug\.png/);
 assert.equal(imageHandled.action.task.context?.attachments?.[0]?.filename, 'bug.png');
-assert.equal(imageReplies[0], '处理中');
+assert.equal(imageReplies[0].endsWith(THINKING_TEXT), true);
 
 const voiceHandled = await handleWeComMedia({
   ...textFrame,
@@ -2634,6 +2659,60 @@ assert.equal(
 );
 assert.equal(resolveWeComIntentConfig({ env: { AAFE_WECOM_INTENT_ENABLED: 'false' } }).enabled, false);
 
+const hy4Gateway = resolveWeComLlmConfig({
+  local: {
+    llm: {
+      defaultProvider: 'hy4',
+      providers: {
+        hy4: {
+          endpoint: 'http://127.0.0.1:4000/v1/chat/completions',
+          model: 'Hy4-preview',
+          apiKeyEnv: 'HY4_API_KEY',
+          timeoutMs: 12000
+        }
+      },
+      policies: {
+        intent: { providers: ['hy4'], retries: 0 },
+        chat: { providers: ['hy4'], retries: 0 }
+      }
+    }
+  }
+});
+assert.equal(hy4Gateway.defaultProvider, 'hy4');
+assert.equal(hy4Gateway.providers.hy4.model, 'Hy4-preview');
+assert.equal(hy4Gateway.providers.hy4.apiKeyEnv, 'HY4_API_KEY');
+const hy4IntentConfig = resolveWeComIntentConfig({
+  local: { intent: { provider: 'hy4' } },
+  llm: hy4Gateway,
+  apiKey: 'crsr_x'
+});
+assert.equal(hy4IntentConfig.provider, 'hy4');
+assert.equal(hy4IntentConfig.modelGateway.providers.hy4.endpoint, 'http://127.0.0.1:4000/v1/chat/completions');
+// Normal LLM routing does not overwrite the Coding Agent key.
+assert.equal(hy4IntentConfig.cursorApiKey, 'crsr_x');
+
+const gatewayIntentRequests = [];
+const gatewayAnalyzer = createIntentAnalyzer({
+  settings: hy4IntentConfig,
+  env: { HY4_API_KEY: 'hy4-secret' },
+  fetchImpl: async (_url, request) => {
+    gatewayIntentRequests.push(JSON.parse(request.body));
+    assert.equal(request.headers.authorization, 'Bearer hy4-secret');
+    return {
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: '{"kind":"question","needs_code":false,"summary":"问时间","confidence":0.77}' } }]
+      })
+    };
+  }
+});
+assert.equal(gatewayAnalyzer.backend, 'gateway');
+const gatewayIntent = await gatewayAnalyzer.analyze({ text: AMBIGUOUS });
+assert.equal(gatewayIntent.kind, 'question');
+assert.equal(gatewayIntent.source, 'gateway');
+assert.equal(gatewayIntentRequests[0].model, 'Hy4-preview');
+assert.deepEqual(gatewayIntentRequests[0].response_format, { type: 'json_object' });
+
 // The fast path answers without a model wherever the signal is unmistakable.
 let modelCalls = 0;
 const countingAnalyzer = createIntentAnalyzer({
@@ -2740,7 +2819,8 @@ await handleWeComMessage({
     hasConfigured() { return true; }
   }
 });
-assert.deepEqual(ackOrder.slice(0, 2), ['ack:处理中', 'refresh:start']);
+assert.equal(ackOrder[0].endsWith(THINKING_TEXT), true);
+assert.equal(ackOrder[1], 'refresh:start');
 
 const stageReplies = [];
 const stageUpdates = [];
@@ -2771,7 +2851,7 @@ const analysisHandled = await handleWeComMessage({
 });
 // The transport ACK is sent before classification or workspace discovery.
 assert.equal(stageReplies.length, 1);
-assert.equal(stageReplies[0], '处理中');
+assert.equal(stageReplies[0].endsWith(THINKING_TEXT), true);
 // Repository analysis must choose its target instead of guessing the bot root.
 assert.equal(analysisHandled.action.type, 'need-workspace');
 assert.equal(analysisHandled.intent.kind, 'analysis');
@@ -2805,7 +2885,7 @@ await handleWeComMessage({
     }
   }
 });
-assert.equal(slowStageReplies[0], '处理中');
+assert.equal(slowStageReplies[0].endsWith(THINKING_TEXT), true);
 assert.match(slowStageUpdates.at(-1), /需要先选定仓库/);
 
 // A classifier that throws must not cost the turn.
@@ -2939,7 +3019,7 @@ const readingAnalysis = await resolveWeComAction({
 assert.equal(readingAnalysis.type, 'need-workspace');
 
 assert.equal(codeHandled.action.type, 'need-workspace');
-assert.equal(codeStageReplies[0], '处理中');
+assert.equal(codeStageReplies[0].endsWith(THINKING_TEXT), true);
 assert.match(codeStageUpdates.at(-1), /需要先选定仓库/);
 assert.equal(intentPending.get('user-a').intent.kind, 'code');
 
@@ -2960,7 +3040,7 @@ const chosenAfterIntent = await handleWeComMessage({
 });
 assert.equal(chosenAfterIntent.action.type, 'created');
 assert.equal(chosenAfterIntent.action.task.context.intent.kind, 'code');
-assert.equal(chosenAfterIntent.reply, '处理中');
+assert.equal(chosenAfterIntent.reply.endsWith(THINKING_TEXT), true);
 
 // Control words keep the regex fast path so a stop stays instant.
 let classifications = 0;
@@ -3078,7 +3158,7 @@ const modelRouted = await handleWeComMessage({
 });
 assert.equal(modelRouted.action.task.model, 'gpt-5.4-mini');
 assert.equal(modelRouted.action.model.ruleId, 'simple-analysis');
-assert.equal(modelReplies.at(-1), '处理中');
+assert.equal(modelReplies.at(-1).endsWith(THINKING_TEXT), true);
 
 const codeRouted = await handleWeComMessage({
   ...textFrame,
@@ -3237,6 +3317,30 @@ const brokenChat = createChatResponder({
 });
 assert.equal(await brokenChat.reply('x'), null);
 
+const gatewayChatRequests = [];
+const gatewayChat = createChatResponder({
+  settings: {
+    enabled: true,
+    modelGateway: hy4Gateway,
+    chatProvider: 'hy4',
+    chatPolicy: 'chat',
+    chatMaxOutputTokens: 128
+  },
+  env: { HY4_API_KEY: 'hy4-secret' },
+  fetchImpl: async (_url, request) => {
+    gatewayChatRequests.push(JSON.parse(request.body));
+    assert.equal(request.headers.authorization, 'Bearer hy4-secret');
+    return {
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: '可以，通过 LiteLLM 统一接入。' } }] })
+    };
+  }
+});
+assert.equal(gatewayChat.backend, 'gateway');
+assert.equal(await gatewayChat.reply('Hy4 怎么接入'), '可以，通过 LiteLLM 统一接入。');
+assert.equal(gatewayChatRequests[0].model, 'Hy4-preview');
+assert.equal(gatewayChatRequests[0].max_tokens, 128);
+
 // The chat stage is routable like any other.
 assert.equal(createModelRouter({ logger: { error() {} } }).model({ stage: 'chat', text: 'x' }), 'gpt-5.4-mini');
 assert.equal(validateModelRules([{ id: 'c', model: 'x', stage: 'chat' }]).ok, true);
@@ -3355,7 +3459,7 @@ const booting = bootFrames.at(-1).content;
 assert.equal(booting.includes('等待 Agent 输出'), false);
 assert.equal(booting.includes('排队中'), false);
 assert.equal(booting.includes('已接入 Agent'), false);
-assert.match(booting, /思考中|准备任务/);
+assert.match(booting, /<think>[\s\S]*Agent 已开始执行$/);
 assert.match(booting, /Agent 已开始执行/);
 // Real work does show up.
 await bootHub.handle({
@@ -3363,7 +3467,7 @@ await bootHub.handle({
   type: 'cursor.message',
   payload: { tools: [{ name: 'shell', detail: 'npm test' }] }
 });
-assert.match(bootFrames.at(-1).content, /执行中[\s\S]*正在执行命令/);
+assert.match(bootFrames.at(-1).content, /<think>[\s\S]*正在执行命令$/);
 assert.doesNotMatch(bootFrames.at(-1).content, /npm test/);
 await bootHub.close();
 
@@ -3384,7 +3488,7 @@ const cardedTask = await handleWeComMessage({
 });
 assert.equal(cardedTask.action.type, 'created');
 assert.equal(carded.length, 1);
-assert.equal(carded[0].content, '处理中');
+assert.equal(carded[0].content.endsWith(THINKING_TEXT), true);
 assert.equal(carded[0].card, null);
 assert.equal(carded[0].finish, false);
 

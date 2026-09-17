@@ -95,6 +95,7 @@ export async function loadWeComBotConfig({
     repository,
     baseBranch
   });
+  const llm = resolveWeComLlmConfig({ env, local });
   return {
     root: projectRoot,
     botId,
@@ -138,7 +139,8 @@ export async function loadWeComBotConfig({
     ),
     localConfigPath: local.path ?? null,
     log: resolveWeComLogConfig({ env, local, root: projectRoot }),
-    intent: { ...resolveWeComIntentConfig({ env, local, apiKey: provider === 'cursor' ? apiKey : null }),
+    llm,
+    intent: { ...resolveWeComIntentConfig({ env, local, apiKey: provider === 'cursor' ? apiKey : null, llm }),
       ...(provider === 'codex' ? { codex } : {}) },
     models: resolveWeComModelConfig({ env, local: { ...local, models: cursor.models }, model: cursor.model }),
     tapd: resolveWeComTapdConfig({ env, local, project: projectConfig }),
@@ -182,13 +184,18 @@ export function resolveWeComTapdConfig({ env = {}, local = {}, project = {} } = 
  * `cursorModel` stays null unless set on purpose, so the `intent` stage rule in
  * `models.rules` is what normally picks the classifier model.
  */
-export function resolveWeComIntentConfig({ env = {}, local = {}, apiKey = null } = {}) {
+export function resolveWeComIntentConfig({ env = {}, local = {}, apiKey = null, llm = null } = {}) {
   const raw = local.intent ?? {};
   const enabled = parseBoolean(env.AAFE_WECOM_INTENT_ENABLED ?? raw.enabled, true);
   const timeout = Number(env.AAFE_WECOM_INTENT_TIMEOUT_MS ?? raw.timeoutMs);
   const endpoint = firstNonEmpty(env.AAFE_WECOM_INTENT_ENDPOINT, raw.endpoint);
   return {
     enabled,
+    provider: firstNonEmpty(env.AAFE_WECOM_INTENT_PROVIDER, raw.provider, raw.gatewayProvider),
+    policy: firstNonEmpty(env.AAFE_WECOM_INTENT_POLICY, raw.policy, raw.gatewayPolicy) ?? 'intent',
+    chatProvider: firstNonEmpty(env.AAFE_WECOM_CHAT_PROVIDER, raw.chatProvider),
+    chatPolicy: firstNonEmpty(env.AAFE_WECOM_CHAT_POLICY, raw.chatPolicy) ?? 'chat',
+    modelGateway: llm ?? resolveWeComLlmConfig({ env, local }),
     endpoint,
     model: firstNonEmpty(env.AAFE_WECOM_INTENT_MODEL, raw.model),
     apiKey: firstNonEmpty(env.AAFE_WECOM_INTENT_API_KEY, raw.apiKey),
@@ -199,6 +206,50 @@ export function resolveWeComIntentConfig({ env = {}, local = {}, apiKey = null }
     tokenBudget: Number(raw.tokenBudget) > 0 ? Number(raw.tokenBudget) : 4096,
     maxOutputTokens: Number(raw.maxOutputTokens) > 0 ? Number(raw.maxOutputTokens) : 256,
     chatMaxOutputTokens: Number(raw.chatMaxOutputTokens) > 0 ? Number(raw.chatMaxOutputTokens) : 768
+  };
+}
+
+/**
+ * Normal LLM model providers are configured separately from Coding Agents.
+ * These providers are OpenAI-compatible chat-completions endpoints, typically
+ * exposed by LiteLLM Proxy. They are used by intent/chat flows only.
+ */
+export function resolveWeComLlmConfig({ env = {}, local = {} } = {}) {
+  const raw = isPlainObject(local.llm) ? local.llm
+    : isPlainObject(local.modelGateway) ? local.modelGateway
+      : {};
+  const envProvider = firstNonEmpty(env.AAFE_WECOM_LLM_PROVIDER, env.AAFE_LLM_PROVIDER);
+  const defaultProvider = firstNonEmpty(raw.defaultProvider, raw.provider, envProvider) ?? 'default';
+  const rawProviders = isPlainObject(raw.providers) ? raw.providers : {};
+  const providers = {};
+  for (const [id, value] of Object.entries(rawProviders)) {
+    if (!isPlainObject(value)) continue;
+    providers[id] = normalizeLlmProviderConfig(value);
+  }
+  const envEndpoint = firstNonEmpty(env.AAFE_WECOM_LLM_ENDPOINT, env.AAFE_LLM_ENDPOINT);
+  const envModel = firstNonEmpty(env.AAFE_WECOM_LLM_MODEL, env.AAFE_LLM_MODEL);
+  const inlineEndpoint = firstNonEmpty(raw.endpoint, raw.baseUrl, envEndpoint);
+  const inlineModel = firstNonEmpty(raw.model, envModel);
+  if (inlineEndpoint || inlineModel || raw.apiKey || raw.apiKeyEnv || env.AAFE_WECOM_LLM_API_KEY || env.AAFE_LLM_API_KEY) {
+    providers[defaultProvider] = {
+      ...providers[defaultProvider],
+      endpoint: firstNonEmpty(envEndpoint, raw.endpoint, raw.baseUrl, providers[defaultProvider]?.endpoint),
+      model: firstNonEmpty(envModel, raw.model, providers[defaultProvider]?.model),
+      apiKey: firstNonEmpty(env.AAFE_WECOM_LLM_API_KEY, env.AAFE_LLM_API_KEY, raw.apiKey, providers[defaultProvider]?.apiKey),
+      apiKeyEnv: firstNonEmpty(raw.apiKeyEnv, providers[defaultProvider]?.apiKeyEnv) ?? 'AAFE_LLM_API_KEY',
+      timeoutMs: positiveNumber(raw.timeoutMs, providers[defaultProvider]?.timeoutMs),
+      tokenBudget: positiveNumber(raw.tokenBudget, providers[defaultProvider]?.tokenBudget),
+      maxOutputTokens: positiveNumber(raw.maxOutputTokens, providers[defaultProvider]?.maxOutputTokens),
+      temperature: numberOrUndefined(raw.temperature, providers[defaultProvider]?.temperature)
+    };
+  }
+  const routes = isPlainObject(raw.routes) ? { ...raw.routes } : {};
+  return {
+    enabled: parseBoolean(raw.enabled, Object.keys(providers).length > 0),
+    defaultProvider,
+    routes,
+    providers,
+    policies: isPlainObject(raw.policies) ? raw.policies : {}
   };
 }
 
@@ -323,6 +374,8 @@ export async function readLocalWeComConfig(root, { extraPath = null } = {}) {
       cursor: { ...merged.cursor, ...parsed.cursor },
       codex: { ...merged.codex, ...parsed.codex },
       workflow: { ...merged.workflow, ...parsed.workflow },
+      llm: mergeObjectOrValue(merged.llm, parsed.llm),
+      modelGateway: mergeObjectOrValue(merged.modelGateway, parsed.modelGateway),
       path: file
     };
   }
@@ -384,6 +437,8 @@ export function normalizeLocalWeComValues(raw = {}) {
     workspaces: raw.workspaces,
     log: normalizeLogValue(raw.log ?? raw.WECOM_LOG),
     intent: raw.intent,
+    llm: isPlainObject(raw.llm) ? raw.llm : undefined,
+    modelGateway: isPlainObject(raw.modelGateway) ? raw.modelGateway : undefined,
     models: raw.models,
     tapd: raw.tapd,
     repo: isPlainObject(raw.repo) ? raw.repo : undefined
@@ -433,6 +488,42 @@ function omitEmpty(value) {
   return Object.fromEntries(
     Object.entries(value).filter(([, item]) => nonEmpty(item) != null)
   );
+}
+
+function mergeObjectOrValue(base, next) {
+  if (isPlainObject(base) && isPlainObject(next)) {
+    return {
+      ...base,
+      ...next,
+      providers: { ...base.providers, ...next.providers },
+      policies: { ...base.policies, ...next.policies },
+      routes: { ...base.routes, ...next.routes }
+    };
+  }
+  return next ?? base;
+}
+
+function normalizeLlmProviderConfig(raw = {}) {
+  return omitEmpty({
+    endpoint: firstNonEmpty(raw.endpoint, raw.baseUrl, raw.url),
+    model: firstNonEmpty(raw.model),
+    apiKey: firstNonEmpty(raw.apiKey),
+    apiKeyEnv: firstNonEmpty(raw.apiKeyEnv),
+    timeoutMs: positiveNumber(raw.timeoutMs),
+    tokenBudget: positiveNumber(raw.tokenBudget),
+    maxOutputTokens: positiveNumber(raw.maxOutputTokens),
+    temperature: numberOrUndefined(raw.temperature)
+  });
+}
+
+function positiveNumber(value, fallback = undefined) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : fallback;
+}
+
+function numberOrUndefined(value, fallback = undefined) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
 }
 
 function unquote(value) {

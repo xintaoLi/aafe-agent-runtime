@@ -149,7 +149,8 @@ export function renderProgressView({
   supportsTemplateCards = true,
   // Only a streaming reply renders `<think>` as a collapsible area; a pushed
   // markdown message would show the tag as literal text.
-  thinkTag = false
+  thinkTag = false,
+  closeThinking = false
 } = {}) {
   const dancing = animate && !finished && status !== 'canceling' && status !== 'canceled'
     && status !== 'completed' && status !== 'failed' && status !== 'blocked';
@@ -163,7 +164,8 @@ export function renderProgressView({
     taskId,
     presentation,
     supportsTemplateCards,
-    thinkTag
+    thinkTag,
+    thinkClosed: finished || closeThinking
   }), { thinkTag }), maxBytes);
 }
 
@@ -324,7 +326,9 @@ export function createWeComProgressHub({
       animate: false,
       taskId: session.taskId,
       presentation: session.presentation,
-      supportsTemplateCards: Boolean(supportsTemplateCard?.())
+      supportsTemplateCards: Boolean(supportsTemplateCard?.()),
+      thinkTag: true,
+      closeThinking: true
     });
     capture(session, { finished: false });
     try {

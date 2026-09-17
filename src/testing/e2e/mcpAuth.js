@@ -185,6 +185,7 @@ export async function prepareTokenAuth(config, server, {
   } catch {
     return authFailure('login-verify');
   }
+  console.error('E2E 认证：Get Token MCP 调用成功，Cookie 已注入且登录态验证通过。');
   return { mode: 'mcp', cookies, verified: true };
 }
 

@@ -566,7 +566,43 @@ Cursor Cloud 切到 Codex 时，还需将 `currentWorkspace` 改成本地工作�
 
 ## 配置与预算
 
-分类和问答共用 `intent` 后端，输出预算独立。在 `wecom.local.json` 设置：
+分类和问答优先使用供应商无关的普通模型网关；Cursor/Codex 只作为代码任务执行器，不承载普通 LLM 配置。推荐用 LiteLLM Proxy 暴露 OpenAI-compatible `/v1/chat/completions`，例如接入 Hy4-preview：
+
+```json
+{
+  "provider": "cursor",
+  "llm": {
+    "defaultProvider": "hy4",
+    "providers": {
+      "hy4": {
+        "endpoint": "http://127.0.0.1:4000/v1/chat/completions",
+        "model": "Hy4-preview",
+        "apiKeyEnv": "HY4_API_KEY",
+        "timeoutMs": 25000,
+        "tokenBudget": 4096,
+        "maxOutputTokens": 768
+      }
+    },
+    "policies": {
+      "intent": { "providers": ["hy4"], "retries": 0 },
+      "chat": { "providers": ["hy4"], "retries": 0 }
+    }
+  },
+  "intent": {
+    "enabled": true,
+    "provider": "hy4",
+    "policy": "intent",
+    "chatProvider": "hy4",
+    "chatPolicy": "chat",
+    "maxOutputTokens": 256,
+    "chatMaxOutputTokens": 768
+  }
+}
+```
+
+`provider` 仍表示代码执行器，只能是 `cursor` 或 `codex`；`llm.providers.hy4` 才是普通模型供应商配置。Hy4-preview 用于意图识别和普通问答，代码读写、Git、MCP、E2E 继续由当前执行器处理。`apiKeyEnv` 指向 Bot 进程环境变量；也可以在本地配置里放 `apiKey`，但不建议提交到仓库。
+
+旧配置仍兼容：分类和问答可继续共用 `intent.endpoint/model` 后端，输出预算独立。在 `wecom.local.json` 设置：
 
 ```json
 {

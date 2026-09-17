@@ -27,6 +27,7 @@ import { normalizeUsage } from '../../../src/llm/usage.js';
 import { CodexTaskRuntime } from '../../../src/agent-platform/runtime/CodexTaskRuntime.js';
 import { randomUUID } from 'node:crypto';
 import { recordInvocationSafely } from '../../../src/telemetry/index.js';
+import { createWeComModelGateway, resolveModelGatewayRoute } from './llm-gateway.js';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 /** Answering a question never reads the project, so it runs outside it. */
@@ -80,9 +81,26 @@ export function createChatResponder({
       timeoutMs
     }, { fetchImpl, env })
     : null;
+  const gateway = settings.modelGateway?.enabled !== false
+    ? createWeComModelGateway({
+      config: settings.modelGateway,
+      env,
+      fetchImpl,
+      logger,
+      metricStore,
+      operation: 'chat'
+    })
+    : null;
+  const gatewayRoute = resolveModelGatewayRoute({
+    ...settings,
+    provider: settings.chatProvider ?? settings.provider,
+    policy: settings.chatPolicy ?? settings.policy
+  }, 'chat');
   const cursorKey = settings.cursorApiKey ?? null;
   const loadSdk = importSdk ?? (() => import('@cursor/sdk'));
-  const backend = !enabled ? 'none' : http?.isConfigured() ? 'llm' : settings.codex ? 'codex' : cursorKey ? 'cursor' : 'none';
+  const backend = !enabled ? 'none'
+    : gateway ? 'gateway'
+      : http?.isConfigured() ? 'llm' : settings.codex ? 'codex' : cursorKey ? 'cursor' : 'none';
 
   async function callCodex(text) {
     const startedAt = new Date();
@@ -107,6 +125,20 @@ export function createChatResponder({
       { role: 'user', content: text }
     ]);
     if (result.status !== 'success') throw new Error(result.reason ?? 'llm-failed');
+    return result.content ?? '';
+  }
+
+  async function callGateway(text) {
+    const result = await gateway.chat([
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: text }
+    ], {
+      provider: gatewayRoute.provider,
+      policy: gatewayRoute.policy,
+      maxOutputTokens: settings.chatMaxOutputTokens ?? 768,
+      telemetry: { source: 'wecom', operation: 'chat' }
+    });
+    if (result.status !== 'success') throw new Error(result.reason ?? 'model-gateway-failed');
     return result.content ?? '';
   }
 
@@ -140,7 +172,8 @@ export function createChatResponder({
       if (!body || backend === 'none') return null;
       try {
         const raw = backend === 'codex' ? await callCodex(body)
-          : await withTimeout(backend === 'llm' ? callHttp(body) : callCursor(body), timeoutMs);
+          : await withTimeout(backend === 'gateway' ? callGateway(body)
+            : backend === 'llm' ? callHttp(body) : callCursor(body), timeoutMs);
         return clean(raw);
       } catch (error) {
         logger.warn?.(`wecom-chat-failed:${backend}:${error instanceof Error ? error.message : error}`);

@@ -27,6 +27,7 @@ import { scanTaskId } from './quote.js';
 import { scratchPrompt } from './scratch.js';
 import { normalizeUsage } from '../../../src/llm/usage.js';
 import { recordInvocationSafely } from '../../../src/telemetry/index.js';
+import { createWeComModelGateway, resolveModelGatewayRoute } from './llm-gateway.js';
 
 export const INTENT_KINDS = Object.freeze(['code', 'analysis', 'question', 'followup']);
 
@@ -329,6 +330,17 @@ export function createIntentAnalyzer({
       timeoutMs
     }, { fetchImpl, env })
     : null;
+  const gateway = settings.modelGateway?.enabled !== false
+    ? createWeComModelGateway({
+      config: settings.modelGateway,
+      env,
+      fetchImpl,
+      logger,
+      metricStore,
+      operation: 'intent'
+    })
+    : null;
+  const gatewayRoute = resolveModelGatewayRoute(settings, 'intent');
   const cursorKey = settings.cursorApiKey ?? null;
   const loadSdk = importSdk ?? (() => import('@cursor/sdk'));
   // Explicit config wins over the rule table; model names live in models.js,
@@ -338,7 +350,9 @@ export function createIntentAnalyzer({
     ?? null;
   const backend = !enabled
     ? 'rules'
-    : http?.isConfigured()
+    : gateway
+      ? 'gateway'
+      : http?.isConfigured()
       ? 'llm'
       : cursorKey
         ? 'cursor'
@@ -356,6 +370,25 @@ export function createIntentAnalyzer({
     });
     if (result.status !== 'success') throw new Error(result.reason ?? 'llm-failed');
     return result.data ?? result.content;
+  }
+
+  async function callGateway(payload) {
+    const result = await gateway.chat([
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: JSON.stringify(payload) }
+    ], {
+      provider: gatewayRoute.provider,
+      policy: gatewayRoute.policy,
+      responseFormat: { type: 'json_object' },
+      maxOutputTokens: settings.maxOutputTokens ?? 256,
+      telemetry: { source: 'wecom', operation: 'intent' },
+      telemetryFromResult: (response) => {
+        const parsed = response.status === 'success' ? parseIntent(response.content) : null;
+        return parsed ? { route: parsed.kind, routeConfidence: parsed.confidence } : {};
+      }
+    });
+    if (result.status !== 'success') throw new Error(result.reason ?? 'model-gateway-failed');
+    return result.content ?? '';
   }
 
   async function callCursor(payload) {
@@ -404,7 +437,8 @@ export function createIntentAnalyzer({
       const startedAt = now();
       try {
         const response = await withTimeout(
-          backend === 'llm' ? callHttp(payload) : callCursor(payload),
+          backend === 'gateway' ? callGateway(payload)
+            : backend === 'llm' ? callHttp(payload) : callCursor(payload),
           timeoutMs
         );
         const raw = backend === 'cursor' ? response.raw : response;
